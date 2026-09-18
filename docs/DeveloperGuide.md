@@ -9,7 +9,7 @@ title: Developer Guide
 
 ## **Acknowledgements**
 
-* _{List the sources of reused or adapted ideas, code, documentation, and third-party libraries here, with links to the originals.}_
+* The remark command follows the [SE-EDU adding a command tutorial](https://se-education.org/guides/tutorials/ab3AddRemark.html).
 
 --------------------------------------------------------------------------------------------------------------------
 
