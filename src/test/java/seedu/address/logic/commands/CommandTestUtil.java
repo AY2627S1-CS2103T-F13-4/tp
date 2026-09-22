@@ -68,6 +68,9 @@ public class CommandTestUtil {
                 .withTags(VALID_TAG_HUSBAND, VALID_TAG_FRIEND).build();
     }
 
+    public static final String VALID_REMARK_AMY = "Like skiing.";
+    public static final String VALID_REMARK_BOB = "Favorite pastime: Eating";
+
     /**
      * Executes the given {@code command}, confirms that <br>
      * - the returned {@link CommandResult} matches {@code expectedCommandResult} <br>
