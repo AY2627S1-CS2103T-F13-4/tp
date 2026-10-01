@@ -33,7 +33,7 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 
 <img src="images/dygrik.png" width="200px">
 
-[[github](http://github.com/dygrik)] [[portfolio](team/dygrik.md)]
+[[github](http://github.com/dygrik)] [[portfolio](team/johndoe.md)]
 
 * Role: Developer
 * Responsibilities: Developer Guide
