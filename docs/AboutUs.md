@@ -9,15 +9,15 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 
 ## Project team
 
-### John Doe
+### Min Wenn
 
-<img src="images/johndoe.png" width="200px">
+<img src="images/minweed.png" width="200px">
 
-[[homepage](http://www.comp.nus.edu.sg/~damithch)]
-[[github](https://github.com/johndoe)]
-[[portfolio](team/johndoe.md)]
+[[homepage](https://ay2627s1-cs2103t-f13-4.github.io/tp/)]
+[[github](https://github.com/minweed)]
 
-* Role: Project Advisor
+* Role: Developer
+* Responsibilities: UI mockup
 
 ### Jane Doe
 
