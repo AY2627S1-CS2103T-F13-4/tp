@@ -41,11 +41,10 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 
 <img src="images/johndoe.png" width="200px">
 
-[[github](http://github.com/johndoe)]
-[[portfolio](team/johndoe.md)]
+[[github](https://github.com/savemywifi)]
 
 * Role: Developer
-* Responsibilities: Dev Ops + Threading
+* Responsibilities: Website navigation, Site settings
 
 ### James Doe
 
