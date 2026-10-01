@@ -38,9 +38,9 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 * Role: Developer
 * Responsibilities: Data
 
-### Jean Doe
+### Lee Jian Yi
 
-<img src="images/johndoe.png" width="200px">
+<img src="images/savemywifi.png" width="200px">
 
 [[github](https://github.com/savemywifi)]
 
