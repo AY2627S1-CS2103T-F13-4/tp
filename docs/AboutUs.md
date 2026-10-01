@@ -9,44 +9,42 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 
 ## Project team
 
-### John Doe
+### Min Wenn
 
-<img src="images/johndoe.png" width="200px">
+<img src="images/minweed.png" width="200px">
 
-[[homepage](http://www.comp.nus.edu.sg/~damithch)]
-[[github](https://github.com/johndoe)]
-[[portfolio](team/johndoe.md)]
-
-* Role: Project Advisor
-
-### Jane Doe
-
-<img src="images/johndoe.png" width="200px">
-
-[[github](http://github.com/johndoe)]
-[[portfolio](team/johndoe.md)]
-
-* Role: Team Lead
-* Responsibilities: UI
-
-### Johnny Doe
-
-<img src="images/johndoe.png" width="200px">
-
-[[github](http://github.com/johndoe)] [[portfolio](team/johndoe.md)]
+[[homepage](https://ay2627s1-cs2103t-f13-4.github.io/tp/)]
+[[github](https://github.com/minweed)]
 
 * Role: Developer
-* Responsibilities: Data
+* Responsibilities: UI mockup
 
-### Jean Doe
+### Pranav Pappu
 
-<img src="images/johndoe.png" width="200px">
+<img src="images/pranavp311.png" width="200px">
 
-[[github](http://github.com/johndoe)]
-[[portfolio](team/johndoe.md)]
+[[github](https://github.com/pranavp311)]
 
 * Role: Developer
-* Responsibilities: Dev Ops + Threading
+* Responsibilities: README documentation
+
+### Dylan Sim
+
+<img src="images/dygrik.png" width="200px">
+
+[[github](http://github.com/dygrik)] [[portfolio](team/johndoe.md)]
+
+* Role: Developer
+* Responsibilities: Developer Guide
+
+### Lee Jian Yi
+
+<img src="images/savemywifi.png" width="200px">
+
+[[github](https://github.com/savemywifi)]
+
+* Role: Developer
+* Responsibilities: Website navigation, Site settings
 
 ### James Doe
 
