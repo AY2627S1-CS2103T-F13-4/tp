@@ -16,8 +16,8 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 [[homepage](https://ay2627s1-cs2103t-f13-4.github.io/tp/)]
 [[github](https://github.com/minweed)]
 
-* Role: Developer
-* Responsibilities: UI mockup
+- Role: Developer
+- Responsibilities: UI mockup
 
 ### Pranav Pappu
 
@@ -25,8 +25,8 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 
 [[github](https://github.com/pranavp311)]
 
-* Role: Developer
-* Responsibilities: README documentation
+- Role: Developer
+- Responsibilities: README documentation
 
 ### Dylan Sim
 
@@ -34,8 +34,8 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 
 [[github](http://github.com/dygrik)] [[portfolio](team/johndoe.md)]
 
-* Role: Developer
-* Responsibilities: Developer Guide
+- Role: Developer
+- Responsibilities: Developer Guide
 
 ### Lee Jian Yi
 
@@ -43,15 +43,14 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 
 [[github](https://github.com/savemywifi)]
 
-* Role: Developer
-* Responsibilities: Website navigation, Site settings
+- Role: Developer
+- Responsibilities: Website navigation, Site settings
 
-### James Doe
+### Mervin Ang
 
-<img src="images/johndoe.png" width="200px">
+<img src="images/nivremi.png" width="200px">
 
-[[github](http://github.com/johndoe)]
-[[portfolio](team/johndoe.md)]
+[[github](http://github.com/nivremi)]
 
-* Role: Developer
-* Responsibilities: UI
+- Role: Developer
+- Responsibilities: Use cases, Non-functional Requirements, and Glossary
