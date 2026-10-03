@@ -8,9 +8,8 @@ title: Developer Guide
 --------------------------------------------------------------------------------------------------------------------
 
 ## **Acknowledgements**
-
-* _{List the sources of reused or adapted ideas, code, documentation, and third-party libraries here, with links to the originals.}_
-
+_{List the sources of reused or adapted ideas, code, documentation, and third-party libraries here, with links to the originals.}_
+* This project is based on the AddressBook-Level3 project created by the [SE-EDU initiative](https://se-education.org).
 --------------------------------------------------------------------------------------------------------------------
 
 ## **Setting up, getting started**
@@ -261,29 +260,55 @@ _{Explain here how the data archiving feature will be implemented}_
 
 **Target user profile**:
 
-* has a need to manage a significant number of contacts
-* prefers desktop apps over other types of applications
-* can type fast
-* prefers typing to mouse interactions
-* is reasonably comfortable using CLI apps
+Independent private tutors who:
+* manage multiple primary- or secondary-school students without administrative support
+* keep track of student details, lesson arrangements, and guardian contacts themselves
+* regularly retrieve and update this information before and after lessons
+* can type quickly and prefer typing over mouse-driven input
 
-**Value proposition**: Manage contacts faster than with a typical mouse-driven GUI application.
+**Value proposition**: StudentBook aims to give independent private tutors one place to keep and 
+quickly retrieve student details, guardian contacts, lesson arrangements, and follow-up notes, 
+reducing the administrative work involved in managing their students.
 
 
 ### User stories
 
 Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unlikely to have) - `*`
 
-| Priority | As a …​                                    | I want to …​                     | So that I can…​                                                        |
-| -------- | ------------------------------------------ | ------------------------------ | ---------------------------------------------------------------------- |
-| `* * *`  | new user                                   | see usage instructions         | refer to instructions when I forget how to use the App                 |
-| `* * *`  | user                                       | add a new person               |                                                                        |
-| `* * *`  | user                                       | delete a person                | remove entries that I no longer need                                   |
-| `* * *`  | user                                       | find a person by name          | locate details of persons without having to go through the entire list |
-| `* *`    | user                                       | hide private contact details   | minimize chance of someone else seeing them by accident                |
-| `*`      | user with many persons in the address book | sort persons by name           | locate a person easily                                                 |
+| ID | Priority | As a …​                                    | I want to …​                     | So that I can…​                                                        |
+|----|----------| ------------------------------------------ | ------------------------------ | ---------------------------------------------------------------------- |
+| 1 | `***` | private tutor | add a student record with a name | I can begin tracking each student |
+| 2 | `***` | private tutor | view the list of current students | I can see who I currently teach |
+| 3 | `***` | private tutor | view a student's subject and schooling level | I can prepare with the relevant academic context |
+| 4 | `***` | private tutor | delete a student record | I can remove leavers and correct unusable entries by re-adding them |
+| 5 | `***` | private tutor | record a student's schooling level | I can choose material at the right level |
+| 6 | `***` | private tutor | record the subject I teach a student | I can remember what I teach each student |
+| 7 | `***` | private tutor | record one guardian's name and contact details for a student | I can reach the right adult about lessons |
+| 8 | `***` | private tutor | view the guardian name and contact details linked to a student | I can contact a guardian without searching elsewhere |
+| 9 | `***` | private tutor | keep my student details and guardian contacts when I close and reopen the app | I can continue my work without re-entering information |
+| 10 | `**` | private tutor | edit a student's name | I can correct typos without recreating the record |
+| 11 | `**` | private tutor | record a student's school | I can remember the student's school context |
+| 12 | `**` | private tutor | update a student's school, schooling level or subjects | I can keep records current as circumstances change |
+| 13 | `**` | private tutor | search for a student by a partial name | I can retrieve a record quickly |
+| 22 | `**` | private tutor | edit a guardian's contact details | I can keep changed phone numbers and emails current |
+| 25 | `**` | private tutor | add a recurring weekly lesson slot to a student | I can remember when the student is taught |
+| 28 | `**` | private tutor | edit a lesson slot | I can reflect an agreed schedule change |
+| 29 | `**` | private tutor | remove a lesson slot | I can clear a cancelled arrangement |
+| 33 | `**` | private tutor | add a dated progress note to a student | I can remember what happened in recent lessons |
+| 34 | `**` | private tutor | view a student's dated progress notes in chronological order | I can recall learning needs before the next lesson |
+| 35 | `**` | private tutor | record a follow-up item for a guardian | I can remember what I need to communicate |
+| 36 | `**` | private tutor | list outstanding guardian follow-up items | I can avoid missing promised updates |
+| 40 | `**` | private tutor learning the app | look up command usage and examples | I can complete a task when I do not remember what to type |
+| 43 | `**` | private tutor | edit a guardian follow-up item | I can keep the recorded request accurate when arrangements change |
+| 44 | `**` | private tutor | mark a guardian follow-up item as complete | I can remove finished work from my outstanding follow-ups |
+| 45 | `**` | private tutor learning the app | see what needs correcting when an entry is rejected | I can fix the entry without guessing why it failed |
+| 46 | `**` | tutor who communicates directly with a student | record the student’s own phone number or email address | keep their contact details with their record |
+| 47 | `**` | tutor who needs to contact a student directly | view the student’s contact details | reach them without searching elsewhere |
+| 48 | `**` | tutor checking a student’s lesson arrangements | view that student’s weekly lesson times | confirm when I teach them |
+| 49 | `**` | tutor planning my week | view all my lessons arranged by day and time | see which students I will teach each day |
+| 52 | `*` | private tutor | export all records to a human-readable file | I can inspect and back up my data outside the app |
 
-*{More to be added}*
+
 
 ### Use cases
 
