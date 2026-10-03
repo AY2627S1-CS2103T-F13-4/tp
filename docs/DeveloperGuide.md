@@ -312,45 +312,150 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 ### Use cases
 
-(For all use cases below, the **System** is the `AddressBook` and the **Actor** is the `user`, unless specified otherwise)
+For all use cases below, the **System** is **StudentBook** and the **Actor** is an independent private tutor.
+The tutor has launched the application unless stated otherwise. **MSS** means main success scenario.
+These use cases describe planned requirements, rather than features already implemented in the inherited application.
+UC01 to UC03 cover the proposed first version in the README. UC04 and UC05 illustrate later features identified in the user stories.
+Command syntax will be specified in the User Guide when the corresponding features are implemented.
 
-**Use case: Delete a person**
+#### UC01: Register a student with a guardian contact
+
+**Related user stories:** 1, 7.
 
 **MSS**
 
-1.  User requests to list persons
-2.  AddressBook shows a list of persons
-3.  User requests to delete a specific person in the list
-4.  AddressBook deletes the person
+1. Tutor requests to add a student, supplying the student's name and one guardian's name and phone number.
+2. StudentBook validates the supplied details.
+3. StudentBook creates the student record with the linked guardian contact and shows a success message.
+4. Tutor requests to list students.
+5. StudentBook displays the list including the new student and guardian contact.
 
-    Use case ends.
+Use case ends.
 
 **Extensions**
 
-* 2a. The list is empty.
+* 2a. A required detail is missing or a supplied value is invalid.
+  * 2a1. StudentBook identifies the invalid or missing detail without adding a record.
+  * 2a2. Tutor corrects the details and submits the request again.
+  * Use case resumes at step 2.
+* 2b. The record duplicates an existing student according to the product's duplicate detection rules.
+  * 2b1. StudentBook reports the duplicate without adding a record.
+  * Use case ends.
 
-  Use case ends.
+#### UC02: Retrieve a guardian's contact details
 
-* 3a. The given index is invalid.
+**Related user stories:** 2, 8.
 
-    * 3a1. AddressBook shows an error message.
+**MSS**
 
-      Use case resumes at step 2.
+1. Tutor requests to list students.
+2. StudentBook displays student records with their linked guardian names and contact details.
+3. Tutor locates the intended student and reads the guardian's contact details.
 
-*{More to be added}*
+Use case ends. Contacting the guardian takes place outside StudentBook.
+
+**Extensions**
+
+* 2a. No student records exist.
+  * 2a1. StudentBook displays an empty list.
+  * Use case ends.
+
+#### UC03: Remove a student who has stopped attending lessons
+
+**Related user stories:** 2, 4.
+
+**MSS**
+
+1. Tutor requests to list students.
+2. StudentBook displays the student list with an index for each record.
+3. Tutor requests to delete the intended student using the displayed index.
+4. StudentBook removes that student's record and linked guardian contact, and displays a success message and the updated list.
+
+Use case ends.
+
+**Extensions**
+
+* 2a. The student list is empty.
+  * Use case ends.
+* 3a. The supplied index is invalid for the displayed list.
+  * 3a1. StudentBook displays an error without deleting any record.
+  * Use case resumes at step 2.
+
+#### UC04: Change a recurring lesson slot (planned beyond the first version)
+
+**Related user stories:** 13, 28, 48.
+
+**Preconditions:** The student has an existing recurring lesson slot.
+
+**MSS**
+
+1. Tutor searches for the student by a partial name.
+2. StudentBook displays matching students and their weekly lesson times.
+3. Tutor identifies the student and requests to change a specific lesson slot, supplying the new day and time.
+4. StudentBook validates the request, updates the slot, and displays the revised arrangement.
+
+Use case ends.
+
+**Extensions**
+
+* 2a. No students match the search.
+  * 2a1. StudentBook displays an empty result list.
+  * 2a2. Tutor submits a revised search.
+  * Use case resumes at step 2.
+* 3a. The student or lesson slot reference is invalid, or the new day or time is invalid.
+  * 3a1. StudentBook explains the error without changing the arrangement.
+  * 3a2. Tutor corrects and resubmits the request.
+  * Use case resumes at step 3.
+
+#### UC05: Complete a guardian follow-up (planned beyond the first version)
+
+**Related user stories:** 36, 44.
+
+**Preconditions:** At least one outstanding guardian follow-up item exists.
+
+**MSS**
+
+1. Tutor requests to list outstanding guardian follow-up items.
+2. StudentBook displays the items with their associated students and guardians.
+3. Tutor carries out the selected follow-up outside StudentBook.
+4. Tutor requests to mark the selected item as complete.
+5. StudentBook records its completion and removes it from the outstanding list.
+
+Use case ends.
+
+**Extensions**
+
+* 4a. The supplied item reference is invalid or the item is already complete.
+  * 4a1. StudentBook explains the error without changing any item.
+  * Use case resumes at step 1.
 
 ### Non-Functional Requirements
 
-1.  Should work on any _mainstream OS_ as long as it has Java `25` or above installed.
-2.  Should be able to hold up to 1000 persons without noticeable sluggishness in performance for typical usage.
-3.  A user with above average typing speed for regular English text (i.e. not code, not system admin commands) should be able to accomplish most of the tasks faster using commands than using the mouse.
+The following are acceptance targets for StudentBook; they do not claim that the current application has been verified against them.
 
-*{More to be added}*
+1. **Compatibility:** The application should run on Windows, macOS, and Linux with Java `25`, subject to the bundled JavaFX runtime's platform and architecture support.
+2. **Capacity and response time:** With up to 1,000 student records, each with one guardian contact, adding, listing, and deleting a record should update the displayed result within two seconds on a supported computer with at least 4 GB of RAM and local storage. Measure this from command submission to the displayed result, excluding application startup.
+3. **Keyboard usability:** After launching the application, a tutor should be able to add, list, and delete student records using the keyboard without requiring mouse interaction.
+4. **Error feedback:** Rejected commands should display a readable explanation of the incorrect input and how to correct it. Invalid input should leave existing records unchanged.
+5. **Persistence:** Following a successful save and normal shutdown, reopening the application should restore all saved student records and their linked guardian contacts without manual re-entry.
+6. **Offline operation:** Managing and saving student records should work without an internet connection. Records should be stored locally for a single tutor rather than requiring an online account.
+7. **Data protection:** Student and guardian contact details should not be sent to external services or included in diagnostic logs. Access to local data files relies on the tutor's operating-system account and file permissions.
+8. **Storage failure reporting:** If a save fails, the application should display a visible warning that the latest changes have not been saved, rather than implying that they will survive a restart.
 
 ### Glossary
 
-* **Mainstream OS**: Windows, Linux, Unix, or macOS
-* **Private contact detail**: A contact detail that is not meant to be shared with others
+* **StudentBook**: The local desktop application being developed to help independent private tutors manage student information.
+* **Independent private tutor**: A tutor who manages their own students and lesson administration without dedicated administrative support.
+* **Student record**: An entry representing a student taught by the tutor. The proposed first version contains the student's name and one linked guardian contact; later requirements include academic details, lesson arrangements, and notes.
+* **Guardian contact**: The name and contact details of the adult responsible for a student. The proposed first version stores one guardian name and phone number per student.
+* **Schooling level**: The student's stage of primary or secondary education, such as Primary 5 or Secondary 3.
+* **Subject**: An academic subject taught by the tutor to a student, such as Mathematics or English.
+* **Recurring lesson slot**: A weekly lesson arrangement specifying a day and time for a student.
+* **Progress note**: A dated note recording a student's learning progress or observations from a lesson.
+* **Guardian follow-up item**: A recorded action the tutor needs to carry out for a guardian, such as providing an update. An outstanding item has not yet been marked complete.
+* **Displayed index**: The position identifying a student in the currently displayed list. It can change when the list changes and is not a permanent student identifier.
+* **Local storage**: Data files on the tutor's computer that retain records between application sessions.
+* **Private contact detail**: A student or guardian's phone number, email address, or other contact information intended for the tutor's use rather than public sharing.
 
 --------------------------------------------------------------------------------------------------------------------
 
