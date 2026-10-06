@@ -3,6 +3,8 @@ layout: page
 title: User Guide
 ---
 
+**Implementation status:** StudentBook currently provides the inherited AB3 commands described below. The planned core MVP adds subject, schooling level and an optional guardian contact to student records. Lesson slots and hourly rates are extensions. See [Student model and scope](StudentModel.md); planned commands are not yet available.
+
 AddressBook Level 3 (AB3) is a **desktop application for managing contacts, optimized for use through a Command Line Interface (CLI)** while retaining the benefits of a Graphical User Interface (GUI). If you type quickly, AB3 can help you manage contacts faster than traditional GUI applications.
 
 * Table of Contents
@@ -20,7 +22,7 @@ AddressBook Level 3 (AB3) is a **desktop application for managing contacts, opti
 1. Copy the file to the folder you want to use as the _home folder_ for your AddressBook.
 
 1. Open a terminal, `cd` to the folder containing the JAR file, and run `java -jar addressbook.jar`.<br>
-   A GUI similar to the one below should appear in a few seconds. Note how the app contains some sample data.<br>
+   The inherited AB3 GUI should appear in a few seconds with sample contacts. The image below is the planned StudentBook mock-up, not a screenshot of the current implementation.<br>
    ![Ui](images/Ui.png)
 
 1. Type a command in the command box and press Enter to execute it. For example, type **`help`** and press Enter to open the help window.<br>
