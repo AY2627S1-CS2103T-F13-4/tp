@@ -1,13 +1,19 @@
 package seedu.address.testutil;
 
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 
 import seedu.address.model.person.Address;
 import seedu.address.model.person.Email;
+import seedu.address.model.person.GuardianContact;
+import seedu.address.model.person.HourlyRate;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.Phone;
+import seedu.address.model.person.SchoolingLevel;
+import seedu.address.model.person.Subject;
+import seedu.address.model.person.WeeklyLessonSlot;
 import seedu.address.model.tag.Tag;
 import seedu.address.model.util.SampleDataUtil;
 
@@ -26,6 +32,11 @@ public class PersonBuilder {
     private Email email;
     private Address address;
     private Set<Tag> tags;
+    private Optional<Subject> subject = Optional.empty();
+    private Optional<SchoolingLevel> schoolingLevel = Optional.empty();
+    private Optional<GuardianContact> guardianContact = Optional.empty();
+    private Optional<WeeklyLessonSlot> weeklyLessonSlot = Optional.empty();
+    private Optional<HourlyRate> hourlyRate = Optional.empty();
 
     /**
      * Creates a {@code PersonBuilder} with the default details.
@@ -47,6 +58,11 @@ public class PersonBuilder {
         email = personToCopy.getEmail();
         address = personToCopy.getAddress();
         tags = new HashSet<>(personToCopy.getTags());
+        subject = personToCopy.getSubject();
+        schoolingLevel = personToCopy.getSchoolingLevel();
+        guardianContact = personToCopy.getGuardianContact();
+        weeklyLessonSlot = personToCopy.getWeeklyLessonSlot();
+        hourlyRate = personToCopy.getHourlyRate();
     }
 
     /**
@@ -89,8 +105,40 @@ public class PersonBuilder {
         return this;
     }
 
+    /** Sets the optional subject; null clears it. */
+    public PersonBuilder withSubject(Subject value) {
+        subject = Optional.ofNullable(value);
+        return this;
+    }
+
+    /** Sets the optional schoolingLevel; null clears it. */
+    public PersonBuilder withSchoolingLevel(SchoolingLevel value) {
+        schoolingLevel = Optional.ofNullable(value);
+        return this;
+    }
+
+    /** Sets the optional guardianContact; null clears it. */
+    public PersonBuilder withGuardianContact(GuardianContact value) {
+        guardianContact = Optional.ofNullable(value);
+        return this;
+    }
+
+    /** Sets the optional weeklyLessonSlot; null clears it. */
+    public PersonBuilder withWeeklyLessonSlot(WeeklyLessonSlot value) {
+        weeklyLessonSlot = Optional.ofNullable(value);
+        return this;
+    }
+
+    /** Sets the optional hourlyRate; null clears it. */
+    public PersonBuilder withHourlyRate(HourlyRate value) {
+        hourlyRate = Optional.ofNullable(value);
+        return this;
+    }
+
+    /** Builds an immutable student record. */
     public Person build() {
-        return new Person(name, phone, email, address, tags);
+        return new Person(name, phone, email, address, tags, subject, schoolingLevel, guardianContact,
+                weeklyLessonSlot, hourlyRate);
     }
 
 }

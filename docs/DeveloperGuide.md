@@ -2,6 +2,8 @@
 layout: page
 title: Developer Guide
 ---
+The architecture and implementation sections describe inherited AB3 behaviour unless marked as planned. See [Student model and scope](StudentModel.md) for the planned core fields, extension types and integration contract.
+
 * Table of Contents
 {:toc}
 
@@ -10,6 +12,7 @@ title: Developer Guide
 ## **Acknowledgements**
 _{List the sources of reused or adapted ideas, code, documentation, and third-party libraries here, with links to the originals.}_
 * This project is based on the AddressBook-Level3 project created by the [SE-EDU initiative](https://se-education.org).
+* Pranav Pappu used [OpenAI Codex](https://openai.com/codex/) to review and standardise the StudentBook scope, proposed model and related documentation, including the shared Google Doc and user-story Sheet. Codex also implemented the shared tuition model, JSON adapters, edit preservation and regression tests, followed by independent adversarial review.
 --------------------------------------------------------------------------------------------------------------------
 
 ## **Setting up, getting started**
@@ -266,8 +269,8 @@ Independent private tutors who:
 * regularly retrieve and update this information before and after lessons
 * can type quickly and prefer typing over mouse-driven input
 
-**Value proposition**: StudentBook aims to give independent private tutors one place to keep and 
-quickly retrieve student details, guardian contacts, lesson arrangements, and follow-up notes, 
+**Value proposition**: StudentBook aims to give independent private tutors one place to keep and
+quickly retrieve student details, guardian contacts, lesson arrangements, and follow-up notes,
 reducing the administrative work involved in managing their students.
 
 
@@ -306,6 +309,8 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 | 47 | `**` | tutor who needs to contact a student directly | view the student’s contact details | reach them without searching elsewhere |
 | 48 | `**` | tutor checking a student’s lesson arrangements | view that student’s weekly lesson times | confirm when I teach them |
 | 49 | `**` | tutor planning my week | view all my lessons arranged by day and time | see which students I will teach each day |
+| 53 | `**` | private tutor | record and view an hourly rate | I can keep the agreed SGD rate with the student |
+| 54 | `**` | private tutor | change or remove an hourly rate | I can keep fee arrangements current |
 | 52 | `*` | private tutor | export all records to a human-readable file | I can inspect and back up my data outside the app |
 
 
@@ -313,33 +318,33 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 ### Use cases
 
 For all use cases below, the **System** is **StudentBook** and the **Actor** is an independent private tutor.
-The tutor has launched the application unless stated otherwise. **MSS** means main success scenario.
+The tutor has launched the application unless stated otherwise. All existing AB3 contact fields and commands remain. New tuition fields are optional; their absence does not prevent registration. **MSS** means main success scenario.
 These use cases describe planned requirements, rather than features already implemented in the inherited application.
-UC01 to UC03 cover the proposed first version in the README. UC04 and UC05 illustrate later features identified in the user stories.
+UC01, UC02, UC03 and UC06 cover separate goals in the proposed first version. UC04 and UC05 illustrate later features.
 Command syntax will be specified in the User Guide when the corresponding features are implemented.
 
-#### UC01: Register a student with a guardian contact
+#### UC01: Register a student
 
-**Related user stories:** 1, 7.
+**Related user stories:** 1, 5, 6, 9.
 
 **MSS**
 
-1. Tutor requests to add a student, supplying the student's name and one guardian's name and phone number.
-2. StudentBook validates the supplied details.
-3. StudentBook creates the student record with the linked guardian contact and shows a success message.
-4. Tutor requests to list students.
-5. StudentBook displays the list including the new student and guardian contact.
+1. Tutor requests to add a student, supplying name, phone, email and address, with optional tags and supported tuition details.
+2. StudentBook confirms the addition and displays the new student.
 
 Use case ends.
 
 **Extensions**
 
-* 2a. A required detail is missing or a supplied value is invalid.
-  * 2a1. StudentBook identifies the invalid or missing detail without adding a record.
-  * 2a2. Tutor corrects the details and submits the request again.
-  * Use case resumes at step 2.
-* 2b. The record duplicates an existing student according to the product's duplicate detection rules.
-  * 2b1. StudentBook reports the duplicate without adding a record.
+* 1a. A required detail is missing or a supplied value is invalid.
+  * 1a1. StudentBook reports the error without adding a record.
+  * 1a2. Tutor corrects and resubmits the request.
+  * Use case resumes at step 1.
+* 1b. A student with the exact same name already exists.
+  * 1b1. StudentBook reports the duplicate without adding a record.
+  * Use case ends.
+* 2a. StudentBook cannot save the change.
+  * 2a1. StudentBook reports the save failure. The new student may remain in memory, but persistence is not confirmed.
   * Use case ends.
 
 #### UC02: Retrieve a guardian's contact details
@@ -350,7 +355,7 @@ Use case ends.
 
 1. Tutor requests to list students.
 2. StudentBook displays student records with their linked guardian names and contact details.
-3. Tutor locates the intended student and reads the guardian's contact details.
+3. Tutor reads the intended student's guardian contact details.
 
 Use case ends. Contacting the guardian takes place outside StudentBook.
 
@@ -358,6 +363,10 @@ Use case ends. Contacting the guardian takes place outside StudentBook.
 
 * 2a. No student records exist.
   * 2a1. StudentBook displays an empty list.
+  * Use case ends.
+
+* 2b. The intended student has no guardian contact.
+  * 2b1. StudentBook indicates that no guardian is recorded.
   * Use case ends.
 
 #### UC03: Remove a student who has stopped attending lessons
@@ -392,7 +401,7 @@ Use case ends.
 1. Tutor searches for the student by a partial name.
 2. StudentBook displays matching students and their weekly lesson times.
 3. Tutor identifies the student and requests to change a specific lesson slot, supplying the new day and time.
-4. StudentBook validates the request, updates the slot, and displays the revised arrangement.
+4. StudentBook displays the updated lesson arrangement.
 
 Use case ends.
 
@@ -429,6 +438,29 @@ Use case ends.
   * 4a1. StudentBook explains the error without changing any item.
   * Use case resumes at step 1.
 
+#### UC06: Attach a guardian contact
+
+**Related user stories:** 7, 9.
+
+**Preconditions:** The student exists and is visible in the displayed list.
+
+**MSS**
+
+1. Tutor requests to attach a guardian, supplying the student's displayed index and the guardian's name and phone.
+2. StudentBook displays the linked guardian and confirms the addition.
+
+Use case ends.
+
+**Extensions**
+
+* 1a. The index or guardian details are invalid, or a guardian is already attached.
+  * 1a1. StudentBook reports the error without changing the record.
+  * 1a2. Tutor corrects and resubmits the request.
+  * Use case resumes at step 1.
+* 2a. StudentBook cannot save the change.
+  * 2a1. StudentBook reports the save failure. The contact may remain in memory, but persistence is not confirmed.
+  * Use case ends.
+
 ### Non-Functional Requirements
 
 The following are acceptance targets for StudentBook; they do not claim that the current application has been verified against them.
@@ -437,20 +469,21 @@ The following are acceptance targets for StudentBook; they do not claim that the
 2. **Capacity and response time:** With up to 1,000 student records, each with one guardian contact, adding, listing, and deleting a record should update the displayed result within two seconds on a supported computer with at least 4 GB of RAM and local storage. Measure this from command submission to the displayed result, excluding application startup.
 3. **Keyboard usability:** After launching the application, a tutor should be able to add, list, and delete student records using the keyboard without requiring mouse interaction.
 4. **Error feedback:** Rejected commands should display a readable explanation of the incorrect input and how to correct it. Invalid input should leave existing records unchanged.
-5. **Persistence:** Following a successful save and normal shutdown, reopening the application should restore all saved student records and their linked guardian contacts without manual re-entry.
+5. **Persistence:** Following a successful save and normal shutdown, reopening the application should restore all existing contact fields, subjects, schooling levels, guardian contacts and every implemented extension without manual re-entry.
 6. **Offline operation:** Managing and saving student records should work without an internet connection. Records should be stored locally for a single tutor rather than requiring an online account.
 7. **Data protection:** Student and guardian contact details should not be sent to external services or included in diagnostic logs. Access to local data files relies on the tutor's operating-system account and file permissions.
-8. **Storage failure reporting:** If a save fails, the application should display a visible warning that the latest changes have not been saved, rather than implying that they will survive a restart.
+8. **Storage failure reporting:** Report save failures clearly. The inherited application may retain an in-memory change after a failed save. Transactional rollback and a blocked startup recovery UI are future improvements, outside the shared-foundation increment. Valid AB3 files must load with new fields absent.
 
 ### Glossary
 
 * **StudentBook**: The local desktop application being developed to help independent private tutors manage student information.
 * **Independent private tutor**: A tutor who manages their own students and lesson administration without dedicated administrative support.
-* **Student record**: An entry representing a student taught by the tutor. The proposed first version contains the student's name and one linked guardian contact; later requirements include academic details, lesson arrangements, and notes.
-* **Guardian contact**: The name and contact details of the adult responsible for a student. The proposed first version stores one guardian name and phone number per student.
+* **Student record**: An entry representing a student taught by the tutor. Retains name, phone, email, address and tags, with optional subject, schooling level and guardian contact. Lesson slots and rates are selected extensions; notes are deferred.
+* **Guardian contact**: The name and contact details of the adult responsible for a student. The core MVP stores zero or one contact per student, with both name and phone required when a contact is present.
 * **Schooling level**: The student's stage of primary or secondary education, such as Primary 5 or Secondary 3.
 * **Subject**: An academic subject taught by the tutor to a student, such as Mathematics or English.
-* **Recurring lesson slot**: A weekly lesson arrangement specifying a day and time for a student.
+* **Recurring lesson slot**: A weekly lesson arrangement specifying a day, start time and end time for a student. The first extension supports zero or one slot per student.
+* **Hourly rate**: An optional agreed SGD amount per hour, stored using `BigDecimal`. It is a record, not payment processing or a computed lesson fee.
 * **Progress note**: A dated note recording a student's learning progress or observations from a lesson.
 * **Guardian follow-up item**: A recorded action the tutor needs to carry out for a guardian, such as providing an update. An outstanding item has not yet been marked complete.
 * **Displayed index**: The position identifying a student in the currently displayed list. It can change when the list changes and is not a permanent student identifier.

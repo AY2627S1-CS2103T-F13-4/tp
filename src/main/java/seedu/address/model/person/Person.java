@@ -5,6 +5,7 @@ import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 
 import seedu.address.commons.util.ToStringBuilder;
@@ -25,16 +26,57 @@ public class Person {
     private final Address address;
     private final Set<Tag> tags = new HashSet<>();
 
+    private final Optional<Subject> subject;
+    private final Optional<SchoolingLevel> schoolingLevel;
+    private final Optional<GuardianContact> guardianContact;
+    private final Optional<WeeklyLessonSlot> weeklyLessonSlot;
+    private final Optional<HourlyRate> hourlyRate;
+
     /**
      * Every field must be present and not null.
      */
     public Person(Name name, Phone phone, Email email, Address address, Set<Tag> tags) {
-        requireAllNonNull(name, phone, email, address, tags);
+        this(name, phone, email, address, tags, Optional.empty(), Optional.empty(), Optional.empty(),
+                Optional.empty(), Optional.empty());
+    }
+
+    /** Creates a student with all contact fields and optional tuition details. */
+    public Person(Name name, Phone phone, Email email, Address address, Set<Tag> tags,
+            Optional<Subject> subject, Optional<SchoolingLevel> schoolingLevel,
+            Optional<GuardianContact> guardianContact, Optional<WeeklyLessonSlot> weeklyLessonSlot,
+            Optional<HourlyRate> hourlyRate) {
+        requireAllNonNull(name, phone, email, address, tags, subject, schoolingLevel,
+                guardianContact, weeklyLessonSlot, hourlyRate);
         this.name = name;
         this.phone = phone;
         this.email = email;
         this.address = address;
         this.tags.addAll(tags);
+        this.subject = subject;
+        this.schoolingLevel = schoolingLevel;
+        this.guardianContact = guardianContact;
+        this.weeklyLessonSlot = weeklyLessonSlot;
+        this.hourlyRate = hourlyRate;
+    }
+
+    public Optional<Subject> getSubject() {
+        return subject;
+    }
+
+    public Optional<SchoolingLevel> getSchoolingLevel() {
+        return schoolingLevel;
+    }
+
+    public Optional<GuardianContact> getGuardianContact() {
+        return guardianContact;
+    }
+
+    public Optional<WeeklyLessonSlot> getWeeklyLessonSlot() {
+        return weeklyLessonSlot;
+    }
+
+    public Optional<HourlyRate> getHourlyRate() {
+        return hourlyRate;
     }
 
     public Name getName() {
@@ -93,13 +135,19 @@ public class Person {
                 && phone.equals(otherPerson.phone)
                 && email.equals(otherPerson.email)
                 && address.equals(otherPerson.address)
-                && tags.equals(otherPerson.tags);
+                && tags.equals(otherPerson.tags)
+                && subject.equals(otherPerson.subject)
+                && schoolingLevel.equals(otherPerson.schoolingLevel)
+                && guardianContact.equals(otherPerson.guardianContact)
+                && weeklyLessonSlot.equals(otherPerson.weeklyLessonSlot)
+                && hourlyRate.equals(otherPerson.hourlyRate);
     }
 
     @Override
     public int hashCode() {
         // use this method for custom fields hashing instead of implementing your own
-        return Objects.hash(name, phone, email, address, tags);
+        return Objects.hash(name, phone, email, address, tags, subject, schoolingLevel, guardianContact,
+                weeklyLessonSlot, hourlyRate);
     }
 
     @Override
@@ -110,6 +158,11 @@ public class Person {
                 .add("email", email)
                 .add("address", address)
                 .add("tags", tags)
+                .add("subject", subject)
+                .add("schoolingLevel", schoolingLevel)
+                .add("guardianContact", guardianContact)
+                .add("weeklyLessonSlot", weeklyLessonSlot)
+                .add("hourlyRate", hourlyRate)
                 .toString();
     }
 
