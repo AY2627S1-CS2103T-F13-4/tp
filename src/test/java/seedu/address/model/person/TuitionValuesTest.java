@@ -46,8 +46,8 @@ public class TuitionValuesTest {
         assertThrows(IllegalArgumentException.class, () -> new WeeklyLessonSlot(DayOfWeek.MONDAY, ten, ten));
         assertThrows(IllegalArgumentException.class, () -> new WeeklyLessonSlot(DayOfWeek.MONDAY, eleven, ten));
         assertThrows(IllegalArgumentException.class, () -> {
-                    new WeeklyLessonSlot(DayOfWeek.MONDAY, ten.plusSeconds(1), eleven);
-                });
+            new WeeklyLessonSlot(DayOfWeek.MONDAY, ten.plusSeconds(1), eleven);
+        });
         assertThrows(NullPointerException.class, () -> new WeeklyLessonSlot(null, ten, eleven));
     }
 

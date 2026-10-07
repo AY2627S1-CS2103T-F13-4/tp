@@ -8,6 +8,7 @@ import java.time.format.ResolverStyle;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 import seedu.address.commons.exceptions.IllegalValueException;
 import seedu.address.model.person.WeeklyLessonSlot;
@@ -16,8 +17,11 @@ import seedu.address.model.person.WeeklyLessonSlot;
 class JsonAdaptedWeeklyLessonSlot {
     private static final DateTimeFormatter TIME_FORMAT = DateTimeFormatter.ofPattern("HH:mm")
             .withResolverStyle(ResolverStyle.STRICT);
+    @JsonDeserialize(using = StrictStringDeserializer.class)
     private final String day;
+    @JsonDeserialize(using = StrictStringDeserializer.class)
     private final String start;
+    @JsonDeserialize(using = StrictStringDeserializer.class)
     private final String end;
 
     @JsonCreator

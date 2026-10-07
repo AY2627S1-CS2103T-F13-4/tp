@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 import seedu.address.commons.exceptions.IllegalValueException;
 import seedu.address.model.person.Address;
@@ -37,10 +38,13 @@ class JsonAdaptedPerson {
     private final String address;
     private final List<JsonAdaptedTag> tags = new ArrayList<>();
 
+    @JsonDeserialize(using = StrictStringDeserializer.class)
     private final String subject;
+    @JsonDeserialize(using = StrictStringDeserializer.class)
     private final String schoolingLevel;
     private final JsonAdaptedGuardianContact guardianContact;
     private final JsonAdaptedWeeklyLessonSlot weeklyLessonSlot;
+    @JsonDeserialize(using = StrictStringDeserializer.class)
     private final String hourlyRate;
 
     /** Retains compatibility with existing adapter callers. */

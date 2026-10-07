@@ -91,8 +91,8 @@ public class TuitionStorageTest {
             "\"hourlyRate\":\"-1\"", "\"hourlyRate\":\"1.001\"", "\"hourlyRate\":\"1e2\""}) {
             String json = LEGACY_PERSON.substring(0, LEGACY_PERSON.length() - 1) + "," + property + "}";
             assertThrows(IllegalValueException.class, () -> {
-                        JsonUtil.fromJsonString(json, JsonAdaptedPerson.class).toModelType();
-                    }, property);
+                JsonUtil.fromJsonString(json, JsonAdaptedPerson.class).toModelType();
+            }, property);
         }
     }
 
@@ -104,4 +104,17 @@ public class TuitionStorageTest {
         assertEquals(JsonUtil.fromJsonString(LEGACY_PERSON, JsonAdaptedPerson.class).toModelType(),
                 JsonUtil.fromJsonString(json, JsonAdaptedPerson.class).toModelType());
     }
+
+    @Test
+    public void nonStringTuitionJson_rejectedBeforeCoercion() {
+        for (String property : new String[]{"\"subject\":true", "\"schoolingLevel\":false", "\"hourlyRate\":45.5",
+            "\"guardianContact\":{\"name\":true,\"phone\":1234}",
+            "\"weeklyLessonSlot\":{\"day\":true,\"start\":1600,\"end\":1700}"}) {
+            String json = LEGACY_PERSON.substring(0, LEGACY_PERSON.length() - 1) + "," + property + "}";
+            assertThrows(java.io.IOException.class, () -> {
+                JsonUtil.fromJsonString(json, JsonAdaptedPerson.class);
+            }, property);
+        }
+    }
+
 }

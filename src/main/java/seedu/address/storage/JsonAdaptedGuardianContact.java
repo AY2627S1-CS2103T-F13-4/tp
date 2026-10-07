@@ -2,6 +2,7 @@ package seedu.address.storage;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 import seedu.address.commons.exceptions.IllegalValueException;
 import seedu.address.model.person.GuardianContact;
@@ -10,7 +11,9 @@ import seedu.address.model.person.Phone;
 
 /** JSON representation of a complete guardian contact. */
 class JsonAdaptedGuardianContact {
+    @JsonDeserialize(using = StrictStringDeserializer.class)
     private final String name;
+    @JsonDeserialize(using = StrictStringDeserializer.class)
     private final String phone;
 
     @JsonCreator
