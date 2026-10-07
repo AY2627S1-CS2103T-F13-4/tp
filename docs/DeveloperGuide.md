@@ -180,9 +180,9 @@ Priorities: `***` = required, `**` = optional, `*` = low priority. These describ
 | 43 | `**` | private tutor | edit a guardian follow-up item | keep the recorded request accurate when arrangements change |
 | 44 | `**` | private tutor | mark a guardian follow-up item as complete | remove finished work from my outstanding follow-ups |
 | 45 | `**` | private tutor learning the app | see what needs correcting when an entry is rejected | fix the entry without guessing why it failed |
-| 46 | `**` | tutor who communicates directly with a student | record the student’s own phone number or email address | keep their contact details with their record |
-| 47 | `**` | tutor who needs to contact a student directly | view the student’s contact details | reach them without searching elsewhere |
-| 48 | `**` | tutor checking a student’s lesson arrangements | view that student’s weekly lesson times | confirm when I teach them |
+| 46 | `**` | tutor who communicates directly with a student | record the student's own phone number or email address | keep their contact details with their record |
+| 47 | `**` | tutor who needs to contact a student directly | view the student's contact details | reach them without searching elsewhere |
+| 48 | `**` | tutor checking a student's lesson arrangements | view that student's weekly lesson times | confirm when I teach them |
 | 49 | `**` | tutor planning my week | view all my lessons arranged by day and time | see which students I will teach each day |
 | 53 | `**` | private tutor | record and view the hourly rate agreed for a student | check the agreed rate before discussing fees |
 | 54 | `**` | private tutor | change or remove a student's recorded hourly rate | keep the agreed rate current |
@@ -383,7 +383,7 @@ Use an empty test folder and sample data. These checks are a starting point; als
 
 ### Subject and saved data
 
-1. Add a unique test student with `s/Combined   Science`. The card should show `Combined Science`.
+1. Add a unique test student with subject `Combined Science`, using three spaces between the words. The card should show one space.
 2. Change it with `edit INDEX s/Math`, then edit the phone without `s/`. The subject should stay `Math`.
 3. Restart the app. Both edits should remain.
 4. Run `edit INDEX s/` and restart again. The card should show `Subject: Not recorded`.
