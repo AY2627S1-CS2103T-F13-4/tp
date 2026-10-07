@@ -3,7 +3,7 @@
 [![CI Status](https://github.com/AY2627S1-CS2103T-F13-4/tp/actions/workflows/gradle.yml/badge.svg)](https://github.com/AY2627S1-CS2103T-F13-4/tp/actions/workflows/gradle.yml)
 [![codecov](https://codecov.io/gh/AY2627S1-CS2103T-F13-4/tp/graph/badge.svg?token=8GQY2T0JDI)](https://codecov.io/gh/AY2627S1-CS2103T-F13-4/tp)
 
-StudentBook is a desktop contact book being developed for independent private tutors who prefer typing. Its planned first version keeps student names, one subject, one schooling level and up to one guardian contact per student in a local, single-user application.
+StudentBook is a desktop contact book being developed for independent private tutors who prefer typing. It retains student names, phone numbers, email addresses, addresses and tags, and adds tuition details in a local, single-user application.
 
 ![StudentBook interface](docs/images/Ui.png)
 
@@ -11,7 +11,7 @@ StudentBook is currently in development. The current application provides the in
 
 The proposed first version will let tutors:
 
-* Add a student with a name, subject and schooling level, and list these details.
+* Keep existing contact fields and add optional subject and schooling level details.
 * Optionally attach one guardian name and phone number after creating a student.
 * Delete a student together with that student's guardian contact.
 * Save records locally and reload them on the next launch.

@@ -14,7 +14,7 @@ title: StudentBook
 * If you are interested in developing StudentBook, the [**Developer Guide**](DeveloperGuide.html) is a good place to start.
 
 
-The planned core MVP records student name, subject, schooling level and an optional guardian contact. The current application still provides inherited AB3 functionality. See [Student model and scope](StudentModel.md) for the planned design.
+The planned core MVP retains AB3 name, phone, email, address and tags, and adds optional subject, schooling level and guardian details. The current application still provides inherited AB3 functionality. See [Student model and scope](StudentModel.md) for the planned design.
 
 **Acknowledgements**
 

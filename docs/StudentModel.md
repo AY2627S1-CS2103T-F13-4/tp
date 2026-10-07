@@ -5,50 +5,52 @@ title: Student model and scope
 
 # Student model and scope
 
-This document specifies the planned StudentBook model. The current application still uses inherited AB3 fields and commands. The model below is a design contract for incremental implementation, not a claim that these features are available.
+This is the shared implementation contract for StudentBook. The existing application supplies AB3 commands and contact fields. New tuition commands are available only when documented as implemented in the User Guide.
 
-## Core MVP
+## Scope and fields
 
-One private tutor uses the app to manage student records. Each student has a name, one subject, one schooling level and zero or one guardian contact. There is no tutor/student role field and no generic `class[]` field.
+One private tutor uses the app to manage students. Retain AB3 name, phone, email, address and tags, including their existing validation and command behavior. The tutor is the user, not another record. There is no tutor/student role field or generic `class[]` field.
 
-| Field | Type and meaning |
-|---|---|
-| `name` | `Name`, the student's display name |
-| `subject` | `Subject`, an immutable value object containing validated text |
-| `schoolingLevel` | `SchoolingLevel`, an immutable value object containing validated text |
-| `guardianContact` | Zero or one `GuardianContact` containing both name and phone |
+Add these immutable value objects to `Person`. All five are optional, including on newly created records, so existing commands and saved records remain valid. Absence means not recorded; it is never a fake value or an empty string.
 
-Subject and level are text labels, not fixed enums. Guardian contact is optional at creation and is added separately. A contact must have both a name and a phone; siblings may have matching independent contacts. The tutor is the user, not another record in the student list.
-
-Core stories use the current User Stories sheet's `copy_sheet1` IDs: #1 add, #2 list, #3 view academic details, #4 delete, #5 level, #6 subject, #7 add guardian, #8 view guardian and #9 save/reload.
-
-The intended creation command is `add n/NAME s/SUBJECT l/LEVEL`; guardian attachment is `guardian INDEX n/NAME p/PHONE`. The core MVP permits correction by deleting and re-adding. Editing is an extension, not a prerequisite for completing the core MVP. These commands are planned; consult the User Guide for the current executable commands.
-
-## Extension workstreams
-
-The proposed five workstreams are schooling level, subject, weekly lesson slot, hourly rate and guardian contact. Workstream ownership is by feature, including its command, storage, display and tests. This allocation does not require all five complete CRUD implementations in v1.2. Names must be confirmed against the team's earlier allocation; list position is not a story ID.
-
-| Extension | Initial design | Deferred |
+| Field | Model type | Value rules |
 |---|---|---|
-| Weekly lesson slot, #25, #28-29, #48 | Zero or one `WeeklyLessonSlot` per student; `DayOfWeek`, `LocalTime start`, `LocalTime end`; 24-hour `HH:mm`, with end after start on the same day | Multiple slots, overnight lessons, shared classes and conflict detection |
-| Hourly rate, #53-54 | Optional `HourlyRate`, SGD per hour, represented with `BigDecimal`; non-negative and at most two decimal places | Fee calculation, currency conversion and payment processing |
+| `subject` | `Optional<Subject>` | One text label, 1–40 ASCII characters after trimming and collapsing spaces/tabs |
+| `schoolingLevel` | `Optional<SchoolingLevel>` | One text label, 1–30 ASCII characters after trimming and collapsing spaces/tabs |
+| `guardianContact` | `Optional<GuardianContact>` | Both a `Name` and a `Phone`, using existing AB3 validation |
+| `weeklyLessonSlot` | `Optional<WeeklyLessonSlot>` | `DayOfWeek`, `LocalTime start`, `LocalTime end`; minute precision and end after start on the same day |
+| `hourlyRate` | `Optional<HourlyRate>` | SGD per hour, non-negative `BigDecimal`, at most two decimal places; zero differs from absence |
 
-An absent rate means not recorded and differs from a zero rate. An absent slot means not scheduled. Fee calculation needs a separately documented duration and rounding rule before implementation.
-
-Shared group classes remain a future candidate. If implemented, use one `TuitionClass` with student references and one shared schedule. Do not copy a mutable class object into every student, and do not use changing display indexes as persistent references. Several attendees of the same class must not be reported as overlapping separate lessons.
+Subject and level start with an ASCII letter or digit, contain at least one letter, and otherwise allow letters, digits, spaces, apostrophes, hyphens, periods and parentheses. Preserve case; use text labels rather than fixed enums. No synonym mapping or subject-level compatibility check is required. Matching guardian details on siblings are independent values.
 
 ## Shared implementation contract
 
-Keep the Java class name `Person` during this increment if that avoids unrelated renaming. Use core constructor order `name, subject, schoolingLevel, guardianContact`. Append `weeklyLessonSlot, hourlyRate` only when integrating those extensions. Use `Optional<GuardianContact>`, `Optional<WeeklyLessonSlot>` and `Optional<HourlyRate>` in the model API, and JSON `null` for absence. Use `Optional.empty()`, never empty strings or fake objects. Do not pre-build a large framework for future fields.
+Keep the Java name `Person`. Retain the existing five-argument constructor as a convenience that leaves new fields absent. The full constructor order is `name, phone, email, address, tags, subject, schoolingLevel, guardianContact, weeklyLessonSlot, hourlyRate`. Every `Optional` argument must be non-null.
 
-Integrate the core model in a small compiling PR that updates affected construction sites together: `Person`, `AddCommandParser`, `EditCommand.createEditedPerson`, `JsonAdaptedPerson`, `SampleDataUtil` and `PersonBuilder`. Update equality, hashing, formatting and UI bindings where affected. Feature owners then build from that merged base and keep their own PRs small.
+The shared foundation adds the five types, model fields, JSON adapters, builder support and edit-copy preservation. It does not implement teammates' command flows. Existing sample records may leave the new fields absent. Every edit preserves fields it does not change. Full equality and hashing include the new fields; duplicate detection retains AB3's exact, case-sensitive name comparison.
 
-Every edit must preserve fields it does not change. Identity/duplicate detection is separate from full-value equality. Each implemented field must survive JSON save/reload, including optional values. Verify editing one feature after adding another and reloading a record with all implemented fields.
+Keep the configured AB3 storage path, default `data/addressbook.json`, and the `persons` JSON envelope. Retain existing properties and add `subject`, `schoolingLevel`, `guardianContact`, `weeklyLessonSlot` and `hourlyRate`. Missing or null new properties load as `Optional.empty()`; existing valid files and name distinctions remain valid. Invalid supplied new values fail validation. Guardian JSON contains `name` and `phone`; slot JSON contains an uppercase English `day` such as `MONDAY`, and `start`/`end` as `HH:mm`; rate is a decimal string such as `45.50`. Do not rename or silently discard existing data.
 
-Do not invent subject or level values to load old AB3 records. Preserve incompatible files and show an explicit migration or unsupported-format message. A migration policy belongs in the PR that changes the file schema. Never silently discard old records.
+Verify all fields through save/reload, loading an old file, and editing an existing field on a fully populated record. Preserve the inherited save-failure behavior for this increment: report the failure; the in-memory edit may remain. Do not promise transactional rollback or a blocked startup UI that has not been implemented. Back up files before manual editing.
 
-## Documentation boundaries
+## Feature ownership and delivery
 
-The Google Doc's Week 6 MVP draft contains detailed intended command rules. The current story sheet supplies IDs and priorities. This page supplies the shared model and extension boundaries. Keep all three aligned when a design changes. README and DG use cases must describe the same core MVP. The User Guide continues to describe executable behaviour and labels planned changes separately.
+| Owner | Feature | Story IDs |
+|---|---|---|
+| Min Wenn | Schooling level | 5, 12 |
+| Pranav | Subject | 6, 12 |
+| Jian Yi | Weekly lesson slot | 25, 28, 29, 48 |
+| Dylan | Hourly rate | 53, 54 |
+| Mervin | Guardian contact | 7, 8, 22 |
 
-Historical brainstorming and the previously exported Week 6 PDF are not current specifications. The submitted Week 6 specification is non-binding under the Week 8 FAQ; no resubmission is required.
+Ownership follows the team's reused A–E allocation, checked against the earlier GitHub assignments. Each owner delivers commands, display and tests for their feature on the shared foundation. Track work in assigned v1.2 issues. Each member needs a merged functional-code PR for Week 8; full CRUD is not required in that first increment.
+
+The core MVP stories remain #1–9 in the current story sheet. High priority means the capability is required, not that every student must have a value for every field. Slots and rates are selected extensions. Existing edit/search/help commands remain available. Subject's first increment adds optional `s/SUBJECT` to `add`, displays it, and saves/reloads it. A following increment uses `edit INDEX s/SUBJECT`; empty `s/` clears it.
+
+Guardian attachment remains a separate planned command, `guardian INDEX n/NAME p/PHONE`. Schooling-level, slot and rate command details belong to their feature PRs. Do not advertise unimplemented commands as available.
+
+## Deferred work and documentation
+
+Multiple subjects, multiple weekly slots, overnight lessons, shared group classes, conflict detection, fee calculations, payments, progress notes and follow-ups are future candidates. A future shared class should have student references and one schedule; displayed list indexes must not become persistent identifiers.
+
+Keep the active Google Doc sections, the story sheet's `copy_sheet1`, README and DG aligned with this contract. The User Guide describes executable behavior. Original brainstorming and the previously exported Week 6 PDF remain historical. The Week 6 submission is non-binding; the Week 8 FAQ does not require resubmission.
