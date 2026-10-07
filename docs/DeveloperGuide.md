@@ -12,7 +12,7 @@ The architecture and implementation sections describe inherited AB3 behaviour un
 ## **Acknowledgements**
 _{List the sources of reused or adapted ideas, code, documentation, and third-party libraries here, with links to the originals.}_
 * This project is based on the AddressBook-Level3 project created by the [SE-EDU initiative](https://se-education.org).
-* Pranav Pappu used [OpenAI Codex](https://openai.com/codex/) to review and standardise the StudentBook scope, proposed model and related documentation, including the shared Google Doc and user-story Sheet. This assistance did not implement the proposed features.
+* Pranav Pappu used [OpenAI Codex](https://openai.com/codex/) to review and standardise the StudentBook scope, proposed model and related documentation, including the shared Google Doc and user-story Sheet. Codex also implemented the shared tuition model, JSON adapters, edit preservation and regression tests, followed by independent adversarial review.
 --------------------------------------------------------------------------------------------------------------------
 
 ## **Setting up, getting started**
@@ -269,8 +269,8 @@ Independent private tutors who:
 * regularly retrieve and update this information before and after lessons
 * can type quickly and prefer typing over mouse-driven input
 
-**Value proposition**: StudentBook aims to give independent private tutors one place to keep and 
-quickly retrieve student details, guardian contacts, lesson arrangements, and follow-up notes, 
+**Value proposition**: StudentBook aims to give independent private tutors one place to keep and
+quickly retrieve student details, guardian contacts, lesson arrangements, and follow-up notes,
 reducing the administrative work involved in managing their students.
 
 
