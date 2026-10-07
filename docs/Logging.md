@@ -3,9 +3,10 @@ layout: page
 title: Logging guide
 ---
 
-* The project uses the `java.util.logging` package for logging.
-* `LogsCenter` manages logging levels and destinations.
-* A class obtains a `Logger` with `LogsCenter.getLogger(Class)`, which logs messages at the configured level.
-* Log messages are written to the console and a `.log` file.
-* The output logging level can be controlled by changing the `LOG_LEVEL` constant in the `LogsCenter` class.
-* **When choosing a level for a log message**, follow the conventions given in [_[se-edu/guides] Java: Logging conventions_](https://se-education.org/guides/conventions/java/logging.html).
+The app uses `java.util.logging`. `LogsCenter` sets the log level and writes to the console and rotating `.log` files.
+
+* Get a logger with `LogsCenter.getLogger(YourClass.class)`.
+* Change `LogsCenter.LOG_LEVEL` to adjust detail; the default is `INFO`.
+* Follow the [Java logging conventions](https://se-education.org/guides/conventions/java/logging.html) when choosing a message level.
+
+The inherited `LogicManager` logs raw commands. Use sample contact details during testing; the data-protection requirement in the Developer Guide is a target, not a claim that these logs are already redacted.

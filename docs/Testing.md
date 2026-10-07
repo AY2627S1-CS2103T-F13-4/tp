@@ -3,34 +3,28 @@ layout: page
 title: Testing guide
 ---
 
-* Table of Contents
-{:toc}
+## Run tests
 
---------------------------------------------------------------------------------------------------------------------
+Use JDK 25. From the repository root:
 
-## Running tests
+```text
+./gradlew test
+```
 
-You can run tests in two ways.
+Use `./gradlew clean test` for a clean run, or `./gradlew check coverage` to include style checks and coverage. On Windows, replace `./gradlew` with `gradlew.bat`.
 
-* **Method 1: Using IntelliJ JUnit test runner**
-  * To run all tests, right-click on the `src/test/java` folder and choose `Run 'All Tests'`
-  * To run a subset of tests, you can right-click on a test package,
-    test class, or a test and choose `Run 'ABC'`
-* **Method 2: Using Gradle**
-  * Open a console and run the command `gradlew clean test` (Mac/Linux: `./gradlew clean test`)
+In IntelliJ, right-click `src/test/java` and choose **Run 'All Tests'**. To run fewer tests, right-click a package, class or test method instead.
 
-<div markdown="span" class="alert alert-secondary">:link: **Link**: Read [this Gradle Tutorial from the se-edu/guides](https://se-education.org/guides/tutorials/gradle.html) to learn more about using Gradle.
-</div>
+See the [Gradle tutorial](https://se-education.org/guides/tutorials/gradle.html) for more options.
 
---------------------------------------------------------------------------------------------------------------------
+## Test coverage
 
-## Types of tests
+| Test type | Purpose | Example |
+|---|---|---|
+| Unit | Check one class or method | `StringUtilTest` |
+| Integration | Check how components work together | `StorageManagerTest` |
+| Hybrid | Check individual behavior and interactions | `LogicManagerTest` |
 
-This project has three types of tests:
+For tuition changes, check `TuitionValuesTest`, `TuitionStorageTest` and `SubjectWorkflowTest`. Cover valid and invalid input, unchanged fields, old-file loading, and save/reload.
 
-1. *Unit tests* target the lowest-level methods and classes.<br>
-   For example: `seedu.address.commons.StringUtilTest`
-1. *Integration tests* check how multiple code units work together; the individual units are assumed to work.<br>
-   For example: `seedu.address.storage.StorageManagerTest`
-1. *Hybrid tests* combine unit and integration testing. These tests check both the individual units and how they work together.<br>
-   For example: `seedu.address.logic.LogicManagerTest`
+Use the [manual checks](DeveloperGuide.md#appendix-instructions-for-manual-testing) to test the app through its interface.

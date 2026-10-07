@@ -5,8 +5,6 @@ title: About Us
 
 We are a team based in the [School of Computing, National University of Singapore](https://www.comp.nus.edu.sg).
 
-You can reach us at the email `seer[at]comp.nus.edu.sg`
-
 ## Project team
 
 ### Min Wenn
@@ -32,7 +30,7 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 
 <img src="images/dygrik.png" width="200px">
 
-[[github](http://github.com/dygrik)] [[portfolio](team/johndoe.md)]
+[[github](https://github.com/dygrik)]
 
 - Role: Developer
 - Responsibilities: Developer Guide
@@ -44,13 +42,13 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 [[github](https://github.com/savemywifi)]
 
 - Role: Developer
-- Responsibilities: Website navigation, Site settings
+- Responsibilities: Website navigation and settings
 
 ### Mervin Ang
 
 <img src="images/nivremi.png" width="200px">
 
-[[github](http://github.com/nivremi)]
+[[github](https://github.com/nivremi)]
 
 - Role: Developer
-- Responsibilities: Use cases, Non-functional Requirements, and Glossary
+- Responsibilities: Use cases, non-functional requirements and glossary

@@ -6,15 +6,13 @@ title: StudentBook
 [![CI Status](https://github.com/AY2627S1-CS2103T-F13-4/tp/actions/workflows/gradle.yml/badge.svg)](https://github.com/AY2627S1-CS2103T-F13-4/tp/actions)
 [![codecov](https://codecov.io/gh/AY2627S1-CS2103T-F13-4/tp/graph/badge.svg)](https://codecov.io/gh/AY2627S1-CS2103T-F13-4/tp)
 
-![Ui](images/Ui.png)
+StudentBook helps private tutors manage student contacts using typed commands. Records stay on the tutor's computer.
 
-**StudentBook is a desktop application being developed for independent private tutors.** While it has a GUI, most of the user interactions happen using a CLI (Command Line Interface).
-
-* If you are interested in using StudentBook, head over to the [_Quick Start_ section of the **User Guide**](UserGuide.html#quick-start).
-* If you are interested in developing StudentBook, the [**Developer Guide**](DeveloperGuide.html) is a good place to start.
+* [Use the app](UserGuide.html#quick-start)
+* [Contribute to the project](DeveloperGuide.html)
 
 
-The planned core MVP retains AB3 name, phone, email, address and tags, and adds optional subject, schooling level and guardian details. This development branch supports subject entry, display, editing, clearing and persistence alongside inherited AB3 commands. Other tuition command flows remain planned. See [Student model and scope](StudentModel.md) for the planned design.
+This development version supports contact details and subjects, including edits, clearing and saved data. Schooling level, guardian contacts, weekly lessons and hourly rates are planned. See [Student model and scope](StudentModel.md) for details.
 
 **Acknowledgements**
 
