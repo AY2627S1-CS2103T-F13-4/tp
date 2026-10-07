@@ -45,7 +45,7 @@ Verify all fields through save/reload, loading an old file, and editing an exist
 
 Ownership follows the team's reused A–E allocation, checked against the earlier GitHub assignments. Each owner delivers commands, display and tests for their feature on the shared foundation. Track work in assigned v1.2 issues. Each member needs a merged functional-code PR for Week 8; full CRUD is not required in that first increment.
 
-The core MVP stories remain #1–9 in the current story sheet. High priority means the capability is required, not that every student must have a value for every field. Slots and rates are selected extensions. Existing edit/search/help commands remain available. Subject's first increment adds optional `s/SUBJECT` to `add`, displays it, and saves/reloads it. A following increment uses `edit INDEX s/SUBJECT`; empty `s/` clears it.
+The core MVP stories remain #1–9 in the current story sheet. High priority means the capability is required, not that every student must have a value for every field. Slots and rates are selected extensions. Existing edit/search/help commands remain available. The subject feature adds optional `s/SUBJECT` to `add`, displays it, and saves/reloads it. `edit INDEX s/SUBJECT` updates it; empty `s/` clears it. These commands are implemented on the subject branch and preserve every other field.
 
 Guardian attachment remains a separate planned command, `guardian INDEX n/NAME p/PHONE`. Schooling-level, slot and rate command details belong to their feature PRs. Do not advertise unimplemented commands as available.
 

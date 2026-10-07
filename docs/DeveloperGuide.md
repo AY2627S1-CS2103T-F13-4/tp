@@ -12,7 +12,7 @@ The architecture and implementation sections describe inherited AB3 behaviour un
 ## **Acknowledgements**
 _{List the sources of reused or adapted ideas, code, documentation, and third-party libraries here, with links to the originals.}_
 * This project is based on the AddressBook-Level3 project created by the [SE-EDU initiative](https://se-education.org).
-* Pranav Pappu used [OpenAI Codex](https://openai.com/codex/) to review and standardise the StudentBook scope, proposed model and related documentation, including the shared Google Doc and user-story Sheet. Codex also implemented the shared tuition model, JSON adapters, edit preservation and regression tests, followed by independent adversarial review.
+* Pranav Pappu used [OpenAI Codex](https://openai.com/codex/) to review and standardise the StudentBook scope, proposed model and related documentation, including the shared Google Doc and user-story Sheet. Codex also implemented the shared tuition model, JSON adapters, edit preservation, subject commands/display and regression tests, followed by independent adversarial review.
 --------------------------------------------------------------------------------------------------------------------
 
 ## **Setting up, getting started**
@@ -314,6 +314,12 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 | 52 | `*` | private tutor | export all records to a human-readable file | I can inspect and back up my data outside the app |
 
 
+
+### Subject implementation
+
+`AddCommandParser` and `EditCommandParser` recognize optional `s/`. `ParserUtil.parseSubject` validates the normalized value. `EditPersonDescriptor` distinguishes an omitted subject from an explicit clear, so editing another field retains the subject. Student cards show its value or `Not recorded`. `JsonAdaptedPerson` stores it as a string or null and treats missing legacy properties as absent.
+
+`SubjectWorkflowTest` exercises add, edit, clear, filtered indexes, invalid input, duplicate identity and save/reload. `TuitionStorageTest` covers preservation of all shared fields. Other tuition command flows remain planned.
 
 ### Use cases
 

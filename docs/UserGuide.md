@@ -3,7 +3,7 @@ layout: page
 title: User Guide
 ---
 
-**Implementation status:** StudentBook currently provides the inherited AB3 commands described below. The planned core MVP adds subject, schooling level and an optional guardian contact to student records. Lesson slots and hourly rates are extensions. See [Student model and scope](StudentModel.md); planned commands are not yet available.
+**Implementation status:** This development version supports optional subjects through `add` and `edit`, displays them on student cards, and saves them between launches. Existing AB3 contact fields and commands remain. Schooling level, guardian contact, weekly lesson slot and hourly rate have shared model/storage support; their command and display features are still planned. See [Student model and scope](StudentModel.md).
 
 AddressBook Level 3 (AB3) is a **desktop application for managing contacts, optimized for use through a Command Line Interface (CLI)** while retaining the benefits of a Graphical User Interface (GUI). If you type quickly, AB3 can help you manage contacts faster than traditional GUI applications.
 
@@ -17,7 +17,7 @@ AddressBook Level 3 (AB3) is a **desktop application for managing contacts, opti
 1. Ensure that Java `25` or later is installed on your computer.<br>
    **Mac users:** Ensure you have the precise JDK version prescribed [here](https://se-education.org/guides/tutorials/javaInstallationMac.html).
 
-1. Download the latest `.jar` file from [here](https://github.com/se-edu/addressbook-level3/releases).
+1. For this development version, clone the [team repository](https://github.com/AY2627S1-CS2103T-F13-4/tp), check out the subject feature branch or a revision containing it, and run `./gradlew shadowJar` with Java 25. The JAR is `build/libs/addressbook.jar`. On Windows use `gradlew.bat shadowJar`. Until the feature PR is merged, its branch is `student-subject` in [Pranav's fork](https://github.com/pranavp311/tp).
 
 1. Copy the file to the folder you want to use as the _home folder_ for your AddressBook.
 
@@ -79,7 +79,7 @@ Format: `help`
 
 Adds a person to the address book.
 
-Format: `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]…​`
+Format: `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]…​ [s/SUBJECT]`
 
 <div markdown="span" class="alert alert-primary">:bulb: **Tip:**
 A person can have any number of tags, including zero.
@@ -88,6 +88,21 @@ A person can have any number of tags, including zero.
 Examples:
 * `add n/John Doe p/98765432 e/johnd@example.com a/John street, block 123, #01-01`
 * `add n/Betsy Crowe t/friend e/betsycrowe@example.com a/Newgate Prison p/1234567 t/criminal`
+
+### Recording a subject
+
+Use `s/SUBJECT` when adding a student. It is optional; omitting it shows `Subject: Not recorded` on the card. Supplying an empty `s/` on `add` is an error.
+
+Example: `add n/Alex Tan p/91234567 e/alex@example.com a/123 Clementi Road s/Combined Science`
+
+A subject has 1–40 ASCII characters after trimming outer spaces/tabs and collapsing repeated spaces/tabs. It must start with a letter or digit, contain a letter, and use only letters, digits, spaces, apostrophes, hyphens, periods or parentheses. Case is preserved. For example, `Combined   Science` is saved as `Combined Science`. Each student has at most one subject.
+
+* `edit 1 s/Math` sets or replaces the first displayed student's subject.
+* `edit 1 s/` removes that subject and shows `Subject: Not recorded`.
+* Omitting `s/` from an edit preserves the subject. Editing a subject preserves all other fields.
+* Repeating `s/` in one command is rejected. Invalid subject input leaves the record unchanged.
+* Subject does not affect duplicate detection; two records with the exact same name are still duplicates.
+* Subject is saved automatically after successful commands. Existing data without a subject loads normally. A save failure is reported and may leave an in-memory change; do not assume it has been saved.
 
 ### Listing all persons: `list`
 
@@ -99,7 +114,7 @@ Format: `list`
 
 Edits an existing person in the address book.
 
-Format: `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [a/ADDRESS] [t/TAG]…​`
+Format: `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [a/ADDRESS] [t/TAG]…​ [s/SUBJECT]`
 
 * Edits the person at the specified `INDEX`. The index refers to the index number shown in the displayed person list. The index **must be a positive integer** 1, 2, 3, …​
 * At least one of the optional fields must be provided.
@@ -194,7 +209,7 @@ Action | Format, Examples
 **Add** | `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]…​` <br> e.g., `add n/James Ho p/22224444 e/jamesho@example.com a/123, Clementi Rd, 1234665 t/friend t/colleague`
 **Clear** | `clear`
 **Delete** | `delete INDEX`<br> e.g., `delete 3`
-**Edit** | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]…​`<br> e.g., `edit 2 n/James Lee e/jameslee@example.com`
+**Edit** | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]…​ [s/SUBJECT]`<br> e.g., `edit 2 n/James Lee e/jameslee@example.com`
 **Find** | `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find James Jake`
 **List** | `list`
 **Help** | `help`
