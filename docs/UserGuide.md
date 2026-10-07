@@ -17,7 +17,15 @@ AddressBook Level 3 (AB3) is a **desktop application for managing contacts, opti
 1. Ensure that Java `25` or later is installed on your computer.<br>
    **Mac users:** Ensure you have the precise JDK version prescribed [here](https://se-education.org/guides/tutorials/javaInstallationMac.html).
 
-1. For this development version, clone the [team repository](https://github.com/AY2627S1-CS2103T-F13-4/tp), check out the subject feature branch or a revision containing it, and run `./gradlew shadowJar` with Java 25. The JAR is `build/libs/addressbook.jar`. On Windows use `gradlew.bat shadowJar`. Until the feature PR is merged, its branch is `student-subject` in [Pranav's fork](https://github.com/pranavp311/tp).
+1. Until the subject feature is merged into the [team repository](https://github.com/AY2627S1-CS2103T-F13-4/tp), build this development version from [Pranav's fork](https://github.com/pranavp311/tp):
+
+   ```text
+   git clone --branch student-subject https://github.com/pranavp311/tp.git studentbook
+   cd studentbook
+   ./gradlew shadowJar
+   ```
+
+   Use Java 25. On Windows, replace the last command with `gradlew.bat shadowJar`. The built JAR is `build/libs/addressbook.jar`.
 
 1. Copy the file to the folder you want to use as the _home folder_ for your AddressBook.
 
@@ -206,7 +214,7 @@ _Details coming soon ..._
 
 Action | Format, Examples
 --------|------------------
-**Add** | `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]…​` <br> e.g., `add n/James Ho p/22224444 e/jamesho@example.com a/123, Clementi Rd, 1234665 t/friend t/colleague`
+**Add** | `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]…​ [s/SUBJECT]` <br> e.g., `add n/James Ho p/22224444 e/jamesho@example.com a/123, Clementi Rd, 1234665 t/friend t/colleague s/Math`
 **Clear** | `clear`
 **Delete** | `delete INDEX`<br> e.g., `delete 3`
 **Edit** | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]…​ [s/SUBJECT]`<br> e.g., `edit 2 n/James Lee e/jameslee@example.com`
