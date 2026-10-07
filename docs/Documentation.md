@@ -12,6 +12,8 @@ title: Documentation guide
 
 Use short sentences and familiar words. Put the action first. Label planned features clearly, and explain technical terms where readers need them. Keep exact command syntax, validation rules and error messages intact.
 
+PR descriptions should explain the problem, the change and the checks performed. State merge dependencies first. Include limits that affect review; leave out the history of drafting and reviewing the PR.
+
 See the [Google documentation style guide](https://developers.google.com/style) and [Markdown coding standard](https://se-education.org/guides/conventions/markdown.html).
 
 ## Maintain the website

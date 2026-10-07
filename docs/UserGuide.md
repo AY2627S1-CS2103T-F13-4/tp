@@ -73,14 +73,14 @@ Records with exactly the same name are duplicates. Name matching is case-sensiti
 | Clear a subject | `edit 1 s/` |
 | Include a subject when adding a student | Add `s/Math` to the `add` command |
 
-A missing subject appears as `Subject: Not recorded`. Omitting `s/` from an edit keeps the existing subject. Changing a subject keeps every other field unchanged.
+A missing subject appears as `Subject: Not recorded`. Leave out `s/` to keep the existing subject when editing. Changing a subject keeps every other field unchanged.
 
 Subject rules:
 
-* Use 1 to 40 ASCII characters, starting with a letter or digit and containing at least one letter.
-* Allowed characters are letters, digits, spaces, apostrophes, hyphens, periods and parentheses.
+* Use 1 to 40 characters after the space cleanup below. Start with a letter or digit and include at least one letter.
+* Use English letters `A-Z` or `a-z`, digits `0-9`, spaces and these symbols: `'`, `-`, `.`, `(`, `)`.
 * Leading and trailing spaces or tabs are removed. Repeated spaces or tabs become one space. For example, three spaces between `Combined` and `Science` become one.
-* Letter case is preserved.
+* Uppercase and lowercase letters stay as entered.
 * An empty `s/` is valid for clearing with `edit`, but invalid with `add`.
 * Repeating `s/` in one command is invalid. Invalid input leaves the record unchanged.
 
@@ -94,7 +94,7 @@ Shows every student and clears any active search filter.
 
 Format: `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]... [s/SUBJECT]`
 
-Supply at least one field. New values replace the specified fields; all other fields stay unchanged.
+Include at least one field to change. Fields you leave out stay unchanged.
 
 * Tags replace the entire existing set. Use an empty `t/` to clear all tags.
 * An empty `s/` clears the subject.

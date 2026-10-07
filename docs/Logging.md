@@ -9,4 +9,4 @@ The app uses `java.util.logging`. `LogsCenter` sets the log level and writes to 
 * Change `LogsCenter.LOG_LEVEL` to adjust detail; the default is `INFO`.
 * Follow the [Java logging conventions](https://se-education.org/guides/conventions/java/logging.html) when choosing a message level.
 
-The inherited `LogicManager` logs raw commands. Use sample contact details during testing; the data-protection requirement in the Developer Guide is a target, not a claim that these logs are already redacted.
+`LogicManager` logs commands exactly as entered, including contact details. Use sample data when testing. Hiding private details from logs remains a requirement to implement.

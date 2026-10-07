@@ -5,7 +5,7 @@
 
 StudentBook helps private tutors keep student contacts and tuition details in one place. It runs on your computer and uses typed commands.
 
-This development branch supports student contacts and subjects. You can add, view, edit and clear a subject, and save it between launches. Commands for the other tuition fields are still planned.
+This development branch supports student contacts and subjects. You can add, view, edit and clear a subject. The app saves it automatically. Commands for the other tuition fields are planned.
 
 The first version aims to let tutors:
 

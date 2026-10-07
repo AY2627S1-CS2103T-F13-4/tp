@@ -15,7 +15,7 @@ Start with [setup](SettingUp.md) and [Student model and scope](StudentModel.md).
 * Based on [AddressBook Level 3](https://github.com/se-edu/addressbook-level3) from the [SE-EDU initiative](https://se-education.org).
 * Pranav Pappu used [OpenAI Codex](https://openai.com/codex/) to review and edit the repository docs, Google Doc and story Sheet. Codex also implemented the shared tuition model, JSON support, field preservation, subject commands/display and regression tests. Separate reviewers checked the changes.
 
-## Setting up, getting started
+## Getting started
 
 Follow the [setup guide](SettingUp.md), then run the [tests](Testing.md).
 
@@ -103,7 +103,7 @@ Shared helpers live in `seedu.address.commons`.
 
 ### Shared tuition model
 
-`Person` keeps all AB3 contact fields and adds five optional tuition values. Existing constructors and JSON files remain valid. See [the shared contract](StudentModel.md) for types, validation, equality and storage rules.
+`Person` keeps all AB3 contact fields and adds five optional tuition values. Existing constructors and JSON files remain valid. See [Student model and scope](StudentModel.md) for types, validation, equality and storage rules.
 
 ### Subject workflow
 
@@ -146,14 +146,14 @@ Independent private tutors who:
 * regularly retrieve and update this information before and after lessons
 * can type quickly and prefer typing over mouse-driven input
 
-**Value proposition**: StudentBook keeps student details and guardian contacts in one place, so private tutors can find and update them quickly. Lesson arrangements and follow-up notes are planned extensions.
+**Value proposition**: StudentBook keeps student details and guardian contacts in one place, so tutors can find and update them quickly. Lesson arrangements and follow-up notes are planned extensions.
 
 
 ### User stories
 
 Priorities: `***` = required, `**` = optional, `*` = low priority. These describe product goals, not implementation status.
 
-| ID | Priority | As a …​                                    | I want to …​                     | So that I can…​                                                        |
+| ID | Priority | As a... | I want to... | So that I can... |
 |----|----------| ------------------------------------------ | ------------------------------ | ---------------------------------------------------------------------- |
 | 1 | `***` | private tutor | add a student record with a name | begin tracking each student |
 | 2 | `***` | private tutor | view the list of current students | see who I currently teach |
@@ -340,29 +340,29 @@ Use case ends.
 
 These are acceptance targets. They have not all been verified in the current app.
 
-1. **Compatibility:** The application should run on Windows, macOS, and Linux with Java `25`, subject to the bundled JavaFX runtime's platform and architecture support.
-2. **Capacity and response time:** With up to 1,000 student records, each with one guardian contact, adding, listing, and deleting a record should update the displayed result within two seconds on a supported computer with at least 4 GB of RAM and local storage. Measure this from command submission to the displayed result, excluding application startup.
-3. **Keyboard usability:** After launching the application, a tutor should be able to add, list, and delete student records using the keyboard without requiring mouse interaction.
-4. **Error feedback:** Rejected commands should display a readable explanation of the incorrect input and how to correct it. Invalid input should leave existing records unchanged.
-5. **Persistence:** Following a successful save and normal shutdown, reopening the application should restore all existing contact fields, subjects, schooling levels, guardian contacts and every implemented extension without manual re-entry.
-6. **Offline operation:** Managing and saving student records should work without an internet connection. Records should be stored locally for a single tutor rather than requiring an online account.
-7. **Data protection:** Student and guardian contact details should not be sent to external services or included in diagnostic logs. Access to local data files relies on the tutor's operating-system account and file permissions.
-8. **Storage failure reporting:** Report save failures clearly. The inherited application may retain an in-memory change after a failed save. Undoing a failed save and blocking commands after a load failure are future improvements. Valid AB3 files must load with new fields absent.
+1. **Compatibility.** Run on Windows, macOS and Linux with Java `25`, on systems supported by the bundled JavaFX runtime.
+2. **Capacity and speed.** Support 1,000 students, each with one guardian. Adding, listing or deleting a record should show its result within two seconds. Test on a supported computer with at least 4 GB of RAM and local storage. Measure from command submission to the displayed result, excluding startup.
+3. **Keyboard use.** After launch, let tutors add, list and delete students without a mouse.
+4. **Error messages.** Explain what is wrong and how to fix it. Invalid input should leave existing records unchanged.
+5. **Saved data.** After a successful save and normal shutdown, restore every contact and tuition field on restart, including implemented extensions. Users should not have to re-enter data.
+6. **Offline use.** Manage and save records on the tutor's computer without internet access or an online account.
+7. **Data protection.** Keep student and guardian contact details out of external services and diagnostic logs. The tutor's operating-system account and file permissions control access to local files.
+8. **File errors.** Report save failures clearly. A failed save may leave the change in memory. Undoing that change and blocking commands after a failed load are future improvements. Valid AB3 files must load with new fields absent.
 
 ### Glossary
 
 * **StudentBook**: The desktop app for managing student records.
-* **Independent private tutor**: A tutor who manages students and lesson administration without administrative staff.
-* **Student record**: An entry representing a student taught by the tutor. Retains name, phone, email, address and tags, with optional subject, schooling level and guardian contact. Lesson slots and rates are selected extensions; notes are deferred.
-* **Guardian contact**: The name and contact details of the adult responsible for a student. The core MVP stores zero or one contact per student, with both name and phone required when a contact is present.
+* **Independent private tutor**: A tutor who manages students and lessons without administrative staff.
+* **Student record**: One student's name, phone, email, address and tags, with optional subject, schooling level and guardian contact. Lesson slots and rates are planned extensions; notes are future work.
+* **Guardian contact**: The name and phone number of the adult responsible for a student. The first version allows one optional guardian per student. A recorded guardian needs both fields.
 * **Schooling level**: The student's stage of primary or secondary education, such as Primary 5 or Secondary 3.
 * **Subject**: An academic subject taught by the tutor to a student, such as Mathematics or English.
-* **Recurring lesson slot**: A weekly lesson arrangement specifying a day, start time and end time for a student. The first extension supports zero or one slot per student.
+* **Recurring lesson slot**: A student's weekly lesson day, start time and end time. The first extension allows one optional slot per student.
 * **Hourly rate**: The agreed SGD amount per hour, stored as `BigDecimal`. It does not calculate fees or process payments.
 * **Progress note**: A dated note recording a student's learning progress or observations from a lesson.
 * **Guardian follow-up item**: A recorded action the tutor needs to carry out for a guardian, such as providing an update. An outstanding item has not yet been marked complete.
-* **Displayed index**: The position identifying a student in the currently displayed list. It can change when the list changes and is not a permanent student identifier.
-* **Local storage**: Data files on the tutor's computer that retain records between application sessions.
+* **Displayed index**: The number beside a student in the current list. It can change when the list changes, so it is not a permanent student ID.
+* **Local storage**: Files on the tutor's computer that keep records between launches.
 * **Private contact detail**: A student or guardian's phone number, email address, or other contact information intended for the tutor's use rather than public sharing.
 
 ## Appendix: Instructions for manual testing

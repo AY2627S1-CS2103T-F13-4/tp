@@ -5,30 +5,30 @@ title: Student model and scope
 
 # Student model and scope
 
-This page records the agreed model, feature owners and integration rules. The [User Guide](UserGuide.md) lists commands that work in the current version.
+This page defines the shared fields, feature owners and rules for combining their work. The [User Guide](UserGuide.md) lists commands that work now.
 
 ## Scope
 
-StudentBook is for one private tutor. Keep the existing AB3 name, phone, email, address and tags, with their current validation and commands. The tutor uses the app; they are not a separate record.
+StudentBook is for one private tutor. Keep the existing AddressBook Level 3, or AB3, name, phone, email, address and tags, with their current validation and commands. The tutor uses the app; they are not a separate record.
 
 Add five optional, immutable values to `Person`. Any of them can be absent, even on new students. Absence means "not recorded", not an empty string or a made-up value.
 
 | Field | Java type | Rules |
 |---|---|---|
-| Subject | `Optional<Subject>` | One text label, 1 to 40 ASCII characters after whitespace normalization |
-| Schooling level | `Optional<SchoolingLevel>` | One text label, 1 to 30 ASCII characters after whitespace normalization |
+| Subject | `Optional<Subject>` | One text label, 1 to 40 ASCII characters after the space cleanup below |
+| Schooling level | `Optional<SchoolingLevel>` | One text label, 1 to 30 ASCII characters after the space cleanup below |
 | Guardian | `Optional<GuardianContact>` | Both `Name` and `Phone`, using AB3 validation |
 | Weekly lesson | `Optional<WeeklyLessonSlot>` | `DayOfWeek`, `LocalTime start` and `LocalTime end`; whole minutes, with end later on the same day |
 | Hourly rate | `Optional<HourlyRate>` | SGD/hour as a non-negative `BigDecimal`, with at most two decimal places; zero is a recorded value |
 
 Subject and level use text labels, not enums. For both:
 
-* Trim outer spaces/tabs and collapse repeated spaces/tabs into one space. Preserve case.
+* Remove leading and trailing spaces or tabs. Replace repeated spaces or tabs with one space. Keep uppercase and lowercase letters as entered.
 * Start with an ASCII letter or digit and include at least one letter.
 * Allow letters, digits, spaces, apostrophes, hyphens, periods and parentheses.
 * Do not map synonyms or check whether a subject matches a level.
 
-Matching guardian contacts on siblings remain independent values. There is no tutor/student role field or generic `class[]` field.
+Siblings can have the same guardian details, but each student keeps a separate copy. There is no tutor/student role field or generic `class[]` field.
 
 ## Integration rules
 
@@ -64,9 +64,9 @@ Add these JSON properties:
 | `weeklyLessonSlot` | Object with uppercase English `day`, such as `MONDAY`, and `start`/`end` in `HH:mm` |
 | `hourlyRate` | Decimal string, such as `"45.50"` |
 
-Missing or null tuition properties load as `Optional.empty()`. Supplied values must have the correct JSON type and pass validation. Keep valid old files, names and duplicate rules compatible; never silently drop stored data.
+Missing or null tuition properties load as `Optional.empty()`. Supplied values must have the correct JSON type and pass validation. Valid old files must still load. Keep the existing name and duplicate rules, and never silently discard data.
 
-Verify old-file loading, full save/reload, and an edit to a fully populated record. A save failure is reported, but the change may remain in memory. Rollback and a blocked startup recovery screen are not implemented. Back up files before manual edits.
+Check that old files load, all fields survive save/reload, and editing one field preserves the others. A failed save reports an error but does not undo the change in memory. A failed load does not block further commands. Back up files before manual edits.
 
 ## Feature owners
 
@@ -78,11 +78,11 @@ Verify old-file loading, full save/reload, and an edit to a fully populated reco
 | Dylan | Hourly rate | 53, 54 |
 | Mervin | Guardian contact | 7, 8, 22 |
 
-This follows the team's reused A to E allocation, checked against earlier GitHub assignments. Track each feature in an assigned v1.2 issue. Each member needs a merged functional-code PR for Week 8; a small working feature is enough for the first increment. Full create, read, update and delete support can follow.
+This follows the agreed A to E allocation, checked against earlier GitHub assignments. Assign each feature a v1.2 issue. Each member needs a merged PR with working feature code for Week 8. Start small; full create, read, update and delete support can follow.
 
 ## Current and planned features
 
-The core MVP covers stories 1 to 9 in `copy_sheet1`: student records, subject/level, one guardian and saved data. A high-priority capability does not make its field mandatory for every student. Weekly slots and rates are extensions.
+The first version covers stories 1 to 9 in `copy_sheet1`: student records, subject/level, one guardian and saved data. A required feature can still have an optional field. Weekly slots and rates are extensions.
 
 The subject branch supports `add ... s/SUBJECT`, card display and save/reload. Use `edit INDEX s/SUBJECT` to change a subject and `edit INDEX s/` to clear it. Other fields stay unchanged.
 
