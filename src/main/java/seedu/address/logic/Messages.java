@@ -45,6 +45,10 @@ public class Messages {
                 .append(person.getAddress())
                 .append("; Tags: ");
         person.getTags().forEach(builder::append);
+        if (!person.getSubjects().isEmpty()) {
+            builder.append("; Subjects: ").append(person.getSubjects().stream()
+                    .map(Object::toString).collect(Collectors.joining(", ")));
+        }
         person.getSchoolingLevel().ifPresent(level -> builder.append("; Level: ").append(level));
         return builder.toString();
     }

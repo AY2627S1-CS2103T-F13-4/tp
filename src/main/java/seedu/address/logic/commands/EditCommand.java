@@ -6,11 +6,13 @@ import static seedu.address.logic.parser.CliSyntax.PREFIX_EMAIL;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_LEVEL;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_NAME;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_SUBJECT;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_TAG;
 import static seedu.address.model.Model.PREDICATE_SHOW_ALL_PERSONS;
 
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -28,6 +30,7 @@ import seedu.address.model.person.Name;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.Phone;
 import seedu.address.model.person.SchoolingLevel;
+import seedu.address.model.person.Subject;
 import seedu.address.model.tag.Tag;
 
 /**
@@ -39,14 +42,16 @@ public class EditCommand extends Command {
 
     public static final String MESSAGE_USAGE = COMMAND_WORD + ": Edits the details of the person identified "
             + "by the index number used in the displayed person list. "
-            + "Existing values will be overwritten by the input values.\n"
+            + "Existing values will be overwritten by the input values. "
+            + "Repeat s/ for multiple subjects; use empty s/ to clear all subjects.\n"
             + "Parameters: INDEX (must be a positive integer) "
             + "[" + PREFIX_NAME + "NAME] "
             + "[" + PREFIX_PHONE + "PHONE] "
             + "[" + PREFIX_EMAIL + "EMAIL] "
             + "[" + PREFIX_ADDRESS + "ADDRESS] "
-            + "[" + PREFIX_LEVEL + "SCHOOLING_LEVEL] "
-            + "[" + PREFIX_TAG + "TAG]...\n"
+            + "[" + PREFIX_TAG + "TAG]... "
+            + "[" + PREFIX_SUBJECT + "SUBJECT]... "
+            + "[" + PREFIX_LEVEL + "SCHOOLING_LEVEL]\n"
             + "Use an empty " + PREFIX_LEVEL + " to clear the schooling level.\n"
             + "Example: " + COMMAND_WORD + " 1 "
             + PREFIX_PHONE + "91234567 "
@@ -109,7 +114,9 @@ public class EditCommand extends Command {
                 .orElse(personToEdit.getSchoolingLevel());
 
         return new Person(updatedName, updatedPhone, updatedEmail, updatedAddress, updatedTags,
-                personToEdit.getSubject(), updatedSchoolingLevel, personToEdit.getGuardianContact(),
+                editPersonDescriptor.isSubjectsEdited()
+                        ? editPersonDescriptor.getSubjects() : personToEdit.getSubjects(),
+                updatedSchoolingLevel, personToEdit.getGuardianContact(),
                 personToEdit.getWeeklyLessonSlot(), personToEdit.getHourlyRate());
     }
 
@@ -146,6 +153,8 @@ public class EditCommand extends Command {
         private Email email;
         private Address address;
         private Set<Tag> tags;
+        private boolean subjectsEdited;
+        private Set<Subject> subjects = Set.of();
         // null means "not edited"; Optional.empty() means "clear the schooling level"
         private Optional<SchoolingLevel> schoolingLevel;
 
@@ -161,6 +170,9 @@ public class EditCommand extends Command {
             setEmail(toCopy.email);
             setAddress(toCopy.address);
             setTags(toCopy.tags);
+            if (toCopy.subjectsEdited) {
+                setSubjects(toCopy.subjects);
+            }
             setSchoolingLevel(toCopy.schoolingLevel);
         }
 
@@ -168,7 +180,23 @@ public class EditCommand extends Command {
          * Returns true if at least one field is edited.
          */
         public boolean isAnyFieldEdited() {
-            return CollectionUtil.isAnyNonNull(name, phone, email, address, tags, schoolingLevel);
+            return subjectsEdited || CollectionUtil.isAnyNonNull(name, phone, email, address, tags, schoolingLevel);
+        }
+
+        /** Replaces subjects with a defensive copy; an empty set clears them all. */
+        public void setSubjects(Set<Subject> subjects) {
+            requireNonNull(subjects);
+            subjects.forEach(Objects::requireNonNull);
+            this.subjects = Collections.unmodifiableSet(new LinkedHashSet<>(subjects));
+            subjectsEdited = true;
+        }
+
+        public boolean isSubjectsEdited() {
+            return subjectsEdited;
+        }
+
+        public Set<Subject> getSubjects() {
+            return subjects;
         }
 
         public void setName(Name name) {
@@ -251,6 +279,8 @@ public class EditCommand extends Command {
                     && Objects.equals(email, otherEditPersonDescriptor.email)
                     && Objects.equals(address, otherEditPersonDescriptor.address)
                     && Objects.equals(tags, otherEditPersonDescriptor.tags)
+                    && subjectsEdited == otherEditPersonDescriptor.subjectsEdited
+                    && subjects.equals(otherEditPersonDescriptor.subjects)
                     && Objects.equals(schoolingLevel, otherEditPersonDescriptor.schoolingLevel);
         }
 
@@ -262,6 +292,7 @@ public class EditCommand extends Command {
                     .add("email", email)
                     .add("address", address)
                     .add("tags", tags)
+                    .add("subjects", subjectsEdited ? subjects : null)
                     .add("schoolingLevel", schoolingLevel)
                     .toString();
         }

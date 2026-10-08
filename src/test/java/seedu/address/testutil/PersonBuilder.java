@@ -1,6 +1,8 @@
 package seedu.address.testutil;
 
+import java.util.Arrays;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Optional;
 import java.util.Set;
 
@@ -32,7 +34,7 @@ public class PersonBuilder {
     private Email email;
     private Address address;
     private Set<Tag> tags;
-    private Optional<Subject> subject = Optional.empty();
+    private Set<Subject> subjects = Set.of();
     private Optional<SchoolingLevel> schoolingLevel = Optional.empty();
     private Optional<GuardianContact> guardianContact = Optional.empty();
     private Optional<WeeklyLessonSlot> weeklyLessonSlot = Optional.empty();
@@ -58,7 +60,7 @@ public class PersonBuilder {
         email = personToCopy.getEmail();
         address = personToCopy.getAddress();
         tags = new HashSet<>(personToCopy.getTags());
-        subject = personToCopy.getSubject();
+        subjects = personToCopy.getSubjects();
         schoolingLevel = personToCopy.getSchoolingLevel();
         guardianContact = personToCopy.getGuardianContact();
         weeklyLessonSlot = personToCopy.getWeeklyLessonSlot();
@@ -107,7 +109,13 @@ public class PersonBuilder {
 
     /** Sets the optional subject; null clears it. */
     public PersonBuilder withSubject(Subject value) {
-        subject = Optional.ofNullable(value);
+        subjects = value == null ? Set.of() : Set.of(value);
+        return this;
+    }
+
+    /** Sets all subjects in input order. */
+    public PersonBuilder withSubjects(Subject... values) {
+        subjects = new LinkedHashSet<>(Arrays.asList(values));
         return this;
     }
 
@@ -137,7 +145,7 @@ public class PersonBuilder {
 
     /** Builds an immutable student record. */
     public Person build() {
-        return new Person(name, phone, email, address, tags, subject, schoolingLevel, guardianContact,
+        return new Person(name, phone, email, address, tags, subjects, schoolingLevel, guardianContact,
                 weeklyLessonSlot, hourlyRate);
     }
 

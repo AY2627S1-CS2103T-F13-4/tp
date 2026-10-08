@@ -1,6 +1,7 @@
 package seedu.address.ui;
 
 import java.util.Comparator;
+import java.util.stream.Collectors;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
@@ -39,6 +40,8 @@ public class PersonCard extends UiPart<Region> {
     @FXML
     private Label email;
     @FXML
+    private Label subject;
+    @FXML
     private Label schoolingLevel;
     @FXML
     private FlowPane tags;
@@ -54,6 +57,8 @@ public class PersonCard extends UiPart<Region> {
         phone.setText(person.getPhone().value);
         address.setText(person.getAddress().value);
         email.setText(person.getEmail().value);
+        subject.setText("Subjects: " + (person.getSubjects().isEmpty() ? "Not recorded"
+                : person.getSubjects().stream().map(Object::toString).collect(Collectors.joining(", "))));
         if (person.getSchoolingLevel().isPresent()) {
             schoolingLevel.setText("Level: " + person.getSchoolingLevel().get());
         } else {
