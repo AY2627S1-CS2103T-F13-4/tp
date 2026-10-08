@@ -40,7 +40,7 @@ public class FindCommandParser implements Parser<FindCommand> {
     /** Parses {@code find l/TEXT}, which must not be combined with name keywords. */
     private FindCommand parseLevelSearch(String args) throws ParseException {
         ArgumentMultimap argMultimap = ArgumentTokenizer.tokenize(args, PREFIX_LEVEL);
-        if (!argMultimap.getPreamble().isEmpty() || argMultimap.getValue(PREFIX_LEVEL).isEmpty()
+        if (!argMultimap.getPreamble().isEmpty()
                 || argMultimap.getValue(PREFIX_LEVEL).get().isBlank()) {
             throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, FindCommand.MESSAGE_USAGE));
         }

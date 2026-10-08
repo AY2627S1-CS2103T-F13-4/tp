@@ -35,4 +35,11 @@ public class SchoolingLevelContainsKeywordPredicateTest {
         // no recorded level never matches
         assertFalse(new SchoolingLevelContainsKeywordPredicate("Primary").test(new PersonBuilder().build()));
     }
+
+    @Test
+    public void toStringMethod() {
+        SchoolingLevelContainsKeywordPredicate predicate = new SchoolingLevelContainsKeywordPredicate("Primary");
+        String expected = SchoolingLevelContainsKeywordPredicate.class.getCanonicalName() + "{keyword=primary}";
+        assertEquals(expected, predicate.toString());
+    }
 }
