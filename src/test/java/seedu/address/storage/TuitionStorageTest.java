@@ -86,7 +86,7 @@ public class TuitionStorageTest {
         assertNotEquals(original, new PersonBuilder(original).withSubject(null).build());
         assertTrue(original.isSamePerson(new PersonBuilder(original).withSubject(null).build()));
     }
-  
+
     public void olderSingleSubject_migratesToSubjectsArrayWithoutLosingData() throws Exception {
         String json = LEGACY_PERSON.substring(0, LEGACY_PERSON.length() - 1) + ",\"subject\":\"Math\"}";
         Person original = JsonUtil.fromJsonString(json, JsonAdaptedPerson.class).toModelType();
@@ -129,7 +129,7 @@ public class TuitionStorageTest {
             }, value);
         }
     }
-  
+
     @Test
     public void completeStudent_replaceWeeklyLessonSlotAndReload_preservesOtherFields() throws Exception {
         Person original = completeStudent();
