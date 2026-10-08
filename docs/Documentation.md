@@ -3,24 +3,27 @@ layout: page
 title: Documentation guide
 ---
 
-## Keep the docs current
+**Setting up and maintaining the project website:**
 
-* **User Guide:** Explain commands that users can run now, with short examples and expected results.
-* **Developer Guide:** Explain the design, requirements and tests.
-* **Student model and scope:** Keep shared field rules and feature ownership in one place.
-* **Google Doc and story Sheet:** Keep active plans consistent with the repository. Preserve story IDs and priorities.
+* We use [**Jekyll**](https://jekyllrb.com/) to manage documentation.
+* The `docs/` folder is used for documentation.
+* To learn how to set up and maintain the project website, follow the guide [_[se-edu/guides] **Using Jekyll for project documentation**_](https://se-education.org/guides/tutorials/jekyll.html).
+* Note these points when adapting the documentation to a different project/product:
+  * The 'Site-wide settings' section of the page linked above has information on how to update site-wide elements such as the top navigation bar.
+  * :bulb: In addition to updating content files, you might have to update the config files `docs/_config.yml` and `docs/_sass/minima/_base.scss`. The latter contains a reference to `AB-3` that is used when converting documentation pages to PDF format.
+* If you are using IntelliJ for editing documentation files, you can consider enabling 'soft wrapping' for `*.md` files, as explained in [_[se-edu/guides] **Intellij IDEA: Useful settings**_](https://se-education.org/guides/tutorials/intellijUsefulSettings.html#enabling-soft-wrapping)
 
-Use short sentences and familiar words. Put the action first. Label planned features clearly, and explain technical terms where readers need them. Keep exact command syntax, validation rules and error messages intact.
 
-PR descriptions should explain the problem, the change and the checks performed. State merge dependencies first. Include limits that affect review; leave out the history of drafting and reviewing the PR.
+**Style guidance:**
 
-See the [Google documentation style guide](https://developers.google.com/style) and [Markdown coding standard](https://se-education.org/guides/conventions/markdown.html).
+* Follow the [**_Google developer documentation style guide_**](https://developers.google.com/style).
 
-## Maintain the website
+* Also relevant is the [_[se-edu/guides] **Markdown coding standard**_](https://se-education.org/guides/conventions/markdown.html)
 
-[Jekyll](https://jekyllrb.com/) builds the website from `docs/`. Use `docs/_config.yml` for site settings and navigation. Styles are in `docs/_sass`; `_base.scss` also contains the PDF header label.
+**Diagrams:**
 
-* [Set up and use Jekyll](https://se-education.org/guides/tutorials/jekyll.html)
-* [Enable soft wrapping in IntelliJ](https://se-education.org/guides/tutorials/intellijUsefulSettings.html#enabling-soft-wrapping)
-* [Edit PlantUML diagrams](https://se-education.org/guides/tutorials/plantUml.html), stored in `docs/diagrams`
-* [Save web pages as PDFs](https://se-education.org/guides/tutorials/savingPdf.html)
+* See the [_[se-edu/guides] **Using PlantUML**_](https://se-education.org/guides/tutorials/plantUml.html)
+
+**Converting a document to the PDF format:**
+
+* See the guide [_[se-edu/guides] **Saving web documents as PDF files**_](https://se-education.org/guides/tutorials/savingPdf.html)

@@ -7,14 +7,17 @@ StudentBook helps private tutors keep student contacts and tuition details in on
 
 This development branch supports student contacts and subjects. You can add, view, edit and clear a subject. The app saves it automatically. Commands for the other tuition fields are planned.
 
-The first version aims to let tutors:
+The MVP will let tutors:
 
-* Record a student's name, phone, email, address and tags, with an optional subject and schooling level.
-* Add one guardian's name and phone number to a student.
-* Delete a student and their attached details.
+* Add, list, edit and delete student records.
+* Record each student's subject, schooling level, guardian contact, weekly lesson slot and hourly rate.
 * Save records locally and reopen them later.
 
-Weekly lesson slots and hourly rates are planned extensions. Group classes, progress notes, fee calculations, payments and messaging are deferred. See [Student model and scope](docs/StudentModel.md) for the agreed design and feature owners.
+All five tuition features are part of the MVP. Payment processing and sending messages are out of scope. Other brainstormed ideas are backlog candidates, not promised additions.
+
+![Planned StudentBook interface](docs/images/Ui.png)
+
+This mock-up shows the planned MVP. The User Guide describes the commands available now. See the [Developer Guide](docs/DeveloperGuide.md#product-scope) for feature owners and decisions still to confirm.
 
 Start with the [User Guide](docs/UserGuide.md) to use the app or the [Developer Guide](docs/DeveloperGuide.md) to contribute. The [project website](https://ay2627s1-cs2103t-f13-4.github.io/tp/) publishes the merged documentation.
 

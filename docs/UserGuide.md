@@ -5,7 +5,7 @@ title: User Guide
 
 StudentBook is a desktop contact book for private tutors. Type commands to manage student records.
 
-This development version supports contact details and one optional subject per student. Schooling level, guardian, lesson-slot and hourly-rate commands are planned. See [Student model and scope](StudentModel.md) for the full plan.
+This development version supports contact details and one optional subject per student. Schooling level, guardian, lesson-slot and hourly-rate commands are planned MVP work. See the [Developer Guide](DeveloperGuide.md#product-scope) for the plan and open decisions.
 
 * Table of Contents
 {:toc}
