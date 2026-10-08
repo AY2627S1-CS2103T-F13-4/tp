@@ -302,7 +302,7 @@ public class EditCommand extends Command {
                     .add("email", email)
                     .add("address", address)
                     .add("tags", tags)
-                    .add("subjects", subjectsEdited ? subjects : null)
+                    .add("subjects", subjects)
                     .add("schoolingLevel", schoolingLevel)
                     .add("weeklyLessonSlot", weeklyLessonSlot)
                     .toString();
