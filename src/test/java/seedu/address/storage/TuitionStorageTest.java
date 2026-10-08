@@ -4,6 +4,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static seedu.address.logic.commands.CommandTestUtil.LESSON_SLOT_DESC;
+import static seedu.address.logic.commands.CommandTestUtil.VALID_LESSON_SLOT;
 
 import java.math.BigDecimal;
 import java.nio.file.Path;
@@ -43,7 +45,8 @@ public class TuitionStorageTest {
         return new PersonBuilder().withSubject(new Subject("Combined Science"))
                 .withSchoolingLevel(new SchoolingLevel("Primary 5"))
                 .withGuardianContact(new GuardianContact(new Name("Janet Tan"), new Phone("91234567")))
-                .withWeeklyLessonSlot(new WeeklyLessonSlot(DayOfWeek.MONDAY, LocalTime.of(16, 0), LocalTime.of(17, 30)))
+                .withWeeklyLessonSlot(new WeeklyLessonSlot(DayOfWeek.MONDAY,
+                        LocalTime.of(16, 0), LocalTime.of(17, 30)))
                 .withHourlyRate(new HourlyRate(new BigDecimal("45.50"))).build();
     }
 
@@ -83,11 +86,50 @@ public class TuitionStorageTest {
     }
 
     @Test
+    public void completeStudent_replaceWeeklyLessonSlotAndReload_preservesOtherFields() throws Exception {
+        Person original = completeStudent();
+        AddressBook book = new AddressBook();
+        book.addPerson(original);
+        Model model = new ModelManager(book, new UserPrefs());
+
+        new AddressBookParser().parseCommand("edit 1" + LESSON_SLOT_DESC).execute(model);
+        Person expected = new PersonBuilder(original).withWeeklyLessonSlot(VALID_LESSON_SLOT).build();
+        JsonAddressBookStorage storage = new JsonAddressBookStorage(temporaryFolder.resolve("addressbook.json"));
+        storage.saveAddressBook(model.getAddressBook());
+
+        ReadOnlyAddressBook loaded = storage.readAddressBook().orElseThrow();
+        assertEquals(1, loaded.getPersonList().size());
+        assertEquals(expected, loaded.getPersonList().get(0));
+    }
+
+    @Test
+    public void completeStudent_clearWeeklyLessonSlotAndReload_preservesOtherFields() throws Exception {
+        Person original = completeStudent();
+        AddressBook book = new AddressBook();
+        book.addPerson(original);
+        Model model = new ModelManager(book, new UserPrefs());
+
+        new AddressBookParser().parseCommand("edit 1 i/").execute(model);
+        Person expected = new PersonBuilder(original).withWeeklyLessonSlot(null).build();
+        JsonAddressBookStorage storage = new JsonAddressBookStorage(temporaryFolder.resolve("addressbook.json"));
+        storage.saveAddressBook(model.getAddressBook());
+
+        ReadOnlyAddressBook loaded = storage.readAddressBook().orElseThrow();
+        assertEquals(1, loaded.getPersonList().size());
+        assertEquals(expected, loaded.getPersonList().get(0));
+        assertTrue(loaded.getPersonList().get(0).getWeeklyLessonSlot().isEmpty());
+    }
+
+    @Test
     public void invalidTuitionJson_rejectedWithoutInventingValues() {
         for (String property : new String[]{"\"subject\":\"\"", "\"schoolingLevel\":\"123\"",
             "\"guardianContact\":{\"name\":\"Janet\"}",
             "\"weeklyLessonSlot\":{\"day\":\"MONDAY\",\"start\":\"24:00\",\"end\":\"25:00\"}",
             "\"weeklyLessonSlot\":{\"day\":\"MONDAY\",\"start\":\"18:00\",\"end\":\"17:00\"}",
+            "\"weeklyLessonSlot\":{\"day\":\"MONDAY\",\"start\":\"17:00\",\"end\":\"17:00\"}",
+            "\"weeklyLessonSlot\":{\"start\":\"16:00\",\"end\":\"17:00\"}",
+            "\"weeklyLessonSlot\":{\"day\":\"MONDAY\",\"end\":\"17:00\"}",
+            "\"weeklyLessonSlot\":{\"day\":\"MONDAY\",\"start\":\"16:00\"}",
             "\"hourlyRate\":\"-1\"", "\"hourlyRate\":\"1.001\"", "\"hourlyRate\":\"1e2\""}) {
             String json = LEGACY_PERSON.substring(0, LEGACY_PERSON.length() - 1) + "," + property + "}";
             assertThrows(IllegalValueException.class, () -> {

@@ -14,6 +14,7 @@ import seedu.address.model.person.Email;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Phone;
 import seedu.address.model.person.SchoolingLevel;
+import seedu.address.model.person.WeeklyLessonSlot;
 import seedu.address.model.tag.Tag;
 
 /**
@@ -136,5 +137,22 @@ public class ParserUtil {
             tagSet.add(parseTag(tagName));
         }
         return tagSet;
+    }
+
+    /**
+     * Parses a {@code String weeklyLessonSlot} into a {@code WeeklyLessonSlot}.
+     * Leading and trailing whitespaces will be trimmed.
+     *
+     * @throws ParseException if the given {@code weeklyLessonSlot} is invalid.
+     */
+    public static WeeklyLessonSlot parseWeeklyLessonSlot(String weeklyLessonSlot) throws ParseException {
+        requireNonNull(weeklyLessonSlot);
+        String trimmedWeeklyLessonSlot = weeklyLessonSlot.trim();
+
+        if (!WeeklyLessonSlot.isValidWeeklyLessonSlot(trimmedWeeklyLessonSlot)) {
+            throw new ParseException(WeeklyLessonSlot.MESSAGE_CONSTRAINTS);
+        }
+
+        return new WeeklyLessonSlot(trimmedWeeklyLessonSlot);
     }
 }

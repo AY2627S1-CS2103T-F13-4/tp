@@ -46,6 +46,8 @@ public class Messages {
                 .append("; Tags: ");
         person.getTags().forEach(builder::append);
         person.getSchoolingLevel().ifPresent(level -> builder.append("; Level: ").append(level));
+        person.getWeeklyLessonSlot().ifPresent(weeklyLessonSlot -> builder.append("; Lesson Slot: ")
+                .append(weeklyLessonSlot));
         return builder.toString();
     }
 

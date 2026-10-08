@@ -2,6 +2,7 @@ package seedu.address.model.person;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_ADDRESS_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_EMAIL_BOB;
@@ -12,11 +13,20 @@ import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalPersons.ALICE;
 import static seedu.address.testutil.TypicalPersons.BOB;
 
+import java.time.DayOfWeek;
+import java.time.LocalTime;
+import java.util.Optional;
+
 import org.junit.jupiter.api.Test;
 
 import seedu.address.testutil.PersonBuilder;
 
 public class PersonTest {
+
+    private static final WeeklyLessonSlot MONDAY_SLOT = new WeeklyLessonSlot(DayOfWeek.MONDAY,
+            LocalTime.of(16, 0), LocalTime.of(17, 30));
+    private static final WeeklyLessonSlot TUESDAY_SLOT = new WeeklyLessonSlot(DayOfWeek.TUESDAY,
+            LocalTime.of(16, 0), LocalTime.of(17, 30));
 
     @Test
     public void asObservableList_modifyList_throwsUnsupportedOperationException() {
@@ -88,6 +98,40 @@ public class PersonTest {
         // different tags -> returns false
         editedAlice = new PersonBuilder(ALICE).withTags(VALID_TAG_HUSBAND).build();
         assertFalse(ALICE.equals(editedAlice));
+    }
+
+    @Test
+    public void equals_weeklyLessonSlot_comparesPresenceAndValue() {
+        Person withMondaySlot = new PersonBuilder(ALICE).withWeeklyLessonSlot(MONDAY_SLOT).build();
+        Person withSameSlot = new PersonBuilder(ALICE).withWeeklyLessonSlot(new WeeklyLessonSlot(DayOfWeek.MONDAY,
+                LocalTime.of(16, 0), LocalTime.of(17, 30))).build();
+        Person withTuesdaySlot = new PersonBuilder(ALICE).withWeeklyLessonSlot(TUESDAY_SLOT).build();
+
+        assertEquals(withMondaySlot, withSameSlot);
+        assertEquals(withMondaySlot.hashCode(), withSameSlot.hashCode());
+        assertNotEquals(ALICE, withMondaySlot);
+        assertNotEquals(withMondaySlot, withTuesdaySlot);
+        assertEquals(ALICE, new PersonBuilder(withMondaySlot).withWeeklyLessonSlot(null).build());
+    }
+
+    @Test
+    public void isSamePerson_weeklyLessonSlotChanged_identityStillDependsOnName() {
+        Person withMondaySlot = new PersonBuilder(ALICE).withWeeklyLessonSlot(MONDAY_SLOT).build();
+        Person withTuesdaySlot = new PersonBuilder(ALICE).withWeeklyLessonSlot(TUESDAY_SLOT).build();
+
+        assertTrue(ALICE.isSamePerson(withMondaySlot));
+        assertTrue(withMondaySlot.isSamePerson(withTuesdaySlot));
+        assertTrue(withMondaySlot.isSamePerson(new PersonBuilder(withMondaySlot).withWeeklyLessonSlot(null).build()));
+        assertFalse(withMondaySlot.isSamePerson(new PersonBuilder(withMondaySlot).withName(VALID_NAME_BOB).build()));
+    }
+
+    @Test
+    public void personBuilder_copy_preservesWeeklyLessonSlot() {
+        Person original = new PersonBuilder(ALICE).withWeeklyLessonSlot(MONDAY_SLOT).build();
+        Person copy = new PersonBuilder(original).build();
+
+        assertEquals(Optional.of(MONDAY_SLOT), copy.getWeeklyLessonSlot());
+        assertEquals(original, copy);
     }
 
     @Test

@@ -3,7 +3,7 @@ layout: page
 title: User Guide
 ---
 
-**Implementation status:** StudentBook currently provides the inherited AB3 commands described below. The planned core MVP adds subject, schooling level and an optional guardian contact to student records. Lesson slots and hourly rates are extensions. See [Student model and scope](StudentModel.md); planned commands are not yet available.
+**Implementation status:** StudentBook provides the contact-management commands described below, optional schooling levels, and one optional recurring weekly lesson slot per person. You can add, change, clear and view lesson slots. Commands for subjects, guardian contacts and hourly rates are not yet available. See [Student model and scope](StudentModel.md) for the planned scope.
 
 AddressBook Level 3 (AB3) is a **desktop application for managing contacts, optimized for use through a Command Line Interface (CLI)** while retaining the benefits of a Graphical User Interface (GUI). If you type quickly, AB3 can help you manage contacts faster than traditional GUI applications.
 
@@ -79,17 +79,24 @@ Format: `help`
 
 Adds a person to the address book.
 
-Format: `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS [l/SCHOOLING_LEVEL] [t/TAG]…​`
+Format: `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS [l/SCHOOLING_LEVEL] [i/LESSON_SLOT] [t/TAG]…​`
 
 <div markdown="span" class="alert alert-primary">:bulb: **Tip:**
 A person can have any number of tags, including zero.
 </div>
 
 * `SCHOOLING_LEVEL` is optional free text such as `Primary 5` or `Sec 3` (1–30 characters; starts with a letter or digit, contains at least one letter, and otherwise allows letters, digits, spaces, apostrophes, hyphens, periods and parentheses). Extra spaces are collapsed and case is preserved.
+* `LESSON_SLOT` is optional and records one lesson that repeats every week. Omit `i/` when the lesson time is not yet known. An empty `i/` is invalid when adding a person.
+* Write the slot as `i/DAY START END`, e.g. `i/Wed 1.00pm 5.00pm`.
+  * `DAY` is the three letter prefix of the day of the week, e.g. `Tue`, `Thu`
+  * `START` and `END` are the start and end times of the lesson, respectively. Each should be written in format `HH.MM[am/pm]`, e.g. `12.00pm`, `3.30am`
+* For English input, use the abbreviated day: `Mon`, `Tue`, `Wed`, `Thu`, `Fri`, `Sat` or `Sun`. Write each time in 12-hour form with a period, two minute digits and an `am` or `pm` suffix, such as `9.05am` or `1.30pm`. Do not put a space before the suffix. Use hours 1–12; noon is `12.00pm` and midnight is `12.00am`. Do not include seconds.
 
 Examples:
+
 * `add n/John Doe p/98765432 e/johnd@example.com a/John street, block 123, #01-01`
 * `add n/Amy Tan p/91234567 e/amy@example.com a/Bedok Ave 1 l/Primary 5`
+* `add n/Chris Lim p/92345678 e/chris@example.com a/Tampines Ave 4 l/Secondary 2 i/Wed 1.00pm 5.00pm`
 * `add n/Betsy Crowe t/friend e/betsycrowe@example.com a/Newgate Prison p/1234567 t/criminal`
 
 ### Listing all persons: `list`
@@ -98,11 +105,13 @@ Shows a list of all persons in the address book.
 
 Format: `list`
 
+When a person has a lesson slot, their card shows a line such as `Lesson: Wednesday 1.00pm-5.00pm`. No lesson line is shown when the slot is absent. To enter or edit the slot, use the abbreviated day and separate start/end times described under [Adding a person](#adding-a-person-add); the card's display text is not the command input format.
+
 ### Editing a person: `edit`
 
 Edits an existing person in the address book.
 
-Format: `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [a/ADDRESS] [l/SCHOOLING_LEVEL] [t/TAG]…​`
+Format: `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [a/ADDRESS] [l/SCHOOLING_LEVEL] [i/LESSON_SLOT] [t/TAG]…​`
 
 * Edits the person at the specified `INDEX`. The index refers to the index number shown in the displayed person list. The index **must be a positive integer** 1, 2, 3, …​
 * At least one of the optional fields must be provided.
@@ -110,12 +119,18 @@ Format: `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [a/ADDRESS] [l/SCHOOLING_LEVEL]
 * When editing tags, all of the person's existing tags are removed; adding tags is not cumulative.
 * To remove all of a person's tags, enter `t/` without a tag after it.
 * To set or change the schooling level, enter `l/SCHOOLING_LEVEL`. To remove it, enter `l/` with nothing after it. Editing other fields leaves the schooling level unchanged.
+* To set or change the lesson slot, enter `i/DAY START END` using the same [format and rules as `add`](#adding-a-person-add). A new slot replaces the existing slot. Include `i/` at most once per command.
+* To remove the lesson slot, enter `i/` with nothing after it. Omitting `i/` leaves the existing slot unchanged, including when editing other fields. Changing or clearing the slot preserves the other fields unless you also specify changes to them.
 
 Examples:
+
 *  `edit 1 p/91234567 e/johndoe@example.com` Edits the phone number and email address of the 1st person to be `91234567` and `johndoe@example.com` respectively.
 *  `edit 2 n/Betsy Crower t/` Edits the name of the 2nd person to be `Betsy Crower` and clears all existing tags.
 *  `edit 1 l/Secondary 1` Sets the schooling level of the 1st person to `Secondary 1`.
 *  `edit 1 l/` Clears the schooling level of the 1st person.
+*  `edit 1 i/Fri 9.00am 10.30am` Sets or replaces the 1st person's weekly lesson with Friday, 9 am to 10:30 am.
+*  `edit 1 i/` Clears the 1st person's lesson slot and removes its line from the card.
+*  `edit 1 p/91234567` Changes the 1st person's phone number and preserves their lesson slot.
 
 ### Locating persons by name or schooling level: `find`
 
@@ -200,10 +215,12 @@ _Details coming soon ..._
 
 Action | Format, Examples
 --------|------------------
-**Add** | `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS [l/SCHOOLING_LEVEL] [t/TAG]…​` <br> e.g., `add n/James Ho p/22224444 e/jamesho@example.com a/123, Clementi Rd, 1234665 l/Primary 5 t/friend t/colleague`
+**Add** | `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS [l/SCHOOLING_LEVEL] [i/LESSON_SLOT] [t/TAG]…​` <br> e.g., `add n/James Ho p/22224444 e/jamesho@example.com a/123, Clementi Rd, 1234665 l/Primary 5 i/Wed 1.00pm 5.00pm t/friend t/colleague`
 **Clear** | `clear`
 **Delete** | `delete INDEX`<br> e.g., `delete 3`
-**Edit** | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [l/SCHOOLING_LEVEL] [t/TAG]…​`<br> e.g., `edit 2 n/James Lee e/jameslee@example.com`, `edit 2 l/`
+**Edit** | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [l/SCHOOLING_LEVEL] [i/LESSON_SLOT] [t/TAG]…​`<br> e.g., `edit 2 n/James Lee e/jameslee@example.com`, `edit 2 l/`, `edit 2 i/Fri 9.00am 10.30am`, `edit 2 i/`
 **Find** | `find KEYWORD [MORE_KEYWORDS]` or `find l/TEXT`<br> e.g., `find James Jake`, `find l/Primary`
 **List** | `list`
 **Help** | `help`
+
+`LESSON_SLOT` means `DAY START END`.

@@ -15,6 +15,10 @@ import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
 import static seedu.address.testutil.TypicalIndexes.INDEX_SECOND_PERSON;
 import static seedu.address.testutil.TypicalPersons.getTypicalAddressBook;
 
+import java.math.BigDecimal;
+import java.time.DayOfWeek;
+import java.time.LocalTime;
+
 import org.junit.jupiter.api.Test;
 
 import seedu.address.commons.core.index.Index;
@@ -24,8 +28,14 @@ import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
+import seedu.address.model.person.GuardianContact;
+import seedu.address.model.person.HourlyRate;
+import seedu.address.model.person.Name;
 import seedu.address.model.person.Person;
+import seedu.address.model.person.Phone;
 import seedu.address.model.person.SchoolingLevel;
+import seedu.address.model.person.Subject;
+import seedu.address.model.person.WeeklyLessonSlot;
 import seedu.address.testutil.EditPersonDescriptorBuilder;
 import seedu.address.testutil.PersonBuilder;
 
@@ -34,11 +44,16 @@ import seedu.address.testutil.PersonBuilder;
  */
 public class EditCommandTest {
 
+    private static final WeeklyLessonSlot MONDAY_SLOT = new WeeklyLessonSlot(DayOfWeek.MONDAY,
+            LocalTime.of(16, 0), LocalTime.of(17, 30));
+    private static final WeeklyLessonSlot TUESDAY_SLOT = new WeeklyLessonSlot(DayOfWeek.TUESDAY,
+            LocalTime.of(10, 0), LocalTime.of(11, 0));
+
     private Model model = new ModelManager(getTypicalAddressBook(), new UserPrefs());
 
     @Test
     public void execute_allFieldsSpecifiedUnfilteredList_success() {
-        Person editedPerson = new PersonBuilder().build();
+        Person editedPerson = new PersonBuilder().withWeeklyLessonSlot(MONDAY_SLOT).build();
         EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder(editedPerson).build();
         EditCommand editCommand = new EditCommand(INDEX_FIRST_PERSON, descriptor);
 
@@ -210,5 +225,58 @@ public class EditCommandTest {
         expectedModel3.setPerson(renamed, cleared);
         assertCommandSuccess(new EditCommand(INDEX_FIRST_PERSON, clear), model,
                 String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(cleared)), expectedModel3);
+    }
+
+    @Test
+    public void execute_setWeeklyLessonSlot_preservesOtherFields() {
+        Person original = personWithTuitionDetails().withWeeklyLessonSlot(null).build();
+        Person editedPerson = new PersonBuilder(original).withWeeklyLessonSlot(MONDAY_SLOT).build();
+        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withWeeklyLessonSlot(MONDAY_SLOT).build();
+
+        assertSuccessfulEdit(original, descriptor, editedPerson);
+    }
+
+    @Test
+    public void execute_replaceWeeklyLessonSlot_preservesOtherFields() {
+        Person original = personWithTuitionDetails().withWeeklyLessonSlot(MONDAY_SLOT).build();
+        Person editedPerson = new PersonBuilder(original).withWeeklyLessonSlot(TUESDAY_SLOT).build();
+        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withWeeklyLessonSlot(TUESDAY_SLOT).build();
+
+        assertSuccessfulEdit(original, descriptor, editedPerson);
+    }
+
+    @Test
+    public void execute_clearWeeklyLessonSlot_preservesOtherFields() {
+        Person original = personWithTuitionDetails().withWeeklyLessonSlot(MONDAY_SLOT).build();
+        Person editedPerson = new PersonBuilder(original).withWeeklyLessonSlot(null).build();
+        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withWeeklyLessonSlot(null).build();
+
+        assertSuccessfulEdit(original, descriptor, editedPerson);
+    }
+
+    @Test
+    public void execute_editPhone_preservesWeeklyLessonSlotAndOtherTuitionFields() {
+        Person original = personWithTuitionDetails().withWeeklyLessonSlot(MONDAY_SLOT).build();
+        Person editedPerson = new PersonBuilder(original).withPhone(VALID_PHONE_BOB).build();
+        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withPhone(VALID_PHONE_BOB).build();
+
+        assertSuccessfulEdit(original, descriptor, editedPerson);
+    }
+
+    private PersonBuilder personWithTuitionDetails() {
+        return new PersonBuilder(model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased()))
+                .withSubject(new Subject("Mathematics"))
+                .withSchoolingLevel(new SchoolingLevel("Primary 5"))
+                .withGuardianContact(new GuardianContact(new Name("Janet Tan"), new Phone("91234567")))
+                .withHourlyRate(new HourlyRate(new BigDecimal("45.50")));
+    }
+
+    private void assertSuccessfulEdit(Person original, EditPersonDescriptor descriptor, Person editedPerson) {
+        model.setPerson(model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased()), original);
+        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
+        expectedModel.setPerson(original, editedPerson);
+
+        assertCommandSuccess(new EditCommand(INDEX_FIRST_PERSON, descriptor), model,
+                String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedPerson)), expectedModel);
     }
 }
