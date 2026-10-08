@@ -157,7 +157,7 @@ public class EditCommand extends Command {
         private Email email;
         private Address address;
         private Set<Tag> tags;
-        private Set<Subject> subjects = Set.of();
+        private Set<Subject> subjects;
         private Optional<SchoolingLevel> schoolingLevel;
         private Optional<WeeklyLessonSlot> weeklyLessonSlot;
 
@@ -240,7 +240,7 @@ public class EditCommand extends Command {
         }
 
         public Optional<Set<Subject>> getSubjects() {
-            return (tags != null) ? Optional.of(Collections.unmodifiableSet(subjects)) : Optional.empty();
+            return (subjects != null) ? Optional.of(Collections.unmodifiableSet(subjects)) : Optional.empty();
         }
 
         /**

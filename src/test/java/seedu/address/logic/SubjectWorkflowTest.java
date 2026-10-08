@@ -227,11 +227,11 @@ public class SubjectWorkflowTest {
         EditPersonDescriptor copy = new EditPersonDescriptor(descriptor);
         input.clear();
         assertEquals(2, person.getSubjects().size());
-        assertEquals(person.getSubjects(), copy.getSubjects());
+        assertEquals(person.getSubjects(), copy.getSubjects().orElseThrow());
         assertThrows(UnsupportedOperationException.class, () -> person.getSubjects().clear());
-        assertThrows(UnsupportedOperationException.class, () -> descriptor.getSubjects().clear());
+        assertThrows(UnsupportedOperationException.class, () -> descriptor.getSubjects().get().clear());
         descriptor.setSubjects(Set.of());
-        assertEquals(2, copy.getSubjects().size());
+        assertEquals(2, copy.getSubjects().get().size());
     }
 
     private Person reloaded() throws Exception {
