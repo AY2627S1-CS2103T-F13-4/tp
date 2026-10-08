@@ -18,6 +18,10 @@ import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
 import seedu.address.model.person.NameContainsKeywordsPredicate;
+import seedu.address.model.person.Person;
+import seedu.address.model.person.SchoolingLevel;
+import seedu.address.model.person.SchoolingLevelContainsKeywordPredicate;
+import seedu.address.testutil.PersonBuilder;
 
 /**
  * Contains integration tests (interaction with the Model) for {@code FindCommand}.
@@ -86,5 +90,17 @@ public class FindCommandTest {
      */
     private NameContainsKeywordsPredicate preparePredicate(String userInput) {
         return new NameContainsKeywordsPredicate(List.of(userInput.split("\\s+")));
+    }
+
+    @Test
+    public void execute_levelPredicate_filtersByLevel() {
+        Model model = new ModelManager(getTypicalAddressBook(), new UserPrefs());
+        Person first = model.getFilteredPersonList().get(0);
+        model.setPerson(first, new PersonBuilder(first)
+                .withSchoolingLevel(new SchoolingLevel("Primary 5")).build());
+        FindCommand command = new FindCommand(
+                new SchoolingLevelContainsKeywordPredicate("primary"));
+        command.execute(model);
+        assertEquals(1, model.getFilteredPersonList().size());
     }
 }

@@ -3,6 +3,7 @@ package seedu.address.logic.commands;
 import static java.util.Objects.requireNonNull;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_ADDRESS;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_EMAIL;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_LEVEL;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_NAME;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_TAG;
@@ -26,6 +27,7 @@ import seedu.address.model.person.Email;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.Phone;
+import seedu.address.model.person.SchoolingLevel;
 import seedu.address.model.tag.Tag;
 
 /**
@@ -43,7 +45,9 @@ public class EditCommand extends Command {
             + "[" + PREFIX_PHONE + "PHONE] "
             + "[" + PREFIX_EMAIL + "EMAIL] "
             + "[" + PREFIX_ADDRESS + "ADDRESS] "
+            + "[" + PREFIX_LEVEL + "SCHOOLING_LEVEL] "
             + "[" + PREFIX_TAG + "TAG]...\n"
+            + "Use an empty " + PREFIX_LEVEL + " to clear the schooling level.\n"
             + "Example: " + COMMAND_WORD + " 1 "
             + PREFIX_PHONE + "91234567 "
             + PREFIX_EMAIL + "johndoe@example.com";
@@ -101,8 +105,11 @@ public class EditCommand extends Command {
         Address updatedAddress = editPersonDescriptor.getAddress().orElse(personToEdit.getAddress());
         Set<Tag> updatedTags = editPersonDescriptor.getTags().orElse(personToEdit.getTags());
 
+        Optional<SchoolingLevel> updatedSchoolingLevel = editPersonDescriptor.getSchoolingLevel()
+                .orElse(personToEdit.getSchoolingLevel());
+
         return new Person(updatedName, updatedPhone, updatedEmail, updatedAddress, updatedTags,
-                personToEdit.getSubject(), personToEdit.getSchoolingLevel(), personToEdit.getGuardianContact(),
+                personToEdit.getSubject(), updatedSchoolingLevel, personToEdit.getGuardianContact(),
                 personToEdit.getWeeklyLessonSlot(), personToEdit.getHourlyRate());
     }
 
@@ -139,6 +146,8 @@ public class EditCommand extends Command {
         private Email email;
         private Address address;
         private Set<Tag> tags;
+        // null means "not edited"; Optional.empty() means "clear the schooling level"
+        private Optional<SchoolingLevel> schoolingLevel;
 
         public EditPersonDescriptor() {}
 
@@ -152,13 +161,14 @@ public class EditCommand extends Command {
             setEmail(toCopy.email);
             setAddress(toCopy.address);
             setTags(toCopy.tags);
+            setSchoolingLevel(toCopy.schoolingLevel);
         }
 
         /**
          * Returns true if at least one field is edited.
          */
         public boolean isAnyFieldEdited() {
-            return CollectionUtil.isAnyNonNull(name, phone, email, address, tags);
+            return CollectionUtil.isAnyNonNull(name, phone, email, address, tags, schoolingLevel);
         }
 
         public void setName(Name name) {
@@ -210,6 +220,21 @@ public class EditCommand extends Command {
             return (tags != null) ? Optional.of(Collections.unmodifiableSet(tags)) : Optional.empty();
         }
 
+        /**
+         * Sets the schooling level edit. {@code Optional.empty()} clears the level; null leaves it unchanged.
+         */
+        public void setSchoolingLevel(Optional<SchoolingLevel> schoolingLevel) {
+            this.schoolingLevel = schoolingLevel;
+        }
+
+        /**
+         * Returns {@code Optional#empty()} if the schooling level is not edited, otherwise the new value, which is
+         * itself empty if the level is to be cleared.
+         */
+        public Optional<Optional<SchoolingLevel>> getSchoolingLevel() {
+            return Optional.ofNullable(schoolingLevel);
+        }
+
         @Override
         public boolean equals(Object other) {
             if (other == this) {
@@ -225,7 +250,8 @@ public class EditCommand extends Command {
                     && Objects.equals(phone, otherEditPersonDescriptor.phone)
                     && Objects.equals(email, otherEditPersonDescriptor.email)
                     && Objects.equals(address, otherEditPersonDescriptor.address)
-                    && Objects.equals(tags, otherEditPersonDescriptor.tags);
+                    && Objects.equals(tags, otherEditPersonDescriptor.tags)
+                    && Objects.equals(schoolingLevel, otherEditPersonDescriptor.schoolingLevel);
         }
 
         @Override
@@ -236,6 +262,7 @@ public class EditCommand extends Command {
                     .add("email", email)
                     .add("address", address)
                     .add("tags", tags)
+                    .add("schoolingLevel", schoolingLevel)
                     .toString();
         }
     }

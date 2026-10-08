@@ -25,6 +25,7 @@ import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
 import seedu.address.model.person.Person;
+import seedu.address.model.person.SchoolingLevel;
 import seedu.address.testutil.EditPersonDescriptorBuilder;
 import seedu.address.testutil.PersonBuilder;
 
@@ -181,4 +182,33 @@ public class EditCommandTest {
         assertEquals(expected, editCommand.toString());
     }
 
+
+    @Test
+    public void execute_setThenClearSchoolingLevel_success() {
+        Person first = model.getFilteredPersonList().get(0);
+
+        EditPersonDescriptor set = new EditPersonDescriptorBuilder().withSchoolingLevel("Primary 5").build();
+        Person withLevel = new PersonBuilder(first)
+                .withSchoolingLevel(new SchoolingLevel("Primary 5")).build();
+        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
+        expectedModel.setPerson(first, withLevel);
+        assertCommandSuccess(new EditCommand(INDEX_FIRST_PERSON, set), model,
+                String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(withLevel)), expectedModel);
+
+        // editing another field preserves the level
+        Person renamed = new PersonBuilder(withLevel).withPhone(VALID_PHONE_BOB).build();
+        EditPersonDescriptor phoneOnly = new EditPersonDescriptorBuilder().withPhone(VALID_PHONE_BOB).build();
+        Model expectedModel2 = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
+        expectedModel2.setPerson(withLevel, renamed);
+        assertCommandSuccess(new EditCommand(INDEX_FIRST_PERSON, phoneOnly), model,
+                String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(renamed)), expectedModel2);
+
+        // clearing removes it
+        EditPersonDescriptor clear = new EditPersonDescriptorBuilder().withSchoolingLevel(null).build();
+        Person cleared = new PersonBuilder(renamed).withSchoolingLevel(null).build();
+        Model expectedModel3 = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
+        expectedModel3.setPerson(renamed, cleared);
+        assertCommandSuccess(new EditCommand(INDEX_FIRST_PERSON, clear), model,
+                String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(cleared)), expectedModel3);
+    }
 }
