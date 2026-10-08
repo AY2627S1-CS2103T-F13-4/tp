@@ -6,6 +6,9 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import java.math.BigDecimal;
 import java.time.DayOfWeek;
 import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.TextStyle;
+import java.util.Locale;
 
 import org.junit.jupiter.api.Test;
 
@@ -42,7 +45,10 @@ public class TuitionValuesTest {
     public void lessonSlot_rejectsOvernightEmptyOrSubMinuteRanges() {
         LocalTime ten = LocalTime.of(10, 0);
         LocalTime eleven = LocalTime.of(11, 0);
-        assertEquals("MONDAY 10:00-11:00", new WeeklyLessonSlot(DayOfWeek.MONDAY, ten, eleven).toString());
+        String monday = DayOfWeek.MONDAY.getDisplayName(TextStyle.FULL, new Locale("EN", "SG"));
+        String am = ten.format(DateTimeFormatter.ofPattern("a", new Locale("EN", "SG")));
+        assertEquals(monday + " 10.00" + am + "-11.00" + am,
+                new WeeklyLessonSlot(DayOfWeek.MONDAY, ten, eleven).toString());
         assertThrows(IllegalArgumentException.class, () -> new WeeklyLessonSlot(DayOfWeek.MONDAY, ten, ten));
         assertThrows(IllegalArgumentException.class, () -> new WeeklyLessonSlot(DayOfWeek.MONDAY, eleven, ten));
         assertThrows(IllegalArgumentException.class, () -> {

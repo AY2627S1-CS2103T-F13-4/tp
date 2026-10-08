@@ -107,13 +107,14 @@ Shows every student and clears any active search filter.
 
 ### Edit a student: `edit`
 
-Format: `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]... [s/SUBJECT]... [l/SCHOOLING_LEVEL]`
+Format: `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]... [s/SUBJECT]... [l/SCHOOLING_LEVEL] [i/LESSON_SLOT]`
 
 Include at least one field to change. Fields you leave out stay unchanged.
 
 * Tags replace the entire existing set. Use an empty `t/` to clear all tags.
 * Subjects replace the entire existing list. An empty `s/` clears all subjects.
 * An empty `l/` clears the schooling level.
+* An empty `i/` clears the lesson slot.
 
 Examples:
 
@@ -190,8 +191,8 @@ If the file is invalid, the app starts with an empty list. The invalid file rema
 
 | Task | Format |
 |---|---|
-| Add | `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]... [s/SUBJECT]... [l/SCHOOLING_LEVEL]` |
-| Edit | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]... [s/SUBJECT]... [l/SCHOOLING_LEVEL]` |
+| Add | `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]... [s/SUBJECT]... [l/SCHOOLING_LEVEL] [i/LESSON_SLOT]` |
+| Edit | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]... [s/SUBJECT]... [l/SCHOOLING_LEVEL] [i/LESSON_SLOT]` |
 | Clear subjects | `edit INDEX s/` |
 | Clear schooling level | `edit INDEX l/` |
 | Find | `find KEYWORD [MORE_KEYWORDS]` or `find l/TEXT` |

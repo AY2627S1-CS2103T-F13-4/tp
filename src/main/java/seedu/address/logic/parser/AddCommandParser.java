@@ -3,6 +3,7 @@ package seedu.address.logic.parser;
 import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_ADDRESS;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_EMAIL;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_LESSON_SLOT;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_LEVEL;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_NAME;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
@@ -22,6 +23,7 @@ import seedu.address.model.person.Person;
 import seedu.address.model.person.Phone;
 import seedu.address.model.person.SchoolingLevel;
 import seedu.address.model.person.Subject;
+import seedu.address.model.person.WeeklyLessonSlot;
 import seedu.address.model.tag.Tag;
 
 /**
@@ -37,7 +39,7 @@ public class AddCommandParser implements Parser<AddCommand> {
     public AddCommand parse(String args) throws ParseException {
         ArgumentMultimap argMultimap =
                 ArgumentTokenizer.tokenize(args, PREFIX_NAME, PREFIX_PHONE, PREFIX_EMAIL, PREFIX_ADDRESS,
-                        PREFIX_TAG, PREFIX_SUBJECT, PREFIX_LEVEL);
+                        PREFIX_TAG, PREFIX_SUBJECT, PREFIX_LEVEL, PREFIX_LESSON_SLOT);
 
         if (!arePrefixesPresent(argMultimap, PREFIX_NAME, PREFIX_ADDRESS, PREFIX_PHONE, PREFIX_EMAIL)
                 || !argMultimap.getPreamble().isEmpty()) {
@@ -45,7 +47,7 @@ public class AddCommandParser implements Parser<AddCommand> {
         }
 
         argMultimap.verifyNoDuplicatePrefixesFor(PREFIX_NAME, PREFIX_PHONE, PREFIX_EMAIL, PREFIX_ADDRESS,
-                PREFIX_LEVEL);
+                PREFIX_LEVEL, PREFIX_LESSON_SLOT);
         Name name = ParserUtil.parseName(argMultimap.getValue(PREFIX_NAME).get());
         Phone phone = ParserUtil.parsePhone(argMultimap.getValue(PREFIX_PHONE).get());
         Email email = ParserUtil.parseEmail(argMultimap.getValue(PREFIX_EMAIL).get());
@@ -57,9 +59,14 @@ public class AddCommandParser implements Parser<AddCommand> {
         if (argMultimap.getValue(PREFIX_LEVEL).isPresent()) {
             schoolingLevel = Optional.of(ParserUtil.parseSchoolingLevel(argMultimap.getValue(PREFIX_LEVEL).get()));
         }
+        Optional<WeeklyLessonSlot> weeklyLessonSlot = Optional.empty();
+        if (argMultimap.getValue(PREFIX_LESSON_SLOT).isPresent()) {
+            weeklyLessonSlot = Optional.of(ParserUtil.parseWeeklyLessonSlot(argMultimap.getValue(PREFIX_LESSON_SLOT)
+                    .get()));
+        }
 
         Person person = new Person(name, phone, email, address, tagList, subjects, schoolingLevel,
-                Optional.empty(), Optional.empty(), Optional.empty());
+                Optional.empty(), weeklyLessonSlot, Optional.empty());
 
         return new AddCommand(person);
     }

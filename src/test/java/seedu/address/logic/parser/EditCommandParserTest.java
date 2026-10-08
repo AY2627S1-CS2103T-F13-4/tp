@@ -1,5 +1,6 @@
 package seedu.address.logic.parser;
 
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 import static seedu.address.logic.commands.CommandTestUtil.ADDRESS_DESC_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.ADDRESS_DESC_BOB;
@@ -10,6 +11,10 @@ import static seedu.address.logic.commands.CommandTestUtil.INVALID_EMAIL_DESC;
 import static seedu.address.logic.commands.CommandTestUtil.INVALID_NAME_DESC;
 import static seedu.address.logic.commands.CommandTestUtil.INVALID_PHONE_DESC;
 import static seedu.address.logic.commands.CommandTestUtil.INVALID_TAG_DESC;
+import static seedu.address.logic.commands.CommandTestUtil.LESSON_DAY;
+import static seedu.address.logic.commands.CommandTestUtil.LESSON_END;
+import static seedu.address.logic.commands.CommandTestUtil.LESSON_SLOT_DESC;
+import static seedu.address.logic.commands.CommandTestUtil.LESSON_START;
 import static seedu.address.logic.commands.CommandTestUtil.NAME_DESC_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.PHONE_DESC_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.PHONE_DESC_BOB;
@@ -17,6 +22,8 @@ import static seedu.address.logic.commands.CommandTestUtil.TAG_DESC_FRIEND;
 import static seedu.address.logic.commands.CommandTestUtil.TAG_DESC_HUSBAND;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_ADDRESS_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_EMAIL_AMY;
+import static seedu.address.logic.commands.CommandTestUtil.VALID_LESSON_SLOT;
+import static seedu.address.logic.commands.CommandTestUtil.VALID_LESSON_SLOT_TEXT;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_NAME_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_PHONE_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_PHONE_BOB;
@@ -24,6 +31,7 @@ import static seedu.address.logic.commands.CommandTestUtil.VALID_TAG_FRIEND;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_TAG_HUSBAND;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_ADDRESS;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_EMAIL;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_LESSON_SLOT;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_LEVEL;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_TAG;
@@ -32,6 +40,8 @@ import static seedu.address.logic.parser.CommandParserTestUtil.assertParseSucces
 import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
 import static seedu.address.testutil.TypicalIndexes.INDEX_SECOND_PERSON;
 import static seedu.address.testutil.TypicalIndexes.INDEX_THIRD_PERSON;
+
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
 
@@ -44,6 +54,7 @@ import seedu.address.model.person.Email;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Phone;
 import seedu.address.model.person.SchoolingLevel;
+import seedu.address.model.person.WeeklyLessonSlot;
 import seedu.address.model.tag.Tag;
 import seedu.address.testutil.EditPersonDescriptorBuilder;
 
@@ -80,7 +91,7 @@ public class EditCommandParserTest {
         assertParseFailure(parser, "1 some random string", MESSAGE_INVALID_FORMAT);
 
         // invalid prefix being parsed as preamble
-        assertParseFailure(parser, "1 i/ string", MESSAGE_INVALID_FORMAT);
+        assertParseFailure(parser, "1 x/ string", MESSAGE_INVALID_FORMAT);
     }
 
     @Test
@@ -226,5 +237,64 @@ public class EditCommandParserTest {
         assertParseFailure(parser, "1 l/***", SchoolingLevel.MESSAGE_CONSTRAINTS);
         assertParseFailure(parser, "1 l/P5 l/P6", Messages
                 .getErrorMessageForDuplicatePrefixes(PREFIX_LEVEL));
+    }
+
+    @Test
+    public void parse_weeklyLessonSlot_success() {
+        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder()
+                .withWeeklyLessonSlot(VALID_LESSON_SLOT).build();
+        assertParseSuccess(parser, "1" + LESSON_SLOT_DESC, new EditCommand(INDEX_FIRST_PERSON, descriptor));
+        assertParseSuccess(parser, "1 i/  " + LESSON_DAY + "   " + LESSON_START + "  " + LESSON_END + "  ",
+                new EditCommand(INDEX_FIRST_PERSON, descriptor));
+    }
+
+    @Test
+    public void parse_weeklyLessonSlotWithOtherFields_success() {
+        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withWeeklyLessonSlot(VALID_LESSON_SLOT)
+                .withPhone(VALID_PHONE_BOB).withSchoolingLevel("Primary 5").withTags(VALID_TAG_FRIEND).build();
+        assertParseSuccess(parser, "1" + PHONE_DESC_BOB + LESSON_SLOT_DESC + " l/Primary 5" + TAG_DESC_FRIEND,
+                new EditCommand(INDEX_FIRST_PERSON, descriptor));
+    }
+
+    @Test
+    public void parse_emptyWeeklyLessonSlot_clearsSlot() {
+        EditPersonDescriptor clear = new EditPersonDescriptorBuilder().withWeeklyLessonSlot(null).build();
+        assertParseSuccess(parser, "1 i/", new EditCommand(INDEX_FIRST_PERSON, clear));
+        assertParseSuccess(parser, "1 i/   ", new EditCommand(INDEX_FIRST_PERSON, clear));
+
+        EditPersonDescriptor clearWithPhone = new EditPersonDescriptorBuilder(clear).withPhone(VALID_PHONE_BOB).build();
+        assertParseSuccess(parser, "1 i/" + PHONE_DESC_BOB, new EditCommand(INDEX_FIRST_PERSON, clearWithPhone));
+    }
+
+    @Test
+    public void parse_weeklyLessonSlotMissing_leavesSlotUnedited() {
+        EditPersonDescriptor phoneOnly = new EditPersonDescriptorBuilder().withPhone(VALID_PHONE_BOB).build();
+        assertParseSuccess(parser, "1" + PHONE_DESC_BOB, new EditCommand(INDEX_FIRST_PERSON, phoneOnly));
+    }
+
+    @Test
+    public void parse_invalidWeeklyLessonSlot_failure() {
+        assertAll(Stream.of("***", "Funday " + LESSON_START + " " + LESSON_END,
+                LESSON_DAY + " " + LESSON_START,
+                LESSON_DAY + " " + LESSON_START.replace("1.00", "25.00") + " " + LESSON_END,
+                LESSON_DAY + " " + LESSON_START.replace("1.00", "1.60") + " " + LESSON_END,
+                LESSON_DAY + " " + LESSON_END + " " + LESSON_START,
+                "extra " + VALID_LESSON_SLOT_TEXT, VALID_LESSON_SLOT_TEXT + " extra")
+                .map(value -> () -> assertParseFailure(parser, "1 i/" + value, WeeklyLessonSlot.MESSAGE_CONSTRAINTS)));
+    }
+
+    @Test
+    public void parse_weeklyLessonSlotWithEqualTimes_failure() {
+        assertParseFailure(parser, "1 i/" + LESSON_DAY + " " + LESSON_START + " " + LESSON_START,
+                WeeklyLessonSlot.MESSAGE_CONSTRAINTS);
+    }
+
+    @Test
+    public void parse_duplicateWeeklyLessonSlot_failure() {
+        String expectedMessage = Messages.getErrorMessageForDuplicatePrefixes(PREFIX_LESSON_SLOT);
+        assertParseFailure(parser, "1" + LESSON_SLOT_DESC + LESSON_SLOT_DESC, expectedMessage);
+        assertParseFailure(parser, "1 i/" + LESSON_SLOT_DESC, expectedMessage);
+        assertParseFailure(parser, "1" + LESSON_SLOT_DESC + " i/", expectedMessage);
+        assertParseFailure(parser, "1 i/***" + LESSON_SLOT_DESC, expectedMessage);
     }
 }

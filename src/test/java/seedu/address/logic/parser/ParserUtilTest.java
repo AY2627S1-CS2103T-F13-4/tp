@@ -2,6 +2,11 @@ package seedu.address.logic.parser;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static seedu.address.logic.commands.CommandTestUtil.LESSON_DAY;
+import static seedu.address.logic.commands.CommandTestUtil.LESSON_END;
+import static seedu.address.logic.commands.CommandTestUtil.LESSON_START;
+import static seedu.address.logic.commands.CommandTestUtil.VALID_LESSON_SLOT;
+import static seedu.address.logic.commands.CommandTestUtil.VALID_LESSON_SLOT_TEXT;
 import static seedu.address.logic.parser.ParserUtil.MESSAGE_INVALID_INDEX;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
@@ -16,6 +21,7 @@ import seedu.address.model.person.Address;
 import seedu.address.model.person.Email;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Phone;
+import seedu.address.model.person.WeeklyLessonSlot;
 import seedu.address.model.tag.Tag;
 
 public class ParserUtilTest {
@@ -144,6 +150,32 @@ public class ParserUtilTest {
         String emailWithWhitespace = WHITESPACE + VALID_EMAIL + WHITESPACE;
         Email expectedEmail = new Email(VALID_EMAIL);
         assertEquals(expectedEmail, ParserUtil.parseEmail(emailWithWhitespace));
+    }
+
+    @Test
+    public void parseWeeklyLessonSlot_null_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> ParserUtil.parseWeeklyLessonSlot(null));
+    }
+
+    @Test
+    public void parseWeeklyLessonSlot_validValue_returnsWeeklyLessonSlot() throws Exception {
+        assertEquals(VALID_LESSON_SLOT, ParserUtil.parseWeeklyLessonSlot(VALID_LESSON_SLOT_TEXT));
+    }
+
+    @Test
+    public void parseWeeklyLessonSlot_withWhitespace_returnsWeeklyLessonSlot() throws Exception {
+        String input = WHITESPACE + LESSON_DAY + "  \t" + LESSON_START + "  " + LESSON_END + WHITESPACE;
+        assertEquals(VALID_LESSON_SLOT, ParserUtil.parseWeeklyLessonSlot(input));
+    }
+
+    @Test
+    public void parseWeeklyLessonSlot_invalidValue_throwsParseException() {
+        for (String input : List.of("", WHITESPACE, "not a slot", LESSON_DAY + " " + LESSON_START,
+                VALID_LESSON_SLOT_TEXT + " extra", LESSON_DAY + " " + LESSON_START + " " + LESSON_START,
+                LESSON_DAY + " " + LESSON_END + " " + LESSON_START)) {
+            assertThrows(ParseException.class, WeeklyLessonSlot.MESSAGE_CONSTRAINTS, () ->
+                    ParserUtil.parseWeeklyLessonSlot(input));
+        }
     }
 
     @Test

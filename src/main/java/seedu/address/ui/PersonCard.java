@@ -44,6 +44,8 @@ public class PersonCard extends UiPart<Region> {
     @FXML
     private Label schoolingLevel;
     @FXML
+    private Label weeklyLessonSlot;
+    @FXML
     private FlowPane tags;
 
     /**
@@ -64,6 +66,12 @@ public class PersonCard extends UiPart<Region> {
         } else {
             schoolingLevel.setVisible(false);
             schoolingLevel.setManaged(false);
+        }
+        if (person.getWeeklyLessonSlot().isPresent()) {
+            weeklyLessonSlot.setText("Lesson: " + person.getWeeklyLessonSlot().get());
+        } else {
+            weeklyLessonSlot.setVisible(false);
+            weeklyLessonSlot.setManaged(false);
         }
         person.getTags().stream()
                 .sorted(Comparator.comparing(tag -> tag.tagName))

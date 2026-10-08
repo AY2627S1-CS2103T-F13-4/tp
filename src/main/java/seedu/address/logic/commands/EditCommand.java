@@ -3,6 +3,7 @@ package seedu.address.logic.commands;
 import static java.util.Objects.requireNonNull;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_ADDRESS;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_EMAIL;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_LESSON_SLOT;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_LEVEL;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_NAME;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
@@ -12,7 +13,6 @@ import static seedu.address.model.Model.PREDICATE_SHOW_ALL_PERSONS;
 
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -31,6 +31,7 @@ import seedu.address.model.person.Person;
 import seedu.address.model.person.Phone;
 import seedu.address.model.person.SchoolingLevel;
 import seedu.address.model.person.Subject;
+import seedu.address.model.person.WeeklyLessonSlot;
 import seedu.address.model.tag.Tag;
 
 /**
@@ -51,8 +52,10 @@ public class EditCommand extends Command {
             + "[" + PREFIX_ADDRESS + "ADDRESS] "
             + "[" + PREFIX_TAG + "TAG]... "
             + "[" + PREFIX_SUBJECT + "SUBJECT]... "
-            + "[" + PREFIX_LEVEL + "SCHOOLING_LEVEL]\n"
+            + "[" + PREFIX_LEVEL + "SCHOOLING_LEVEL] "
+            + "[" + PREFIX_LESSON_SLOT + "LESSON_SLOT]\n"
             + "Use an empty " + PREFIX_LEVEL + " to clear the schooling level.\n"
+            + "Use an empty " + PREFIX_LESSON_SLOT + " to clear the lesson slot.\n"
             + "Example: " + COMMAND_WORD + " 1 "
             + PREFIX_PHONE + "91234567 "
             + PREFIX_EMAIL + "johndoe@example.com";
@@ -109,15 +112,15 @@ public class EditCommand extends Command {
         Email updatedEmail = editPersonDescriptor.getEmail().orElse(personToEdit.getEmail());
         Address updatedAddress = editPersonDescriptor.getAddress().orElse(personToEdit.getAddress());
         Set<Tag> updatedTags = editPersonDescriptor.getTags().orElse(personToEdit.getTags());
-
+        Set<Subject> updatedSubjects = editPersonDescriptor.getSubjects().orElse(personToEdit.getSubjects());
         Optional<SchoolingLevel> updatedSchoolingLevel = editPersonDescriptor.getSchoolingLevel()
                 .orElse(personToEdit.getSchoolingLevel());
+        Optional<WeeklyLessonSlot> updatedWeeklyLessonSlot = editPersonDescriptor.getWeeklyLessonSlot()
+                .orElse(personToEdit.getWeeklyLessonSlot());
 
         return new Person(updatedName, updatedPhone, updatedEmail, updatedAddress, updatedTags,
-                editPersonDescriptor.isSubjectsEdited()
-                        ? editPersonDescriptor.getSubjects() : personToEdit.getSubjects(),
-                updatedSchoolingLevel, personToEdit.getGuardianContact(),
-                personToEdit.getWeeklyLessonSlot(), personToEdit.getHourlyRate());
+                updatedSubjects, updatedSchoolingLevel, personToEdit.getGuardianContact(),
+                updatedWeeklyLessonSlot, personToEdit.getHourlyRate());
     }
 
     @Override
@@ -153,10 +156,9 @@ public class EditCommand extends Command {
         private Email email;
         private Address address;
         private Set<Tag> tags;
-        private boolean subjectsEdited;
-        private Set<Subject> subjects = Set.of();
-        // null means "not edited"; Optional.empty() means "clear the schooling level"
+        private Set<Subject> subjects;
         private Optional<SchoolingLevel> schoolingLevel;
+        private Optional<WeeklyLessonSlot> weeklyLessonSlot;
 
         public EditPersonDescriptor() {}
 
@@ -170,33 +172,17 @@ public class EditCommand extends Command {
             setEmail(toCopy.email);
             setAddress(toCopy.address);
             setTags(toCopy.tags);
-            if (toCopy.subjectsEdited) {
-                setSubjects(toCopy.subjects);
-            }
+            setSubjects(toCopy.subjects);
             setSchoolingLevel(toCopy.schoolingLevel);
+            setWeeklyLessonSlot(toCopy.weeklyLessonSlot);
         }
 
         /**
          * Returns true if at least one field is edited.
          */
         public boolean isAnyFieldEdited() {
-            return subjectsEdited || CollectionUtil.isAnyNonNull(name, phone, email, address, tags, schoolingLevel);
-        }
-
-        /** Replaces subjects with a defensive copy; an empty set clears them all. */
-        public void setSubjects(Set<Subject> subjects) {
-            requireNonNull(subjects);
-            subjects.forEach(Objects::requireNonNull);
-            this.subjects = Collections.unmodifiableSet(new LinkedHashSet<>(subjects));
-            subjectsEdited = true;
-        }
-
-        public boolean isSubjectsEdited() {
-            return subjectsEdited;
-        }
-
-        public Set<Subject> getSubjects() {
-            return subjects;
+            return CollectionUtil.isAnyNonNull(name, phone, email, address, tags, subjects, schoolingLevel,
+                    weeklyLessonSlot);
         }
 
         public void setName(Name name) {
@@ -248,6 +234,15 @@ public class EditCommand extends Command {
             return (tags != null) ? Optional.of(Collections.unmodifiableSet(tags)) : Optional.empty();
         }
 
+        /** Replaces subjects with a defensive copy; an empty set clears them all. */
+        public void setSubjects(Set<Subject> subjects) {
+            this.subjects = (subjects != null) ? new HashSet<>(subjects) : null;
+        }
+
+        public Optional<Set<Subject>> getSubjects() {
+            return (subjects != null) ? Optional.of(Collections.unmodifiableSet(subjects)) : Optional.empty();
+        }
+
         /**
          * Sets the schooling level edit. {@code Optional.empty()} clears the level; null leaves it unchanged.
          */
@@ -261,6 +256,21 @@ public class EditCommand extends Command {
          */
         public Optional<Optional<SchoolingLevel>> getSchoolingLevel() {
             return Optional.ofNullable(schoolingLevel);
+        }
+
+        /**
+         * Sets the weekly lesson slot edit. {@code Optional.empty()} clears the lesson slot; null leaves it unchanged.
+         */
+        public void setWeeklyLessonSlot(Optional<WeeklyLessonSlot> weeklyLessonSlot) {
+            this.weeklyLessonSlot = weeklyLessonSlot;
+        }
+
+        /**
+         * Returns {@code Optional#empty()} if the weekly lesson slot is not edited, otherwise the new value, which is
+         * itself empty if the weekly lesson slot is to be cleared.
+         */
+        public Optional<Optional<WeeklyLessonSlot>> getWeeklyLessonSlot() {
+            return Optional.ofNullable(weeklyLessonSlot);
         }
 
         @Override
@@ -279,9 +289,9 @@ public class EditCommand extends Command {
                     && Objects.equals(email, otherEditPersonDescriptor.email)
                     && Objects.equals(address, otherEditPersonDescriptor.address)
                     && Objects.equals(tags, otherEditPersonDescriptor.tags)
-                    && subjectsEdited == otherEditPersonDescriptor.subjectsEdited
-                    && subjects.equals(otherEditPersonDescriptor.subjects)
-                    && Objects.equals(schoolingLevel, otherEditPersonDescriptor.schoolingLevel);
+                    && Objects.equals(subjects, otherEditPersonDescriptor.subjects)
+                    && Objects.equals(schoolingLevel, otherEditPersonDescriptor.schoolingLevel)
+                    && Objects.equals(weeklyLessonSlot, otherEditPersonDescriptor.weeklyLessonSlot);
         }
 
         @Override
@@ -292,8 +302,9 @@ public class EditCommand extends Command {
                     .add("email", email)
                     .add("address", address)
                     .add("tags", tags)
-                    .add("subjects", subjectsEdited ? subjects : null)
+                    .add("subjects", subjects)
                     .add("schoolingLevel", schoolingLevel)
+                    .add("weeklyLessonSlot", weeklyLessonSlot)
                     .toString();
         }
     }
