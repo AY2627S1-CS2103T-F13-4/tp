@@ -210,15 +210,15 @@ The MVP includes student records and all five tuition features below. Keep the e
 |---|---|---|
 | Min Wenn | Schooling level | 5; level updates in 12 |
 | Pranav | Subject | 6; subject updates in 12 |
-| Dylan | Weekly lesson slot | 25, 28, 29, 48 |
-| Jian Yi | Hourly rate | 53, 54 |
+| Jian Yi | Weekly lesson slot | 25, 28, 29, 48 |
+| Dylan | Hourly rate | 53, 54 |
 | Mervin | Guardian contact | 7, 8, 22, 23 |
 
 The shared types and storage are implemented. This branch supports add, display, edit and clear for subjects and schooling levels, plus finding students by level. Other owners add their command and display flows in separate PRs. Week 8 needs a small working increment per person; the full MVP is the v1.3 target.
 
 ### Agreed field rules
 
-Subjects are optional and may contain multiple labels. Schooling level is mandatory by agreement, with enforcement left to Min Wenn. Jian Yi is keeping hourly rate optional. Grouping a subject, rate and timeslot into a lesson is an idea for next week, not part of this change.
+Subjects are optional and may contain multiple labels. Schooling level is mandatory by agreement, with enforcement left to Min Wenn. Hourly rate remains optional for now. Grouping a subject, rate and timeslot into a lesson is an idea for next week, not part of this change.
 
 ### Decisions to confirm
 
