@@ -119,7 +119,7 @@ public class EditCommand extends Command {
         Optional<WeeklyLessonSlot> updatedWeeklyLessonSlot = editPersonDescriptor.getWeeklyLessonSlot()
                 .orElse(personToEdit.getWeeklyLessonSlot());
 
-        return new Person(updatedName, updatedPhone, updatedEmail, updatedAddress, updatedTags,                
+        return new Person(updatedName, updatedPhone, updatedEmail, updatedAddress, updatedTags,            
                 updatedSubjects, updatedSchoolingLevel, personToEdit.getGuardianContact(),
                 updatedWeeklyLessonSlot, personToEdit.getHourlyRate());
     }
@@ -233,7 +233,6 @@ public class EditCommand extends Command {
         public Optional<Set<Tag>> getTags() {
             return (tags != null) ? Optional.of(Collections.unmodifiableSet(tags)) : Optional.empty();
         }
-      
       
         /** Replaces subjects with a defensive copy; an empty set clears them all. */
         public void setSubjects(Set<Subject> subjects) {
