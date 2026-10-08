@@ -12,7 +12,7 @@ StudentBook helps private tutors manage student contacts using typed commands. R
 * [Contribute to the project](DeveloperGuide.html)
 
 
-This development version lets you save student contacts, add, edit or clear subjects or a schooling level, and find students by level. Guardian contacts, weekly lesson slots and hourly rates are also part of the MVP; their command flows are planned. See the [Developer Guide](DeveloperGuide.md#product-scope) for scope and feature owners.
+This development version lets you save student contacts, add, edit or clear subjects, a schooling level, a weekly lesson slot or an hourly rate, and find students by level. Guardian contact commands are planned. See the [Developer Guide](DeveloperGuide.md#product-scope) for scope and feature owners.
 
 **Acknowledgements**
 

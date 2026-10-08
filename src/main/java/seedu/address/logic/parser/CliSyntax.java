@@ -14,4 +14,5 @@ public class CliSyntax {
     public static final Prefix PREFIX_SUBJECT = new Prefix("s/");
     public static final Prefix PREFIX_LEVEL = new Prefix("l/");
     public static final Prefix PREFIX_LESSON_SLOT = new Prefix("i/");
+    public static final Prefix PREFIX_RATE = new Prefix("r/");
 }

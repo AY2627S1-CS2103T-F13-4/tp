@@ -131,7 +131,8 @@ public class EditPersonDescriptorTest {
                 + editPersonDescriptor.getAddress().orElse(null) + ", tags="
                 + editPersonDescriptor.getTags().orElse(null) + ", subjects=null, schoolingLevel="
                 + editPersonDescriptor.getSchoolingLevel().orElse(null) + ", weeklyLessonSlot="
-                + editPersonDescriptor.getWeeklyLessonSlot().orElse(null) + "}";
+                + editPersonDescriptor.getWeeklyLessonSlot().orElse(null) + ", hourlyRate="
+                + editPersonDescriptor.getHourlyRate().orElse(null) + "}";
         assertEquals(expected, editPersonDescriptor.toString());
     }
 }

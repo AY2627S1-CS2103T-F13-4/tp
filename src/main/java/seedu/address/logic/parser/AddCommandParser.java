@@ -7,6 +7,7 @@ import static seedu.address.logic.parser.CliSyntax.PREFIX_LESSON_SLOT;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_LEVEL;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_NAME;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_RATE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_SUBJECT;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_TAG;
 
@@ -18,6 +19,7 @@ import seedu.address.logic.commands.AddCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.person.Address;
 import seedu.address.model.person.Email;
+import seedu.address.model.person.HourlyRate;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.Phone;
@@ -39,7 +41,7 @@ public class AddCommandParser implements Parser<AddCommand> {
     public AddCommand parse(String args) throws ParseException {
         ArgumentMultimap argMultimap =
                 ArgumentTokenizer.tokenize(args, PREFIX_NAME, PREFIX_PHONE, PREFIX_EMAIL, PREFIX_ADDRESS,
-                        PREFIX_TAG, PREFIX_SUBJECT, PREFIX_LEVEL, PREFIX_LESSON_SLOT);
+                        PREFIX_TAG, PREFIX_SUBJECT, PREFIX_LEVEL, PREFIX_LESSON_SLOT, PREFIX_RATE);
 
         if (!arePrefixesPresent(argMultimap, PREFIX_NAME, PREFIX_ADDRESS, PREFIX_PHONE, PREFIX_EMAIL)
                 || !argMultimap.getPreamble().isEmpty()) {
@@ -47,7 +49,7 @@ public class AddCommandParser implements Parser<AddCommand> {
         }
 
         argMultimap.verifyNoDuplicatePrefixesFor(PREFIX_NAME, PREFIX_PHONE, PREFIX_EMAIL, PREFIX_ADDRESS,
-                PREFIX_LEVEL, PREFIX_LESSON_SLOT);
+                PREFIX_LEVEL, PREFIX_LESSON_SLOT, PREFIX_RATE);
         Name name = ParserUtil.parseName(argMultimap.getValue(PREFIX_NAME).get());
         Phone phone = ParserUtil.parsePhone(argMultimap.getValue(PREFIX_PHONE).get());
         Email email = ParserUtil.parseEmail(argMultimap.getValue(PREFIX_EMAIL).get());
@@ -64,9 +66,13 @@ public class AddCommandParser implements Parser<AddCommand> {
             weeklyLessonSlot = Optional.of(ParserUtil.parseWeeklyLessonSlot(argMultimap.getValue(PREFIX_LESSON_SLOT)
                     .get()));
         }
+        Optional<HourlyRate> hourlyRate = Optional.empty();
+        if (argMultimap.getValue(PREFIX_RATE).isPresent()) {
+            hourlyRate = Optional.of(ParserUtil.parseHourlyRate(argMultimap.getValue(PREFIX_RATE).get()));
+        }
 
         Person person = new Person(name, phone, email, address, tagList, subjects, schoolingLevel,
-                Optional.empty(), weeklyLessonSlot, Optional.empty());
+                Optional.empty(), weeklyLessonSlot, hourlyRate);
 
         return new AddCommand(person);
     }
