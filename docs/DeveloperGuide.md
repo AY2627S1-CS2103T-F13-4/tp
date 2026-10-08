@@ -3,7 +3,7 @@ layout: page
 title: Developer Guide
 ---
 
-StudentBook builds on AddressBook Level 3, or AB3. The architecture below describes the inherited application. The shared tuition model and subject workflow are implemented on this branch; other tuition commands are planned.
+StudentBook builds on AddressBook Level 3, or AB3. The architecture below describes the inherited application. The shared tuition model, subject workflow and schooling-level workflow are implemented on this branch; other tuition commands are planned.
 
 Start with [setup](SettingUp.md), then the [shared tuition model](#shared-tuition-model) and [product scope](#product-scope).
 
@@ -213,7 +213,7 @@ The MVP includes student records and all five tuition features below. Keep the e
 | Dylan | Hourly rate | 53, 54 |
 | Mervin | Guardian contact | 7, 8, 22, 23 |
 
-The shared types and storage are implemented. This branch also supports subject add, display, edit and clear. Other owners add their command and display flows in separate PRs. Week 8 needs a small working increment per person; the full MVP is the v1.3 target.
+The shared types and storage are implemented. This branch supports add, display, edit and clear for subjects and schooling levels, plus finding students by level. Other owners add their command and display flows in separate PRs. Week 8 needs a small working increment per person; the full MVP is the v1.3 target.
 
 ### Decisions to confirm
 

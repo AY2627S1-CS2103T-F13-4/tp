@@ -41,6 +41,8 @@ public class PersonCard extends UiPart<Region> {
     @FXML
     private Label subject;
     @FXML
+    private Label schoolingLevel;
+    @FXML
     private FlowPane tags;
 
     /**
@@ -55,6 +57,12 @@ public class PersonCard extends UiPart<Region> {
         address.setText(person.getAddress().value);
         email.setText(person.getEmail().value);
         subject.setText("Subject: " + person.getSubject().map(Object::toString).orElse("Not recorded"));
+        if (person.getSchoolingLevel().isPresent()) {
+            schoolingLevel.setText("Level: " + person.getSchoolingLevel().get());
+        } else {
+            schoolingLevel.setVisible(false);
+            schoolingLevel.setManaged(false);
+        }
         person.getTags().stream()
                 .sorted(Comparator.comparing(tag -> tag.tagName))
                 .forEach(tag -> tags.getChildren().add(new Label(tag.tagName)));

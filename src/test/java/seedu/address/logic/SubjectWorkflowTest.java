@@ -10,6 +10,7 @@ import java.math.BigDecimal;
 import java.nio.file.Path;
 import java.time.DayOfWeek;
 import java.time.LocalTime;
+import java.util.List;
 import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -79,6 +80,64 @@ public class SubjectWorkflowTest {
             assertEquals(before, model.getAddressBook());
             assertEquals(before, storage.readAddressBook().orElseThrow());
         }
+    }
+
+    @Test
+    public void subjectAndLevel_canBeSetTogetherAndClearedIndependently() throws Exception {
+        String feedback = logic.execute(ADD + " s/Math l/Primary 5").getFeedbackToUser();
+        assertTrue(feedback.contains("Subject: Math"));
+        assertTrue(feedback.contains("Level: Primary 5"));
+        assertEquals(Optional.of(new Subject("Math")), reloaded().getSubject());
+        assertEquals(Optional.of(new SchoolingLevel("Primary 5")), reloaded().getSchoolingLevel());
+
+        logic.execute("edit 1 l/Primary 6 s/Science");
+        assertEquals(Optional.of(new Subject("Science")), reloaded().getSubject());
+        assertEquals(Optional.of(new SchoolingLevel("Primary 6")), reloaded().getSchoolingLevel());
+        logic.execute("edit 1 s/");
+        assertTrue(reloaded().getSubject().isEmpty());
+        assertEquals(Optional.of(new SchoolingLevel("Primary 6")), reloaded().getSchoolingLevel());
+        logic.execute("edit 1 s/Math l/");
+        assertEquals(Optional.of(new Subject("Math")), reloaded().getSubject());
+        assertTrue(reloaded().getSchoolingLevel().isEmpty());
+        logic.execute("edit 1 l/Secondary 1");
+        assertEquals(Optional.of(new Subject("Math")), reloaded().getSubject());
+        logic.execute("edit 1 s/ l/");
+        assertTrue(reloaded().getSubject().isEmpty());
+        assertTrue(reloaded().getSchoolingLevel().isEmpty());
+    }
+
+    @Test
+    public void combinedInvalidInput_changesNeitherMemoryNorFile() throws Exception {
+        logic.execute(ADD + " s/Math l/Primary 5");
+        AddressBook before = new AddressBook(model.getAddressBook());
+        for (String command : new String[]{"edit 1 s/Science l/***", "edit 1 s/123 l/Primary 6",
+            "edit 1 s/Science l/P5 l/P6", "edit 1 s/Math s/Science l/P6",
+            ADD.replace("Alex Tan", "Bobby") + " s/Math l/",
+            ADD.replace("Alex Tan", "Bobby") + " s/ l/Primary 5"}) {
+            assertThrows(ParseException.class, () -> logic.execute(command));
+            assertEquals(before, model.getAddressBook());
+            assertEquals(before, storage.readAddressBook().orElseThrow());
+        }
+    }
+
+    @Test
+    public void editAfterLevelSearch_preservesOtherStudentsAndTuitionFields() throws Exception {
+        Person first = new PersonBuilder().withName("Amy Bee").build();
+        Person student = new PersonBuilder().withName("Bobby")
+                .withSubject(new Subject("Math"))
+                .withSchoolingLevel(new SchoolingLevel("Primary 5"))
+                .withGuardianContact(new GuardianContact(new Name("Janet"), new Phone("91234567")))
+                .withWeeklyLessonSlot(new WeeklyLessonSlot(DayOfWeek.MONDAY, LocalTime.of(10, 0), LocalTime.of(11, 0)))
+                .withHourlyRate(new HourlyRate(new BigDecimal("40.50"))).build();
+        model.addPerson(first);
+        model.addPerson(student);
+        logic.execute("find l/pRiM");
+        assertEquals(List.of(student), model.getFilteredPersonList());
+        logic.execute("edit 1 s/Science l/Primary 6");
+        Person expected = new PersonBuilder(student).withSubject(new Subject("Science"))
+                .withSchoolingLevel(new SchoolingLevel("Primary 6")).build();
+        assertEquals(first, reloadedAt(0));
+        assertEquals(expected, reloadedAt(1));
     }
 
     @Test

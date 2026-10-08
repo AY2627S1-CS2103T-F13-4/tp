@@ -5,7 +5,7 @@ title: User Guide
 
 StudentBook is a desktop contact book for private tutors. Type commands to manage student records.
 
-This development version supports contact details and one optional subject per student. Schooling level, guardian, lesson-slot and hourly-rate commands are planned MVP work. See the [Developer Guide](DeveloperGuide.md#product-scope) for the plan and open decisions.
+This development version supports contact details, subject and schooling level. Guardian, lesson-slot and hourly-rate commands are planned MVP work. See the [Developer Guide](DeveloperGuide.md#product-scope) for the plan and open decisions.
 
 * Table of Contents
 {:toc}
@@ -54,16 +54,16 @@ This development version supports contact details and one optional subject per s
 
 ### Add a student: `add`
 
-Format: `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]... [s/SUBJECT]`
+Format: `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]... [s/SUBJECT] [l/SCHOOLING_LEVEL]`
 
-Name, phone, email and address are required. Tags and subject are optional. You can add any number of tags, but only one subject.
+Name, phone, email and address are required. Tags, subject and schooling level are optional. You can add any number of tags, but only one subject and one level.
 
 ```text
-add n/Alex Tan p/91234567 e/alex@example.com a/123 Clementi Road t/weekday s/Math
+add n/Alex Tan p/91234567 e/alex@example.com a/123 Clementi Road t/weekday s/Math l/Primary 5
 add n/Mei Lim p/92345678 e/mei@example.com a/45 Dover Road
 ```
 
-Records with exactly the same name are duplicates. Name matching is case-sensitive: `Alex Tan` and `alex tan` are treated as different names. Subject does not change this rule.
+Records with exactly the same name are duplicates. Name matching is case-sensitive: `Alex Tan` and `alex tan` are treated as different names. Subject and schooling level do not change this rule.
 
 ### Record or clear a subject
 
@@ -84,6 +84,18 @@ Subject rules:
 * An empty `s/` is valid for clearing with `edit`, but invalid with `add`.
 * Repeating `s/` in one command is invalid. Invalid input leaves the record unchanged.
 
+### Record or clear a schooling level
+
+| Task | Command |
+|---|---|
+| Set or replace a level | `edit 1 l/Secondary 1` |
+| Clear a level | `edit 1 l/` |
+| Include a level when adding a student | Add `l/Primary 5` to the `add` command |
+
+The card shows `Level: Primary 5` when a level is recorded. If none is recorded, the level line is hidden. Leave out `l/` to keep the existing level when editing. Changing a level keeps every other field unchanged.
+
+Levels use the same character and spacing rules as subjects, with a limit of 30 characters. An empty `l/` clears the level with `edit`, but is invalid with `add`. Repeating `l/` in one command is invalid. Invalid input leaves the record unchanged.
+
 ### List all students: `list`
 
 Format: `list`
@@ -92,27 +104,32 @@ Shows every student and clears any active search filter.
 
 ### Edit a student: `edit`
 
-Format: `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]... [s/SUBJECT]`
+Format: `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]... [s/SUBJECT] [l/SCHOOLING_LEVEL]`
 
 Include at least one field to change. Fields you leave out stay unchanged.
 
 * Tags replace the entire existing set. Use an empty `t/` to clear all tags.
 * An empty `s/` clears the subject.
+* An empty `l/` clears the schooling level.
 
 Examples:
 
 * `edit 1 p/91234567 e/alex.tan@example.com` changes the first displayed student's phone and email.
 * `edit 2 n/Mei Ling t/` changes the second displayed student's name and clears their tags.
+* `edit 1 s/Math l/Primary 6` changes both the subject and schooling level.
 
-### Find students by name: `find`
+### Find students by name or schooling level: `find`
 
-Format: `find KEYWORD [MORE_KEYWORDS]`
+Format: `find KEYWORD [MORE_KEYWORDS]` or `find l/TEXT`
 
-Searches names for whole words, ignoring letter case. A student appears if any keyword matches; keyword order does not matter.
+Without `l/`, searches names for whole words, ignoring letter case. A student appears if any keyword matches; keyword order does not matter.
 
 * `find John` matches `John Doe`, but not `Johnny`.
 * `find alex david` matches names containing `Alex` or `David`.
-* Subject, phone and other fields are not searched.
+
+Use `find l/TEXT` to search schooling levels, ignoring letter case. Partial matches are allowed: `find l/prim` matches `Primary 5`. Students without a level are excluded. Supply one non-empty `l/` value; it cannot be combined with name keywords.
+
+Subject, phone and other fields are not searched.
 
 ![Name search results](images/findAlexDavidResult.png)
 
@@ -135,7 +152,7 @@ Deletes every student record. There is no confirmation or undo.
 
 Format: `help`
 
-Opens a window with a help-page link. That link currently points to the original AddressBook guide; use this guide for subject commands.
+Opens a window with a help-page link. That link currently points to the original AddressBook guide; use this guide for subject and schooling-level commands.
 
 ![Help window](images/helpMessage.png)
 
@@ -147,7 +164,7 @@ Closes the app.
 
 ## Saving and transferring records
 
-The app saves automatically after each successfully executed command. Subjects are saved with the contact details; older files without subjects still load.
+The app saves automatically after each successfully executed command. Subjects and schooling levels are saved with the contact details; older files without them still load.
 
 If saving fails, the app reports an error. The change may still appear on screen without being saved to disk.
 
@@ -170,10 +187,11 @@ If the file is invalid, the app starts with an empty list. The invalid file rema
 
 | Task | Format |
 |---|---|
-| Add | `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]... [s/SUBJECT]` |
-| Edit | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]... [s/SUBJECT]` |
+| Add | `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]... [s/SUBJECT] [l/SCHOOLING_LEVEL]` |
+| Edit | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]... [s/SUBJECT] [l/SCHOOLING_LEVEL]` |
 | Clear subject | `edit INDEX s/` |
-| Find | `find KEYWORD [MORE_KEYWORDS]` |
+| Clear schooling level | `edit INDEX l/` |
+| Find | `find KEYWORD [MORE_KEYWORDS]` or `find l/TEXT` |
 | List | `list` |
 | Delete | `delete INDEX` |
 | Delete all | `clear` |

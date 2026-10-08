@@ -46,6 +46,7 @@ public class Messages {
                 .append("; Tags: ");
         person.getTags().forEach(builder::append);
         person.getSubject().ifPresent(subject -> builder.append("; Subject: ").append(subject));
+        person.getSchoolingLevel().ifPresent(level -> builder.append("; Level: ").append(level));
         return builder.toString();
     }
 

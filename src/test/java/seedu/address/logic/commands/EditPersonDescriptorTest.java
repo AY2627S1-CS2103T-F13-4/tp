@@ -55,6 +55,15 @@ public class EditPersonDescriptorTest {
         // different tags -> returns false
         editedAmy = new EditPersonDescriptorBuilder(DESC_AMY).withTags(VALID_TAG_HUSBAND).build();
         assertFalse(DESC_AMY.equals(editedAmy));
+
+        // different schooling level -> returns false
+        editedAmy = new EditPersonDescriptorBuilder(DESC_AMY).withSchoolingLevel("Primary 5").build();
+        assertFalse(DESC_AMY.equals(editedAmy));
+
+        // clearing the level differs from setting it
+        EditPersonDescriptor cleared = new EditPersonDescriptorBuilder(DESC_AMY).withSchoolingLevel(null).build();
+        assertFalse(editedAmy.equals(cleared));
+        assertFalse(DESC_AMY.equals(cleared));
     }
 
     @Test
@@ -65,7 +74,8 @@ public class EditPersonDescriptorTest {
                 + editPersonDescriptor.getPhone().orElse(null) + ", email="
                 + editPersonDescriptor.getEmail().orElse(null) + ", address="
                 + editPersonDescriptor.getAddress().orElse(null) + ", tags="
-                + editPersonDescriptor.getTags().orElse(null) + ", subject=null}";
+                + editPersonDescriptor.getTags().orElse(null) + ", subject=null, schoolingLevel="
+                + editPersonDescriptor.getSchoolingLevel().orElse(null) + "}";
         assertEquals(expected, editPersonDescriptor.toString());
     }
 }
