@@ -48,6 +48,8 @@ public class PersonCard extends UiPart<Region> {
     @FXML
     private Label hourlyRate;
     @FXML
+    private Label guardian;
+    @FXML
     private FlowPane tags;
 
     /**
@@ -61,6 +63,7 @@ public class PersonCard extends UiPart<Region> {
         phone.setText(person.getPhone().value);
         address.setText(person.getAddress().value);
         email.setText(person.getEmail().value);
+        guardian.setText("Guardian: " + person.getGuardianContact().map(Object::toString).orElse("Not recorded"));
         subject.setText("Subjects: " + (person.getSubjects().isEmpty() ? "Not recorded"
                 : person.getSubjects().stream().map(Object::toString).collect(Collectors.joining(", "))));
         if (person.getSchoolingLevel().isPresent()) {

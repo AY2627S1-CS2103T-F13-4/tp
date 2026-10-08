@@ -53,6 +53,7 @@ public class Messages {
         person.getWeeklyLessonSlot().ifPresent(weeklyLessonSlot -> builder.append("; Lesson Slot: ")
                 .append(weeklyLessonSlot));
         person.getHourlyRate().ifPresent(rate -> builder.append("; Rate: SGD ").append(rate).append("/hour"));
+        person.getGuardianContact().ifPresent(guardian -> builder.append("; Guardian: ").append(guardian));
         return builder.toString();
     }
 
