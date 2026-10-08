@@ -5,7 +5,7 @@ title: User Guide
 
 StudentBook is a desktop contact book for private tutors. Type commands to manage student records.
 
-This development version supports contact details, subjects, schooling levels, weekly lesson slots and hourly rates. Guardian commands are planned MVP work. See the [Developer Guide](DeveloperGuide.md#product-scope) for the plan and open decisions.
+This development version supports contact details, subjects, schooling levels, weekly lesson slots, hourly rates and guardian contacts. See the [Developer Guide](DeveloperGuide.md#product-scope) for the plan and open decisions.
 
 * Table of Contents
 {:toc}
@@ -144,6 +144,33 @@ Subject, phone and other fields are not searched.
 
 ![Name search results](images/findAlexDavidResult.png)
 
+### Manage a student's guardian contact
+
+Each student can have zero or one guardian, with a name and phone number. Guardian commands use the student's
+positive `INDEX` in the currently displayed list, including search results. They preserve all other student fields.
+
+* **Create:** `guardian-add INDEX n/NAME p/PHONE`
+  Both fields are required. If a guardian already exists, use `guardian-edit` instead.
+* **Read:** Use `list` or `find` to display the student. Their card shows `Guardian: NAME: PHONE`,
+  or `Guardian: Not recorded` when none exists.
+* **Update:** `guardian-edit INDEX [n/NAME] [p/PHONE]`
+  Supply at least one field. Omitted fields stay unchanged. Empty values and repeated prefixes are rejected.
+* **Delete:** `guardian-delete INDEX`
+  Removes only the guardian. Editing or deleting a missing guardian reports an error.
+
+Names must contain only alphanumeric characters and spaces and must not be blank. Phone numbers must contain
+at least three digits and no other characters, following the existing contact validation rules. Leading and trailing
+spaces are trimmed. Guardians may share the same details across different students.
+
+For example, after `list`:
+
+1. `guardian-add 1 n/Janet Tan p/91234567`
+2. `guardian-edit 1 p/87654321`
+3. `guardian-delete 1`
+
+Guardian commands keep an active search filter. Errors leave existing records unchanged. Guardian details are
+saved automatically. Older data files without a guardian still load with no guardian recorded.
+
 ### Delete a student: `delete`
 
 Format: `delete INDEX`
@@ -175,7 +202,7 @@ Closes the app.
 
 ## Saving and transferring records
 
-The app saves automatically after each successfully executed command. Subjects, schooling levels, weekly lesson slots and hourly rates are saved with the contact details. Older files with one `subject`, or no subjects, still load. New saves store a `subjects` array.
+The app saves automatically after each successfully executed command. Subjects, schooling levels, weekly lesson slots, hourly rates and guardian contacts are saved with the contact details. Older files with one `subject`, or no subjects, still load. New saves store a `subjects` array.
 
 If saving fails, the app reports an error. The change may still appear on screen without being saved to disk.
 
@@ -205,6 +232,9 @@ If the file is invalid, the app starts with an empty list. The invalid file rema
 | Clear hourly rate | `edit INDEX r/` |
 | Find | `find KEYWORD [MORE_KEYWORDS]` or `find l/TEXT` |
 | List | `list` |
+| Add guardian | `guardian-add INDEX n/NAME p/PHONE` |
+| Edit guardian | `guardian-edit INDEX [n/NAME] [p/PHONE]` |
+| Delete guardian | `guardian-delete INDEX` |
 | Delete | `delete INDEX` |
 | Delete all | `clear` |
 | Help | `help` |

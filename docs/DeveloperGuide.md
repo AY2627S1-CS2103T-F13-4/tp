@@ -172,6 +172,27 @@ Tests cover old-file loading, save/reload and preservation of unrelated fields. 
 
 `SubjectWorkflowTest` covers add, edit, clear, filtered indexes, invalid input, duplicates and save/reload. `TuitionStorageTest` checks all shared fields.
 
+### Guardian contact CRUD
+
+`guardian-add`, `guardian-edit` and `guardian-delete` are routed by `AddressBookParser` to
+`GuardianCommandParser`, parameterized by the operation. The parser validates the displayed index and guardian
+fields using the existing `Name` and `Phone` rules. It rejects missing fields, empty values, repeated prefixes
+and unsupported prefixes. Adding requires both fields; editing requires at least one; deletion takes only an index.
+
+`GuardianCommand` resolves the student from the current filtered list. Adding an existing guardian, or editing or
+deleting an absent guardian, fails without changing the model. A successful command constructs a replacement
+`Person` with the new optional guardian and copies every other field unchanged before calling `Model#setPerson`.
+The current filter remains active. Siblings can hold identical guardian contacts independently.
+
+Reading uses the existing list/find workflow: `PersonCard` displays the name and phone, or `Not recorded`.
+The existing `JsonAdaptedGuardianContact` and `JsonAdaptedPerson` persist the contact; no JSON schema change is
+needed. `LogicManager` saves the updated address book through the existing storage workflow.
+
+`GuardianWorkflowTest` covers CRUD, partial updates, filtered indices, invalid requests, siblings sharing a guardian,
+and automatic save/reload after each mutation. It verifies preservation of contact details, subjects, schooling
+level, lesson slot and hourly rate, as well as preservation of guardians during student edits.
+Validation remains the current AB3 validation; broader name and phone rules remain a product decision.
+
 ### Inherited undo/redo proposal
 
 Undo and redo are not implemented or part of the selected tuition work. The inherited AB3 proposal uses `VersionedAddressBook` to store snapshots and a pointer to the current snapshot.
@@ -494,6 +515,19 @@ Use an empty test folder and sample data. These checks are a starting point; als
 4. Run `edit INDEX s/` and restart again. The card should show `Subjects: Not recorded`.
 5. Add or edit with `s/Math s/Science s/math`. The card should show `Math, Science`, including after restart.
 6. Try a blank subject on `add`, `edit INDEX s/Math s/`, and an invalid label such as `s/123`. Each should reject the whole command without changing any record.
+
+### Guardian contacts
+
+1. List students and choose an index without a guardian. Run `guardian-add INDEX n/Janet Tan p/91234567`.
+   Check that the guardian appears on that student's card and other fields stay unchanged. Restart and check again.
+2. Run `guardian-edit INDEX p/87654321`. The guardian's name should remain unchanged. Restart and verify persistence.
+3. Run `guardian-edit INDEX n/John Tan`. The phone should remain unchanged.
+4. Run `guardian-delete INDEX`. The guardian should disappear while the student and all other fields remain.
+   Restart and verify that no guardian is recorded.
+5. Try adding a second guardian, editing/deleting an absent guardian, an out-of-range index, empty fields,
+   an invalid phone and repeated prefixes. Expect an error with existing records unchanged.
+6. Filter to one student with `find`, then use `guardian-add 1 n/Janet Tan p/91234567`.
+   Check that only the displayed student changes, the filter remains active, and other students are untouched.
 
 ### Missing or invalid data files
 

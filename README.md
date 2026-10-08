@@ -5,7 +5,7 @@
 
 StudentBook helps private tutors keep student contacts and tuition details in one place. It runs on your computer and uses typed commands.
 
-This development branch supports student contacts, subjects, schooling levels, weekly lesson slots and hourly rates. You can add, view, edit and clear a subject, level, lesson slot or hourly rate, and find students by level. The app saves changes automatically. Guardian contact commands are planned.
+This development branch supports student contacts, subjects, schooling levels, weekly lesson slots and hourly rates. You can add, view, edit and clear a subject, level, lesson slot or hourly rate, and find students by level. The app saves changes automatically. Separate guardian commands add, edit and remove one optional name and phone contact per student, displayed in the student list.
 
 The MVP will let tutors:
 
