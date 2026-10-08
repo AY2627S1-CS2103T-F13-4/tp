@@ -3,6 +3,7 @@ package seedu.address.storage;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -38,8 +39,11 @@ class JsonAdaptedPerson {
     private final String address;
     private final List<JsonAdaptedTag> tags = new ArrayList<>();
 
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     @JsonDeserialize(using = StrictStringDeserializer.class)
     private final String subject;
+    @JsonDeserialize(contentUsing = StrictStringDeserializer.class)
+    private final List<String> subjects;
     @JsonDeserialize(using = StrictStringDeserializer.class)
     private final String schoolingLevel;
     private final JsonAdaptedGuardianContact guardianContact;
@@ -49,7 +53,7 @@ class JsonAdaptedPerson {
 
     /** Retains compatibility with existing adapter callers. */
     public JsonAdaptedPerson(String name, String phone, String email, String address, List<JsonAdaptedTag> tags) {
-        this(name, phone, email, address, tags, null, null, null, null, null);
+        this(name, phone, email, address, tags, null, null, null, null, null, null);
     }
 
     /**
@@ -62,12 +66,14 @@ class JsonAdaptedPerson {
             @JsonProperty("schoolingLevel") String schoolingLevel,
             @JsonProperty("guardianContact") JsonAdaptedGuardianContact guardianContact,
             @JsonProperty("weeklyLessonSlot") JsonAdaptedWeeklyLessonSlot weeklyLessonSlot,
-            @JsonProperty("hourlyRate") String hourlyRate) {
+            @JsonProperty("hourlyRate") String hourlyRate,
+            @JsonProperty("subjects") List<String> subjects) {
         this.name = name;
         this.phone = phone;
         this.email = email;
         this.address = address;
         this.subject = subject;
+        this.subjects = subjects == null ? null : new ArrayList<>(subjects);
         this.schoolingLevel = schoolingLevel;
         this.guardianContact = guardianContact;
         this.weeklyLessonSlot = weeklyLessonSlot;
@@ -85,7 +91,8 @@ class JsonAdaptedPerson {
         phone = source.getPhone().value;
         email = source.getEmail().value;
         address = source.getAddress().value;
-        subject = source.getSubject().map(Subject::toString).orElse(null);
+        subject = null;
+        subjects = source.getSubjects().stream().map(Subject::toString).collect(Collectors.toList());
         schoolingLevel = source.getSchoolingLevel().map(SchoolingLevel::toString).orElse(null);
         guardianContact = source.getGuardianContact().map(JsonAdaptedGuardianContact::new).orElse(null);
         weeklyLessonSlot = source.getWeeklyLessonSlot().map(JsonAdaptedWeeklyLessonSlot::new).orElse(null);
@@ -140,7 +147,20 @@ class JsonAdaptedPerson {
 
         final Set<Tag> modelTags = new HashSet<>(personTags);
         try {
-            Optional<Subject> modelSubject = Optional.ofNullable(subject).map(Subject::new);
+            Set<Subject> modelSubjects = new LinkedHashSet<>();
+            if (subjects != null) {
+                if (subject != null) {
+                    throw new IllegalValueException("Use subjects or the older subject property, not both.");
+                }
+                for (String value : subjects) {
+                    if (value == null) {
+                        throw new IllegalValueException(Subject.MESSAGE_CONSTRAINTS);
+                    }
+                    modelSubjects.add(new Subject(value));
+                }
+            } else if (subject != null) {
+                modelSubjects.add(new Subject(subject));
+            }
             Optional<SchoolingLevel> modelLevel = Optional.ofNullable(schoolingLevel).map(SchoolingLevel::new);
             Optional<GuardianContact> modelGuardian = guardianContact == null ? Optional.empty()
                     : Optional.of(guardianContact.toModelType());
@@ -152,7 +172,7 @@ class JsonAdaptedPerson {
             Optional<HourlyRate> modelRate = Optional.ofNullable(hourlyRate)
                     .map(value -> new HourlyRate(new BigDecimal(value)));
             return new Person(modelName, modelPhone, modelEmail, modelAddress, modelTags,
-                    modelSubject, modelLevel, modelGuardian, modelSlot, modelRate);
+                    modelSubjects, modelLevel, modelGuardian, modelSlot, modelRate);
         } catch (IllegalArgumentException e) {
             throw new IllegalValueException(e.getMessage());
         }

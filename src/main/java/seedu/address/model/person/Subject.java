@@ -3,6 +3,8 @@ package seedu.address.model.person;
 import static java.util.Objects.requireNonNull;
 import static seedu.address.commons.util.AppUtil.checkArgument;
 
+import java.util.Locale;
+
 /** An immutable, normalized tuition label. */
 public final class Subject {
     public static final String MESSAGE_CONSTRAINTS =
@@ -33,12 +35,12 @@ public final class Subject {
 
     @Override
     public boolean equals(Object other) {
-        return other instanceof Subject label && value.equals(label.value);
+        return other instanceof Subject label && value.equalsIgnoreCase(label.value);
     }
 
     @Override
     public int hashCode() {
-        return value.hashCode();
+        return value.toLowerCase(Locale.ROOT).hashCode();
     }
 
     @Override

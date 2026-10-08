@@ -3,224 +3,201 @@ layout: page
 title: User Guide
 ---
 
-**Implementation status:** StudentBook provides the contact-management commands described below, optional schooling levels, and one optional recurring weekly lesson slot per person. You can add, change, clear and view lesson slots. Commands for subjects, guardian contacts and hourly rates are not yet available. See [Student model and scope](StudentModel.md) for the planned scope.
+StudentBook is a desktop contact book for private tutors. Type commands to manage student records.
 
-AddressBook Level 3 (AB3) is a **desktop application for managing contacts, optimized for use through a Command Line Interface (CLI)** while retaining the benefits of a Graphical User Interface (GUI). If you type quickly, AB3 can help you manage contacts faster than traditional GUI applications.
+This development version supports contact details, subject and schooling level. Guardian, lesson-slot and hourly-rate commands are planned MVP work. See the [Developer Guide](DeveloperGuide.md#product-scope) for the plan and open decisions.
 
 * Table of Contents
 {:toc}
 
---------------------------------------------------------------------------------------------------------------------
-
 ## Quick start
 
-1. Ensure that Java `25` or later is installed on your computer.<br>
-   **Mac users:** Ensure you have the precise JDK version prescribed [here](https://se-education.org/guides/tutorials/javaInstallationMac.html).
+1. Install Java `25`. Mac users should follow the [course Java installation guide](https://se-education.org/guides/tutorials/javaInstallationMac.html).
 
-1. Download the latest `.jar` file from [here](https://github.com/se-edu/addressbook-level3/releases).
+1. Build the development version from [Pranav's fork](https://github.com/pranavp311/tp). The subject feature is awaiting merge into the [team repository](https://github.com/AY2627S1-CS2103T-F13-4/tp).
 
-1. Copy the file to the folder you want to use as the _home folder_ for your AddressBook.
+   ```text
+   git clone --branch student-subject https://github.com/pranavp311/tp.git studentbook
+   cd studentbook
+   ./gradlew shadowJar
+   ```
 
-1. Open a terminal, `cd` to the folder containing the JAR file, and run `java -jar addressbook.jar`.<br>
-   The inherited AB3 GUI should appear in a few seconds with sample contacts. The image below is the planned StudentBook mock-up, not a screenshot of the current implementation.<br>
-   ![Ui](images/Ui.png)
+   On Windows, use `gradlew.bat shadowJar` for the last command. The JAR is `build/libs/addressbook.jar`.
 
-1. Type a command in the command box and press Enter to execute it. For example, type **`help`** and press Enter to open the help window.<br>
-   Some example commands you can try:
+1. Copy the JAR into the folder where you want to keep your records. Open a terminal in that folder and run:
 
-   * `list` : Lists all contacts.
+   ```text
+   java -jar addressbook.jar
+   ```
 
-   * `add n/John Doe p/98765432 e/johnd@example.com a/John street, block 123, #01-01` : Adds a contact named `John Doe` to the Address Book.
+   On first launch, the app shows sample contacts. Some windows and messages still use the original AddressBook name.
 
-   * `delete 3` : Deletes the 3rd contact shown in the current list.
+1. Type `list` in the command box and press Enter. Then try:
 
-   * `clear` : Deletes all contacts.
+   ```text
+   add n/Alex Tan p/91234567 e/alex@example.com a/123 Clementi Road s/Math
+   ```
 
-   * `exit` : Exits the app.
-
-1. Refer to the [Features](#features) section below for details of each command.
-
---------------------------------------------------------------------------------------------------------------------
+   This adds Alex with Math as the subject. Type `exit` to close the app.
 
 ## Features
 
-<div markdown="block" class="alert alert-info">
+### Reading command formats
 
-**:information_source: Notes about the command format:**<br>
+* Replace uppercase words with your values. For example, `n/NAME` becomes `n/Alex Tan`.
+* Square brackets mark optional fields. Do not type the brackets.
+* `...` means a field can be repeated. For example, `[t/TAG]...` allows zero or more tags.
+* Fields may appear in any order. Prefixes such as `n/` and `s/` are case-sensitive.
+* `INDEX` is the number beside a student in the current list. It must be 1 or greater.
+* `help`, `list`, `clear` and `exit` ignore extra arguments.
+* When copying commands from a PDF, check that spaces around line breaks are preserved.
 
-* Words in `UPPER_CASE` are the parameters to be supplied by the user.<br>
-  For example, in `add n/NAME`, replace `NAME` with a value such as `John Doe`.
+### Add a student: `add`
 
-* Items in square brackets are optional.<br>
-  For example, `n/NAME [t/TAG]` can be used as `n/John Doe t/friend` or as `n/John Doe`.
+Format: `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]... [s/SUBJECT]... [l/SCHOOLING_LEVEL]`
 
-* Items followed by `…`​ can appear zero or more times.<br>
-  For example, `[t/TAG]…​` may be omitted, or written as `t/friend` or `t/friend t/family`.
+Name, phone, email and address are required. Tags, subjects and schooling level are optional in this build. Repeat `s/` for multiple subjects. Only one level is supported.
 
-* Parameters can be in any order.<br>
-  For example, if the command specifies `n/NAME p/PHONE_NUMBER`, `p/PHONE_NUMBER n/NAME` is also acceptable.
+The agreed next change is to require a schooling level. Min Wenn owns that change; it is not enforced in this build.
 
-* Extraneous parameters for commands that take no parameters, such as `help`, `list`, `exit`, and `clear`, are ignored.<br>
-  For example, `help 123` is interpreted as `help`.
+```text
+add n/Alex Tan p/91234567 e/alex@example.com a/123 Clementi Road t/weekday s/Math s/Science l/Primary 5
+add n/Mei Lim p/92345678 e/mei@example.com a/45 Dover Road
+```
 
-* If you are using a PDF version of this document, be careful when copying and pasting commands that span multiple lines as space characters surrounding line-breaks may be omitted when copied over to the application.
-</div>
+Records with exactly the same name are duplicates. Name matching is case-sensitive: `Alex Tan` and `alex tan` are treated as different names. Subject and schooling level do not change this rule.
 
-### Viewing help: `help`
+### Record or clear subjects
 
-Shows a message explaining how to access the help page.
+| Task | Command |
+|---|---|
+| Replace all subjects | `edit 1 s/Math s/Science` |
+| Keep only Math | `edit 1 s/Math` |
+| Clear all subjects | `edit 1 s/` |
+| Include subjects when adding a student | Add `s/Math s/Science` to the `add` command |
 
-![help message](images/helpMessage.png)
+No subjects appears as `Subjects: Not recorded`. Leave out `s/` to keep the existing subjects when editing. Supplying subjects replaces the entire list and keeps every other field unchanged.
 
-Format: `help`
+Subject rules:
 
+* Use 1 to 40 characters per subject after the space cleanup below. Start with a letter or digit and include at least one letter.
+* Use English letters `A-Z` or `a-z`, digits `0-9`, spaces and these symbols: `'`, `-`, `.`, `(`, `)`.
+* Leading and trailing spaces or tabs are removed. Repeated spaces or tabs become one space. For example, three spaces between `Combined` and `Science` become one.
+* Repeated labels are kept once, ignoring case. The first spelling stays as entered; `s/Math s/math` records `Math` once.
+* An empty `s/` is valid for clearing with `edit`, but invalid with `add`.
+* A blank `s/` cannot be mixed with other subjects. Invalid input rejects the whole command and leaves the record unchanged.
 
-### Adding a person: `add`
+### Record or clear a schooling level
 
-Adds a person to the address book.
+| Task | Command |
+|---|---|
+| Set or replace a level | `edit 1 l/Secondary 1` |
+| Clear a level | `edit 1 l/` |
+| Include a level when adding a student | Add `l/Primary 5` to the `add` command |
 
-Format: `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS [l/SCHOOLING_LEVEL] [i/LESSON_SLOT] [t/TAG]…​`
+The card shows `Level: Primary 5` when a level is recorded. If none is recorded, the level line is hidden. Leave out `l/` to keep the existing level when editing. Changing a level keeps every other field unchanged.
 
-<div markdown="span" class="alert alert-primary">:bulb: **Tip:**
-A person can have any number of tags, including zero.
-</div>
+Levels use the same character and spacing rules as subjects, with a limit of 30 characters. An empty `l/` clears the level with `edit`, but is invalid with `add`. Repeating `l/` in one command is invalid. Invalid input leaves the record unchanged.
 
-* `SCHOOLING_LEVEL` is optional free text such as `Primary 5` or `Sec 3` (1–30 characters; starts with a letter or digit, contains at least one letter, and otherwise allows letters, digits, spaces, apostrophes, hyphens, periods and parentheses). Extra spaces are collapsed and case is preserved.
-* `LESSON_SLOT` is optional and records one lesson that repeats every week. Omit `i/` when the lesson time is not yet known. An empty `i/` is invalid when adding a person.
-* Write the slot as `i/DAY START END`, e.g. `i/Wed 1.00pm 5.00pm`.
-  * `DAY` is the three letter prefix of the day of the week, e.g. `Tue`, `Thu`
-  * `START` and `END` are the start and end times of the lesson, respectively. Each should be written in format `HH.MM[am/pm]`, e.g. `12.00pm`, `3.30am`
-* For English input, use the abbreviated day: `Mon`, `Tue`, `Wed`, `Thu`, `Fri`, `Sat` or `Sun`. Write each time in 12-hour form with a period, two minute digits and an `am` or `pm` suffix, such as `9.05am` or `1.30pm`. Do not put a space before the suffix. Use hours 1–12; noon is `12.00pm` and midnight is `12.00am`. Do not include seconds.
-
-Examples:
-
-* `add n/John Doe p/98765432 e/johnd@example.com a/John street, block 123, #01-01`
-* `add n/Amy Tan p/91234567 e/amy@example.com a/Bedok Ave 1 l/Primary 5`
-* `add n/Chris Lim p/92345678 e/chris@example.com a/Tampines Ave 4 l/Secondary 2 i/Wed 1.00pm 5.00pm`
-* `add n/Betsy Crowe t/friend e/betsycrowe@example.com a/Newgate Prison p/1234567 t/criminal`
-
-### Listing all persons: `list`
-
-Shows a list of all persons in the address book.
+### List all students: `list`
 
 Format: `list`
 
-When a person has a lesson slot, their card shows a line such as `Lesson: Wednesday 1.00pm-5.00pm`. No lesson line is shown when the slot is absent. To enter or edit the slot, use the abbreviated day and separate start/end times described under [Adding a person](#adding-a-person-add); the card's display text is not the command input format.
+Shows every student and clears any active search filter.
 
-### Editing a person: `edit`
+### Edit a student: `edit`
 
-Edits an existing person in the address book.
+Format: `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]... [s/SUBJECT]... [l/SCHOOLING_LEVEL] [i/LESSON_SLOT]`
 
-Format: `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [a/ADDRESS] [l/SCHOOLING_LEVEL] [i/LESSON_SLOT] [t/TAG]…​`
+Include at least one field to change. Fields you leave out stay unchanged.
 
-* Edits the person at the specified `INDEX`. The index refers to the index number shown in the displayed person list. The index **must be a positive integer** 1, 2, 3, …​
-* At least one of the optional fields must be provided.
-* Existing values will be updated to the input values.
-* When editing tags, all of the person's existing tags are removed; adding tags is not cumulative.
-* To remove all of a person's tags, enter `t/` without a tag after it.
-* To set or change the schooling level, enter `l/SCHOOLING_LEVEL`. To remove it, enter `l/` with nothing after it. Editing other fields leaves the schooling level unchanged.
-* To set or change the lesson slot, enter `i/DAY START END` using the same [format and rules as `add`](#adding-a-person-add). A new slot replaces the existing slot. Include `i/` at most once per command.
-* To remove the lesson slot, enter `i/` with nothing after it. Omitting `i/` leaves the existing slot unchanged, including when editing other fields. Changing or clearing the slot preserves the other fields unless you also specify changes to them.
+* Tags replace the entire existing set. Use an empty `t/` to clear all tags.
+* Subjects replace the entire existing list. An empty `s/` clears all subjects.
+* An empty `l/` clears the schooling level.
+* An empty `i/` clears the lesson slot.
 
 Examples:
 
-*  `edit 1 p/91234567 e/johndoe@example.com` Edits the phone number and email address of the 1st person to be `91234567` and `johndoe@example.com` respectively.
-*  `edit 2 n/Betsy Crower t/` Edits the name of the 2nd person to be `Betsy Crower` and clears all existing tags.
-*  `edit 1 l/Secondary 1` Sets the schooling level of the 1st person to `Secondary 1`.
-*  `edit 1 l/` Clears the schooling level of the 1st person.
-*  `edit 1 i/Fri 9.00am 10.30am` Sets or replaces the 1st person's weekly lesson with Friday, 9 am to 10:30 am.
-*  `edit 1 i/` Clears the 1st person's lesson slot and removes its line from the card.
-*  `edit 1 p/91234567` Changes the 1st person's phone number and preserves their lesson slot.
+* `edit 1 p/91234567 e/alex.tan@example.com` changes the first displayed student's phone and email.
+* `edit 2 n/Mei Ling t/` changes the second displayed student's name and clears their tags.
+* `edit 1 s/Math l/Primary 6` changes both the subject and schooling level.
 
-### Locating persons by name or schooling level: `find`
-
-Finds persons whose names contain any of the given keywords, or whose schooling level contains the given text.
+### Find students by name or schooling level: `find`
 
 Format: `find KEYWORD [MORE_KEYWORDS]` or `find l/TEXT`
 
-* The search is case-insensitive; for example, `hans` matches `Hans`.
-* Keyword order does not matter; for example, `Hans Bo` matches `Bo Hans`.
-* The search by keywords considers only names.
-* Only full words match; for example, `Han` does not match `Hans`.
-* Persons matching at least one keyword are returned (an `OR` search); for example, `Hans Bo` returns `Hans Gruber` and `Bo Yang`.
+Without `l/`, searches names for whole words, ignoring letter case. A student appears if any keyword matches; keyword order does not matter.
 
-* `find l/TEXT` lists persons whose schooling level contains `TEXT` (case-insensitive, partial matches allowed; for example, `l/prim` matches `Primary 5`). Persons with no schooling level are never listed. It cannot be combined with name keywords.
+* `find John` matches `John Doe`, but not `Johnny`.
+* `find alex david` matches names containing `Alex` or `David`.
 
-Examples:
-* `find l/Primary` returns everyone whose schooling level contains `Primary`
-* `find John` returns `john` and `John Doe`
-* `find alex david` returns `Alex Yeoh`, `David Li`<br>
-  ![result for 'find alex david'](images/findAlexDavidResult.png)
+Use `find l/TEXT` to search schooling levels, ignoring letter case. Partial matches are allowed: `find l/prim` matches `Primary 5`. Students without a level are excluded. Supply one non-empty `l/` value; it cannot be combined with name keywords.
 
-### Deleting a person: `delete`
+Subject, phone and other fields are not searched.
 
-Deletes the specified person from the address book.
+![Name search results](images/findAlexDavidResult.png)
+
+### Delete a student: `delete`
 
 Format: `delete INDEX`
 
-* Deletes the person at the specified `INDEX`.
-* The index refers to the index number shown in the displayed person list.
-* The index **must be a positive integer** 1, 2, 3, …​
+Deletes the student at that position in the current list, including their attached details. There is no confirmation or undo.
 
-Examples:
-* `list` followed by `delete 2` deletes the 2nd person in the address book.
-* `find Betsy` followed by `delete 1` deletes the 1st person in the results of the `find` command.
+* `list` then `delete 2` deletes the second student in the full list.
+* `find Alex` then `delete 1` deletes the first search result.
 
-### Clearing all entries: `clear`
-
-Clears all entries from the address book.
+### Delete all students: `clear`
 
 Format: `clear`
 
-### Exiting the program: `exit`
+Deletes every student record. There is no confirmation or undo.
 
-Exits the program.
+### View help: `help`
+
+Format: `help`
+
+Opens a window with a help-page link. That link currently points to the original AddressBook guide; use this guide for subject and schooling-level commands.
+
+![Help window](images/helpMessage.png)
+
+### Exit: `exit`
 
 Format: `exit`
 
-### Saving the data
+Closes the app.
 
-AddressBook automatically saves data after every command. You do not need to save manually.
+## Saving and transferring records
 
-### Editing the data file
+The app saves automatically after each successfully executed command. Subjects and schooling levels are saved with the contact details. Older files with one `subject`, or no subjects, still load. New saves store a `subjects` array.
 
-AddressBook data is saved automatically as a JSON file `[JAR file location]/data/addressbook.json`. Advanced users are welcome to update data directly by editing that data file.
+If saving fails, the app reports an error. The change may still appear on screen without being saved to disk.
 
-<div markdown="span" class="alert alert-warning">:exclamation: **Caution:**
-If your changes make the data file invalid, AddressBook starts with an empty address book at the next run. The invalid file remains on disk until you run a command (AddressBook saves after every command). Still, we recommend backing up the file before editing it.<br>
-Furthermore, certain edits can cause the AddressBook to behave in unexpected ways (e.g., if a value entered is outside of the acceptable range). Therefore, edit the data file only if you are confident that you can update it correctly.
-</div>
+Records are stored in `data/addressbook.json` under the folder where you start the app.
 
-### Archiving data files `[coming in v2.0]`
+To transfer records, close the app on both computers. Copy the data file to the corresponding location on the new computer, then start the app there.
 
-_Details coming soon ..._
+### Edit the data file manually
 
---------------------------------------------------------------------------------------------------------------------
+Close the app and back up the JSON file before editing it. Keep the existing file structure and valid field values.
 
-## FAQ
-
-**Q**: How do I transfer my data to another computer?<br>
-**A**: Install the app on the other computer and overwrite the data file it creates with the data file from your previous AddressBook home folder.
-
---------------------------------------------------------------------------------------------------------------------
+If the file is invalid, the app starts with an empty list. The invalid file remains until a successful command saves over it. Restore your backup before running more commands.
 
 ## Known issues
 
-1. **When using multiple screens**, if you move the application to a secondary screen, and later switch to using only the primary screen, the GUI will open off-screen. The remedy is to delete the `preferences.json` file created by the application before running the application again.
-2. **If you minimize the Help Window** and then run the `help` command (or use the `Help` menu, or the keyboard shortcut `F1`) again, the original Help Window will remain minimized, and no new Help Window will appear. The remedy is to manually restore the minimized Help Window.
-
---------------------------------------------------------------------------------------------------------------------
+* **Window opens off-screen:** Close the app and delete `preferences.json`, then restart it. This resets the saved window position.
+* **Help window stays minimized:** Restore the existing help window manually. Running `help` again does not restore it.
 
 ## Command summary
 
-Action | Format, Examples
---------|------------------
-**Add** | `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS [l/SCHOOLING_LEVEL] [i/LESSON_SLOT] [t/TAG]…​` <br> e.g., `add n/James Ho p/22224444 e/jamesho@example.com a/123, Clementi Rd, 1234665 l/Primary 5 i/Wed 1.00pm 5.00pm t/friend t/colleague`
-**Clear** | `clear`
-**Delete** | `delete INDEX`<br> e.g., `delete 3`
-**Edit** | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [l/SCHOOLING_LEVEL] [i/LESSON_SLOT] [t/TAG]…​`<br> e.g., `edit 2 n/James Lee e/jameslee@example.com`, `edit 2 l/`, `edit 2 i/Fri 9.00am 10.30am`, `edit 2 i/`
-**Find** | `find KEYWORD [MORE_KEYWORDS]` or `find l/TEXT`<br> e.g., `find James Jake`, `find l/Primary`
-**List** | `list`
-**Help** | `help`
-
-`LESSON_SLOT` means `DAY START END`.
+| Task | Format |
+|---|---|
+| Add | `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]... [s/SUBJECT]... [l/SCHOOLING_LEVEL] [i/LESSON_SLOT]` |
+| Edit | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]... [s/SUBJECT]... [l/SCHOOLING_LEVEL] [i/LESSON_SLOT]` |
+| Clear subjects | `edit INDEX s/` |
+| Clear schooling level | `edit INDEX l/` |
+| Find | `find KEYWORD [MORE_KEYWORDS]` or `find l/TEXT` |
+| List | `list` |
+| Delete | `delete INDEX` |
+| Delete all | `clear` |
+| Help | `help` |
+| Exit | `exit` |

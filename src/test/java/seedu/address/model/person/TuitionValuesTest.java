@@ -1,7 +1,6 @@
 package seedu.address.model.person;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.math.BigDecimal;
@@ -19,7 +18,8 @@ public class TuitionValuesTest {
     public void labels_normalizeSpacingAndPreserveCase() {
         assertEquals(new Subject("Combined Science"), new Subject("  Combined\t Science  "));
         assertEquals(new SchoolingLevel("Primary 5"), new SchoolingLevel(" Primary   5 "));
-        assertNotEquals(new Subject("Math"), new Subject("math"));
+        assertEquals(new Subject("Math"), new Subject("math"));
+        assertEquals(new Subject("Math").hashCode(), new Subject("math").hashCode());
         assertEquals("A".repeat(40), new Subject("A".repeat(40)).value);
         assertEquals("A".repeat(30), new SchoolingLevel("A".repeat(30)).value);
         for (String text : new String[]{"", " ", "123", "Math/Science", "Math\n", "数学", "-Math"}) {

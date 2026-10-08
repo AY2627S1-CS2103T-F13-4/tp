@@ -2,262 +2,195 @@
 layout: page
 title: Developer Guide
 ---
-The architecture and implementation sections describe inherited AB3 behaviour unless marked as planned. See [Student model and scope](StudentModel.md) for the planned core fields, extension types and integration contract.
+
+StudentBook builds on AddressBook Level 3, or AB3. The architecture below describes the inherited application. The shared tuition model, subject workflow and schooling-level workflow are implemented on this branch; other tuition commands are planned.
+
+Start with [setup](SettingUp.md), then the [shared tuition model](#shared-tuition-model) and [product scope](#product-scope).
 
 * Table of Contents
 {:toc}
 
---------------------------------------------------------------------------------------------------------------------
+## Acknowledgements
 
-## **Acknowledgements**
-_{List the sources of reused or adapted ideas, code, documentation, and third-party libraries here, with links to the originals.}_
-* This project is based on the AddressBook-Level3 project created by the [SE-EDU initiative](https://se-education.org).
-* Pranav Pappu used [OpenAI Codex](https://openai.com/codex/) to review and standardise the StudentBook scope, proposed model and related documentation, including the shared Google Doc and user-story Sheet. Codex also implemented the shared tuition model, JSON adapters, edit preservation and regression tests, followed by independent adversarial review.
---------------------------------------------------------------------------------------------------------------------
+* Based on [AddressBook Level 3](https://github.com/se-edu/addressbook-level3) from the [SE-EDU initiative](https://se-education.org).
 
-## **Setting up, getting started**
+## Getting started
 
-Refer to the guide [_Setting up and getting started_](SettingUp.md).
+Follow the [setup guide](SettingUp.md), then run the [tests](Testing.md).
 
---------------------------------------------------------------------------------------------------------------------
-
-## **Design**
-
-<div markdown="span" class="alert alert-primary">
-
-:bulb: **Tip:** The `.puml` files used to create diagrams are in `docs/diagrams`. Refer to the [_PlantUML Tutorial_ at se-edu/guides](https://se-education.org/guides/tutorials/plantUml.html) to learn how to create and edit diagrams.
-</div>
+## Design
 
 ### Architecture
 
 <img src="images/ArchitectureDiagram.png" width="280" />
 
-The ***Architecture Diagram*** given above explains the high-level design of the App.
+`Main` and `MainApp` start the app, connect its components and clean up on shutdown.
 
-The following provides a quick overview of the main components and their interactions.
+| Component | Responsibility |
+|---|---|
+| [UI](#ui-component) | Display records and accept commands |
+| [Logic](#logic-component) | Parse and execute commands |
+| [Model](#model-component) | Hold records and settings in memory |
+| [Storage](#storage-component) | Read and write JSON files |
+| [Commons](#common-classes) | Share utilities across components |
 
-**Main components of the architecture**
-
-**`Main`** (consisting of classes [`Main`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/Main.java) and [`MainApp`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/MainApp.java)) is in charge of the app launch and shut down.
-* At app launch, it initializes the other components in the correct sequence, and connects them up with each other.
-* At shut down, it shuts down the other components and invokes cleanup methods where necessary.
-
-The bulk of the app's work is done by the following four components:
-
-* [**`UI`**](#ui-component): The UI of the App.
-* [**`Logic`**](#logic-component): The command executor.
-* [**`Model`**](#model-component): Holds the data of the App in memory.
-* [**`Storage`**](#storage-component): Reads data from, and writes data to, the hard disk.
-
-[**`Commons`**](#common-classes) represents a collection of classes used by multiple other components.
-
-**How the architecture components interact with each other**
-
-The *Sequence Diagram* below shows how the components interact with each other for the scenario where the user issues the command `delete 1`.
-
-<img src="images/ArchitectureSequenceDiagram.png" width="574" />
-
-Each of the four main components (also shown in the diagram above),
-
-* defines its *API* in an `interface` with the same name as the Component.
-* provides its functionality through a concrete `{Component Name}Manager` class that implements the corresponding API interface.
-
-For example, the `Logic` component defines its API in `Logic.java` and implements it in `LogicManager.java`. Other components interact with a component through its interface rather than its concrete class, preventing them from coupling to that component's implementation, as illustrated in the following partial class diagram.
+Each main component exposes an interface and implements it in a manager class. For example, callers use `Logic`; `LogicManager` implements it.
 
 <img src="images/ComponentManagers.png" width="300" />
 
-The sections below give more details of each component.
+This sequence shows a `delete 1` command passing through the components:
+
+<img src="images/ArchitectureSequenceDiagram.png" width="574" />
+
+Diagram sources are in `docs/diagrams`. See the [PlantUML tutorial](https://se-education.org/guides/tutorials/plantUml.html) to edit them.
 
 ### UI component
 
-The **API** of this component is specified in [`Ui.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/ui/Ui.java)
+![UI structure](images/UiClassDiagram.png)
 
-![Structure of the UI Component](images/UiClassDiagram.png)
+`MainWindow` contains `CommandBox`, `ResultDisplay`, `PersonListPanel` and `StatusBarFooter`. These classes extend `UiPart` and use JavaFX layouts in `src/main/resources/view`.
 
-The UI consists of a `MainWindow` and its parts, such as `CommandBox`, `ResultDisplay`, `PersonListPanel`, and `StatusBarFooter`. All of these, including `MainWindow`, inherit from the abstract `UiPart` class, which captures common behavior among classes that represent visible GUI parts.
-
-The `UI` component uses the JavaFX UI framework. The layouts of these UI parts are defined in matching `.fxml` files in `src/main/resources/view`. For example, [`MainWindow.fxml`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/resources/view/MainWindow.fxml) specifies the layout of [`MainWindow`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/ui/MainWindow.java).
-
-The `UI` component,
-
-* executes user commands using the `Logic` component.
-* listens for changes to `Model` data so that the UI can be updated with the modified data.
-* keeps a reference to the `Logic` component, because the `UI` relies on the `Logic` to execute commands.
-* depends on some classes in the `Model` component because it displays `Person` objects from the model.
+The UI sends commands to `Logic` and observes the filtered student list. It displays `Person` objects and refreshes when the list changes.
 
 ### Logic component
 
-**API** : [`Logic.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/logic/Logic.java)
+<img src="images/LogicClassDiagram.png" width="550" />
 
-Here's a (partial) class diagram of the `Logic` component:
+1. `LogicManager` passes command text to `AddressBookParser`.
+2. The parser selects a command parser, such as `DeleteCommandParser`.
+3. That parser creates a `Command`, which `LogicManager` executes against the model.
+4. After execution, `LogicManager` saves the data and returns a `CommandResult`. A save failure raises a command error even if the model has already changed.
 
-<img src="images/LogicClassDiagram.png" width="550"/>
+![Delete command sequence](images/DeleteSequenceDiagram.png)
 
-The sequence diagram below illustrates the interactions within the `Logic` component, taking `execute("delete 1")` API call as an example.
+Command parsers implement the `Parser` interface and use the helpers below:
 
-![Interactions Inside the Logic Component for the `delete 1` Command](images/DeleteSequenceDiagram.png)
+<img src="images/ParserClasses.png" width="600" />
 
-<div markdown="span" class="alert alert-info">:information_source: **Note:** The lifeline for `DeleteCommandParser` should end at the destroy marker (X), but due to a limitation of PlantUML, it continues to the end of the diagram.
-</div>
-
-How the `Logic` component works:
-
-1. When `Logic` is called upon to execute a command, the command is passed to an `AddressBookParser` object, which in turn creates a parser that matches the command (e.g., `DeleteCommandParser`) and uses it to parse the command.
-1. This results in a `Command` object (more precisely, an object of one of its subclasses e.g., `DeleteCommand`) which is executed by the `LogicManager`.
-1. The command can communicate with the `Model` when it is executed (e.g. to delete a person).<br>
-   Note that although this is shown as a single step in the diagram above for simplicity, the code can require several interactions between the command object and the `Model` to complete the operation.
-1. The result of the command execution is encapsulated as a `CommandResult` object which is returned from `Logic`.
-
-Here are the other classes in `Logic` (omitted from the class diagram above) that are used for parsing a user command:
-
-<img src="images/ParserClasses.png" width="600"/>
-
-How the parsing works:
-* When called upon to parse a user command, the `AddressBookParser` class creates an `XYZCommandParser` (`XYZ` is a placeholder for the specific command name, e.g., `AddCommandParser`). The parser uses the other classes shown above to parse the user command and create an `XYZCommand` object (e.g., `AddCommand`). The `AddressBookParser` returns that object as a `Command` object.
-* All `XYZCommandParser` classes, such as `AddCommandParser` and `DeleteCommandParser`, implement the `Parser` interface so they can be treated similarly where appropriate, for example during testing.
+The `DeleteCommandParser` lifeline should end at the X marker; PlantUML draws it longer.
 
 ### Model component
-**API** : [`Model.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/model/Model.java)
 
 <img src="images/ModelClassDiagram.png" width="450" />
 
+`ModelManager` holds the address book, user preferences and the current filtered list.
 
-The `Model` component,
+* `UniquePersonList` stores the records.
+* The UI observes an unmodifiable `ObservableList<Person>` of matching records.
+* Preferences are exposed through `ReadOnlyUserPrefs`.
+* The model does not depend on UI, Logic or Storage.
 
-* stores the address book data i.e., all `Person` objects (which are contained in a `UniquePersonList` object).
-* stores the `Person` objects selected by the current filter, such as search results, in a separate _filtered_ list. It exposes this list as an unmodifiable `ObservableList<Person>` that the UI can observe and bind to, so the UI updates when the list changes.
-* stores a `UserPrefs` object that represents the user’s preferences (currently, just the GUI settings). This is exposed to the outside as a `ReadOnlyUserPrefs` object.
-* does not depend on any of the other three components (as the `Model` represents data entities of the domain, they should make sense on their own without depending on other components)
+The diagram shows the original contact model. The [shared tuition model](#shared-tuition-model) section describes the added fields.
 
-<div markdown="span" class="alert alert-info">:information_source: **Note:** The alternative, arguably more object-oriented, design below keeps a unique list of tags in `AddressBook`, and each `Person` references tags from that list. This lets `AddressBook` maintain one `Tag` object per unique tag instead of each `Person` holding its own `Tag` objects.<br>
+An inherited alternative stores unique tags centrally and lets records reference them:
 
 <img src="images/BetterModelClassDiagram.png" width="450" />
 
-</div>
-
+This alternative is not the current implementation.
 
 ### Storage component
 
-**API** : [`Storage.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/storage/Storage.java)
-
 <img src="images/StorageClassDiagram.png" width="550" />
 
-The `Storage` component,
-* can save both address book data and user preference data in JSON format, and read them back into corresponding objects.
-* is implemented by `StorageManager`, which delegates the actual JSON file access to `JsonAddressBookStorage` and `JsonUserPrefsStorage` (one class per data file).
-* depends on some classes in the `Model` component (because the `Storage` component's job is to save/retrieve objects that belong to the `Model`)
+`StorageManager` delegates record files to `JsonAddressBookStorage` and preferences to `JsonUserPrefsStorage`. Both use JSON and convert stored values to model objects.
 
 ### Common classes
 
-Classes used by multiple components are in the `seedu.address.commons` package.
+Shared helpers live in `seedu.address.commons`.
 
---------------------------------------------------------------------------------------------------------------------
+## Implementation
 
-## **Implementation**
+### Shared tuition model
 
-This section describes some noteworthy details on how certain features are implemented.
+A student has zero or more subjects in an immutable `Set<Subject>`. The other tuition fields use `Optional`; absence means "not recorded". The agreed schooling-level requirement is pending Min Wenn's implementation. Rates remain optional.
 
-### \[Proposed\] Undo/redo feature
+| Field | Java type | Rules |
+|---|---|---|
+| Subjects | `Set<Subject>` | Zero or more labels, each 1 to 40 ASCII characters after the space cleanup below |
+| Schooling level | `Optional<SchoolingLevel>` | One text label, 1 to 30 ASCII characters after the space cleanup below |
+| Guardian | `Optional<GuardianContact>` | Both `Name` and `Phone`, using AB3 validation |
+| Weekly lesson | `Optional<WeeklyLessonSlot>` | `DayOfWeek`, `LocalTime start` and `LocalTime end`; whole minutes, with end later on the same day |
+| Hourly rate | `Optional<HourlyRate>` | SGD/hour as a non-negative `BigDecimal`, with at most two decimal places; zero is a recorded value |
 
-#### Proposed Implementation
+Subject and level use text labels, not enums. For both:
 
-The proposed undo/redo mechanism is facilitated by `VersionedAddressBook`. It extends `AddressBook` with an undo/redo history, stored internally as an `addressBookStateList` and `currentStatePointer`. Additionally, it implements the following operations:
+* Remove leading and trailing spaces or tabs. Replace repeated spaces or tabs with one space. Keep uppercase and lowercase letters as entered.
+* Start with an ASCII letter or digit and include at least one letter.
+* Allow letters, digits, spaces, apostrophes, hyphens, periods and parentheses.
+* Do not map synonyms or check whether a subject matches a level.
 
-* `VersionedAddressBook#commit()` — Saves the current address book state in its history.
-* `VersionedAddressBook#undo()` — Restores the previous address book state from its history.
-* `VersionedAddressBook#redo()` — Restores a previously undone address book state from its history.
+Subject equality ignores case. The set preserves input order and the first spelling of a repeated label.
 
-These operations are exposed in the `Model` interface as `Model#commitAddressBook()`, `Model#undoAddressBook()` and `Model#redoAddressBook()` respectively.
+Siblings can have the same guardian details, but each student keeps a separate copy. There is no tutor/student role field or generic `class[]` field.
 
-Given below is an example usage scenario and how the undo/redo mechanism behaves at each step.
+#### Constructors and editing
 
-Step 1. The user launches the application for the first time. The `VersionedAddressBook` will be initialized with the initial address book state, and the `currentStatePointer` pointing to that single address book state.
+`Person` retains its five-argument constructor, which leaves tuition fields absent.
 
-![UndoRedoState0](images/UndoRedoState0.png)
+The full constructor order is:
 
-Step 2. The user executes `delete 5` command to delete the 5th person in the address book. The `delete` command calls `Model#commitAddressBook()`, causing the modified state of the address book after the `delete 5` command executes to be saved in the `addressBookStateList`, and the `currentStatePointer` is shifted to the newly inserted address book state.
+```text
+name, phone, email, address, tags,
+subjects, schoolingLevel, guardianContact, weeklyLessonSlot, hourlyRate
+```
 
-![UndoRedoState1](images/UndoRedoState1.png)
+The subject set and its entries must be non-null. `getSubjects()` returns an immutable set. Every `Optional` argument must be non-null.
 
-Step 3. The user executes `add n/David …​` to add a new person. The `add` command also calls `Model#commitAddressBook()`, causing another modified address book state to be saved into the `addressBookStateList`.
+The shared foundation provides the value types, model fields, JSON support, test builders and field preservation during edits. Feature owners add commands, display and tests separately.
 
-![UndoRedoState2](images/UndoRedoState2.png)
+* Every edit keeps fields it does not change.
+* Full equality and hashing include all tuition fields.
+* Duplicate detection still compares exact, case-sensitive names.
+* Existing sample records may leave tuition fields absent.
 
-<div markdown="span" class="alert alert-info">:information_source: **Note:** If a command fails its execution, it will not call `Model#commitAddressBook()`, so the address book state will not be saved into the `addressBookStateList`.
+#### JSON storage
 
-</div>
+Storage uses the configured file path, default `data/addressbook.json`, and the top-level `persons` array. Existing properties and record order are preserved.
 
-Step 4. The user now decides that adding the person was a mistake, and decides to undo that action by executing the `undo` command. The `undo` command will call `Model#undoAddressBook()`, which will shift the `currentStatePointer` once to the left, pointing it to the previous address book state, and restores the address book to that state.
+The added JSON properties are:
 
-![UndoRedoState3](images/UndoRedoState3.png)
+| Property | JSON value |
+|---|---|
+| `subjects` | Array of text strings; empty means no subjects |
+| `schoolingLevel` | Text string |
+| `guardianContact` | Object with `name` and `phone` |
+| `weeklyLessonSlot` | Object with uppercase English `day`, such as `MONDAY`, and `start`/`end` in `HH:mm` |
+| `hourlyRate` | Decimal string, such as `"45.50"` |
 
-<div markdown="span" class="alert alert-info">:information_source: **Note:** If the `currentStatePointer` is at index 0, pointing to the initial AddressBook state, then there are no previous AddressBook states to restore. The `undo` command uses `Model#canUndoAddressBook()` to check if this is the case. If so, it will return an error to the user rather
-than attempting to perform the undo.
+Missing or null `subjects` loads as an empty set. Older files with a single `subject` string still load and save back as `subjects`. Supplying both properties with non-null values is rejected to avoid losing data. Other missing or null tuition properties load as `Optional.empty()`. Supplied values must have the correct JSON type and pass validation. Valid old files must still load. Keep the existing name and duplicate rules, and never silently discard data.
 
-</div>
+Tests cover old-file loading, save/reload and preservation of unrelated fields. A failed save reports an error but does not undo the in-memory change. A failed load does not block commands. These inherited failure behaviors differ from the earlier specification; see [decisions to confirm](#decisions-to-confirm).
 
-The following sequence diagram shows how an undo operation goes through the `Logic` component:
+### Subject workflow
 
-![UndoSequenceDiagram](images/UndoSequenceDiagram-Logic.png)
+| Step | Code and behavior |
+|---|---|
+| Parse | `AddCommandParser` and `EditCommandParser` accept repeated `s/` prefixes. `ParserUtil.parseSubjects` validates every label and removes case-insensitive duplicates. |
+| Edit | `EditPersonDescriptor` distinguishes omission, replacement of the whole set, and clearing with one empty `s/`. Other fields stay unchanged. |
+| Display | `PersonCard` shows all subjects or `Subjects: Not recorded`. |
+| Save | `JsonAdaptedPerson` writes a string array and accepts older single-subject files. |
 
-<div markdown="span" class="alert alert-info">:information_source: **Note:** The lifeline for `UndoCommand` should end at the destroy marker (X), but due to a limitation of PlantUML, it continues to the end of the diagram.
+`SubjectWorkflowTest` covers add, edit, clear, filtered indexes, invalid input, duplicates and save/reload. `TuitionStorageTest` checks all shared fields.
 
-</div>
+### Inherited undo/redo proposal
 
-Similarly, how an undo operation goes through the `Model` component is shown below:
+Undo and redo are not implemented or part of the selected tuition work. The inherited AB3 proposal uses `VersionedAddressBook` to store snapshots and a pointer to the current snapshot.
 
-![UndoSequenceDiagram](images/UndoSequenceDiagram-Model.png)
+* `commit()` adds a snapshot after a successful change and removes any redo history.
+* `undo()` moves to the previous snapshot; `redo()` moves to the next.
+* Failed commands and read-only commands do not add snapshots. Moving past either end reports an error.
+* Full snapshots are simpler to implement but use more memory. Command-specific inverse operations use less memory but require correct undo logic for each command.
 
-The `redo` command does the opposite — it calls `Model#redoAddressBook()`, which shifts the `currentStatePointer` once to the right, pointing to the previously undone state, and restores the address book to that state.
+The inherited diagrams remain in `docs/diagrams` and `docs/images` for reference. Data archiving is also unimplemented.
 
-<div markdown="span" class="alert alert-info">:information_source: **Note:** If the `currentStatePointer` is at index `addressBookStateList.size() - 1`, pointing to the latest address book state, then there are no undone AddressBook states to restore. The `redo` command uses `Model#canRedoAddressBook()` to check if this is the case. If so, it will return an error to the user rather than attempting to perform the redo.
+## Documentation, logging, testing, dev-ops
 
-</div>
+* [Documentation](Documentation.md)
+* [Testing](Testing.md)
+* [Logging](Logging.md)
+* [Builds, CI and releases](DevOps.md)
 
-Step 5. The user then decides to execute the command `list`. Commands that do not modify the address book, such as `list`, will usually not call `Model#commitAddressBook()`, `Model#undoAddressBook()` or `Model#redoAddressBook()`. Thus, the `addressBookStateList` remains unchanged.
-
-![UndoRedoState4](images/UndoRedoState4.png)
-
-Step 6. The user executes `clear`, which calls `Model#commitAddressBook()`. Since the `currentStatePointer` is not pointing at the end of the `addressBookStateList`, all address book states after the `currentStatePointer` will be purged. Reason: It no longer makes sense to redo the `add n/David …​` command. This is the behavior that most modern desktop applications follow.
-
-![UndoRedoState5](images/UndoRedoState5.png)
-
-The following activity diagram summarizes what happens when a user executes a new command:
-
-<img src="images/CommitActivityDiagram.png" width="250" />
-
-#### Design considerations:
-
-**Aspect: How undo & redo execute:**
-
-* **Alternative 1 (current choice):** Saves the entire address book.
-  * Pros: Easy to implement.
-  * Cons: May have performance issues in terms of memory usage.
-
-* **Alternative 2:** Individual command knows how to undo/redo by
-  itself.
-  * Pros: Will use less memory (e.g. for `delete`, just save the person being deleted).
-  * Cons: We must ensure that the implementation of each individual command is correct.
-
-_{more aspects and alternatives to be added}_
-
-### \[Proposed\] Data archiving
-
-_{Explain here how the data archiving feature will be implemented}_
-
-
---------------------------------------------------------------------------------------------------------------------
-
-## **Documentation, logging, testing, dev-ops**
-
-* [Documentation guide](Documentation.md)
-* [Testing guide](Testing.md)
-* [Logging guide](Logging.md)
-* [DevOps guide](DevOps.md)
-
---------------------------------------------------------------------------------------------------------------------
-
-## **Appendix: Requirements**
+## Appendix: Requirements
 
 ### Product scope
 
@@ -269,59 +202,108 @@ Independent private tutors who:
 * regularly retrieve and update this information before and after lessons
 * can type quickly and prefer typing over mouse-driven input
 
-**Value proposition**: StudentBook aims to give independent private tutors one place to keep and
-quickly retrieve student details, guardian contacts, lesson arrangements, and follow-up notes,
-reducing the administrative work involved in managing their students.
+**Value proposition**: StudentBook keeps student contacts, tuition details, weekly lesson slots and hourly rates in one place, so private tutors can find and update them quickly.
+
+The MVP includes student records and all five tuition features below. Keep the existing AB3 contact fields and commands. Payment processing and sending messages are out of scope. Group classes, progress notes, follow-ups and other brainstormed ideas remain backlog candidates, not delivery commitments.
+
+| Owner | MVP feature | Story IDs |
+|---|---|---|
+| Min Wenn | Schooling level | 5; level updates in 12 |
+| Pranav | Subject | 6; subject updates in 12 |
+| Jian Yi | Weekly lesson slot | 25, 28, 29, 48 |
+| Dylan | Hourly rate | 53, 54 |
+| Mervin | Guardian contact | 7, 8, 22, 23 |
+
+The shared types and storage are implemented. This branch supports add, display, edit and clear for subjects and schooling levels, plus finding students by level. Other owners add their command and display flows in separate PRs. Week 8 needs a small working increment per person; the full MVP is the v1.3 target.
+
+### Agreed field rules
+
+Subjects are optional and may contain multiple labels. Schooling level is mandatory by agreement, with enforcement left to Min Wenn. Hourly rate remains optional for now. Grouping a subject, rate and timeslot into a lesson is an idea for next week, not part of this change.
+
+### Decisions to confirm
+
+The earlier Google specification and the current code differ on the rules below. Keeping AB3 fields was agreed, but it did not settle every validation or failure rule. These are open product decisions, not changes to implement automatically.
+
+| Decision | Earlier specification | Current implementation |
+|---|---|---|
+| Contact fields | Name required on creation | Name, phone, email and address required; confirm whether all four contact fields are needed |
+| Duplicate names | Normalized, case-insensitive comparison | Exact, case-sensitive name comparison |
+| Names and phones | Punctuation in names; optional `+` and 7–15 digits in phones | AB3 alphanumeric names; phones with at least 3 digits and no `+` |
+| Save/load failures | Roll back failed saves; block commands after a failed load | In-memory changes can remain after a failed save; commands remain available after a failed load |
+
+The pre-chat Git and Google documents also differed on registration and guardian attachment. The current plan adds the guardian separately. Confirm the remaining rules with the team before treating the earlier draft as superseded.
 
 
 ### User stories
 
-Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unlikely to have) - `*`
+Priorities from the planning Sheet are retained: `***` = high, `**` = medium, `*` = low. Priority does not determine whether a story is in the MVP or already implemented.
 
-| ID | Priority | As a …​                                    | I want to …​                     | So that I can…​                                                        |
-|----|----------| ------------------------------------------ | ------------------------------ | ---------------------------------------------------------------------- |
-| 1 | `***` | private tutor | add a student record with a name | I can begin tracking each student |
-| 2 | `***` | private tutor | view the list of current students | I can see who I currently teach |
-| 3 | `***` | private tutor | view a student's subject and schooling level | I can prepare with the relevant academic context |
-| 4 | `***` | private tutor | delete a student record | I can remove leavers and correct unusable entries by re-adding them |
-| 5 | `***` | private tutor | record a student's schooling level | I can choose material at the right level |
-| 6 | `***` | private tutor | record the subject I teach a student | I can remember what I teach each student |
-| 7 | `***` | private tutor | record one guardian's name and contact details for a student | I can reach the right adult about lessons |
-| 8 | `***` | private tutor | view the guardian name and contact details linked to a student | I can contact a guardian without searching elsewhere |
-| 9 | `***` | private tutor | keep my student details and guardian contacts when I close and reopen the app | I can continue my work without re-entering information |
-| 10 | `**` | private tutor | edit a student's name | I can correct typos without recreating the record |
-| 11 | `**` | private tutor | record a student's school | I can remember the student's school context |
-| 12 | `**` | private tutor | update a student's school, schooling level or subjects | I can keep records current as circumstances change |
-| 13 | `**` | private tutor | search for a student by a partial name | I can retrieve a record quickly |
-| 22 | `**` | private tutor | edit a guardian's contact details | I can keep changed phone numbers and emails current |
-| 25 | `**` | private tutor | add a recurring weekly lesson slot to a student | I can remember when the student is taught |
-| 28 | `**` | private tutor | edit a lesson slot | I can reflect an agreed schedule change |
-| 29 | `**` | private tutor | remove a lesson slot | I can clear a cancelled arrangement |
-| 33 | `**` | private tutor | add a dated progress note to a student | I can remember what happened in recent lessons |
-| 34 | `**` | private tutor | view a student's dated progress notes in chronological order | I can recall learning needs before the next lesson |
-| 35 | `**` | private tutor | record a follow-up item for a guardian | I can remember what I need to communicate |
-| 36 | `**` | private tutor | list outstanding guardian follow-up items | I can avoid missing promised updates |
-| 40 | `**` | private tutor learning the app | look up command usage and examples | I can complete a task when I do not remember what to type |
-| 43 | `**` | private tutor | edit a guardian follow-up item | I can keep the recorded request accurate when arrangements change |
-| 44 | `**` | private tutor | mark a guardian follow-up item as complete | I can remove finished work from my outstanding follow-ups |
-| 45 | `**` | private tutor learning the app | see what needs correcting when an entry is rejected | I can fix the entry without guessing why it failed |
-| 46 | `**` | tutor who communicates directly with a student | record the student’s own phone number or email address | keep their contact details with their record |
-| 47 | `**` | tutor who needs to contact a student directly | view the student’s contact details | reach them without searching elsewhere |
-| 48 | `**` | tutor checking a student’s lesson arrangements | view that student’s weekly lesson times | confirm when I teach them |
+The MVP covers stories 1–9, subject/level updates in 12, guardian name/phone updates in 22 and removal in 23, slots in 25/28/29/48, and rates in 53/54. The table also preserves existing AB3 capabilities and other ideas for future reference. Unselected ideas are backlog candidates, not commitments, including school in story 12 and guardian email in story 22.
+
+| ID | Priority | As a... | I want to... | So that I can... |
+|---|---|---|---|---|
+| 1 | `***` | private tutor | add a student record with a name | begin tracking each student |
+| 2 | `***` | private tutor | view the list of current students | see who I currently teach |
+| 3 | `***` | private tutor | view a student's subjects and schooling level | prepare for the right subject and level |
+| 4 | `***` | private tutor | delete a student record | remove students who leave or recreate incorrect records |
+| 5 | `***` | private tutor | record a student's schooling level | choose material at the right level |
+| 6 | `***` | private tutor | record the subjects I teach a student | remember what I teach each student |
+| 7 | `***` | private tutor | record one guardian's name and contact details for a student | reach the right adult about lessons |
+| 8 | `***` | private tutor | view the guardian name and contact details linked to a student | contact a guardian without searching elsewhere |
+| 9 | `***` | private tutor | keep my student details and guardian contacts when I close and reopen the app | continue my work without re-entering information |
+| 10 | `**` | private tutor | edit a student's name | correct typos without recreating the record |
+| 11 | `**` | private tutor | record a student's school | remember which school the student attends |
+| 12 | `**` | private tutor | update a student's school, schooling level or subjects | keep records current as circumstances change |
+| 13 | `**` | private tutor | search for a student by a partial name | retrieve a record quickly |
+| 14 | `**` | private tutor | sort students alphabetically | scan a long student list faster |
+| 15 | `**` | private tutor | filter students by school | find students from the same school |
+| 16 | `**` | private tutor | filter students by schooling level | prepare level-appropriate materials |
+| 17 | `**` | private tutor | filter students by subject | prepare for a subject-specific class |
+| 18 | `**` | private tutor | mark a student as inactive | keep former students without cluttering the current list |
+| 19 | `**` | private tutor | view inactive students separately | refer to past records when needed |
+| 20 | `**` | private tutor | add another guardian to a student | keep alternative contacts for the same student |
+| 21 | `**` | private tutor | record each guardian's relationship to the student | know who I am contacting |
+| 22 | `**` | private tutor | edit a guardian's contact details | keep changed phone numbers and emails current |
+| 23 | `**` | private tutor | remove a guardian from a student | discard contacts that are no longer relevant |
+| 24 | `**` | private tutor | search by guardian name or contact | find the right student when a guardian contacts me |
+| 25 | `**` | private tutor | add a recurring weekly lesson slot to a student | remember when the student is taught |
+| 26 | `**` | private tutor | add more than one weekly lesson slot to a student | track students with several lessons each week |
+| 27 | `**` | private tutor | view lessons scheduled on a chosen day | prepare for that day's students |
+| 28 | `**` | private tutor | edit a lesson slot | keep the agreed schedule current |
+| 29 | `**` | private tutor | remove a lesson slot | clear a cancelled arrangement |
+| 30 | `**` | private tutor | record a lesson's location or delivery mode | know where and how the lesson will happen |
+| 31 | `**` | private tutor | assign students to a shared group class | manage one lesson arrangement for its attendees |
+| 32 | `**` | private tutor | view every student in a group class | prepare the correct class list |
+| 33 | `**` | private tutor | add a dated progress note to a student | remember what happened in recent lessons |
+| 34 | `**` | private tutor | view a student's dated progress notes in chronological order | recall learning needs before the next lesson |
+| 35 | `**` | private tutor | record a follow-up item for a guardian | remember what I need to communicate |
+| 36 | `**` | private tutor | list outstanding guardian follow-up items | avoid missing promised updates |
+| 37 | `**` | private tutor | record a student's payment status | know which payments need follow-up without processing them |
+| 38 | `**` | private tutor | record a guardian's preferred contact method | contact each guardian appropriately |
+| 39 | `**` | private tutor exploring the app | find out which student-management tasks the app supports | decide whether it suits my work |
+| 40 | `**` | private tutor learning the app | look up command usage and examples | complete a task when I do not remember what to type |
+| 41 | `**` | private tutor | combine subject, schooling-level and lesson-day filters | find students matching the criteria for my preparation |
+| 42 | `**` | private tutor | see the next scheduled lesson and its attending students | know which lesson to prepare for next |
+| 43 | `**` | private tutor | edit a guardian follow-up item | keep the recorded request accurate when arrangements change |
+| 44 | `**` | private tutor | mark a guardian follow-up item as complete | remove finished work from my outstanding follow-ups |
+| 45 | `**` | private tutor learning the app | see what needs correcting when an entry is rejected | fix the entry without guessing why it failed |
+| 46 | `**` | tutor who communicates directly with a student | record the student's own phone number or email address | keep their contact details with their record |
+| 47 | `**` | tutor who needs to contact a student directly | view the student's contact details | reach them without searching elsewhere |
+| 48 | `**` | tutor checking a student’s lesson arrangements | view that student's weekly lesson times | confirm when I teach them |
 | 49 | `**` | tutor planning my week | view all my lessons arranged by day and time | see which students I will teach each day |
-| 53 | `**` | private tutor | record and view an hourly rate | I can keep the agreed SGD rate with the student |
-| 54 | `**` | private tutor | change or remove an hourly rate | I can keep fee arrangements current |
-| 52 | `*` | private tutor | export all records to a human-readable file | I can inspect and back up my data outside the app |
-
-
+| 50 | `*` | private tutor | identify students who share a guardian contact | coordinate communication without contacting the same guardian separately for each student |
+| 51 | `*` | private tutor | receive a warning when separate lesson arrangements overlap | avoid accepting conflicting arrangements |
+| 52 | `*` | private tutor | export all records to a human-readable file | inspect and back up my data outside the app |
+| 53 | `**` | private tutor | record and view the hourly rate agreed for a student | check the agreed rate before discussing fees |
+| 54 | `**` | private tutor | change or remove a student's recorded hourly rate | keep the agreed rate current |
 
 ### Use cases
 
-For all use cases below, the **System** is **StudentBook** and the **Actor** is an independent private tutor.
-The tutor has launched the application unless stated otherwise. All existing AB3 contact fields and commands remain. New tuition fields are optional; their absence does not prevent registration. **MSS** means main success scenario.
-These use cases describe planned requirements, rather than features already implemented in the inherited application.
-UC01, UC02, UC03 and UC06 cover separate goals in the proposed first version. UC04 and UC05 illustrate later features.
-Command syntax will be specified in the User Guide when the corresponding features are implemented.
+These use cases describe the intended behavior. The [User Guide](UserGuide.md) lists the commands available now.
+
+The actor is a private tutor and the system is StudentBook. The app is already open unless stated otherwise. The registration and failure paths below follow the current implementation; [decisions to confirm](#decisions-to-confirm) lists differences from the earlier draft.
+
+**MSS** means main success scenario. UC01, UC02, UC03, UC04 and UC06 cover MVP goals. UC05 is a backlog candidate.
 
 #### UC01: Register a student
 
@@ -344,7 +326,7 @@ Use case ends.
   * 1b1. StudentBook reports the duplicate without adding a record.
   * Use case ends.
 * 2a. StudentBook cannot save the change.
-  * 2a1. StudentBook reports the save failure. The new student may remain in memory, but persistence is not confirmed.
+  * 2a1. StudentBook reports the save failure. The student may still appear on screen without being saved.
   * Use case ends.
 
 #### UC02: Retrieve a guardian's contact details
@@ -390,33 +372,31 @@ Use case ends.
   * 3a1. StudentBook displays an error without deleting any record.
   * Use case resumes at step 2.
 
-#### UC04: Change a recurring lesson slot (planned beyond the first version)
+#### UC04: Change a recurring lesson slot (planned MVP feature)
 
-**Related user stories:** 13, 28, 48.
+**Related user stories:** 2, 28, 48.
 
 **Preconditions:** The student has an existing recurring lesson slot.
 
 **MSS**
 
-1. Tutor searches for the student by a partial name.
-2. StudentBook displays matching students and their weekly lesson times.
-3. Tutor identifies the student and requests to change a specific lesson slot, supplying the new day and time.
+1. Tutor requests to list students.
+2. StudentBook displays students and their weekly lesson times.
+3. Tutor requests to change a student's slot, supplying the displayed index and new day and times.
 4. StudentBook displays the updated lesson arrangement.
 
 Use case ends.
 
 **Extensions**
 
-* 2a. No students match the search.
-  * 2a1. StudentBook displays an empty result list.
-  * 2a2. Tutor submits a revised search.
-  * Use case resumes at step 2.
-* 3a. The student or lesson slot reference is invalid, or the new day or time is invalid.
+* 2a. The student list is empty.
+  * Use case ends.
+* 3a. The student index is invalid, or the new day or times are invalid.
   * 3a1. StudentBook explains the error without changing the arrangement.
   * 3a2. Tutor corrects and resubmits the request.
   * Use case resumes at step 3.
 
-#### UC05: Complete a guardian follow-up (planned beyond the first version)
+#### UC05: Complete a guardian follow-up (backlog candidate)
 
 **Related user stories:** 36, 44.
 
@@ -458,88 +438,67 @@ Use case ends.
   * 1a2. Tutor corrects and resubmits the request.
   * Use case resumes at step 1.
 * 2a. StudentBook cannot save the change.
-  * 2a1. StudentBook reports the save failure. The contact may remain in memory, but persistence is not confirmed.
+  * 2a1. StudentBook reports the save failure. The contact may still appear on screen without being saved.
   * Use case ends.
 
-### Non-Functional Requirements
+### Non-functional requirements
 
-The following are acceptance targets for StudentBook; they do not claim that the current application has been verified against them.
+These are acceptance targets. They have not all been verified in the current app.
 
-1. **Compatibility:** The application should run on Windows, macOS, and Linux with Java `25`, subject to the bundled JavaFX runtime's platform and architecture support.
-2. **Capacity and response time:** With up to 1,000 student records, each with one guardian contact, adding, listing, and deleting a record should update the displayed result within two seconds on a supported computer with at least 4 GB of RAM and local storage. Measure this from command submission to the displayed result, excluding application startup.
-3. **Keyboard usability:** After launching the application, a tutor should be able to add, list, and delete student records using the keyboard without requiring mouse interaction.
-4. **Error feedback:** Rejected commands should display a readable explanation of the incorrect input and how to correct it. Invalid input should leave existing records unchanged.
-5. **Persistence:** Following a successful save and normal shutdown, reopening the application should restore all existing contact fields, subjects, schooling levels, guardian contacts and every implemented extension without manual re-entry.
-6. **Offline operation:** Managing and saving student records should work without an internet connection. Records should be stored locally for a single tutor rather than requiring an online account.
-7. **Data protection:** Student and guardian contact details should not be sent to external services or included in diagnostic logs. Access to local data files relies on the tutor's operating-system account and file permissions.
-8. **Storage failure reporting:** Report save failures clearly. The inherited application may retain an in-memory change after a failed save. Transactional rollback and a blocked startup recovery UI are future improvements, outside the shared-foundation increment. Valid AB3 files must load with new fields absent.
+1. **Compatibility.** Run on Windows, macOS and Linux with Java `25`, on systems supported by the bundled JavaFX runtime.
+2. **Capacity and speed.** Support 1,000 students, each with one guardian. Adding, listing or deleting a record should show its result within two seconds. Test on a supported computer with at least 4 GB of RAM and local storage. Measure from command submission to the displayed result, excluding startup.
+3. **Keyboard use.** After launch, let tutors add, list and delete students without a mouse.
+4. **Error messages.** Explain what is wrong and how to fix it. Invalid input should leave existing records unchanged.
+5. **Saved data.** After a successful save and normal shutdown, restore every contact and tuition field on restart, including implemented tuition fields. Users should not have to re-enter data.
+6. **Offline use.** Manage and save records on the tutor's computer without internet access or an online account.
+7. **Data protection.** Keep student and guardian contact details out of external services and diagnostic logs. The tutor's operating-system account and file permissions control access to local files.
+8. **File errors.** Report file failures clearly. The intended recovery behavior still needs confirmation; see [decisions to confirm](#decisions-to-confirm). Valid AB3 files must load with new fields absent.
 
 ### Glossary
 
-* **StudentBook**: The local desktop application being developed to help independent private tutors manage student information.
-* **Independent private tutor**: A tutor who manages their own students and lesson administration without dedicated administrative support.
-* **Student record**: An entry representing a student taught by the tutor. Retains name, phone, email, address and tags, with optional subject, schooling level and guardian contact. Lesson slots and rates are selected extensions; notes are deferred.
-* **Guardian contact**: The name and contact details of the adult responsible for a student. The core MVP stores zero or one contact per student, with both name and phone required when a contact is present.
+* **StudentBook**: The desktop app for managing student records.
+* **Independent private tutor**: A tutor who manages students and lessons without administrative staff.
+* **Student record**: One student's contact details, subjects, schooling level, guardian contact, weekly lesson slot and hourly rate. Notes remain a backlog candidate.
+* **Guardian contact**: The name and phone number of the adult responsible for a student. The first version allows one optional guardian per student. A recorded guardian needs both fields.
 * **Schooling level**: The student's stage of primary or secondary education, such as Primary 5 or Secondary 3.
 * **Subject**: An academic subject taught by the tutor to a student, such as Mathematics or English.
-* **Recurring lesson slot**: A weekly lesson arrangement specifying a day, start time and end time for a student. The first extension supports zero or one slot per student.
-* **Hourly rate**: An optional agreed SGD amount per hour, stored using `BigDecimal`. It is a record, not payment processing or a computed lesson fee.
+* **Recurring lesson slot**: A student's weekly lesson day, start time and end time. The current model stores at most one slot per student.
+* **Hourly rate**: The agreed SGD amount per hour, stored as `BigDecimal`. It does not calculate fees or process payments.
 * **Progress note**: A dated note recording a student's learning progress or observations from a lesson.
 * **Guardian follow-up item**: A recorded action the tutor needs to carry out for a guardian, such as providing an update. An outstanding item has not yet been marked complete.
-* **Displayed index**: The position identifying a student in the currently displayed list. It can change when the list changes and is not a permanent student identifier.
-* **Local storage**: Data files on the tutor's computer that retain records between application sessions.
+* **Displayed index**: The number beside a student in the current list. It can change when the list changes, so it is not a permanent student ID.
+* **Local storage**: Files on the tutor's computer that keep records between launches.
 * **Private contact detail**: A student or guardian's phone number, email address, or other contact information intended for the tutor's use rather than public sharing.
 
---------------------------------------------------------------------------------------------------------------------
+## Appendix: Instructions for manual testing
 
-## **Appendix: Instructions for manual testing**
-
-Given below are instructions to test the app manually.
-
-<div markdown="span" class="alert alert-info">:information_source: **Note:** These instructions only provide a starting point for testers to work on;
-testers are expected to do more *exploratory* testing.
-
-</div>
+Use an empty test folder and sample data. These checks are a starting point; also try variations and boundary values.
 
 ### Launch and shutdown
 
-1. Initial launch
+1. Build the JAR using the [Quick start](UserGuide.md#quick-start), copy it into the test folder and run `java -jar addressbook.jar` there.
+2. Check that the window opens with sample contacts.
+3. Resize and move the window, then close and reopen the app. Check that it keeps the new size and position.
 
-   1. Download the JAR file and copy it into an empty folder.
+### Student deletion
 
-   1. Double-click the JAR file.<br>
-      Expected: The GUI opens with a set of sample contacts. The window size may not be optimal.
+1. Run `list` with several records present, then `delete 1`. The first record should disappear and the result should describe it.
+2. Try `delete 0`, `delete`, `delete x` and an index larger than the list. Each should report an error and leave all records unchanged.
+3. Run `find Alex`, then delete a valid result index. Check that it deletes that search result, not the record at the same position in the full list.
 
-1. Saving window preferences
+### Subject and saved data
 
-   1. Resize the window to an optimal size. Move the window to a different location. Close the window.
+1. Add a unique test student with subject `Combined Science`, using three spaces between the words. The card should show one space.
+2. Change it with `edit INDEX s/Math`, then edit the phone without `s/`. The subject should stay `Math`.
+3. Restart the app. Both edits should remain.
+4. Run `edit INDEX s/` and restart again. The card should show `Subjects: Not recorded`.
+5. Add or edit with `s/Math s/Science s/math`. The card should show `Math, Science`, including after restart.
+6. Try a blank subject on `add`, `edit INDEX s/Math s/`, and an invalid label such as `s/123`. Each should reject the whole command without changing any record.
 
-   1. Relaunch the app by double-clicking the JAR file.<br>
-       Expected: The most recent window size and location are retained.
+### Missing or invalid data files
 
-1. _{ more test cases …​ }_
+Close the app and back up the test data before each case.
 
-### Deleting a person
-
-1. Deleting a person while all persons are being shown
-
-   1. Prerequisites: List all persons using the `list` command, with multiple persons in the list.
-
-   1. Test case: `delete 1`<br>
-      Expected: The first contact is deleted from the list. The status message shows the deleted contact's details.
-
-   1. Test case: `delete 0`<br>
-      Expected: No person is deleted. The status message shows error details.
-
-   1. Other incorrect delete commands to try: `delete`, `delete x`, `...` (where x is larger than the list size)<br>
-      Expected: Similar to previous.
-
-1. _{ more test cases …​ }_
-
-### Saving data
-
-1. Dealing with missing/corrupted data files
-
-   1. _{Explain how to simulate missing or corrupted data files and state the expected behavior.}_
-
-1. _{ more test cases …​ }_
+* **Missing file:** Move `data/addressbook.json` out of the test folder, then restart. Sample records should appear.
+* **Invalid file:** Replace the test file with invalid JSON, then restart. An empty list should appear and the log should record the load failure. Do not run commands before restoring the backup; a successful command saves over the file.
+* **Old valid file:** Load AB3 data without tuition properties. The contact details should remain and subjects should show as not recorded.

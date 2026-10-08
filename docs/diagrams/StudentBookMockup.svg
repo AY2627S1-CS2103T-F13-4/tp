@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="980" viewBox="0 0 1200 980">
+  <title>Planned StudentBook MVP interface</title>
+  <desc>A single app window with a command box and two student cards showing contact details, subject, schooling level, guardian, weekly lesson slot and hourly rate.</desc>
+  <rect width="1200" height="980" rx="10" fill="#f4f5f7"/>
+  <g font-family="Arial, sans-serif" fill="#222a35">
+    <path d="M10 0h1180a10 10 0 0 1 10 10v42H0V10A10 10 0 0 1 10 0" fill="#263449"/>
+    <text x="24" y="34" font-size="24" fill="#fff" font-weight="700">StudentBook</text>
+    <text x="1118" y="33" font-size="24" fill="#fff">−  ×</text>
+    <text x="24" y="86" font-size="19">File</text>
+    <text x="86" y="86" font-size="19">Help</text>
+    <rect x="20" y="110" width="1160" height="58" rx="4" fill="#fff" stroke="#8592a3"/>
+    <text x="38" y="147" font-family="monospace" font-size="24">list</text>
+    <rect x="20" y="180" width="1160" height="58" rx="4" fill="#e6edf5"/>
+    <text x="38" y="216" font-size="21">Listed all persons.</text>
+
+    <rect x="20" y="254" width="1144" height="330" rx="5" fill="#fff" stroke="#ccd3dc"/>
+    <text x="42" y="297" font-size="28" font-weight="700">1. Alex Tan</text>
+    <rect x="972" y="272" width="165" height="35" rx="17" fill="#e5edf8"/>
+    <text x="1054" y="296" font-size="17" text-anchor="middle" fill="#244c80">primary</text>
+    <text x="42" y="337" font-size="22">Subject: Mathematics</text>
+    <text x="584" y="337" font-size="22">Schooling level: Primary 5</text>
+    <text x="42" y="377" font-size="21">Phone: 91234567</text>
+    <text x="584" y="377" font-size="21">Email: alex@example.com</text>
+    <text x="42" y="417" font-size="21">Address: 123 Clementi Road</text>
+    <line x1="42" y1="438" x2="1138" y2="438" stroke="#e0e5eb"/>
+    <text x="42" y="473" font-size="21">Guardian: Janet Tan · 97654321</text>
+    <text x="42" y="513" font-size="21">Weekly lesson: Tuesday, 16:00–17:00</text>
+    <text x="42" y="553" font-size="21">Hourly rate: SGD 45.00</text>
+
+    <rect x="20" y="598" width="1144" height="330" rx="5" fill="#fff" stroke="#ccd3dc"/>
+    <text x="42" y="641" font-size="28" font-weight="700">2. Mei Lin</text>
+    <rect x="972" y="616" width="165" height="35" rx="17" fill="#e8f0e6"/>
+    <text x="1054" y="640" font-size="17" text-anchor="middle" fill="#355d32">secondary</text>
+    <text x="42" y="681" font-size="22">Subject: English</text>
+    <text x="584" y="681" font-size="22">Schooling level: Secondary 2</text>
+    <text x="42" y="721" font-size="21">Phone: 92345678</text>
+    <text x="584" y="721" font-size="21">Email: mei@example.com</text>
+    <text x="42" y="761" font-size="21">Address: 45 Jurong East Street 21</text>
+    <line x1="42" y1="782" x2="1138" y2="782" stroke="#e0e5eb"/>
+    <text x="42" y="817" font-size="21">Guardian: Joanne Lim · 98765432</text>
+    <text x="42" y="857" font-size="21">Weekly lesson: Thursday, 18:00–19:30</text>
+    <text x="42" y="897" font-size="21">Hourly rate: SGD 50.00</text>
+    <rect x="1177" y="254" width="8" height="674" rx="4" fill="#e1e5ea"/>
+    <rect x="1177" y="254" width="8" height="210" rx="4" fill="#aeb9c7"/>
+    <text x="22" y="963" font-size="17" fill="#5e6978">2 students</text>
+    <text x="1178" y="963" text-anchor="end" font-size="17" fill="#5e6978">data/addressbook.json</text>
+  </g>
+</svg>

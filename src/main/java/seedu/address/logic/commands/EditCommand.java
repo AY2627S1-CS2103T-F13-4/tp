@@ -7,11 +7,13 @@ import static seedu.address.logic.parser.CliSyntax.PREFIX_LESSON_SLOT;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_LEVEL;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_NAME;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_SUBJECT;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_TAG;
 import static seedu.address.model.Model.PREDICATE_SHOW_ALL_PERSONS;
 
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -29,6 +31,7 @@ import seedu.address.model.person.Name;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.Phone;
 import seedu.address.model.person.SchoolingLevel;
+import seedu.address.model.person.Subject;
 import seedu.address.model.person.WeeklyLessonSlot;
 import seedu.address.model.tag.Tag;
 
@@ -41,15 +44,17 @@ public class EditCommand extends Command {
 
     public static final String MESSAGE_USAGE = COMMAND_WORD + ": Edits the details of the person identified "
             + "by the index number used in the displayed person list. "
-            + "Existing values will be overwritten by the input values.\n"
+            + "Existing values will be overwritten by the input values. "
+            + "Repeat s/ for multiple subjects; use empty s/ to clear all subjects.\n"
             + "Parameters: INDEX (must be a positive integer) "
             + "[" + PREFIX_NAME + "NAME] "
             + "[" + PREFIX_PHONE + "PHONE] "
             + "[" + PREFIX_EMAIL + "EMAIL] "
             + "[" + PREFIX_ADDRESS + "ADDRESS] "
+            + "[" + PREFIX_TAG + "TAG]... "
+            + "[" + PREFIX_SUBJECT + "SUBJECT]... "
             + "[" + PREFIX_LEVEL + "SCHOOLING_LEVEL] "
-            + "[" + PREFIX_LESSON_SLOT + "LESSON_SLOT] "
-            + "[" + PREFIX_TAG + "TAG]...\n"
+            + "[" + PREFIX_LESSON_SLOT + "LESSON_SLOT]\n"
             + "Use an empty " + PREFIX_LEVEL + " to clear the schooling level.\n"
             + "Use an empty " + PREFIX_LESSON_SLOT + " to clear the lesson slot.\n"
             + "Example: " + COMMAND_WORD + " 1 "
@@ -108,14 +113,14 @@ public class EditCommand extends Command {
         Email updatedEmail = editPersonDescriptor.getEmail().orElse(personToEdit.getEmail());
         Address updatedAddress = editPersonDescriptor.getAddress().orElse(personToEdit.getAddress());
         Set<Tag> updatedTags = editPersonDescriptor.getTags().orElse(personToEdit.getTags());
-
+        Set<Subject> updatedSubjects = editPersonDescriptor.getSubjects().orElse(personToEdit.getSubjects());
         Optional<SchoolingLevel> updatedSchoolingLevel = editPersonDescriptor.getSchoolingLevel()
                 .orElse(personToEdit.getSchoolingLevel());
         Optional<WeeklyLessonSlot> updatedWeeklyLessonSlot = editPersonDescriptor.getWeeklyLessonSlot()
                 .orElse(personToEdit.getWeeklyLessonSlot());
 
-        return new Person(updatedName, updatedPhone, updatedEmail, updatedAddress, updatedTags,
-                personToEdit.getSubject(), updatedSchoolingLevel, personToEdit.getGuardianContact(),
+        return new Person(updatedName, updatedPhone, updatedEmail, updatedAddress, updatedTags,                
+                updatedSubjects, updatedSchoolingLevel, personToEdit.getGuardianContact(),
                 updatedWeeklyLessonSlot, personToEdit.getHourlyRate());
     }
 
@@ -152,7 +157,7 @@ public class EditCommand extends Command {
         private Email email;
         private Address address;
         private Set<Tag> tags;
-        // null means "not edited"; Optional.empty() means "clear the schooling level"
+        private Set<Subject> subjects = Set.of();
         private Optional<SchoolingLevel> schoolingLevel;
         private Optional<WeeklyLessonSlot> weeklyLessonSlot;
 
@@ -168,6 +173,7 @@ public class EditCommand extends Command {
             setEmail(toCopy.email);
             setAddress(toCopy.address);
             setTags(toCopy.tags);
+            setSubjects(toCopy.subjects);
             setSchoolingLevel(toCopy.schoolingLevel);
             setWeeklyLessonSlot(toCopy.weeklyLessonSlot);
         }
@@ -176,7 +182,7 @@ public class EditCommand extends Command {
          * Returns true if at least one field is edited.
          */
         public boolean isAnyFieldEdited() {
-            return CollectionUtil.isAnyNonNull(name, phone, email, address, tags, schoolingLevel, weeklyLessonSlot);
+            return CollectionUtil.isAnyNonNull(name, phone, email, address, tags, subjects, schoolingLevel, weeklyLessonSlot);
         }
 
         public void setName(Name name) {
@@ -227,6 +233,16 @@ public class EditCommand extends Command {
         public Optional<Set<Tag>> getTags() {
             return (tags != null) ? Optional.of(Collections.unmodifiableSet(tags)) : Optional.empty();
         }
+      
+      
+        /** Replaces subjects with a defensive copy; an empty set clears them all. */
+        public void setSubjects(Set<Subject> subjects) {
+            this.subjects = (subjects != null) ? new HashSet<>(subjects) : null;
+        }
+
+        public Optional<Set<Subject>> getSubjects() {
+            return (tags != null) ? Optional.of(Collections.unmodifiableSet(subjects)) : Optional.empty();
+        }
 
         /**
          * Sets the schooling level edit. {@code Optional.empty()} clears the level; null leaves it unchanged.
@@ -274,6 +290,7 @@ public class EditCommand extends Command {
                     && Objects.equals(email, otherEditPersonDescriptor.email)
                     && Objects.equals(address, otherEditPersonDescriptor.address)
                     && Objects.equals(tags, otherEditPersonDescriptor.tags)
+                    && Objects.equals(subjects, otherEditPersonDescriptor.subjects)
                     && Objects.equals(schoolingLevel, otherEditPersonDescriptor.schoolingLevel)
                     && Objects.equals(weeklyLessonSlot, otherEditPersonDescriptor.weeklyLessonSlot);
         }
@@ -286,6 +303,7 @@ public class EditCommand extends Command {
                     .add("email", email)
                     .add("address", address)
                     .add("tags", tags)
+                    .add("subjects", subjectsEdited ? subjects : null)
                     .add("schoolingLevel", schoolingLevel)
                     .add("weeklyLessonSlot", weeklyLessonSlot)
                     .toString();

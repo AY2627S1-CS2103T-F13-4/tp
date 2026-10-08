@@ -4,6 +4,7 @@ import static java.util.Objects.requireNonNull;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 import seedu.address.commons.core.index.Index;
@@ -14,6 +15,7 @@ import seedu.address.model.person.Email;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Phone;
 import seedu.address.model.person.SchoolingLevel;
+import seedu.address.model.person.Subject;
 import seedu.address.model.person.WeeklyLessonSlot;
 import seedu.address.model.tag.Tag;
 
@@ -50,6 +52,25 @@ public class ParserUtil {
             throw new ParseException(Name.MESSAGE_CONSTRAINTS);
         }
         return new Name(trimmedName);
+    }
+
+    /** Parses and normalizes an optional subject value when its prefix is supplied. */
+    public static Subject parseSubject(String value) throws ParseException {
+        requireNonNull(value);
+        if (!Subject.isValidSubject(value)) {
+            throw new ParseException(Subject.MESSAGE_CONSTRAINTS);
+        }
+        return new Subject(value);
+    }
+
+    /** Parses subject labels in input order, keeping the first spelling of repeated labels. */
+    public static Set<Subject> parseSubjects(Collection<String> values) throws ParseException {
+        requireNonNull(values);
+        Set<Subject> subjects = new LinkedHashSet<>();
+        for (String value : values) {
+            subjects.add(parseSubject(value));
+        }
+        return subjects;
     }
 
     /**

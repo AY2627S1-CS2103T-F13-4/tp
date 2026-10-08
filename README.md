@@ -3,21 +3,22 @@
 [![CI Status](https://github.com/AY2627S1-CS2103T-F13-4/tp/actions/workflows/gradle.yml/badge.svg)](https://github.com/AY2627S1-CS2103T-F13-4/tp/actions/workflows/gradle.yml)
 [![codecov](https://codecov.io/gh/AY2627S1-CS2103T-F13-4/tp/graph/badge.svg?token=8GQY2T0JDI)](https://codecov.io/gh/AY2627S1-CS2103T-F13-4/tp)
 
-StudentBook is a desktop contact book being developed for independent private tutors who prefer typing. It retains student names, phone numbers, email addresses, addresses and tags, and adds tuition details in a local, single-user application.
+StudentBook helps private tutors keep student contacts and tuition details in one place. It runs on your computer and uses typed commands.
 
-![StudentBook interface](docs/images/Ui.png)
+This development branch supports student contacts, subjects and schooling levels. You can add, view, edit and clear a subject or level, and find students by level. The app saves changes automatically. Commands for the other tuition fields are planned.
 
-StudentBook is currently in development. The current application provides the inherited AddressBook features; the StudentBook commands and guardian fields below are planned requirements.
+The MVP will let tutors:
 
-The proposed first version will let tutors:
+* Add, list, edit and delete student records.
+* Record each student's subjects, schooling level, guardian contact, weekly lesson slot and hourly rate.
+* Save records locally and reopen them later.
 
-* Keep existing contact fields and add optional subject and schooling level details.
-* Optionally attach one guardian name and phone number after creating a student.
-* Delete a student together with that student's guardian contact.
-* Save records locally and reload them on the next launch.
+All five tuition features are part of the MVP. Payment processing and sending messages are out of scope. Other brainstormed ideas are backlog candidates, not promised additions.
 
-Weekly lesson slots and hourly rates are selected extension workstreams outside the core MVP. Shared group classes, academic progress, fee calculation, payment processing and messaging are deferred. See the [shared student model and scope](docs/StudentModel.md) for field types and integration rules.
+![Planned StudentBook interface](docs/images/Ui.png)
 
-See the [product website](https://ay2627s1-cs2103t-f13-4.github.io/tp/), [User Guide](docs/UserGuide.md) and [Developer Guide](docs/DeveloperGuide.md). The User Guide currently describes the inherited application.
+This mock-up shows the planned MVP. The User Guide describes the commands available now. See the [Developer Guide](docs/DeveloperGuide.md#product-scope) for feature owners and decisions still to confirm.
+
+Start with the [User Guide](docs/UserGuide.md) to use the app or the [Developer Guide](docs/DeveloperGuide.md) to contribute. The [project website](https://ay2627s1-cs2103t-f13-4.github.io/tp/) publishes the merged documentation.
 
 This project is based on the AddressBook-Level3 project created by the [SE-EDU initiative](https://se-education.org). It uses Java and JavaFX, with Gradle for building and testing.
