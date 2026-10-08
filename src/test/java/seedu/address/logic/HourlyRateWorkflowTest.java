@@ -58,8 +58,8 @@ public class HourlyRateWorkflowTest {
     public void invalidRate_doesNotChangeMemoryOrFile() throws Exception {
         logic.execute(ADD + " r/45");
         AddressBook before = new AddressBook(model.getAddressBook());
-        for (String command : new String[]{"edit 1 r/-1", "edit 1 r/45.001", "edit 1 r/1e2",
-                "edit 1 r/50 r/60", "edit 1 r/$50"}) {
+        for (String command : new String[]{"edit 1 r/-1", "edit 1 r/45.001",
+            "edit 1 r/1e2", "edit 1 r/50 r/60", "edit 1 r/$50"}) {
             assertThrows(ParseException.class, () -> logic.execute(command));
             assertEquals(before, model.getAddressBook());
             assertEquals(before, storage.readAddressBook().orElseThrow());
