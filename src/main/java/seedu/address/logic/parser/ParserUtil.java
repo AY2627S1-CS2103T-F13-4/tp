@@ -13,6 +13,7 @@ import seedu.address.model.person.Address;
 import seedu.address.model.person.Email;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Phone;
+import seedu.address.model.person.SchoolingLevel;
 import seedu.address.model.tag.Tag;
 
 /**
@@ -48,6 +49,21 @@ public class ParserUtil {
             throw new ParseException(Name.MESSAGE_CONSTRAINTS);
         }
         return new Name(trimmedName);
+    }
+
+    /**
+     * Parses a {@code String level} into a {@code SchoolingLevel}.
+     * Leading and trailing whitespaces will be trimmed.
+     *
+     * @throws ParseException if the given {@code level} is invalid.
+     */
+    public static SchoolingLevel parseSchoolingLevel(String level) throws ParseException {
+        requireNonNull(level);
+        String trimmedLevel = level.trim();
+        if (!SchoolingLevel.isValidSchoolingLevel(trimmedLevel)) {
+            throw new ParseException(SchoolingLevel.MESSAGE_CONSTRAINTS);
+        }
+        return new SchoolingLevel(trimmedLevel);
     }
 
     /**
