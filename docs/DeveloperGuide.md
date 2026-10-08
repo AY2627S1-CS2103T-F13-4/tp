@@ -13,7 +13,6 @@ Start with [setup](SettingUp.md), then the [shared tuition model](#shared-tuitio
 ## Acknowledgements
 
 * Based on [AddressBook Level 3](https://github.com/se-edu/addressbook-level3) from the [SE-EDU initiative](https://se-education.org).
-* Pranav Pappu used [OpenAI Codex](https://openai.com/codex/) to review and edit the repository docs, Google Doc and story Sheet. Codex also implemented the shared tuition model, JSON support, field preservation, subject commands/display and regression tests. Separate reviewers checked the changes.
 
 ## Getting started
 
