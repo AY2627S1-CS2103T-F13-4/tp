@@ -119,7 +119,7 @@ public class EditCommand extends Command {
         Optional<WeeklyLessonSlot> updatedWeeklyLessonSlot = editPersonDescriptor.getWeeklyLessonSlot()
                 .orElse(personToEdit.getWeeklyLessonSlot());
 
-        return new Person(updatedName, updatedPhone, updatedEmail, updatedAddress, updatedTags,           
+        return new Person(updatedName, updatedPhone, updatedEmail, updatedAddress, updatedTags,
                 updatedSubjects, updatedSchoolingLevel, personToEdit.getGuardianContact(),
                 updatedWeeklyLessonSlot, personToEdit.getHourlyRate());
     }
