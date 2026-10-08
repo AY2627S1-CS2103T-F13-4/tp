@@ -34,6 +34,7 @@
       <Label fx:id="subject" styleClass="cell_small_label" text="\$subject" wrapText="true" />
       <Label fx:id="schoolingLevel" styleClass="cell_small_label" text="\$schoolingLevel" />
       <Label fx:id="weeklyLessonSlot" styleClass="cell_small_label" text="\$weeklyLessonSlot" />
+      <Label fx:id="hourlyRate" styleClass="cell_small_label" text="\$hourlyRate" />
     </VBox>
   </GridPane>
 </HBox>

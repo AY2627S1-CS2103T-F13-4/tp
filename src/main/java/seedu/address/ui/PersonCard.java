@@ -46,6 +46,8 @@ public class PersonCard extends UiPart<Region> {
     @FXML
     private Label weeklyLessonSlot;
     @FXML
+    private Label hourlyRate;
+    @FXML
     private FlowPane tags;
 
     /**
@@ -72,6 +74,12 @@ public class PersonCard extends UiPart<Region> {
         } else {
             weeklyLessonSlot.setVisible(false);
             weeklyLessonSlot.setManaged(false);
+        }
+        if (person.getHourlyRate().isPresent()) {
+            hourlyRate.setText("Rate: SGD " + person.getHourlyRate().get() + "/hour");
+        } else {
+            hourlyRate.setVisible(false);
+            hourlyRate.setManaged(false);
         }
         person.getTags().stream()
                 .sorted(Comparator.comparing(tag -> tag.tagName))

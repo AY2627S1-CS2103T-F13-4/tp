@@ -8,6 +8,7 @@ import static seedu.address.logic.parser.CliSyntax.PREFIX_LESSON_SLOT;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_LEVEL;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_NAME;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_RATE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_SUBJECT;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_TAG;
 
@@ -36,7 +37,7 @@ public class EditCommandParser implements Parser<EditCommand> {
         requireNonNull(args);
         ArgumentMultimap argMultimap =
                 ArgumentTokenizer.tokenize(args, PREFIX_NAME, PREFIX_PHONE, PREFIX_EMAIL, PREFIX_ADDRESS,
-                        PREFIX_TAG, PREFIX_SUBJECT, PREFIX_LEVEL, PREFIX_LESSON_SLOT);
+                        PREFIX_TAG, PREFIX_SUBJECT, PREFIX_LEVEL, PREFIX_LESSON_SLOT, PREFIX_RATE);
 
         Index index;
 
@@ -47,7 +48,7 @@ public class EditCommandParser implements Parser<EditCommand> {
         }
 
         argMultimap.verifyNoDuplicatePrefixesFor(PREFIX_NAME, PREFIX_PHONE, PREFIX_EMAIL, PREFIX_ADDRESS,
-                PREFIX_LEVEL, PREFIX_LESSON_SLOT);
+                PREFIX_LEVEL, PREFIX_LESSON_SLOT, PREFIX_RATE);
 
         EditPersonDescriptor editPersonDescriptor = new EditPersonDescriptor();
 
@@ -79,6 +80,12 @@ public class EditCommandParser implements Parser<EditCommand> {
             editPersonDescriptor.setWeeklyLessonSlot(weeklyLessonSlot.isBlank()
                     ? Optional.empty()
                     : Optional.of(ParserUtil.parseWeeklyLessonSlot(weeklyLessonSlot)));
+        }
+        if (argMultimap.getValue(PREFIX_RATE).isPresent()) {
+            String rate = argMultimap.getValue(PREFIX_RATE).get();
+            editPersonDescriptor.setHourlyRate(rate.isBlank()
+                    ? Optional.empty()
+                    : Optional.of(ParserUtil.parseHourlyRate(rate)));
         }
         parseTagsForEdit(argMultimap.getAllValues(PREFIX_TAG)).ifPresent(editPersonDescriptor::setTags);
 

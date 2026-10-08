@@ -5,7 +5,7 @@ title: User Guide
 
 StudentBook is a desktop contact book for private tutors. Type commands to manage student records.
 
-This development version supports contact details, subject and schooling level. Guardian, lesson-slot and hourly-rate commands are planned MVP work. See the [Developer Guide](DeveloperGuide.md#product-scope) for the plan and open decisions.
+This development version supports contact details, subjects, schooling levels, weekly lesson slots and hourly rates. Guardian commands are planned MVP work. See the [Developer Guide](DeveloperGuide.md#product-scope) for the plan and open decisions.
 
 * Table of Contents
 {:toc}
@@ -54,9 +54,9 @@ This development version supports contact details, subject and schooling level. 
 
 ### Add a student: `add`
 
-Format: `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]... [s/SUBJECT]... [l/SCHOOLING_LEVEL]`
+Format: `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]... [s/SUBJECT]... [l/SCHOOLING_LEVEL] [i/LESSON_SLOT] [r/HOURLY_RATE]`
 
-Name, phone, email and address are required. Tags, subjects and schooling level are optional in this build. Repeat `s/` for multiple subjects. Only one level is supported.
+Name, phone, email and address are required. Tags, subjects, schooling level, one weekly lesson slot and hourly rate are optional in this build. Repeat `s/` for multiple subjects. Only one level, slot and rate are supported.
 
 The agreed next change is to require a schooling level. Min Wenn owns that change; it is not enforced in this build.
 
@@ -99,6 +99,12 @@ The card shows `Level: Primary 5` when a level is recorded. If none is recorded,
 
 Levels use the same character and spacing rules as subjects, with a limit of 30 characters. An empty `l/` clears the level with `edit`, but is invalid with `add`. Repeating `l/` in one command is invalid. Invalid input leaves the record unchanged.
 
+### Record or clear an hourly rate
+
+Use `r/AMOUNT` when adding or editing a student, for example `add n/Alex Tan p/91234567 e/alex@example.com a/Clementi r/45.50` or `edit 1 r/50`. The amount is in SGD per hour. It must be non-negative and have at most two decimal places; `45`, `45.5` and `45.50` are valid. Currency symbols, negative amounts and scientific notation are invalid.
+
+Use `edit 1 r/` to remove the recorded rate. Leaving out `r/` in an edit keeps the existing rate. A blank `r/` in `add` and repeated `r/` values in either command are invalid. The student card shows a recorded rate as `Rate: SGD 45.50/hour`.
+
 ### List all students: `list`
 
 Format: `list`
@@ -107,7 +113,7 @@ Shows every student and clears any active search filter.
 
 ### Edit a student: `edit`
 
-Format: `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]... [s/SUBJECT]... [l/SCHOOLING_LEVEL] [i/LESSON_SLOT]`
+Format: `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]... [s/SUBJECT]... [l/SCHOOLING_LEVEL] [i/LESSON_SLOT] [r/HOURLY_RATE]`
 
 Include at least one field to change. Fields you leave out stay unchanged.
 
@@ -115,6 +121,7 @@ Include at least one field to change. Fields you leave out stay unchanged.
 * Subjects replace the entire existing list. An empty `s/` clears all subjects.
 * An empty `l/` clears the schooling level.
 * An empty `i/` clears the lesson slot.
+* An empty `r/` clears the hourly rate.
 
 Examples:
 
@@ -168,7 +175,7 @@ Closes the app.
 
 ## Saving and transferring records
 
-The app saves automatically after each successfully executed command. Subjects and schooling levels are saved with the contact details. Older files with one `subject`, or no subjects, still load. New saves store a `subjects` array.
+The app saves automatically after each successfully executed command. Subjects, schooling levels, weekly lesson slots and hourly rates are saved with the contact details. Older files with one `subject`, or no subjects, still load. New saves store a `subjects` array.
 
 If saving fails, the app reports an error. The change may still appear on screen without being saved to disk.
 
@@ -191,10 +198,11 @@ If the file is invalid, the app starts with an empty list. The invalid file rema
 
 | Task | Format |
 |---|---|
-| Add | `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]... [s/SUBJECT]... [l/SCHOOLING_LEVEL] [i/LESSON_SLOT]` |
-| Edit | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]... [s/SUBJECT]... [l/SCHOOLING_LEVEL] [i/LESSON_SLOT]` |
+| Add | `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]... [s/SUBJECT]... [l/SCHOOLING_LEVEL] [i/LESSON_SLOT] [r/HOURLY_RATE]` |
+| Edit | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]... [s/SUBJECT]... [l/SCHOOLING_LEVEL] [i/LESSON_SLOT] [r/HOURLY_RATE]` |
 | Clear subjects | `edit INDEX s/` |
 | Clear schooling level | `edit INDEX l/` |
+| Clear hourly rate | `edit INDEX r/` |
 | Find | `find KEYWORD [MORE_KEYWORDS]` or `find l/TEXT` |
 | List | `list` |
 | Delete | `delete INDEX` |

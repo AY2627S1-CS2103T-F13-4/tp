@@ -2,6 +2,7 @@ package seedu.address.logic.parser;
 
 import static java.util.Objects.requireNonNull;
 
+import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -12,6 +13,7 @@ import seedu.address.commons.util.StringUtil;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.person.Address;
 import seedu.address.model.person.Email;
+import seedu.address.model.person.HourlyRate;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Phone;
 import seedu.address.model.person.SchoolingLevel;
@@ -175,5 +177,15 @@ public class ParserUtil {
         }
 
         return new WeeklyLessonSlot(trimmedWeeklyLessonSlot);
+    }
+
+    /** Parses an SGD hourly rate with up to two decimal places. */
+    public static HourlyRate parseHourlyRate(String rate) throws ParseException {
+        requireNonNull(rate);
+        String trimmedRate = rate.trim();
+        if (!trimmedRate.matches("[0-9]+(\\.[0-9]{1,2})?")) {
+            throw new ParseException(HourlyRate.MESSAGE_CONSTRAINTS);
+        }
+        return new HourlyRate(new BigDecimal(trimmedRate));
     }
 }
