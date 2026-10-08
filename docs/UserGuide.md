@@ -151,7 +151,7 @@ The app saves automatically after each successfully executed command. Subjects a
 
 If saving fails, the app reports an error. The change may still appear on screen without being saved to disk.
 
-By default, records are in `data/addressbook.json` under the folder where you start the app. This path can be changed in the app's configuration.
+Records are stored in `data/addressbook.json` under the folder where you start the app.
 
 To transfer records, close the app on both computers. Copy the data file to the corresponding location on the new computer, then start the app there.
 
