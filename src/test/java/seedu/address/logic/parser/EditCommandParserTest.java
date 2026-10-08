@@ -24,6 +24,7 @@ import static seedu.address.logic.commands.CommandTestUtil.VALID_TAG_FRIEND;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_TAG_HUSBAND;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_ADDRESS;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_EMAIL;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_LEVEL;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_TAG;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseFailure;
@@ -42,6 +43,7 @@ import seedu.address.model.person.Address;
 import seedu.address.model.person.Email;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Phone;
+import seedu.address.model.person.SchoolingLevel;
 import seedu.address.model.tag.Tag;
 import seedu.address.testutil.EditPersonDescriptorBuilder;
 
@@ -204,5 +206,25 @@ public class EditCommandParserTest {
         EditCommand expectedCommand = new EditCommand(targetIndex, descriptor);
 
         assertParseSuccess(parser, userInput, expectedCommand);
+    }
+
+    @Test
+    public void parse_schoolingLevel_success() {
+        assertParseSuccess(parser, "1 l/ Secondary  3 ", new EditCommand(INDEX_FIRST_PERSON,
+                new EditPersonDescriptorBuilder().withSchoolingLevel("Secondary 3").build()));
+    }
+
+    @Test
+    public void parse_emptySchoolingLevel_clearsLevel() {
+        EditPersonDescriptor clear = new EditPersonDescriptorBuilder().withSchoolingLevel(null).build();
+        assertParseSuccess(parser, "1 l/", new EditCommand(INDEX_FIRST_PERSON, clear));
+        assertParseSuccess(parser, "1 l/   ", new EditCommand(INDEX_FIRST_PERSON, clear));
+    }
+
+    @Test
+    public void parse_invalidOrDuplicateSchoolingLevel_failure() {
+        assertParseFailure(parser, "1 l/***", SchoolingLevel.MESSAGE_CONSTRAINTS);
+        assertParseFailure(parser, "1 l/P5 l/P6", Messages
+                .getErrorMessageForDuplicatePrefixes(PREFIX_LEVEL));
     }
 }
