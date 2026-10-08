@@ -54,35 +54,38 @@ This development version supports contact details, subject and schooling level. 
 
 ### Add a student: `add`
 
-Format: `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]... [s/SUBJECT] [l/SCHOOLING_LEVEL]`
+Format: `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]... [s/SUBJECT]... [l/SCHOOLING_LEVEL]`
 
-Name, phone, email and address are required. Tags, subject and schooling level are optional. You can add any number of tags, but only one subject and one level.
+Name, phone, email and address are required. Tags, subjects and schooling level are optional in this build. Repeat `s/` for multiple subjects. Only one level is supported.
+
+The agreed next change is to require a schooling level. Min Wenn owns that change; it is not enforced in this build.
 
 ```text
-add n/Alex Tan p/91234567 e/alex@example.com a/123 Clementi Road t/weekday s/Math l/Primary 5
+add n/Alex Tan p/91234567 e/alex@example.com a/123 Clementi Road t/weekday s/Math s/Science l/Primary 5
 add n/Mei Lim p/92345678 e/mei@example.com a/45 Dover Road
 ```
 
 Records with exactly the same name are duplicates. Name matching is case-sensitive: `Alex Tan` and `alex tan` are treated as different names. Subject and schooling level do not change this rule.
 
-### Record or clear a subject
+### Record or clear subjects
 
 | Task | Command |
 |---|---|
-| Set or replace a subject | `edit 1 s/Math` |
-| Clear a subject | `edit 1 s/` |
-| Include a subject when adding a student | Add `s/Math` to the `add` command |
+| Replace all subjects | `edit 1 s/Math s/Science` |
+| Keep only Math | `edit 1 s/Math` |
+| Clear all subjects | `edit 1 s/` |
+| Include subjects when adding a student | Add `s/Math s/Science` to the `add` command |
 
-A missing subject appears as `Subject: Not recorded`. Leave out `s/` to keep the existing subject when editing. Changing a subject keeps every other field unchanged.
+No subjects appears as `Subjects: Not recorded`. Leave out `s/` to keep the existing subjects when editing. Supplying subjects replaces the entire list and keeps every other field unchanged.
 
 Subject rules:
 
-* Use 1 to 40 characters after the space cleanup below. Start with a letter or digit and include at least one letter.
+* Use 1 to 40 characters per subject after the space cleanup below. Start with a letter or digit and include at least one letter.
 * Use English letters `A-Z` or `a-z`, digits `0-9`, spaces and these symbols: `'`, `-`, `.`, `(`, `)`.
 * Leading and trailing spaces or tabs are removed. Repeated spaces or tabs become one space. For example, three spaces between `Combined` and `Science` become one.
-* Uppercase and lowercase letters stay as entered.
+* Repeated labels are kept once, ignoring case. The first spelling stays as entered; `s/Math s/math` records `Math` once.
 * An empty `s/` is valid for clearing with `edit`, but invalid with `add`.
-* Repeating `s/` in one command is invalid. Invalid input leaves the record unchanged.
+* A blank `s/` cannot be mixed with other subjects. Invalid input rejects the whole command and leaves the record unchanged.
 
 ### Record or clear a schooling level
 
@@ -104,12 +107,12 @@ Shows every student and clears any active search filter.
 
 ### Edit a student: `edit`
 
-Format: `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]... [s/SUBJECT] [l/SCHOOLING_LEVEL]`
+Format: `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]... [s/SUBJECT]... [l/SCHOOLING_LEVEL]`
 
 Include at least one field to change. Fields you leave out stay unchanged.
 
 * Tags replace the entire existing set. Use an empty `t/` to clear all tags.
-* An empty `s/` clears the subject.
+* Subjects replace the entire existing list. An empty `s/` clears all subjects.
 * An empty `l/` clears the schooling level.
 
 Examples:
@@ -164,7 +167,7 @@ Closes the app.
 
 ## Saving and transferring records
 
-The app saves automatically after each successfully executed command. Subjects and schooling levels are saved with the contact details; older files without them still load.
+The app saves automatically after each successfully executed command. Subjects and schooling levels are saved with the contact details. Older files with one `subject`, or no subjects, still load. New saves store a `subjects` array.
 
 If saving fails, the app reports an error. The change may still appear on screen without being saved to disk.
 
@@ -187,9 +190,9 @@ If the file is invalid, the app starts with an empty list. The invalid file rema
 
 | Task | Format |
 |---|---|
-| Add | `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]... [s/SUBJECT] [l/SCHOOLING_LEVEL]` |
-| Edit | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]... [s/SUBJECT] [l/SCHOOLING_LEVEL]` |
-| Clear subject | `edit INDEX s/` |
+| Add | `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]... [s/SUBJECT]... [l/SCHOOLING_LEVEL]` |
+| Edit | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]... [s/SUBJECT]... [l/SCHOOLING_LEVEL]` |
+| Clear subjects | `edit INDEX s/` |
 | Clear schooling level | `edit INDEX l/` |
 | Find | `find KEYWORD [MORE_KEYWORDS]` or `find l/TEXT` |
 | List | `list` |

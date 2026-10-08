@@ -4,6 +4,7 @@ import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -26,7 +27,7 @@ public class Person {
     private final Address address;
     private final Set<Tag> tags = new HashSet<>();
 
-    private final Optional<Subject> subject;
+    private final Set<Subject> subjects;
     private final Optional<SchoolingLevel> schoolingLevel;
     private final Optional<GuardianContact> guardianContact;
     private final Optional<WeeklyLessonSlot> weeklyLessonSlot;
@@ -36,31 +37,32 @@ public class Person {
      * Every field must be present and not null.
      */
     public Person(Name name, Phone phone, Email email, Address address, Set<Tag> tags) {
-        this(name, phone, email, address, tags, Optional.empty(), Optional.empty(), Optional.empty(),
+        this(name, phone, email, address, tags, Set.of(), Optional.empty(), Optional.empty(),
                 Optional.empty(), Optional.empty());
     }
 
     /** Creates a student with all contact fields and optional tuition details. */
     public Person(Name name, Phone phone, Email email, Address address, Set<Tag> tags,
-            Optional<Subject> subject, Optional<SchoolingLevel> schoolingLevel,
+            Set<Subject> subjects, Optional<SchoolingLevel> schoolingLevel,
             Optional<GuardianContact> guardianContact, Optional<WeeklyLessonSlot> weeklyLessonSlot,
             Optional<HourlyRate> hourlyRate) {
-        requireAllNonNull(name, phone, email, address, tags, subject, schoolingLevel,
+        requireAllNonNull(name, phone, email, address, tags, subjects, schoolingLevel,
                 guardianContact, weeklyLessonSlot, hourlyRate);
         this.name = name;
         this.phone = phone;
         this.email = email;
         this.address = address;
         this.tags.addAll(tags);
-        this.subject = subject;
+        subjects.forEach(Objects::requireNonNull);
+        this.subjects = Collections.unmodifiableSet(new LinkedHashSet<>(subjects));
         this.schoolingLevel = schoolingLevel;
         this.guardianContact = guardianContact;
         this.weeklyLessonSlot = weeklyLessonSlot;
         this.hourlyRate = hourlyRate;
     }
 
-    public Optional<Subject> getSubject() {
-        return subject;
+    public Set<Subject> getSubjects() {
+        return subjects;
     }
 
     public Optional<SchoolingLevel> getSchoolingLevel() {
@@ -136,7 +138,7 @@ public class Person {
                 && email.equals(otherPerson.email)
                 && address.equals(otherPerson.address)
                 && tags.equals(otherPerson.tags)
-                && subject.equals(otherPerson.subject)
+                && subjects.equals(otherPerson.subjects)
                 && schoolingLevel.equals(otherPerson.schoolingLevel)
                 && guardianContact.equals(otherPerson.guardianContact)
                 && weeklyLessonSlot.equals(otherPerson.weeklyLessonSlot)
@@ -146,7 +148,7 @@ public class Person {
     @Override
     public int hashCode() {
         // use this method for custom fields hashing instead of implementing your own
-        return Objects.hash(name, phone, email, address, tags, subject, schoolingLevel, guardianContact,
+        return Objects.hash(name, phone, email, address, tags, subjects, schoolingLevel, guardianContact,
                 weeklyLessonSlot, hourlyRate);
     }
 
@@ -158,7 +160,7 @@ public class Person {
                 .add("email", email)
                 .add("address", address)
                 .add("tags", tags)
-                .add("subject", subject)
+                .add("subjects", subjects)
                 .add("schoolingLevel", schoolingLevel)
                 .add("guardianContact", guardianContact)
                 .add("weeklyLessonSlot", weeklyLessonSlot)

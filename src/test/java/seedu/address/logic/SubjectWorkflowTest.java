@@ -10,8 +10,10 @@ import java.math.BigDecimal;
 import java.nio.file.Path;
 import java.time.DayOfWeek;
 import java.time.LocalTime;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -56,26 +58,26 @@ public class SubjectWorkflowTest {
     @Test
     public void addEditClearSubject_persistsEachChangeAndSupportsOmission() throws Exception {
         assertTrue(logic.execute(ADD + " s/  Combined   Science  ").getFeedbackToUser()
-                .contains("Subject: Combined Science"));
-        assertEquals(Optional.of(new Subject("Combined Science")), reloaded().getSubject());
+                .contains("Subjects: Combined Science"));
+        assertEquals(Set.of(new Subject("Combined Science")), reloaded().getSubjects());
         logic.execute("edit 1 s/Math");
-        assertEquals(Optional.of(new Subject("Math")), reloaded().getSubject());
+        assertEquals(Set.of(new Subject("Math")), reloaded().getSubjects());
         logic.execute("edit 1 s/");
-        assertTrue(reloaded().getSubject().isEmpty());
+        assertTrue(reloaded().getSubjects().isEmpty());
         logic.execute(ADD.replace("Alex Tan", "Bobby"));
-        assertTrue(model.getFilteredPersonList().get(1).getSubject().isEmpty());
+        assertTrue(model.getFilteredPersonList().get(1).getSubjects().isEmpty());
     }
 
     @Test
-    public void invalidOrRepeatedSubject_changesNeitherMemoryNorFile() throws Exception {
+    public void invalidSubject_changesNeitherMemoryNorFile() throws Exception {
         logic.execute(ADD + " s/Math");
         AddressBook before = new AddressBook(model.getAddressBook());
-        for (String command : new String[]{"edit 1 s/123", "edit 1 s/Math s/Science"}) {
+        for (String command : new String[]{"edit 1 s/123", "edit 1 s/Math s/"}) {
             assertThrows(ParseException.class, () -> logic.execute(command));
             assertEquals(before, model.getAddressBook());
             assertEquals(before, storage.readAddressBook().orElseThrow());
         }
-        for (String suffix : new String[]{" s/", " s/123", " s/Math/Science", " s/Math s/Science"}) {
+        for (String suffix : new String[]{" s/", " s/123", " s/Math/Science", " s/Math s/"}) {
             assertThrows(ParseException.class, () -> logic.execute(ADD.replace("Alex Tan", "Bobby") + suffix));
             assertEquals(before, model.getAddressBook());
             assertEquals(before, storage.readAddressBook().orElseThrow());
@@ -85,24 +87,24 @@ public class SubjectWorkflowTest {
     @Test
     public void subjectAndLevel_canBeSetTogetherAndClearedIndependently() throws Exception {
         String feedback = logic.execute(ADD + " s/Math l/Primary 5").getFeedbackToUser();
-        assertTrue(feedback.contains("Subject: Math"));
+        assertTrue(feedback.contains("Subjects: Math"));
         assertTrue(feedback.contains("Level: Primary 5"));
-        assertEquals(Optional.of(new Subject("Math")), reloaded().getSubject());
+        assertEquals(Set.of(new Subject("Math")), reloaded().getSubjects());
         assertEquals(Optional.of(new SchoolingLevel("Primary 5")), reloaded().getSchoolingLevel());
 
         logic.execute("edit 1 l/Primary 6 s/Science");
-        assertEquals(Optional.of(new Subject("Science")), reloaded().getSubject());
+        assertEquals(Set.of(new Subject("Science")), reloaded().getSubjects());
         assertEquals(Optional.of(new SchoolingLevel("Primary 6")), reloaded().getSchoolingLevel());
         logic.execute("edit 1 s/");
-        assertTrue(reloaded().getSubject().isEmpty());
+        assertTrue(reloaded().getSubjects().isEmpty());
         assertEquals(Optional.of(new SchoolingLevel("Primary 6")), reloaded().getSchoolingLevel());
         logic.execute("edit 1 s/Math l/");
-        assertEquals(Optional.of(new Subject("Math")), reloaded().getSubject());
+        assertEquals(Set.of(new Subject("Math")), reloaded().getSubjects());
         assertTrue(reloaded().getSchoolingLevel().isEmpty());
         logic.execute("edit 1 l/Secondary 1");
-        assertEquals(Optional.of(new Subject("Math")), reloaded().getSubject());
+        assertEquals(Set.of(new Subject("Math")), reloaded().getSubjects());
         logic.execute("edit 1 s/ l/");
-        assertTrue(reloaded().getSubject().isEmpty());
+        assertTrue(reloaded().getSubjects().isEmpty());
         assertTrue(reloaded().getSchoolingLevel().isEmpty());
     }
 
@@ -111,7 +113,7 @@ public class SubjectWorkflowTest {
         logic.execute(ADD + " s/Math l/Primary 5");
         AddressBook before = new AddressBook(model.getAddressBook());
         for (String command : new String[]{"edit 1 s/Science l/***", "edit 1 s/123 l/Primary 6",
-            "edit 1 s/Science l/P5 l/P6", "edit 1 s/Math s/Science l/P6",
+            "edit 1 s/Science l/P5 l/P6", "edit 1 s/Math s/ l/P6",
             ADD.replace("Alex Tan", "Bobby") + " s/Math l/",
             ADD.replace("Alex Tan", "Bobby") + " s/ l/Primary 5"}) {
             assertThrows(ParseException.class, () -> logic.execute(command));
@@ -124,7 +126,7 @@ public class SubjectWorkflowTest {
     public void editAfterLevelSearch_preservesOtherStudentsAndTuitionFields() throws Exception {
         Person first = new PersonBuilder().withName("Amy Bee").build();
         Person student = new PersonBuilder().withName("Bobby")
-                .withSubject(new Subject("Math"))
+                .withSubjects(new Subject("Math"), new Subject("English"))
                 .withSchoolingLevel(new SchoolingLevel("Primary 5"))
                 .withGuardianContact(new GuardianContact(new Name("Janet"), new Phone("91234567")))
                 .withWeeklyLessonSlot(new WeeklyLessonSlot(DayOfWeek.MONDAY, LocalTime.of(10, 0), LocalTime.of(11, 0)))
@@ -133,8 +135,8 @@ public class SubjectWorkflowTest {
         model.addPerson(student);
         logic.execute("find l/pRiM");
         assertEquals(List.of(student), model.getFilteredPersonList());
-        logic.execute("edit 1 s/Science l/Primary 6");
-        Person expected = new PersonBuilder(student).withSubject(new Subject("Science"))
+        logic.execute("edit 1 s/Science s/English l/Primary 6");
+        Person expected = new PersonBuilder(student).withSubjects(new Subject("Science"), new Subject("English"))
                 .withSchoolingLevel(new SchoolingLevel("Primary 6")).build();
         assertEquals(first, reloadedAt(0));
         assertEquals(expected, reloadedAt(1));
@@ -156,7 +158,7 @@ public class SubjectWorkflowTest {
         assertEquals(first, model.getAddressBook().getPersonList().get(0));
         assertEquals(expected, storage.readAddressBook().orElseThrow().getPersonList().get(1));
         logic.execute("edit 2 p/88888888");
-        assertEquals(Optional.of(new Subject("Math")), reloadedAt(1).getSubject());
+        assertEquals(Set.of(new Subject("Math")), reloadedAt(1).getSubjects());
         logic.execute("edit 2 s/");
         assertEquals(new PersonBuilder(student).withPhone("88888888").build(), reloadedAt(1));
     }
@@ -166,22 +168,70 @@ public class SubjectWorkflowTest {
         logic.execute(ADD + " s/Math");
         assertThrows(CommandException.class, () -> logic.execute(ADD + " s/English"));
         assertThrows(CommandException.class, () -> logic.execute("edit 2 s/English"));
-        assertEquals(Optional.of(new Subject("Math")), reloaded().getSubject());
+        assertEquals(Set.of(new Subject("Math")), reloaded().getSubjects());
     }
 
     @Test
     public void descriptorCopy_distinguishesOmittedSetAndCleared() {
         EditPersonDescriptor omitted = new EditPersonDescriptor();
         EditPersonDescriptor clear = new EditPersonDescriptor();
-        clear.setSubject(Optional.empty());
+        clear.setSubjects(Set.of());
         EditPersonDescriptor set = new EditPersonDescriptor();
-        set.setSubject(Optional.of(new Subject("Math")));
+        set.setSubjects(Set.of(new Subject("Math")));
         assertFalse(omitted.isAnyFieldEdited());
         assertTrue(clear.isAnyFieldEdited());
         assertNotEquals(omitted, clear);
         assertNotEquals(clear, set);
         assertEquals(clear, new EditPersonDescriptor(clear));
         assertEquals(set, new EditPersonDescriptor(set));
+    }
+
+    @Test
+    public void multipleSubjects_replaceRemovePreserveAndClear() throws Exception {
+        String feedback = logic.execute(ADD + " s/Math s/ Combined   Science s/math").getFeedbackToUser();
+        assertTrue(feedback.contains("Subjects: Math, Combined Science"));
+        assertEquals(List.of(new Subject("Math"), new Subject("Combined Science")),
+                List.copyOf(reloaded().getSubjects()));
+        logic.execute("edit 1 p/88888888");
+        assertEquals(2, reloaded().getSubjects().size());
+        logic.execute("edit 1 s/English s/Physics");
+        assertEquals(Set.of(new Subject("English"), new Subject("Physics")), reloaded().getSubjects());
+        logic.execute("edit 1 s/Physics");
+        assertEquals(Set.of(new Subject("Physics")), reloaded().getSubjects());
+        logic.execute("edit 1 s/");
+        assertTrue(reloaded().getSubjects().isEmpty());
+        assertEquals(new Phone("88888888"), reloaded().getPhone());
+    }
+
+    @Test
+    public void blankOrInvalidSubjectAmongValidValues_rejectsWholeCommand() throws Exception {
+        logic.execute(ADD + " s/Math s/English");
+        AddressBook before = new AddressBook(model.getAddressBook());
+        for (String fields : new String[]{" s/ s/Math", " s/Math s/   ", " s/ s/", " s/Math s/123"}) {
+            assertThrows(ParseException.class, () -> logic.execute("edit 1" + fields));
+            assertThrows(ParseException.class, () -> logic.execute(ADD.replace("Alex Tan", "Bobby") + fields));
+            assertEquals(before, model.getAddressBook());
+            assertEquals(before, storage.readAddressBook().orElseThrow());
+        }
+    }
+
+    @Test
+    public void subjects_areDefensivelyCopiedAndCannotBeMutatedThroughGetters() {
+        Set<Subject> input = new LinkedHashSet<>(List.of(new Subject("Math"), new Subject("English")));
+        Person base = new PersonBuilder().build();
+        Person person = new Person(base.getName(), base.getPhone(), base.getEmail(), base.getAddress(),
+                base.getTags(), input, base.getSchoolingLevel(), base.getGuardianContact(),
+                base.getWeeklyLessonSlot(), base.getHourlyRate());
+        EditPersonDescriptor descriptor = new EditPersonDescriptor();
+        descriptor.setSubjects(input);
+        EditPersonDescriptor copy = new EditPersonDescriptor(descriptor);
+        input.clear();
+        assertEquals(2, person.getSubjects().size());
+        assertEquals(person.getSubjects(), copy.getSubjects());
+        assertThrows(UnsupportedOperationException.class, () -> person.getSubjects().clear());
+        assertThrows(UnsupportedOperationException.class, () -> descriptor.getSubjects().clear());
+        descriptor.setSubjects(Set.of());
+        assertEquals(2, copy.getSubjects().size());
     }
 
     private Person reloaded() throws Exception {

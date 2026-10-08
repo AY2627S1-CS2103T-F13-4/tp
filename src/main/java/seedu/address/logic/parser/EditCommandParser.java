@@ -46,7 +46,7 @@ public class EditCommandParser implements Parser<EditCommand> {
         }
 
         argMultimap.verifyNoDuplicatePrefixesFor(PREFIX_NAME, PREFIX_PHONE, PREFIX_EMAIL, PREFIX_ADDRESS,
-                PREFIX_SUBJECT, PREFIX_LEVEL);
+                PREFIX_LEVEL);
 
         EditPersonDescriptor editPersonDescriptor = new EditPersonDescriptor();
 
@@ -63,9 +63,9 @@ public class EditCommandParser implements Parser<EditCommand> {
             editPersonDescriptor.setAddress(ParserUtil.parseAddress(argMultimap.getValue(PREFIX_ADDRESS).get()));
         }
         if (argMultimap.getValue(PREFIX_SUBJECT).isPresent()) {
-            String value = argMultimap.getValue(PREFIX_SUBJECT).get();
-            editPersonDescriptor.setSubject(value.isEmpty() ? Optional.empty()
-                    : Optional.of(ParserUtil.parseSubject(value)));
+            Collection<String> values = argMultimap.getAllValues(PREFIX_SUBJECT);
+            editPersonDescriptor.setSubjects(values.size() == 1 && values.iterator().next().isEmpty()
+                    ? Set.of() : ParserUtil.parseSubjects(values));
         }
         if (argMultimap.getValue(PREFIX_LEVEL).isPresent()) {
             String level = argMultimap.getValue(PREFIX_LEVEL).get();

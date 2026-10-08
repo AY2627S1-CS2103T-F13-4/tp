@@ -103,11 +103,11 @@ Shared helpers live in `seedu.address.commons`.
 
 ### Shared tuition model
 
-The current implementation stores five immutable tuition values in `Person` as `Optional`. Absence means "not recorded". This describes the code; which values a new student must supply still needs team confirmation.
+A student has zero or more subjects in an immutable `Set<Subject>`. The other tuition fields use `Optional`; absence means "not recorded". The agreed schooling-level requirement is pending Min Wenn's implementation. Rates remain optional.
 
 | Field | Java type | Rules |
 |---|---|---|
-| Subject | `Optional<Subject>` | One text label, 1 to 40 ASCII characters after the space cleanup below |
+| Subjects | `Set<Subject>` | Zero or more labels, each 1 to 40 ASCII characters after the space cleanup below |
 | Schooling level | `Optional<SchoolingLevel>` | One text label, 1 to 30 ASCII characters after the space cleanup below |
 | Guardian | `Optional<GuardianContact>` | Both `Name` and `Phone`, using AB3 validation |
 | Weekly lesson | `Optional<WeeklyLessonSlot>` | `DayOfWeek`, `LocalTime start` and `LocalTime end`; whole minutes, with end later on the same day |
@@ -120,6 +120,8 @@ Subject and level use text labels, not enums. For both:
 * Allow letters, digits, spaces, apostrophes, hyphens, periods and parentheses.
 * Do not map synonyms or check whether a subject matches a level.
 
+Subject equality ignores case. The set preserves input order and the first spelling of a repeated label.
+
 Siblings can have the same guardian details, but each student keeps a separate copy. There is no tutor/student role field or generic `class[]` field.
 
 #### Constructors and editing
@@ -130,10 +132,10 @@ The full constructor order is:
 
 ```text
 name, phone, email, address, tags,
-subject, schoolingLevel, guardianContact, weeklyLessonSlot, hourlyRate
+subjects, schoolingLevel, guardianContact, weeklyLessonSlot, hourlyRate
 ```
 
-Every `Optional` argument must be non-null.
+The subject set and its entries must be non-null. `getSubjects()` returns an immutable set. Every `Optional` argument must be non-null.
 
 The shared foundation provides the value types, model fields, JSON support, test builders and field preservation during edits. Feature owners add commands, display and tests separately.
 
@@ -150,13 +152,13 @@ The added JSON properties are:
 
 | Property | JSON value |
 |---|---|
-| `subject` | Text string |
+| `subjects` | Array of text strings; empty means no subjects |
 | `schoolingLevel` | Text string |
 | `guardianContact` | Object with `name` and `phone` |
 | `weeklyLessonSlot` | Object with uppercase English `day`, such as `MONDAY`, and `start`/`end` in `HH:mm` |
 | `hourlyRate` | Decimal string, such as `"45.50"` |
 
-Missing or null tuition properties load as `Optional.empty()`. Supplied values must have the correct JSON type and pass validation. Valid old files must still load. Keep the existing name and duplicate rules, and never silently discard data.
+Missing or null `subjects` loads as an empty set. Older files with a single `subject` string still load and save back as `subjects`. Supplying both properties with non-null values is rejected to avoid losing data. Other missing or null tuition properties load as `Optional.empty()`. Supplied values must have the correct JSON type and pass validation. Valid old files must still load. Keep the existing name and duplicate rules, and never silently discard data.
 
 Tests cover old-file loading, save/reload and preservation of unrelated fields. A failed save reports an error but does not undo the in-memory change. A failed load does not block commands. These inherited failure behaviors differ from the earlier specification; see [decisions to confirm](#decisions-to-confirm).
 
@@ -164,10 +166,10 @@ Tests cover old-file loading, save/reload and preservation of unrelated fields. 
 
 | Step | Code and behavior |
 |---|---|
-| Parse | `AddCommandParser` and `EditCommandParser` accept `s/`. `ParserUtil.parseSubject` normalizes and validates it. |
-| Edit | `EditPersonDescriptor` distinguishes omitted, supplied and cleared subjects. Other fields stay unchanged. |
-| Display | `PersonCard` shows the subject or `Subject: Not recorded`. |
-| Save | `JsonAdaptedPerson` stores a string or null. Missing old-file properties mean no subject. |
+| Parse | `AddCommandParser` and `EditCommandParser` accept repeated `s/` prefixes. `ParserUtil.parseSubjects` validates every label and removes case-insensitive duplicates. |
+| Edit | `EditPersonDescriptor` distinguishes omission, replacement of the whole set, and clearing with one empty `s/`. Other fields stay unchanged. |
+| Display | `PersonCard` shows all subjects or `Subjects: Not recorded`. |
+| Save | `JsonAdaptedPerson` writes a string array and accepts older single-subject files. |
 
 `SubjectWorkflowTest` covers add, edit, clear, filtered indexes, invalid input, duplicates and save/reload. `TuitionStorageTest` checks all shared fields.
 
@@ -209,11 +211,15 @@ The MVP includes student records and all five tuition features below. Keep the e
 |---|---|---|
 | Min Wenn | Schooling level | 5; level updates in 12 |
 | Pranav | Subject | 6; subject updates in 12 |
-| Jian Yi | Weekly lesson slot | 25, 28, 29, 48 |
-| Dylan | Hourly rate | 53, 54 |
+| Dylan | Weekly lesson slot | 25, 28, 29, 48 |
+| Jian Yi | Hourly rate | 53, 54 |
 | Mervin | Guardian contact | 7, 8, 22, 23 |
 
 The shared types and storage are implemented. This branch supports add, display, edit and clear for subjects and schooling levels, plus finding students by level. Other owners add their command and display flows in separate PRs. Week 8 needs a small working increment per person; the full MVP is the v1.3 target.
+
+### Agreed field rules
+
+Subjects are optional and may contain multiple labels. Schooling level is mandatory by agreement, with enforcement left to Min Wenn. Jian Yi is keeping hourly rate optional. Grouping a subject, rate and timeslot into a lesson is an idea for next week, not part of this change.
 
 ### Decisions to confirm
 
@@ -221,7 +227,7 @@ The earlier Google specification and the current code differ on the rules below.
 
 | Decision | Earlier specification | Current implementation |
 |---|---|---|
-| Required fields | Name, subject and level on creation | Name, phone, email and address required; all tuition fields can be absent |
+| Contact fields | Name required on creation | Name, phone, email and address required; confirm whether all four contact fields are needed |
 | Duplicate names | Normalized, case-insensitive comparison | Exact, case-sensitive name comparison |
 | Names and phones | Punctuation in names; optional `+` and 7–15 digits in phones | AB3 alphanumeric names; phones with at least 3 digits and no `+` |
 | Save/load failures | Roll back failed saves; block commands after a failed load | In-memory changes can remain after a failed save; commands remain available after a failed load |
@@ -239,10 +245,10 @@ The MVP covers stories 1–9, subject/level updates in 12, guardian name/phone u
 |---|---|---|---|---|
 | 1 | `***` | private tutor | add a student record with a name | begin tracking each student |
 | 2 | `***` | private tutor | view the list of current students | see who I currently teach |
-| 3 | `***` | private tutor | view a student's subject and schooling level | prepare for the right subject and level |
+| 3 | `***` | private tutor | view a student's subjects and schooling level | prepare for the right subject and level |
 | 4 | `***` | private tutor | delete a student record | remove students who leave or recreate incorrect records |
 | 5 | `***` | private tutor | record a student's schooling level | choose material at the right level |
-| 6 | `***` | private tutor | record the subject I teach a student | remember what I teach each student |
+| 6 | `***` | private tutor | record the subjects I teach a student | remember what I teach each student |
 | 7 | `***` | private tutor | record one guardian's name and contact details for a student | reach the right adult about lessons |
 | 8 | `***` | private tutor | view the guardian name and contact details linked to a student | contact a guardian without searching elsewhere |
 | 9 | `***` | private tutor | keep my student details and guardian contacts when I close and reopen the app | continue my work without re-entering information |
@@ -453,7 +459,7 @@ These are acceptance targets. They have not all been verified in the current app
 
 * **StudentBook**: The desktop app for managing student records.
 * **Independent private tutor**: A tutor who manages students and lessons without administrative staff.
-* **Student record**: One student's contact details, subject, schooling level, guardian contact, weekly lesson slot and hourly rate. Notes remain a backlog candidate.
+* **Student record**: One student's contact details, subjects, schooling level, guardian contact, weekly lesson slot and hourly rate. Notes remain a backlog candidate.
 * **Guardian contact**: The name and phone number of the adult responsible for a student. The first version allows one optional guardian per student. A recorded guardian needs both fields.
 * **Schooling level**: The student's stage of primary or secondary education, such as Primary 5 or Secondary 3.
 * **Subject**: An academic subject taught by the tutor to a student, such as Mathematics or English.
@@ -486,8 +492,9 @@ Use an empty test folder and sample data. These checks are a starting point; als
 1. Add a unique test student with subject `Combined Science`, using three spaces between the words. The card should show one space.
 2. Change it with `edit INDEX s/Math`, then edit the phone without `s/`. The subject should stay `Math`.
 3. Restart the app. Both edits should remain.
-4. Run `edit INDEX s/` and restart again. The card should show `Subject: Not recorded`.
-5. Try a blank subject on `add`, a repeated `s/` prefix and an invalid subject such as `123`. Each should report an error without changing any record.
+4. Run `edit INDEX s/` and restart again. The card should show `Subjects: Not recorded`.
+5. Add or edit with `s/Math s/Science s/math`. The card should show `Math, Science`, including after restart.
+6. Try a blank subject on `add`, `edit INDEX s/Math s/`, and an invalid label such as `s/123`. Each should reject the whole command without changing any record.
 
 ### Missing or invalid data files
 

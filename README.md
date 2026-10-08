@@ -10,7 +10,7 @@ This development branch supports student contacts, subjects and schooling levels
 The MVP will let tutors:
 
 * Add, list, edit and delete student records.
-* Record each student's subject, schooling level, guardian contact, weekly lesson slot and hourly rate.
+* Record each student's subjects, schooling level, guardian contact, weekly lesson slot and hourly rate.
 * Save records locally and reopen them later.
 
 All five tuition features are part of the MVP. Payment processing and sending messages are out of scope. Other brainstormed ideas are backlog candidates, not promised additions.

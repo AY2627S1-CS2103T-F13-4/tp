@@ -45,23 +45,20 @@ public class AddCommandParser implements Parser<AddCommand> {
         }
 
         argMultimap.verifyNoDuplicatePrefixesFor(PREFIX_NAME, PREFIX_PHONE, PREFIX_EMAIL, PREFIX_ADDRESS,
-                PREFIX_SUBJECT, PREFIX_LEVEL);
+                PREFIX_LEVEL);
         Name name = ParserUtil.parseName(argMultimap.getValue(PREFIX_NAME).get());
         Phone phone = ParserUtil.parsePhone(argMultimap.getValue(PREFIX_PHONE).get());
         Email email = ParserUtil.parseEmail(argMultimap.getValue(PREFIX_EMAIL).get());
         Address address = ParserUtil.parseAddress(argMultimap.getValue(PREFIX_ADDRESS).get());
         Set<Tag> tagList = ParserUtil.parseTags(argMultimap.getAllValues(PREFIX_TAG));
 
-        Optional<Subject> subject = Optional.empty();
-        if (argMultimap.getValue(PREFIX_SUBJECT).isPresent()) {
-            subject = Optional.of(ParserUtil.parseSubject(argMultimap.getValue(PREFIX_SUBJECT).get()));
-        }
+        Set<Subject> subjects = ParserUtil.parseSubjects(argMultimap.getAllValues(PREFIX_SUBJECT));
         Optional<SchoolingLevel> schoolingLevel = Optional.empty();
         if (argMultimap.getValue(PREFIX_LEVEL).isPresent()) {
             schoolingLevel = Optional.of(ParserUtil.parseSchoolingLevel(argMultimap.getValue(PREFIX_LEVEL).get()));
         }
 
-        Person person = new Person(name, phone, email, address, tagList, subject, schoolingLevel,
+        Person person = new Person(name, phone, email, address, tagList, subjects, schoolingLevel,
                 Optional.empty(), Optional.empty(), Optional.empty());
 
         return new AddCommand(person);
