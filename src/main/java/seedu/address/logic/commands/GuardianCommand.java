@@ -59,8 +59,7 @@ public class GuardianCommand extends Command {
         }
         Optional<GuardianContact> updated = switch (operation) {
             case ADD -> Optional.of(new GuardianContact(name.orElseThrow(), phone.orElseThrow()));
-            case EDIT -> Optional.of(new GuardianContact(name.orElse(existing.orElseThrow().getName()),
-                    phone.orElse(existing.orElseThrow().getPhone())));
+            case EDIT -> existing.map(g -> new GuardianContact(name.orElse(g.getName()), phone.orElse(g.getPhone())));
             case DELETE -> Optional.empty();
         };
         Person replacement = new Person(student.getName(), student.getPhone(), student.getEmail(),

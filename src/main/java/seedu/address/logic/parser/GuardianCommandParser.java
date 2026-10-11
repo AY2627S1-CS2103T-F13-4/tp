@@ -51,16 +51,16 @@ public class GuardianCommandParser implements Parser<GuardianCommand> {
         } catch (ParseException e) {
             throw new ParseException(formatError, e);
         }
-        boolean hasName = arguments.getValue(PREFIX_NAME).isPresent();
-        boolean hasPhone = arguments.getValue(PREFIX_PHONE).isPresent();
+        Optional<String> nameValue = arguments.getValue(PREFIX_NAME);
+        Optional<String> phoneValue = arguments.getValue(PREFIX_PHONE);
+        boolean hasName = nameValue.isPresent();
+        boolean hasPhone = phoneValue.isPresent();
         if ((operation == Operation.ADD && (!hasName || !hasPhone))
                 || (operation == Operation.EDIT && !hasName && !hasPhone)) {
             throw new ParseException(formatError);
         }
-        Optional<Name> name = hasName ? Optional.of(ParserUtil.parseName(arguments.getValue(PREFIX_NAME).orElseThrow()))
-                : Optional.empty();
-        Optional<Phone> phone = hasPhone
-                ? Optional.of(ParserUtil.parsePhone(arguments.getValue(PREFIX_PHONE).orElseThrow())) : Optional.empty();
+        Optional<Name> name = hasName ? Optional.of(ParserUtil.parseName(nameValue.get())) : Optional.empty();
+        Optional<Phone> phone = hasPhone ? Optional.of(ParserUtil.parsePhone(phoneValue.get())) : Optional.empty();
         return new GuardianCommand(index, operation, name, phone);
     }
 }
