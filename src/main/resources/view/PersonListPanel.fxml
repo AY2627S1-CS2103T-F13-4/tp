@@ -17,7 +17,7 @@
       <HBox fx:id="columnHeader" styleClass="table-header">
         <Label text="#" styleClass="table-heading, heading-index" />
         <Label fx:id="studentHeading" text="Student" styleClass="table-heading" />
-        <Label fx:id="lessonsHeading" text="Lessons" styleClass="table-heading" />
+        <Label fx:id="lessonsHeading" text="Next lesson" styleClass="table-heading" />
         <Label fx:id="guardianHeading" text="Guardian" styleClass="table-heading" />
       </HBox>
       <ListView fx:id="personListView" minHeight="0" VBox.vgrow="ALWAYS" />

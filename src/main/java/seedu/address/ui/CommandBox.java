@@ -23,11 +23,13 @@ public class CommandBox extends UiPart<Region> {
     public static final String ERROR_STYLE_CLASS = "error";
     private static final String FXML = "CommandBox.fxml";
     /** Below this width the key hints would squeeze the placeholder text. */
-    private static final double MIN_WIDTH_FOR_HINTS = 720;
+    private static final double MIN_WIDTH_FOR_HINTS = 800;
 
     private final CommandExecutor commandExecutor;
     private final CommandHistory history = new CommandHistory();
     private IntConsumer pageScroller = direction -> { };
+    private IntConsumer detailsMover = direction -> { };
+    private Runnable detailsCloser = () -> { };
 
     @FXML
     private TextField commandTextField;
@@ -59,6 +61,15 @@ public class CommandBox extends UiPart<Region> {
     }
 
     /**
+     * Sets what Alt+Up (-1) and Alt+Down (1) do, and what Esc does in an empty box, so keyboard users can open
+     * and close a student's details without leaving the box.
+     */
+    public void setDetailsControls(IntConsumer detailsMover, Runnable detailsCloser) {
+        this.detailsMover = requireNonNull(detailsMover);
+        this.detailsCloser = requireNonNull(detailsCloser);
+    }
+
+    /**
      * Moves keyboard focus to the command input.
      */
     public void focus() {
@@ -85,12 +96,17 @@ public class CommandBox extends UiPart<Region> {
     }
 
     /**
-     * Handles the keyboard shortcuts of the command box: Up and Down for history, Esc to clear,
+     * Handles the keyboard shortcuts of the command box: Up and Down for history, Esc to clear (or, in an empty
+     * box, to close a student's details), Alt+Up and Alt+Down to open the previous or next student's details,
      * and Page Up and Page Down to scroll the student list.
      */
     private void handleKey(KeyEvent event) {
         KeyCode code = event.getCode();
-        if (code == KeyCode.UP) {
+        if (event.isAltDown() && (code == KeyCode.UP || code == KeyCode.DOWN)) {
+            detailsMover.accept(code == KeyCode.UP ? -1 : 1);
+        } else if (code == KeyCode.ESCAPE && commandTextField.getText().isEmpty()) {
+            detailsCloser.run();
+        } else if (code == KeyCode.UP) {
             history.previous(commandTextField.getText()).ifPresent(this::replaceText);
         } else if (code == KeyCode.DOWN) {
             history.next().ifPresent(this::replaceText);

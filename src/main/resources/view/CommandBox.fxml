@@ -17,6 +17,8 @@
     </minWidth>
     <Label text="↑↓" styleClass="keycap" />
     <Label text="History" styleClass="key-hint" />
+    <Label text="Alt ↑↓" styleClass="keycap" />
+    <Label text="Details" styleClass="key-hint" />
     <Label text="PgUp PgDn" styleClass="keycap" />
     <Label text="Scroll" styleClass="key-hint" />
     <Label text="Esc" styleClass="keycap" />

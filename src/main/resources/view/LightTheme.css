@@ -126,8 +126,7 @@
 /* ---------- Student table ---------- */
 
 /* Each row and the header use the same padding and gaps, so their columns line up */
-.table-header, .student-row {
-    -fx-padding: 0 18 0 14;
+.table-header, .row-line {
     -fx-spacing: 20;
 }
 
@@ -142,25 +141,39 @@
     -fx-text-fill: -sb-text-muted;
 }
 
-.student-row {
-    -fx-padding: 12 18 12 14;
-}
-
 .heading-index {
     -fx-min-width: 26;
     -fx-alignment: center-right;
+}
+
+.student-row {
+    -fx-padding: 11 18 11 14;
+}
+
+.student-row-expanded {
+    -fx-background-color: #F8F9FB;
+}
+
+/* Details start under the Student column: # column (26) plus the gap (20) */
+.row-details {
+    -fx-padding: 14 0 6 46;
+}
+
+.detail-caption {
+    -fx-font-family: "Geist Medium";
+    -fx-font-size: 11.5px;
+    -fx-text-fill: -sb-text-muted;
 }
 
 .row-index {
     -fx-text-fill: -sb-text-muted;
     -fx-font-size: 13px;
     -fx-min-width: 26;
-    -fx-alignment: top-right;
-    -fx-padding: 6 0 0 0;
+    -fx-alignment: center-right;
 }
 
 .row-name {
-    -fx-font-family: "Geist SemiBold";
+    -fx-font-family: "Geist Medium";
     -fx-font-size: 14px;
     -fx-fill: -sb-text;
 }
@@ -170,8 +183,13 @@
     -fx-fill: -sb-text;
 }
 
+.row-secondary {
+    -fx-font-size: 13px;
+    -fx-fill: -sb-text-secondary;
+}
+
 .row-muted {
-    -fx-font-size: 12.5px;
+    -fx-font-size: 13px;
     -fx-fill: -sb-text-muted;
 }
 
@@ -180,14 +198,14 @@
 }
 
 .initials-badge {
-    -fx-min-width: 32;
-    -fx-min-height: 32;
-    -fx-max-width: 32;
-    -fx-max-height: 32;
-    -fx-background-radius: 16;
+    -fx-min-width: 28;
+    -fx-min-height: 28;
+    -fx-max-width: 28;
+    -fx-max-height: 28;
+    -fx-background-radius: 14;
     -fx-alignment: center;
     -fx-font-family: "Geist SemiBold";
-    -fx-font-size: 12px;
+    -fx-font-size: 11px;
 }
 
 .chip {

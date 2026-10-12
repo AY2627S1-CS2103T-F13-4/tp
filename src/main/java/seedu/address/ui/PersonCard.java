@@ -1,5 +1,6 @@
 package seedu.address.ui;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -26,7 +27,8 @@ import javafx.scene.text.Text;
 import seedu.address.model.person.Student;
 
 /**
- * A table row that displays a {@code Student}: number, student details, a breakdown of their lessons, and guardian.
+ * A table row that displays a {@code Student}. The row shows only the name, level, next lesson and guardian;
+ * an expanded row also shows every lesson, the contact details and tags.
  */
 public class PersonCard extends UiPart<Region> {
 
@@ -34,24 +36,23 @@ public class PersonCard extends UiPart<Region> {
     private static final String EMPTY_VALUE_STYLE_CLASS = "row-empty";
     /** Font sizes used in LightTheme.css, used to measure text before layout. */
     private static final double BODY_FONT_SIZE = 13;
-    private static final double MUTED_FONT_SIZE = 12.5;
-    /** Gaps in a student's lesson breakdown, and between a lesson's mode chip and its location. */
-    private static final double LESSON_COLUMN_GAP = 14;
-    private static final double LESSON_ROW_GAP = 4;
-    private static final double MODE_CHIP_GAP = 8;
-    /** Fixed widths of the lesson columns (number, subject, day and time, rate), so they line up across rows. */
-    private static final double[] LESSON_COLUMN_WIDTHS = {20, 100, 148, 76};
-    /** Width a lesson line needs: its columns plus the gaps between them. */
-    static final double LESSON_GRID_WIDTH =
-            Arrays.stream(LESSON_COLUMN_WIDTHS).sum() + (LESSON_COLUMN_WIDTHS.length - 1) * LESSON_COLUMN_GAP;
     private static final double NAME_FONT_SIZE = 14;
     private static final double CHIP_FONT_SIZE = 12;
     /** A chip's horizontal padding (8 + 8) plus the gap before it. */
     private static final double CHIP_PADDING_AND_GAP = 26;
+    /** Width of the initials badge and the gap after it, beside the name. */
+    private static final double BADGE_WIDTH = 38;
+    /** Fixed widths of the lesson columns in the details (number, subject, day and time, rate). */
+    private static final double[] LESSON_COLUMN_WIDTHS = {20, 110, 148, 76};
+    private static final double LESSON_COLUMN_GAP = 14;
+    /** Width a lesson line needs in the details: its columns plus the gaps between them. */
+    private static final double LESSON_GRID_WIDTH =
+            Arrays.stream(LESSON_COLUMN_WIDTHS).sum() + (LESSON_COLUMN_WIDTHS.length - 1) * LESSON_COLUMN_GAP;
+    private static final double MODE_CHIP_GAP = 8;
     /** Room for the widest mode chip ("Physical") and its gap, in front of a location line. */
     private static final double MODE_CHIP_ALLOWANCE = 76;
-    /** Width of the initials badge and the gap after it, beside the name. */
-    private static final double BADGE_WIDTH = 42;
+    /** Contact details wrap at this width in the details. */
+    private static final double CONTACT_MAX_WIDTH = 320;
     /** Colours the level chip and initials badge by school stage; unrecognised levels stay neutral. */
     private static final Map<StudentCardText.Stage, String> STAGE_STYLE_CLASSES = Map.of(
             StudentCardText.Stage.PRIMARY, "level-primary",
@@ -70,50 +71,45 @@ public class PersonCard extends UiPart<Region> {
     public final Student person;
 
     @FXML
-    private HBox cardPane;
+    private VBox cardPane;
     @FXML
     private Label id;
     @FXML
-    private VBox studentCell;
+    private HBox studentCell;
     @FXML
     private Label initials;
     @FXML
     private Text name;
     @FXML
-    private FlowPane badges;
-    @FXML
     private Label schoolingLevel;
     @FXML
-    private Text contact;
+    private HBox nextLessonCell;
     @FXML
-    private Text address;
+    private Text nextSubject;
     @FXML
-    private Text guardianInline;
+    private Text nextTime;
     @FXML
-    private VBox lessons;
+    private Text moreLessons;
     @FXML
-    private VBox guardianCell;
+    private HBox guardianCell;
     @FXML
     private Text guardianName;
     @FXML
-    private Text guardianPhone;
+    private FlowPane details;
 
-    /** Text in the lesson breakdown that wraps: long subjects, and each lesson's location line. */
-    private final List<Text> lessonSubjects = new ArrayList<>();
+    /** Text in the details that wraps: lesson locations and contact lines. */
     private final List<Text> lessonLocations = new ArrayList<>();
-    private Text noLessons;
+    private final List<Text> contactLines = new ArrayList<>();
 
     /**
-     * Creates a {@code PersonCard} with the given {@code Student} and index to display.
+     * Creates a row for {@code person} with the index to display. An {@code expanded} row also shows the details.
      */
-    public PersonCard(Student person, int displayedIndex) {
+    public PersonCard(Student person, int displayedIndex, boolean expanded) {
         super(FXML);
         this.person = person;
         id.setText(String.valueOf(displayedIndex));
         name.setText(person.getName().fullName);
         initials.setText(StudentCardText.initials(person.getName().fullName));
-        contact.setText(person.getPhone().value + "  ·  " + person.getEmail().value);
-        address.setText(person.getAddress().value);
 
         String stageClass = person.getSchoolingLevel()
                 .map(level -> STAGE_STYLE_CLASSES.get(StudentCardText.stageOf(level.toString())))
@@ -125,39 +121,70 @@ public class PersonCard extends UiPart<Region> {
         } else {
             hide(schoolingLevel);
         }
-        person.getTags().stream()
-                .sorted(Comparator.comparing(tag -> tag.tagName))
-                .forEach(tag -> {
-                    Label label = new Label(tag.tagName);
-                    label.getStyleClass().addAll("chip", "tag-chip");
-                    badges.getChildren().add(label);
-                });
-        if (person.getTags().isEmpty()) {
-            hide(badges);
-        }
-
-        Optional<String> guardian = StudentCardText.guardian(person);
-        guardianName.setText(person.getGuardian().map(g -> g.getName().fullName).orElse(StudentCardText.NOT_SET));
-        guardianPhone.setText(person.getGuardian().map(g -> g.getPhone().value).orElse(""));
-        guardianInline.setText("Guardian: " + guardian.orElse(StudentCardText.NOT_SET));
-        if (guardian.isEmpty()) {
-            guardianName.getStyleClass().add(EMPTY_VALUE_STYLE_CLASS);
-            guardianPhone.setManaged(false);
-        }
 
         List<StudentCardText.LessonLine> lines = StudentCardText.lessons(person);
-        if (lines.isEmpty()) {
-            noLessons = new Text(StudentCardText.NO_LESSONS);
-            noLessons.getStyleClass().addAll("row-value", EMPTY_VALUE_STYLE_CLASS);
-            lessons.getChildren().add(noLessons);
+        Optional<StudentCardText.LessonLine> next =
+                StudentCardText.nextLesson(lines, StudentCardText.slots(person), LocalDateTime.now());
+        if (next.isPresent()) {
+            nextSubject.setText(next.get().subject());
+            nextTime.setText(StudentCardText.dayAndStart(next.get()));
+            moreLessons.setText(lines.size() > 1 ? "+" + (lines.size() - 1) + " more" : "");
         } else {
-            lessons.getChildren().add(lessonTable(lines));
+            nextSubject.setText(StudentCardText.NO_LESSONS);
+            nextSubject.getStyleClass().setAll("row-muted");
+        }
+        guardianName.setText(person.getGuardian().map(g -> g.getName().fullName).orElse(StudentCardText.NOT_SET));
+        if (person.getGuardian().isEmpty()) {
+            guardianName.getStyleClass().add(EMPTY_VALUE_STYLE_CLASS);
+        }
+
+        if (expanded) {
+            cardPane.getStyleClass().add("student-row-expanded");
+            fillDetails(lines);
+        } else {
+            hide(details);
+        }
+    }
+
+    /** Fills the details: every lesson, the contact details, the guardian and any tags. */
+    private void fillDetails(List<StudentCardText.LessonLine> lines) {
+        Node lessonContent = lines.isEmpty() ? muted(StudentCardText.NO_LESSONS) : lessonTable(lines);
+        details.getChildren().add(section("Lessons", lessonContent));
+
+        VBox contact = new VBox(3);
+        for (String line : List.of(person.getPhone().value, person.getEmail().value, person.getAddress().value)) {
+            Text text = text(line, "row-value");
+            contactLines.add(text);
+            contact.getChildren().add(text);
+        }
+        details.getChildren().add(section("Contact", contact));
+
+        VBox guardian = new VBox(3);
+        if (person.getGuardian().isPresent()) {
+            guardian.getChildren().addAll(text(person.getGuardian().get().getName().fullName, "row-value"),
+                    text(person.getGuardian().get().getPhone().value, "row-secondary"));
+        } else {
+            guardian.getChildren().add(muted(StudentCardText.NOT_SET));
+        }
+        details.getChildren().add(section("Guardian", guardian));
+
+        if (!person.getTags().isEmpty()) {
+            FlowPane tags = new FlowPane(6, 6);
+            person.getTags().stream()
+                    .sorted(Comparator.comparing(tag -> tag.tagName))
+                    .forEach(tag -> {
+                        Label label = new Label(tag.tagName);
+                        label.getStyleClass().addAll("chip", "tag-chip");
+                        tags.getChildren().add(label);
+                    });
+            tags.setPrefWrapLength(CONTACT_MAX_WIDTH);
+            details.getChildren().add(section("Tags", tags));
         }
     }
 
     /**
-     * Lays out a student's lessons: number, subject, day and time, and rate line up in columns, and a lesson's
-     * mode and location sit on a second line under its subject. Numbers match {@code LESSON_INDEX}.
+     * Lays out every lesson: number, subject, day and time, and rate line up in columns, and a lesson's mode and
+     * location sit on a second line under its subject. Numbers match {@code LESSON_INDEX}.
      */
     private GridPane lessonTable(List<StudentCardText.LessonLine> lines) {
         GridPane table = new GridPane();
@@ -165,68 +192,62 @@ public class PersonCard extends UiPart<Region> {
             table.getColumnConstraints().add(new ColumnConstraints(width));
         }
         table.setHgap(LESSON_COLUMN_GAP);
-        table.setVgap(LESSON_ROW_GAP);
+        table.setVgap(4);
         int row = 0;
         for (StudentCardText.LessonLine line : lines) {
-            Text number = text(line.number() + ".", "lesson-number");
-            Text subject = text(line.subject(), "lesson-subject");
-            lessonSubjects.add(subject);
-            table.addRow(row++, number, subject, text(line.slot(), "row-value"), text(line.rate(), "row-value"));
-
+            table.addRow(row++, text(line.number() + ".", "lesson-number"), text(line.subject(), "lesson-subject"),
+                    text(line.slot(), "row-value"), text(line.rate(), "row-value"));
             if (line.mode().isEmpty() && line.location().isEmpty()) {
                 continue;
             }
-            HBox details = new HBox(MODE_CHIP_GAP);
-            details.setAlignment(Pos.CENTER_LEFT);
+            HBox extra = new HBox(MODE_CHIP_GAP);
+            extra.setAlignment(Pos.CENTER_LEFT);
             line.mode().ifPresent(lessonMode -> {
                 Label chip = new Label(lessonMode.toString());
                 chip.getStyleClass().addAll("chip", "mode-chip", "mode-" + lessonMode.name().toLowerCase(Locale.ROOT));
                 chip.setMinWidth(Region.USE_PREF_SIZE);
-                details.getChildren().add(chip);
+                extra.getChildren().add(chip);
             });
             line.location().ifPresent(location -> {
-                Text text = text("at " + location, "row-muted");
+                Text text = text("at " + location, "row-secondary");
                 lessonLocations.add(text);
-                details.getChildren().add(text);
+                extra.getChildren().add(text);
             });
-            table.add(details, 1, row++, 3, 1);
+            table.add(extra, 1, row++, 3, 1);
         }
         return table;
     }
 
     /**
-     * Sizes the row's cells to the table's columns, and wraps their text within them.
+     * Sizes the row's cells to the table's columns, and wraps text within them.
      * The list asks a row for its height before laying it out, so wrapping has to be set from known widths.
-     * In narrow windows the Guardian column is hidden and the guardian is shown in the Student cell instead.
+     * In narrow windows the Guardian column is hidden; the details always show the guardian with their phone.
      */
-    public void bindColumns(DoubleExpression studentWidth, DoubleExpression lessonsWidth,
-            DoubleExpression guardianWidth, BooleanExpression wide) {
+    public void bindColumns(DoubleExpression studentWidth, DoubleExpression lessonWidth,
+            DoubleExpression guardianWidth, BooleanExpression wide, DoubleExpression detailsWidth) {
         size(studentCell, studentWidth);
-        size(lessons, lessonsWidth);
+        size(nextLessonCell, lessonWidth);
         size(guardianCell, guardianWidth);
         guardianCell.visibleProperty().bind(wide);
         guardianCell.managedProperty().bind(wide);
-        guardianInline.visibleProperty().bind(wide.not());
-        guardianInline.managedProperty().bind(wide.not());
 
-        badges.prefWrapLengthProperty().bind(studentWidth);
-        // The name shares its line with the initials badge and the level chip.
         double levelWidth = schoolingLevel.isManaged()
                 ? textWidth(schoolingLevel.getText(), CHIP_FONT_SIZE) + CHIP_PADDING_AND_GAP : 0;
         wrapWhenLonger(name, studentWidth.subtract(BADGE_WIDTH + levelWidth), NAME_FONT_SIZE);
-        wrapWhenLonger(contact, studentWidth, MUTED_FONT_SIZE);
-        wrapWhenLonger(address, studentWidth, MUTED_FONT_SIZE);
-        wrapWhenLonger(guardianInline, studentWidth, MUTED_FONT_SIZE);
         wrapWhenLonger(guardianName, guardianWidth, BODY_FONT_SIZE);
 
-        lessonSubjects.forEach(subject -> subject.setWrappingWidth(
-                textWidth(subject.getText(), BODY_FONT_SIZE) > LESSON_COLUMN_WIDTHS[1] ? LESSON_COLUMN_WIDTHS[1] : 0));
-        DoubleExpression locationLimit = lessonsWidth.subtract(LESSON_COLUMN_WIDTHS[0] + LESSON_COLUMN_GAP
-                + MODE_CHIP_ALLOWANCE);
-        lessonLocations.forEach(location -> wrapWhenLonger(location, locationLimit, MUTED_FONT_SIZE));
-        if (noLessons != null) {
-            wrapWhenLonger(noLessons, lessonsWidth, BODY_FONT_SIZE);
-        }
+        details.prefWrapLengthProperty().bind(detailsWidth);
+        DoubleExpression locationLimit = Bindings.min(detailsWidth, LESSON_GRID_WIDTH)
+                .subtract(LESSON_COLUMN_WIDTHS[0] + LESSON_COLUMN_GAP + MODE_CHIP_ALLOWANCE);
+        lessonLocations.forEach(location -> wrapWhenLonger(location, locationLimit, BODY_FONT_SIZE));
+        DoubleExpression contactLimit = Bindings.min(detailsWidth, CONTACT_MAX_WIDTH);
+        contactLines.forEach(line -> wrapWhenLonger(line, contactLimit, BODY_FONT_SIZE));
+    }
+
+    private static VBox section(String caption, Node content) {
+        Label label = new Label(caption);
+        label.getStyleClass().add("detail-caption");
+        return new VBox(8, label, content);
     }
 
     private static void size(Region cell, DoubleExpression width) {
@@ -255,6 +276,12 @@ public class PersonCard extends UiPart<Region> {
     private static Text text(String value, String styleClass) {
         Text text = new Text(value);
         text.getStyleClass().add(styleClass);
+        return text;
+    }
+
+    private static Text muted(String value) {
+        Text text = text(value, "row-muted");
+        text.getStyleClass().add(EMPTY_VALUE_STYLE_CLASS);
         return text;
     }
 

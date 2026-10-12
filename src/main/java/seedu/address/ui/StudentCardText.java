@@ -1,6 +1,9 @@
 package seedu.address.ui;
 
 import java.math.BigDecimal;
+import java.time.DayOfWeek;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -68,6 +71,42 @@ final class StudentCardText {
                     lesson.getMode()));
         }
         return lines;
+    }
+
+    /**
+     * Returns the lesson that starts soonest after {@code now} in the weekly cycle, or empty if there are none.
+     * A lesson starting at exactly {@code now} counts as next; one that has started counts from next week.
+     */
+    static Optional<LessonLine> nextLesson(List<LessonLine> lines, List<WeeklyLessonSlot> slots, LocalDateTime now) {
+        LessonLine next = null;
+        long soonest = Long.MAX_VALUE;
+        for (int i = 0; i < lines.size(); i++) {
+            WeeklyLessonSlot slot = slots.get(i);
+            long minutes = minutesUntil(slot.getDay(), slot.getStart(), now);
+            if (minutes < soonest) {
+                soonest = minutes;
+                next = lines.get(i);
+            }
+        }
+        return Optional.ofNullable(next);
+    }
+
+    /** Returns the student's lesson slots, in the same order as {@link #lessons(Student)}. */
+    static List<WeeklyLessonSlot> slots(Student student) {
+        return student.getLessons().stream().map(Lesson::getWeeklyLessonSlot).toList();
+    }
+
+    private static long minutesUntil(DayOfWeek day, LocalTime start, LocalDateTime now) {
+        long minutesInWeek = 7L * 24 * 60;
+        long target = (day.getValue() - 1) * 24L * 60 + start.getHour() * 60L + start.getMinute();
+        long current = (now.getDayOfWeek().getValue() - 1) * 24L * 60 + now.getHour() * 60L + now.getMinute();
+        return Math.floorMod(target - current, minutesInWeek);
+    }
+
+    /** Returns a lesson's day and start time, e.g. "Sat 10.00am", from its short slot "Sat 10.00am-12.00pm". */
+    static String dayAndStart(LessonLine line) {
+        int dash = line.slot().indexOf('-');
+        return dash < 0 ? line.slot() : line.slot().substring(0, dash);
     }
 
     /** Returns a slot with a three-letter day, e.g. "Tue 4.00pm-5.30pm", so lesson rows stay short. */

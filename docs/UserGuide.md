@@ -45,8 +45,9 @@ This development version supports contact details, schooling levels, guardian co
 
 ![StudentBook main window](images/Ui.png)
 
-* **Student list:** The list is a table with one row per student and the columns **#**, **Student**, **Lessons** and **Guardian**. The Student column shows the name with its initials and level, any tags, then the phone, email and address. The Lessons column breaks down each lesson: its number, subject, day and time, and rate line up in columns, and its mode and location appear underneath when recorded. A student with no lessons shows a grey `No lessons yet`, and a missing guardian shows as `Not set`. Use the number in the **#** column as `INDEX`, and a lesson's number as `LESSON_INDEX`. In narrow windows the Guardian column folds into the Student column.
-* **Colours:** The level and the initials badge are amber for primary (`P5`, `Primary 5`), blue for secondary (`Sec 3`, `Secondary 4 Express`) and violet for JC (`JC1`). Levels written another way, such as `Poly Y1`, stay grey. A lesson's mode shows in green for `Physical` and teal for `Virtual`. Tags are grey.
+* **Student list:** The list is a table with one row per student and the columns **#**, **Student**, **Next lesson** and **Guardian**. Each row shows only the name with its initials and level, the lesson that comes next in the week (e.g. `H2 Physics  Sat 10.00am  +2 more`), and the guardian's name. Use the number in the **#** column as `INDEX`. In narrow windows the Guardian column is hidden.
+* **Student details:** A student's details open under their row: every lesson with its number, subject, day and time, rate, mode and location, then the phone, email, address, guardian and tags. Details open when a search leaves one student (e.g. `find hafiz`), when you press **Alt+Down** or **Alt+Up** to step through students, or when you click a row. Press **Esc** in an empty command box to close them. Use a lesson's number in the details as `LESSON_INDEX`.
+* **Colours:** The level and the initials badge are amber for primary (`P5`, `Primary 5`), blue for secondary (`Sec 3`, `Secondary 4 Express`) and violet for JC (`JC1`). Levels written another way, such as `Poly Y1`, stay grey. In the details, a lesson's mode shows in green for `Physical` and teal for `Virtual`. Tags are grey.
 * **Count:** The count beside the title shows how many students there are. After `find`, it shows how many match, such as `Showing 1 of 8`.
 * **Empty list:** When the list is empty, the app suggests the next step. With no students, it shows the `add` format. When a search matches no one, it suggests `list`.
 * **Result:** The row above the command box shows the result of your last command. A green tick marks a success. A red `!` on a pink background marks an error, such as an invalid index or format. When you get a command's format wrong, the row shows what the command does, its **Format** and an **Example**, so you can fix the command without opening help. Click a Format or Example line to copy it. Long messages scroll.
@@ -56,7 +57,8 @@ This development version supports contact details, schooling levels, guardian co
 |---|---|
 | Enter | Run the command |
 | Up / Down | Show earlier commands from this session. Down past the newest brings back what you were typing. |
-| Esc | Clear the command box, or close the help window |
+| Esc | Clear the command box. In an empty box, close a student's details. Also closes the help window. |
+| Alt+Down / Alt+Up | Open the next or previous student's details while you keep typing |
 | Page Up / Page Down | Scroll the student list while you keep typing |
 | F1 | Open help |
 
@@ -142,7 +144,7 @@ Each student can have zero or more lessons. A lesson has a subject, a weekly tim
 
 * **Create:** `lesson-add STUDENT_INDEX subject/SUBJECT slot/LESSON_SLOT rate/HOURLY_RATE [mode/MODE] [location/LOCATION]`
   Subject, slot and rate are required; mode and location are optional. The new lesson is added to the end of the student's lessons.
-* **Read:** Use `list` or `find` to display the student. The Lessons column lists their lessons: each lesson's number, subject, day and time (e.g. `Tue 4.00pm-5.30pm`) and rate (e.g. `SGD 60/h`) line up, with the mode (`Physical` or `Virtual`) and location underneath when recorded. A student with no lessons shows a grey `No lessons yet`. Use the lesson number as `LESSON_INDEX`.
+* **Read:** The row shows the student's next lesson. Open the student's details (e.g. `find` their name, or **Alt+Down**) to see every lesson: its number, subject, day and time (e.g. `Tue 4.00pm-5.30pm`) and rate (e.g. `SGD 60/h`), with the mode (`Physical` or `Virtual`) and location underneath when recorded. Use the lesson number as `LESSON_INDEX`.
 * **Update:** `lesson-edit STUDENT_INDEX LESSON_INDEX [subject/SUBJECT] [slot/LESSON_SLOT] [rate/HOURLY_RATE] [mode/MODE] [location/LOCATION]`
   Supply at least one field. Omitted fields stay unchanged. To remove a recorded mode or location, give its prefix with nothing after it: `mode/` clears the mode and `location/` clears the location (see the examples below).
 * **Delete:** `lesson-delete STUDENT_INDEX LESSON_INDEX`
@@ -151,7 +153,7 @@ Each student can have zero or more lessons. A lesson has a subject, a weekly tim
 Field rules:
 
 * **Subject** (`subject/`): 1 to 40 characters after space cleanup. Start with a letter or digit and include at least one letter. Use English letters, digits, spaces and these symbols: `'`, `-`, `.`, `(`, `)`. Leading and trailing spaces are removed and repeated spaces become one. Subjects are compared ignoring letter case, so `Math` and `math` are the same subject.
-* **Lesson slot** (`slot/`): `DAY START END` on a single day, such as `Wed 1.00pm 5.00pm`. Use a three-letter day (`Mon` to `Sun`), and times like `1.00pm` or `10.30am` with minute precision. Days and `am`/`pm` are not case-sensitive, so `wed 1.00PM 5.00PM` also works. The end must be later than the start on the same day; overnight lessons are not supported. The list shows a short day, for example `Wed 1.00pm-5.00pm`.
+* **Lesson slot** (`slot/`): `DAY START END` on a single day, such as `Wed 1.00pm 5.00pm`. Use a three-letter day (`Mon` to `Sun`), and times like `1.00pm` or `10.30am` with minute precision. Days and `am`/`pm` are not case-sensitive, so `wed 1.00PM 5.00PM` also works. The end must be later than the start on the same day; overnight lessons are not supported. The details show a short day, for example `Wed 1.00pm-5.00pm`.
 * **Hourly rate** (`rate/`): an amount in SGD per hour. It must be non-negative and have at most two decimal places; `45`, `45.5` and `45.50` are valid. Currency symbols, negative amounts and scientific notation are invalid.
 * **Mode** (`mode/`, optional): `physical` or `virtual`, not case-sensitive. The lesson shows `Physical` or `Virtual`.
 * **Location** (`location/`, optional): 1 to 100 characters, such as an address, room or meeting link. Repeated spaces become one, and locations are compared ignoring letter case. It must not contain a word of letters followed by `/` (such as `rate/`), which is read as a prefix; `Blk 123/4` and `https://zoom.us/j/1` are fine.
@@ -181,8 +183,8 @@ positive `INDEX` in the currently displayed list, including search results. They
 
 * **Create:** `guardian-add INDEX name/NAME phone/PHONE`
   Both fields are required. If a guardian already exists, use `guardian-edit` instead.
-* **Read:** Use `list` or `find` to display the student. The Guardian column shows the guardian's name and phone,
-  or a grey `Not set` when none exists.
+* **Read:** The Guardian column shows the guardian's name, or a grey `Not set` when none exists.
+  The student's details show the guardian's phone too.
 * **Update:** `guardian-edit INDEX [name/NAME] [phone/PHONE]`
   Supply at least one field. Omitted fields stay unchanged. Empty values and repeated prefixes are rejected.
 * **Delete:** `guardian-delete INDEX`

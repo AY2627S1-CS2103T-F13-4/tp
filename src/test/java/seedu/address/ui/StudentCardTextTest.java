@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.math.BigDecimal;
 import java.time.DayOfWeek;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
@@ -74,6 +75,20 @@ public class StudentCardTextTest {
         for (String level : new String[] {"Poly Y1", "IB Year 1", "P7", "Sec 6", "JC4", "Kindergarten", "Pre-U"}) {
             assertEquals(Stage.OTHER, StudentCardText.stageOf(level), level);
         }
+    }
+
+    // The row shows the lesson that comes soonest in the week; one already under way counts from next week.
+    @Test
+    public void nextLesson_isSoonestUpcoming() {
+        Student student = new PersonBuilder().withLessons(MATH, ENGLISH).build(); // Tue 4pm, Sat 10am
+        List<LessonLine> lines = StudentCardText.lessons(student);
+        List<WeeklyLessonSlot> slots = StudentCardText.slots(student);
+        LocalDateTime wednesday = LocalDateTime.of(2026, 10, 14, 9, 0);
+        LocalDateTime saturdayLater = LocalDateTime.of(2026, 10, 17, 10, 30);
+        assertEquals("English", StudentCardText.nextLesson(lines, slots, wednesday).get().subject());
+        assertEquals("Math", StudentCardText.nextLesson(lines, slots, saturdayLater).get().subject());
+        assertEquals("Sat 10.00am", StudentCardText.dayAndStart(lines.get(1)));
+        assertEquals(Optional.empty(), StudentCardText.nextLesson(List.of(), List.of(), wednesday));
     }
 
     @Test

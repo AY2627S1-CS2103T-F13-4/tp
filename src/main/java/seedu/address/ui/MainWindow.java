@@ -127,6 +127,7 @@ public class MainWindow extends UiPart<Stage> {
 
         commandBox = new CommandBox(this::executeCommand);
         commandBox.setPageScroller(personListPanel::scrollPage);
+        commandBox.setDetailsControls(personListPanel::moveDetails, personListPanel::closeDetails);
         commandBoxPlaceholder.getChildren().add(commandBox.getRoot());
         // The list now comes before the command box, so focus the command box explicitly for typing.
         commandBox.focus();

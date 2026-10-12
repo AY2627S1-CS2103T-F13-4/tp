@@ -7,18 +7,18 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Text?>
 
-<!-- One table row per student: # | Student | Lessons | Guardian. Column widths are bound by PersonListPanel. -->
-<HBox id="cardPane" fx:id="cardPane" styleClass="student-row" xmlns="http://javafx.com/javafx/17"
+<!-- One row per student: # | Student | Next lesson | Guardian. Column widths are bound by PersonListPanel.
+     The details below the row are shown only when the row is expanded. -->
+<VBox fx:id="cardPane" styleClass="student-row" xmlns="http://javafx.com/javafx/17"
       xmlns:fx="http://javafx.com/fxml/1">
-  <Label fx:id="id" styleClass="row-index">
-    <minWidth>
-      <!-- Ensures that the label text is never truncated -->
-      <Region fx:constant="USE_PREF_SIZE" />
-    </minWidth>
-  </Label>
-
-  <VBox fx:id="studentCell" spacing="6">
-    <HBox alignment="CENTER_LEFT" spacing="10">
+  <HBox styleClass="row-line" alignment="CENTER_LEFT">
+    <Label fx:id="id" styleClass="row-index">
+      <minWidth>
+        <!-- Ensures that the label text is never truncated -->
+        <Region fx:constant="USE_PREF_SIZE" />
+      </minWidth>
+    </Label>
+    <HBox fx:id="studentCell" alignment="CENTER_LEFT" spacing="10">
       <Label fx:id="initials" styleClass="initials-badge">
         <minWidth>
           <Region fx:constant="USE_PREF_SIZE" />
@@ -31,17 +31,16 @@
         </minWidth>
       </Label>
     </HBox>
-    <FlowPane fx:id="badges" hgap="6" vgap="6" />
-    <Text fx:id="contact" styleClass="row-muted" />
-    <Text fx:id="address" text="\$address" styleClass="row-muted" />
-    <!-- Shown instead of the Guardian column in narrow windows -->
-    <Text fx:id="guardianInline" styleClass="row-muted" />
-  </VBox>
+    <HBox fx:id="nextLessonCell" alignment="CENTER_LEFT" spacing="8">
+      <Text fx:id="nextSubject" styleClass="lesson-subject" />
+      <Text fx:id="nextTime" styleClass="row-secondary" />
+      <Text fx:id="moreLessons" styleClass="row-muted" />
+    </HBox>
+    <HBox fx:id="guardianCell" alignment="CENTER_LEFT">
+      <Text fx:id="guardianName" styleClass="row-secondary" />
+    </HBox>
+  </HBox>
 
-  <VBox fx:id="lessons" />
-
-  <VBox fx:id="guardianCell" spacing="2">
-    <Text fx:id="guardianName" styleClass="row-value" />
-    <Text fx:id="guardianPhone" styleClass="row-muted" />
-  </VBox>
-</HBox>
+  <!-- Expanded details: every lesson, contact details, guardian and tags -->
+  <FlowPane fx:id="details" styleClass="row-details" hgap="48" vgap="16" />
+</VBox>

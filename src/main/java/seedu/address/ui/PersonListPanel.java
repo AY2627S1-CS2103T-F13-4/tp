@@ -25,12 +25,16 @@ public class PersonListPanel extends UiPart<Region> {
     private static final String FXML = "PersonListPanel.fxml";
     /** Width of the list taken by the # column, row padding, the gaps between columns and the scroll bar. */
     private static final double ROW_CHROME_WIDTH = 140;
-    /** Below this list width the Guardian column is folded into the Student column, so all columns fit. */
-    private static final double WIDE_TABLE_WIDTH = 1100;
-    /** Shares of the free width for the Lessons and Guardian columns; the Student column takes the rest. */
-    private static final double LESSONS_SHARE_WIDE = 0.40;
-    private static final double LESSONS_SHARE_NARROW = 0.58;
+    /** Below this list width the Guardian column is hidden; the guardian still shows in a row's details. */
+    private static final double WIDE_TABLE_WIDTH = 900;
+    /** Shares of the free width for the Next lesson and Guardian columns; the Student column takes the rest. */
+    private static final double LESSON_SHARE_WIDE = 0.36;
+    private static final double LESSON_SHARE_NARROW = 0.45;
     private static final double GUARDIAN_SHARE_WIDE = 0.22;
+    /** The Next lesson column is never narrower than a next-lesson line, e.g. "H2 Chemistry  Sat 1.00pm  +2 more". */
+    private static final double MIN_LESSON_WIDTH = 230;
+    /** Width of the list not available to a row's details: row padding, the details' indent and the scroll bar. */
+    private static final double DETAILS_CHROME_WIDTH = 100;
     /** Part of the visible height scrolled per page, leaving some overlap for context. */
     private static final double PAGE_FRACTION = 0.85;
 
@@ -51,6 +55,7 @@ public class PersonListPanel extends UiPart<Region> {
     private final DoubleBinding studentWidth;
     private final DoubleBinding lessonsWidth;
     private final DoubleBinding guardianWidth;
+    private final DoubleBinding detailsWidth;
 
     private final Label emptyTitle = new Label();
     private final Label emptyDetail = new Label();
@@ -63,9 +68,9 @@ public class PersonListPanel extends UiPart<Region> {
         super(FXML);
         ReadOnlyDoubleProperty listWidth = personListView.widthProperty();
         wide = listWidth.greaterThanOrEqualTo(WIDE_TABLE_WIDTH);
-        // The Lessons column is never narrower than a lesson line, so its columns never overlap the next column.
-        lessonsWidth = Bindings.createDoubleBinding(() -> Math.max(PersonCard.LESSON_GRID_WIDTH,
-                free(listWidth) * (isWide(listWidth) ? LESSONS_SHARE_WIDE : LESSONS_SHARE_NARROW)), listWidth);
+        lessonsWidth = Bindings.createDoubleBinding(() -> Math.max(MIN_LESSON_WIDTH,
+                free(listWidth) * (isWide(listWidth) ? LESSON_SHARE_WIDE : LESSON_SHARE_NARROW)), listWidth);
+        detailsWidth = listWidth.subtract(DETAILS_CHROME_WIDTH);
         guardianWidth = Bindings.createDoubleBinding(() ->
                 isWide(listWidth) ? free(listWidth) * GUARDIAN_SHARE_WIDE : 0, listWidth);
         studentWidth = Bindings.createDoubleBinding(() ->
@@ -78,6 +83,9 @@ public class PersonListPanel extends UiPart<Region> {
 
         personListView.setItems(personList);
         personListView.setCellFactory(listView -> new PersonListViewCell());
+        // A clicked row, or the only row left after a search, expands to show its details.
+        personListView.getSelectionModel().selectedIndexProperty().addListener((unused1, unused2, unused3) ->
+                personListView.refresh());
 
         emptyTitle.getStyleClass().add("empty-title");
         emptyDetail.getStyleClass().add("empty-detail");
@@ -86,7 +94,10 @@ public class PersonListPanel extends UiPart<Region> {
         emptyState.getStyleClass().add("empty-state");
         personListView.setPlaceholder(emptyState);
 
-        ListChangeListener<Student> refresh = change -> updateStatus(personList.size(), allPersons.size());
+        ListChangeListener<Student> refresh = change -> {
+            updateStatus(personList.size(), allPersons.size());
+            personListView.refresh();
+        };
         personList.addListener(refresh);
         allPersons.addListener(refresh);
         updateStatus(personList.size(), allPersons.size());
@@ -101,6 +112,26 @@ public class PersonListPanel extends UiPart<Region> {
         if (flow != null) {
             flow.scrollPixels(Math.signum(direction) * flow.getHeight() * PAGE_FRACTION);
         }
+    }
+
+    /**
+     * Opens the details of the student after (1) or before (-1) the open one, or the first or last if none is open,
+     * and scrolls to it. Lets keyboard users browse details while focus stays in the command box.
+     */
+    public void moveDetails(int direction) {
+        int size = personListView.getItems().size();
+        if (size == 0) {
+            return;
+        }
+        int current = personListView.getSelectionModel().getSelectedIndex();
+        int next = current < 0 ? (direction > 0 ? 0 : size - 1) : Math.max(0, Math.min(size - 1, current + direction));
+        personListView.getSelectionModel().select(next);
+        personListView.scrollTo(next);
+    }
+
+    /** Closes any open student details. */
+    public void closeDetails() {
+        personListView.getSelectionModel().clearSelection();
     }
 
     /** Returns the list width left for the Student, Lessons and Guardian columns. */
@@ -136,8 +167,9 @@ public class PersonListPanel extends UiPart<Region> {
                 setGraphic(null);
                 setText(null);
             } else {
-                PersonCard card = new PersonCard(person, getIndex() + 1);
-                card.bindColumns(studentWidth, lessonsWidth, guardianWidth, wide);
+                boolean expanded = getListView().getItems().size() == 1 || isSelected();
+                PersonCard card = new PersonCard(person, getIndex() + 1, expanded);
+                card.bindColumns(studentWidth, lessonsWidth, guardianWidth, wide, detailsWidth);
                 setGraphic(card.getRoot());
             }
         }
