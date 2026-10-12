@@ -21,18 +21,16 @@ public class Student extends Person {
 
     public static final String MESSAGE_DUPLICATE_LESSONS = "A student cannot have duplicate lessons.";
 
-    // Identity fields
     private final Email email;
-
-    // Data fields
     private final Address address;
     private final Set<Tag> tags = new HashSet<>();
 
     private final Optional<SchoolingLevel> schoolingLevel;
-    private final Optional<Guardian> guardianContact;
+    private final Optional<Guardian> guardian;
     private final List<Lesson> lessons;
 
     /**
+     * Creates a student with the given contact fields, no tuition details and no lessons.
      * Every field must be present and not null.
      */
     public Student(Name name, Phone phone, Email email, Address address, Set<Tag> tags) {
@@ -45,10 +43,10 @@ public class Student extends Person {
      * @throws IllegalArgumentException if {@code lessons} contains duplicates.
      */
     public Student(Name name, Phone phone, Email email, Address address, Set<Tag> tags,
-            Optional<SchoolingLevel> schoolingLevel, Optional<Guardian> guardianContact,
+            Optional<SchoolingLevel> schoolingLevel, Optional<Guardian> guardian,
             List<Lesson> lessons) {
         super(name, phone);
-        requireAllNonNull(email, address, tags, schoolingLevel, guardianContact, lessons);
+        requireAllNonNull(email, address, tags, schoolingLevel, guardian, lessons);
         lessons.forEach(Objects::requireNonNull);
         if (new HashSet<>(lessons).size() != lessons.size()) {
             throw new IllegalArgumentException(MESSAGE_DUPLICATE_LESSONS);
@@ -57,7 +55,7 @@ public class Student extends Person {
         this.address = address;
         this.tags.addAll(tags);
         this.schoolingLevel = schoolingLevel;
-        this.guardianContact = guardianContact;
+        this.guardian = guardian;
         this.lessons = Collections.unmodifiableList(new ArrayList<>(lessons));
     }
 
@@ -71,7 +69,7 @@ public class Student extends Person {
     }
 
     public Optional<Guardian> getGuardian() {
-        return guardianContact;
+        return guardian;
     }
 
     public Email getEmail() {
@@ -91,8 +89,8 @@ public class Student extends Person {
     }
 
     /**
-     * Returns true if both persons have the same identity and data fields.
-     * This defines a stronger notion of equality between two persons.
+     * Returns true if both students have the same name, phone and data fields.
+     * This defines a stronger notion of equality between two students.
      */
     @Override
     public boolean equals(Object other) {
@@ -101,23 +99,23 @@ public class Student extends Person {
         }
 
         // instanceof handles nulls
-        if (!(other instanceof Student otherPerson)) {
+        if (!(other instanceof Student otherStudent)) {
             return false;
         }
 
-        return super.equals(otherPerson)
-                && email.equals(otherPerson.email)
-                && address.equals(otherPerson.address)
-                && tags.equals(otherPerson.tags)
-                && schoolingLevel.equals(otherPerson.schoolingLevel)
-                && guardianContact.equals(otherPerson.guardianContact)
-                && lessons.equals(otherPerson.lessons);
+        return super.equals(otherStudent)
+                && email.equals(otherStudent.email)
+                && address.equals(otherStudent.address)
+                && tags.equals(otherStudent.tags)
+                && schoolingLevel.equals(otherStudent.schoolingLevel)
+                && guardian.equals(otherStudent.guardian)
+                && lessons.equals(otherStudent.lessons);
     }
 
     @Override
     public int hashCode() {
         // use this method for custom fields hashing instead of implementing your own
-        return Objects.hash(super.hashCode(), email, address, tags, schoolingLevel, guardianContact,
+        return Objects.hash(super.hashCode(), email, address, tags, schoolingLevel, guardian,
                 lessons);
     }
 
@@ -130,7 +128,7 @@ public class Student extends Person {
                 .add("address", address)
                 .add("tags", tags)
                 .add("schoolingLevel", schoolingLevel)
-                .add("guardianContact", guardianContact)
+                .add("guardian", guardian)
                 .add("lessons", lessons)
                 .toString();
     }

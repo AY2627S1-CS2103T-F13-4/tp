@@ -173,7 +173,7 @@ public class StudentTest {
     public void toStringMethod() {
         String expected = Student.class.getCanonicalName() + "{name=" + ALICE.getName() + ", phone=" + ALICE.getPhone()
                 + ", email=" + ALICE.getEmail() + ", address=" + ALICE.getAddress() + ", tags=" + ALICE.getTags()
-                + ", schoolingLevel=Optional.empty, guardianContact=Optional.empty, lessons=[]}";
+                + ", schoolingLevel=Optional.empty, guardian=Optional.empty, lessons=[]}";
         assertEquals(expected, ALICE.toString());
     }
 }

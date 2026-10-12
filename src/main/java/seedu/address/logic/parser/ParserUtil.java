@@ -185,7 +185,7 @@ public class ParserUtil {
     public static HourlyRate parseHourlyRate(String rate) throws ParseException {
         requireNonNull(rate);
         String trimmedRate = rate.trim();
-        if (!trimmedRate.matches("[0-9]+(\\.[0-9]{1,2})?")) {
+        if (!HourlyRate.isValidHourlyRate(trimmedRate)) {
             throw new ParseException(HourlyRate.MESSAGE_CONSTRAINTS);
         }
         return new HourlyRate(new BigDecimal(trimmedRate));
@@ -194,10 +194,11 @@ public class ParserUtil {
     /** Parses a physical or virtual lesson mode, ignoring case and surrounding spaces. */
     public static LessonMode parseLessonMode(String mode) throws ParseException {
         requireNonNull(mode);
-        if (!LessonMode.isValidMode(mode)) {
+        try {
+            return LessonMode.fromString(mode);
+        } catch (IllegalArgumentException e) {
             throw new ParseException(LessonMode.MESSAGE_CONSTRAINTS);
         }
-        return LessonMode.fromString(mode);
     }
 
     /** Parses and normalizes a lesson location. */

@@ -2,6 +2,7 @@ package seedu.address.model.person;
 
 import static java.util.Objects.requireNonNull;
 
+import java.util.Arrays;
 import java.util.Locale;
 
 /** How a lesson is delivered: in person or online. */
@@ -21,7 +22,7 @@ public enum LessonMode {
     public static boolean isValidMode(String text) {
         requireNonNull(text);
         String normalized = text.trim().toUpperCase(Locale.ROOT);
-        return normalized.equals(PHYSICAL.name()) || normalized.equals(VIRTUAL.name());
+        return Arrays.stream(values()).anyMatch(mode -> mode.name().equals(normalized));
     }
 
     /** Parses a mode, ignoring surrounding spaces and letter case. */

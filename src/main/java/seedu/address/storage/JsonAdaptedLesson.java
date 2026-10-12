@@ -72,7 +72,7 @@ class JsonAdaptedLesson {
         if (hourlyRate == null) {
             throw new IllegalValueException(String.format(MISSING_FIELD_MESSAGE_FORMAT, "hourlyRate"));
         }
-        if (!hourlyRate.matches("[0-9]+(\\.[0-9]{1,2})?")) {
+        if (!HourlyRate.isValidHourlyRate(hourlyRate)) {
             throw new IllegalValueException(HourlyRate.MESSAGE_CONSTRAINTS);
         }
         if (location != null && !LessonLocation.isValidLocation(location)) {
