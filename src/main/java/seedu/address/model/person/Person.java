@@ -2,83 +2,23 @@ package seedu.address.model.person;
 
 import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-
-import seedu.address.commons.util.ToStringBuilder;
-import seedu.address.model.tag.Tag;
 
 /**
- * Represents a Person in the address book.
+ * Represents any person tracked by the app, such as a student or a guardian.
+ * Holds the identity details common to every kind of person.
  * Guarantees: details are present and not null, field values are validated, immutable.
  */
-public class Person {
+public abstract class Person {
 
-    // Identity fields
     private final Name name;
     private final Phone phone;
-    private final Email email;
 
-    // Data fields
-    private final Address address;
-    private final Set<Tag> tags = new HashSet<>();
-
-    private final Set<Subject> subjects;
-    private final Optional<SchoolingLevel> schoolingLevel;
-    private final Optional<GuardianContact> guardianContact;
-    private final Optional<WeeklyLessonSlot> weeklyLessonSlot;
-    private final Optional<HourlyRate> hourlyRate;
-
-    /**
-     * Every field must be present and not null.
-     */
-    public Person(Name name, Phone phone, Email email, Address address, Set<Tag> tags) {
-        this(name, phone, email, address, tags, Set.of(), Optional.empty(), Optional.empty(),
-                Optional.empty(), Optional.empty());
-    }
-
-    /** Creates a student with all contact fields and optional tuition details. */
-    public Person(Name name, Phone phone, Email email, Address address, Set<Tag> tags,
-            Set<Subject> subjects, Optional<SchoolingLevel> schoolingLevel,
-            Optional<GuardianContact> guardianContact, Optional<WeeklyLessonSlot> weeklyLessonSlot,
-            Optional<HourlyRate> hourlyRate) {
-        requireAllNonNull(name, phone, email, address, tags, subjects, schoolingLevel,
-                guardianContact, weeklyLessonSlot, hourlyRate);
+    /** Every field must be present and not null. */
+    protected Person(Name name, Phone phone) {
+        requireAllNonNull(name, phone);
         this.name = name;
         this.phone = phone;
-        this.email = email;
-        this.address = address;
-        this.tags.addAll(tags);
-        subjects.forEach(Objects::requireNonNull);
-        this.subjects = Collections.unmodifiableSet(new LinkedHashSet<>(subjects));
-        this.schoolingLevel = schoolingLevel;
-        this.guardianContact = guardianContact;
-        this.weeklyLessonSlot = weeklyLessonSlot;
-        this.hourlyRate = hourlyRate;
-    }
-
-    public Set<Subject> getSubjects() {
-        return subjects;
-    }
-
-    public Optional<SchoolingLevel> getSchoolingLevel() {
-        return schoolingLevel;
-    }
-
-    public Optional<GuardianContact> getGuardianContact() {
-        return guardianContact;
-    }
-
-    public Optional<WeeklyLessonSlot> getWeeklyLessonSlot() {
-        return weeklyLessonSlot;
-    }
-
-    public Optional<HourlyRate> getHourlyRate() {
-        return hourlyRate;
     }
 
     public Name getName() {
@@ -89,83 +29,32 @@ public class Person {
         return phone;
     }
 
-    public Email getEmail() {
-        return email;
-    }
-
-    public Address getAddress() {
-        return address;
-    }
-
-    /**
-     * Returns an immutable tag set, which throws {@code UnsupportedOperationException}
-     * if modification is attempted.
-     */
-    public Set<Tag> getTags() {
-        return Collections.unmodifiableSet(tags);
-    }
-
-    /**
-     * Returns true if both persons have the same name.
-     * This defines a weaker notion of equality between two persons.
-     */
-    public boolean isSamePerson(Person otherPerson) {
-        if (otherPerson == this) {
+    /** Returns true if {@code other} is the same kind of person with the same name. */
+    public boolean isSamePerson(Person other) {
+        if (other == this) {
             return true;
         }
 
-        return otherPerson != null
-                && otherPerson.getName().equals(getName());
+        return other != null
+                && other.getClass().equals(getClass())
+                && other.getName().equals(getName());
     }
 
-    /**
-     * Returns true if both persons have the same identity and data fields.
-     * This defines a stronger notion of equality between two persons.
-     */
+    /** Returns true if both persons are of the same kind and have the same name and phone. */
     @Override
     public boolean equals(Object other) {
         if (other == this) {
             return true;
         }
 
-        // instanceof handles nulls
-        if (!(other instanceof Person otherPerson)) {
-            return false;
-        }
-
-        return name.equals(otherPerson.name)
-                && phone.equals(otherPerson.phone)
-                && email.equals(otherPerson.email)
-                && address.equals(otherPerson.address)
-                && tags.equals(otherPerson.tags)
-                && subjects.equals(otherPerson.subjects)
-                && schoolingLevel.equals(otherPerson.schoolingLevel)
-                && guardianContact.equals(otherPerson.guardianContact)
-                && weeklyLessonSlot.equals(otherPerson.weeklyLessonSlot)
-                && hourlyRate.equals(otherPerson.hourlyRate);
+        return other instanceof Person otherPerson
+                && other.getClass().equals(getClass())
+                && name.equals(otherPerson.name)
+                && phone.equals(otherPerson.phone);
     }
 
     @Override
     public int hashCode() {
-        // use this method for custom fields hashing instead of implementing your own
-        return Objects.hash(name, phone, email, address, tags, subjects, schoolingLevel, guardianContact,
-                weeklyLessonSlot, hourlyRate);
+        return Objects.hash(name, phone);
     }
-
-    @Override
-    public String toString() {
-        return new ToStringBuilder(this)
-                .add("name", name)
-                .add("phone", phone)
-                .add("email", email)
-                .add("address", address)
-                .add("tags", tags)
-                .add("subjects", subjects)
-                .add("schoolingLevel", schoolingLevel)
-                .add("guardianContact", guardianContact)
-                .add("weeklyLessonSlot", weeklyLessonSlot)
-                .add("hourlyRate", hourlyRate)
-                .toString();
-    }
-
 }

@@ -37,7 +37,7 @@ public class FindCommandParser implements Parser<FindCommand> {
         return new FindCommand(new NameContainsKeywordsPredicate(List.of(nameKeywords)));
     }
 
-    /** Parses {@code find l/TEXT}, which must not be combined with name keywords. */
+    /** Parses {@code find level/TEXT}, which must not be combined with name keywords. */
     private FindCommand parseLevelSearch(String args) throws ParseException {
         ArgumentMultimap argMultimap = ArgumentTokenizer.tokenize(args, PREFIX_LEVEL);
         if (!argMultimap.getPreamble().isEmpty()

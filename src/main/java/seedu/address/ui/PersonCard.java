@@ -8,10 +8,10 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
-import seedu.address.model.person.Person;
+import seedu.address.model.person.Student;
 
 /**
- * A UI component that displays information of a {@code Person}.
+ * A UI component that displays information of a {@code Student}.
  */
 public class PersonCard extends UiPart<Region> {
 
@@ -25,7 +25,7 @@ public class PersonCard extends UiPart<Region> {
      * @see <a href="https://github.com/se-edu/addressbook-level4/issues/336">The issue on AddressBook level 4</a>
      */
 
-    public final Person person;
+    public final Student person;
 
     @FXML
     private HBox cardPane;
@@ -40,22 +40,18 @@ public class PersonCard extends UiPart<Region> {
     @FXML
     private Label email;
     @FXML
-    private Label subject;
-    @FXML
     private Label schoolingLevel;
     @FXML
-    private Label weeklyLessonSlot;
-    @FXML
-    private Label hourlyRate;
+    private Label lessons;
     @FXML
     private Label guardian;
     @FXML
     private FlowPane tags;
 
     /**
-     * Creates a {@code PersonCard} with the given {@code Person} and index to display.
+     * Creates a {@code PersonCard} with the given {@code Student} and index to display.
      */
-    public PersonCard(Person person, int displayedIndex) {
+    public PersonCard(Student person, int displayedIndex) {
         super(FXML);
         this.person = person;
         id.setText(displayedIndex + ". ");
@@ -63,26 +59,19 @@ public class PersonCard extends UiPart<Region> {
         phone.setText(person.getPhone().value);
         address.setText(person.getAddress().value);
         email.setText(person.getEmail().value);
-        guardian.setText("Guardian: " + person.getGuardianContact().map(Object::toString).orElse("Not recorded"));
-        subject.setText("Subjects: " + (person.getSubjects().isEmpty() ? "Not recorded"
-                : person.getSubjects().stream().map(Object::toString).collect(Collectors.joining(", "))));
+        guardian.setText("Guardian: " + person.getGuardian().map(Object::toString).orElse("Not recorded"));
         if (person.getSchoolingLevel().isPresent()) {
             schoolingLevel.setText("Level: " + person.getSchoolingLevel().get());
         } else {
             schoolingLevel.setVisible(false);
             schoolingLevel.setManaged(false);
         }
-        if (person.getWeeklyLessonSlot().isPresent()) {
-            weeklyLessonSlot.setText("Lesson: " + person.getWeeklyLessonSlot().get());
+        if (person.getLessons().isEmpty()) {
+            lessons.setText("Lessons: Not recorded");
         } else {
-            weeklyLessonSlot.setVisible(false);
-            weeklyLessonSlot.setManaged(false);
-        }
-        if (person.getHourlyRate().isPresent()) {
-            hourlyRate.setText("Rate: SGD " + person.getHourlyRate().get() + "/hour");
-        } else {
-            hourlyRate.setVisible(false);
-            hourlyRate.setManaged(false);
+            lessons.setText("Lessons:\n" + person.getLessons().stream()
+                    .map(lesson -> "- " + lesson)
+                    .collect(Collectors.joining("\n")));
         }
         person.getTags().stream()
                 .sorted(Comparator.comparing(tag -> tag.tagName))

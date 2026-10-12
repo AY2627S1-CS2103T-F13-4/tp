@@ -25,7 +25,7 @@ public class SchoolingLevelContainsKeywordPredicateTest {
 
     @Test
     public void test() {
-        Person primary = new PersonBuilder().withSchoolingLevel(new SchoolingLevel("Primary 5")).build();
+        Student primary = new PersonBuilder().withSchoolingLevel(new SchoolingLevel("Primary 5")).build();
 
         assertTrue(new SchoolingLevelContainsKeywordPredicate("Primary 5").test(primary));
         assertTrue(new SchoolingLevelContainsKeywordPredicate("pRiMaRy").test(primary));

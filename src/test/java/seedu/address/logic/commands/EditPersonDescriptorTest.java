@@ -12,21 +12,12 @@ import static seedu.address.logic.commands.CommandTestUtil.VALID_NAME_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_PHONE_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_TAG_HUSBAND;
 
-import java.time.DayOfWeek;
-import java.time.LocalTime;
-
 import org.junit.jupiter.api.Test;
 
 import seedu.address.logic.commands.EditCommand.EditPersonDescriptor;
-import seedu.address.model.person.WeeklyLessonSlot;
 import seedu.address.testutil.EditPersonDescriptorBuilder;
 
 public class EditPersonDescriptorTest {
-
-    private static final WeeklyLessonSlot MONDAY_SLOT = new WeeklyLessonSlot(DayOfWeek.MONDAY,
-            LocalTime.of(16, 0), LocalTime.of(17, 30));
-    private static final WeeklyLessonSlot TUESDAY_SLOT = new WeeklyLessonSlot(DayOfWeek.TUESDAY,
-            LocalTime.of(10, 0), LocalTime.of(11, 0));
 
     @Test
     public void isAnyFieldEdited_noFields_returnsFalse() {
@@ -34,14 +25,14 @@ public class EditPersonDescriptorTest {
     }
 
     @Test
-    public void isAnyFieldEdited_weeklyLessonSlotSet_returnsTrue() {
-        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withWeeklyLessonSlot(MONDAY_SLOT).build();
+    public void isAnyFieldEdited_schoolingLevelSet_returnsTrue() {
+        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withSchoolingLevel("Primary 5").build();
         assertTrue(descriptor.isAnyFieldEdited());
     }
 
     @Test
-    public void isAnyFieldEdited_weeklyLessonSlotCleared_returnsTrue() {
-        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withWeeklyLessonSlot(null).build();
+    public void isAnyFieldEdited_schoolingLevelCleared_returnsTrue() {
+        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withSchoolingLevel(null).build();
         assertTrue(descriptor.isAnyFieldEdited());
     }
 
@@ -94,16 +85,15 @@ public class EditPersonDescriptorTest {
     }
 
     @Test
-    public void equals_weeklyLessonSlotEdits_comparesValueAndPresence() {
+    public void equals_schoolingLevelEdits_comparesValueAndPresence() {
         EditPersonDescriptor unchanged = new EditPersonDescriptorBuilder(DESC_AMY).build();
-        EditPersonDescriptor set = new EditPersonDescriptorBuilder(DESC_AMY).withWeeklyLessonSlot(MONDAY_SLOT).build();
+        EditPersonDescriptor set = new EditPersonDescriptorBuilder(DESC_AMY).withSchoolingLevel("Primary 5").build();
         EditPersonDescriptor different = new EditPersonDescriptorBuilder(DESC_AMY)
-                .withWeeklyLessonSlot(TUESDAY_SLOT).build();
-        EditPersonDescriptor cleared = new EditPersonDescriptorBuilder(DESC_AMY).withWeeklyLessonSlot(null).build();
+                .withSchoolingLevel("Primary 6").build();
+        EditPersonDescriptor cleared = new EditPersonDescriptorBuilder(DESC_AMY).withSchoolingLevel(null).build();
 
-        assertEquals(set, new EditPersonDescriptorBuilder(DESC_AMY).withWeeklyLessonSlot(
-                new WeeklyLessonSlot(DayOfWeek.MONDAY, LocalTime.of(16, 0), LocalTime.of(17, 30))).build());
-        assertEquals(cleared, new EditPersonDescriptorBuilder(DESC_AMY).withWeeklyLessonSlot(null).build());
+        assertEquals(set, new EditPersonDescriptorBuilder(DESC_AMY).withSchoolingLevel("Primary 5").build());
+        assertEquals(cleared, new EditPersonDescriptorBuilder(DESC_AMY).withSchoolingLevel(null).build());
         assertNotEquals(set, different);
         assertNotEquals(set, cleared);
         assertNotEquals(unchanged, set);
@@ -111,10 +101,10 @@ public class EditPersonDescriptorTest {
     }
 
     @Test
-    public void copyConstructor_weeklyLessonSlotEdits_preservesValueAndPresence() {
+    public void copyConstructor_schoolingLevelEdits_preservesValueAndPresence() {
         EditPersonDescriptor unchanged = new EditPersonDescriptor();
-        EditPersonDescriptor set = new EditPersonDescriptorBuilder().withWeeklyLessonSlot(MONDAY_SLOT).build();
-        EditPersonDescriptor cleared = new EditPersonDescriptorBuilder().withWeeklyLessonSlot(null).build();
+        EditPersonDescriptor set = new EditPersonDescriptorBuilder().withSchoolingLevel("Primary 5").build();
+        EditPersonDescriptor cleared = new EditPersonDescriptorBuilder().withSchoolingLevel(null).build();
 
         assertEquals(unchanged, new EditPersonDescriptor(unchanged));
         assertEquals(set, new EditPersonDescriptor(set));
@@ -129,10 +119,8 @@ public class EditPersonDescriptorTest {
                 + editPersonDescriptor.getPhone().orElse(null) + ", email="
                 + editPersonDescriptor.getEmail().orElse(null) + ", address="
                 + editPersonDescriptor.getAddress().orElse(null) + ", tags="
-                + editPersonDescriptor.getTags().orElse(null) + ", subjects=null, schoolingLevel="
-                + editPersonDescriptor.getSchoolingLevel().orElse(null) + ", weeklyLessonSlot="
-                + editPersonDescriptor.getWeeklyLessonSlot().orElse(null) + ", hourlyRate="
-                + editPersonDescriptor.getHourlyRate().orElse(null) + "}";
+                + editPersonDescriptor.getTags().orElse(null) + ", schoolingLevel="
+                + editPersonDescriptor.getSchoolingLevel().orElse(null) + "}";
         assertEquals(expected, editPersonDescriptor.toString());
     }
 }

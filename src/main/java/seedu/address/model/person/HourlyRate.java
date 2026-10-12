@@ -9,6 +9,8 @@ import java.math.BigDecimal;
 public final class HourlyRate {
     public static final String MESSAGE_CONSTRAINTS =
             "Hourly rate must be a non-negative SGD amount with at most two decimal places.";
+    private static final String VALIDATION_REGEX = "[0-9]+(\\.[0-9]{1,2})?";
+
     public final BigDecimal value;
 
     /** Creates a rate with a canonical two-decimal representation. */
@@ -16,6 +18,12 @@ public final class HourlyRate {
         requireNonNull(value);
         checkArgument(value.signum() >= 0 && value.scale() <= 2, MESSAGE_CONSTRAINTS);
         this.value = value.setScale(2);
+    }
+
+    /** Returns whether the text is a non-negative amount with at most two decimal places. */
+    public static boolean isValidHourlyRate(String text) {
+        requireNonNull(text);
+        return text.matches(VALIDATION_REGEX);
     }
 
     @Override
