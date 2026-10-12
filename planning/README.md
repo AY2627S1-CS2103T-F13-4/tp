@@ -6,8 +6,8 @@ Use these guides to plan work, check course requirements, and prepare releases. 
 
 ## Team working documents
 
-- [CS2103T tP: Google Docs project notes](https://docs.google.com/document/d/1pKzPlukZCaR6_79P0JqYNnrS5HLQiv3rqZcaM1cU_qU/view)
-- [User Stories: Google Sheets planning spreadsheet](https://docs.google.com/spreadsheets/d/1IDiEMkbwMZHQttnT8He7VNDg-BPLfnKC0VkSeOGtHxA/view)
+- [CS2103T tP: Google Docs project notes (read-only)](https://docs.google.com/document/d/e/2PACX-1vTVzmQO6pua8Zf7ZsB54tyByxt8dTzxpR0laaFRHyGLbpZKyq52gCtv80Xqn1mXGhGYuEjt5vgJD66D/pub)
+- [User Stories: Google Sheets planning spreadsheet (read-only)](https://docs.google.com/spreadsheets/d/e/2PACX-1vQPidvlJMPkfmL-g31VKcdxj6S296sb4pDVJq8fPVxdYRruL6rBMw4HNG-sdbqvXmtu5byKgDubn9t7/pubhtml)
 
 Read the latest entries alongside the agreed product scope. Older tabs and brainstorming ideas may describe earlier plans rather than current commitments.
 
