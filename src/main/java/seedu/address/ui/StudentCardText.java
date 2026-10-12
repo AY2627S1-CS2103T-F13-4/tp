@@ -20,8 +20,11 @@ final class StudentCardText {
     /** School stage of a schooling level, which sets the colour of its chip. */
     enum Stage { PRIMARY, SECONDARY, JC, OTHER }
 
-    /** One lesson line: its text, and its mode, which is shown as a separate coloured chip. */
-    record LessonLine(String text, Optional<LessonMode> mode) {}
+    /**
+     * One lesson, split into the parts the card lines up in columns. The number is the lesson's LESSON_INDEX.
+     */
+    record LessonLine(int number, String subject, String slot, String rate,
+            Optional<String> location, Optional<LessonMode> mode) {}
 
     // Levels are free text, so only clear forms such as "P5", "Primary 5", "Sec 3 Express" or "JC1" get a stage
     // colour. Anything else (e.g. "Poly Y1", "IB") is OTHER, so a level is never shown in the wrong colour.
@@ -47,8 +50,8 @@ final class StudentCardText {
     }
 
     /**
-     * Returns one line per lesson, numbered from 1 in stored order so the numbers match {@code LESSON_INDEX},
-     * e.g. "1. Math · Tuesday 4.00pm-5.30pm · SGD 60.00/hour · at Library", with the mode kept separately.
+     * Returns one entry per lesson, numbered from 1 in stored order so the numbers match {@code LESSON_INDEX},
+     * e.g. 1, "Math", "Tuesday 4.00pm-5.30pm", "SGD 60.00/hour", location "Library", mode Physical.
      * Returns an empty list when the student has no lessons.
      */
     static List<LessonLine> lessons(Student student) {
@@ -56,10 +59,9 @@ final class StudentCardText {
         List<Lesson> lessons = student.getLessons();
         for (int i = 0; i < lessons.size(); i++) {
             Lesson lesson = lessons.get(i);
-            StringBuilder line = new StringBuilder((i + 1) + ". " + lesson.getSubject() + " · "
-                    + lesson.getWeeklyLessonSlot() + " · SGD " + lesson.getHourlyRate() + "/hour");
-            lesson.getLocation().ifPresent(location -> line.append(" · at ").append(location));
-            lines.add(new LessonLine(line.toString(), lesson.getMode()));
+            lines.add(new LessonLine(i + 1, lesson.getSubject().toString(), lesson.getWeeklyLessonSlot().toString(),
+                    "SGD " + lesson.getHourlyRate() + "/hour", lesson.getLocation().map(Object::toString),
+                    lesson.getMode()));
         }
         return lines;
     }

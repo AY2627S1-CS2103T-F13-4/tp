@@ -43,14 +43,15 @@ public class StudentCardTextTest {
     }
 
     // lesson-edit and lesson-delete take LESSON_INDEX, so the card must number lessons from 1 in stored order.
-    // The mode is kept apart from the text because the card shows it as a coloured chip.
+    // Location and mode are optional and stay empty when not recorded.
     @Test
-    public void lessons_numberedInStoredOrderWithModeSeparate() {
+    public void lessons_numberedInStoredOrderWithOptionalDetails() {
         Student student = new PersonBuilder().withLessons(MATH, ENGLISH).build();
         assertEquals(List.of(
-                new LessonLine("1. Math · Tuesday 4.00pm-5.30pm · SGD 60.00/hour", Optional.empty()),
-                new LessonLine("2. English · Saturday 10.00am-11.00am · SGD 45.50/hour · at Tampines Library",
-                        Optional.of(LessonMode.PHYSICAL))),
+                new LessonLine(1, "Math", "Tuesday 4.00pm-5.30pm", "SGD 60.00/hour", Optional.empty(),
+                        Optional.empty()),
+                new LessonLine(2, "English", "Saturday 10.00am-11.00am", "SGD 45.50/hour",
+                        Optional.of("Tampines Library"), Optional.of(LessonMode.PHYSICAL))),
                 StudentCardText.lessons(student));
     }
 

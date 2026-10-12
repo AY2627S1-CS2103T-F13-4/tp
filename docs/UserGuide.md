@@ -142,7 +142,7 @@ Each student can have zero or more lessons. A lesson has a subject, a weekly tim
 
 * **Create:** `lesson-add STUDENT_INDEX subject/SUBJECT slot/LESSON_SLOT rate/HOURLY_RATE [mode/MODE] [location/LOCATION]`
   Subject, slot and rate are required; mode and location are optional. The new lesson is added to the end of the student's lessons.
-* **Read:** Use `list` or `find` to display the student. Their card numbers each lesson in order, for example `1. Math · Wednesday 1.00pm-5.00pm · SGD 45.50/hour · at Clementi Library` followed by a `Physical` tag (location and mode are shown only when recorded), or shows a grey `No lessons yet` when there are none. Use that number as `LESSON_INDEX`.
+* **Read:** Use `list` or `find` to display the student. Their card lists the lessons as a small table: the lesson number, subject, day and time, and rate line up in columns. A lesson's mode (`Physical` or `Virtual`) and location appear on a second line when recorded. A student with no lessons shows a grey `No lessons yet`. Use the lesson number as `LESSON_INDEX`.
 * **Update:** `lesson-edit STUDENT_INDEX LESSON_INDEX [subject/SUBJECT] [slot/LESSON_SLOT] [rate/HOURLY_RATE] [mode/MODE] [location/LOCATION]`
   Supply at least one field. Omitted fields stay unchanged. To remove a recorded mode or location, give its prefix with nothing after it: `mode/` clears the mode and `location/` clears the location (see the examples below).
 * **Delete:** `lesson-delete STUDENT_INDEX LESSON_INDEX`

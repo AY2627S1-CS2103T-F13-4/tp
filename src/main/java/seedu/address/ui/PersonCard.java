@@ -9,10 +9,12 @@ import java.util.Optional;
 
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.DoubleExpression;
+import javafx.beans.property.SimpleDoubleProperty;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
@@ -34,9 +36,14 @@ public class PersonCard extends UiPart<Region> {
     private static final double FACT_FONT_SIZE = 13;
     /** The chip's horizontal padding (8 + 8) plus the 6px gap before the tags. */
     private static final double CHIP_PADDING_AND_GAP = 22;
-    /** A chip's horizontal padding (8 + 8), and the gap between a lesson and its mode chip. */
-    private static final double CHIP_PADDING = 16;
+    /** Gaps in the lessons table, and between a lesson's mode chip and its location. */
+    private static final double LESSON_COLUMN_GAP = 16;
+    private static final double LESSON_ROW_GAP = 3;
     private static final double MODE_CHIP_GAP = 8;
+    /** Room for the widest mode chip ("Physical") and its gap, in front of a location line. */
+    private static final double MODE_CHIP_ALLOWANCE = 76;
+    /** Subjects longer than this wrap, so the slot and rate columns still fit a 600px window. */
+    private static final double SUBJECT_MAX_WIDTH = 150;
     /** Colours the level chip by school stage; unrecognised levels stay neutral. */
     private static final Map<StudentCardText.Stage, String> STAGE_STYLE_CLASSES = Map.of(
             StudentCardText.Stage.PRIMARY, "level-primary",
@@ -79,9 +86,11 @@ public class PersonCard extends UiPart<Region> {
     @FXML
     private Text address;
 
-    /** Each lesson's text, with the mode chip beside it if the lesson has a mode. */
-    private final List<Text> lessonTexts = new ArrayList<>();
-    private final List<Optional<Label>> lessonModes = new ArrayList<>();
+    /** Text that wraps within the lessons table: long subjects, and each lesson's location line. */
+    private final List<Text> lessonSubjects = new ArrayList<>();
+    private final List<Text> lessonLocations = new ArrayList<>();
+    /** Width of the lesson number column, which the location line is indented by. */
+    private double lessonNumberWidth;
 
     /**
      * Creates a {@code PersonCard} with the given {@code Student} and index to display.
@@ -121,26 +130,56 @@ public class PersonCard extends UiPart<Region> {
         if (lines.isEmpty()) {
             Text none = new Text(StudentCardText.NO_LESSONS);
             none.getStyleClass().addAll(LESSON_STYLE_CLASS, EMPTY_VALUE_STYLE_CLASS);
-            lessonTexts.add(none);
-            lessonModes.add(Optional.empty());
             lessons.getChildren().add(none);
+        } else {
+            lessons.getChildren().add(lessonTable(lines));
         }
+    }
+
+    /**
+     * Lays the lessons out as a small table: number, subject, day and time, and rate line up in columns, and a
+     * lesson's mode and location sit on a second line under its subject. Numbers match {@code LESSON_INDEX}.
+     */
+    private GridPane lessonTable(List<StudentCardText.LessonLine> lines) {
+        GridPane table = new GridPane();
+        table.setHgap(LESSON_COLUMN_GAP);
+        table.setVgap(LESSON_ROW_GAP);
+        int row = 0;
         for (StudentCardText.LessonLine line : lines) {
-            Text text = new Text(line.text());
-            text.getStyleClass().add(LESSON_STYLE_CLASS);
-            Optional<Label> mode = line.mode().map(lessonMode -> {
+            Text number = new Text(line.number() + ".");
+            number.getStyleClass().add("lesson-number");
+            lessonNumberWidth = Math.max(lessonNumberWidth, textWidth(number.getText(), FACT_FONT_SIZE));
+            Text subject = new Text(line.subject());
+            subject.getStyleClass().add("lesson-subject");
+            lessonSubjects.add(subject);
+            table.addRow(row++, number, subject, lessonText(line.slot()), lessonText(line.rate()));
+
+            if (line.mode().isEmpty() && line.location().isEmpty()) {
+                continue;
+            }
+            HBox details = new HBox(MODE_CHIP_GAP);
+            details.setAlignment(Pos.CENTER_LEFT);
+            line.mode().ifPresent(lessonMode -> {
                 Label chip = new Label(lessonMode.toString());
                 chip.getStyleClass().addAll("chip", "mode-chip", "mode-" + lessonMode.name().toLowerCase(Locale.ROOT));
                 chip.setMinWidth(Region.USE_PREF_SIZE);
-                return chip;
+                details.getChildren().add(chip);
             });
-            HBox row = new HBox(MODE_CHIP_GAP, text);
-            row.setAlignment(Pos.CENTER_LEFT);
-            mode.ifPresent(row.getChildren()::add);
-            lessonTexts.add(text);
-            lessonModes.add(mode);
-            lessons.getChildren().add(row);
+            line.location().ifPresent(location -> {
+                Text text = new Text("at " + location);
+                text.getStyleClass().add("lesson-location");
+                lessonLocations.add(text);
+                details.getChildren().add(text);
+            });
+            table.add(details, 1, row++, 3, 1);
         }
+        return table;
+    }
+
+    private static Text lessonText(String value) {
+        Text text = new Text(value);
+        text.getStyleClass().add(LESSON_STYLE_CLASS);
+        return text;
     }
 
     /**
@@ -155,12 +194,11 @@ public class PersonCard extends UiPart<Region> {
         tags.prefWrapLengthProperty().bind(width.subtract(chipWidth));
         facts.prefWrapLengthProperty().bind(width);
         name.wrappingWidthProperty().bind(width);
-        for (int i = 0; i < lessonTexts.size(); i++) {
-            // A lesson's mode chip follows its text, so the text wraps in the width the chip leaves.
-            double modeWidth = lessonModes.get(i)
-                    .map(chip -> textWidth(chip.getText(), CHIP_FONT_SIZE) + CHIP_PADDING + MODE_CHIP_GAP).orElse(0.0);
-            wrapWhenLonger(lessonTexts.get(i), width.subtract(modeWidth));
-        }
+        // Long subjects wrap within their column; a location line can use the width beside the number column,
+        // less the mode chip in front of it.
+        lessonSubjects.forEach(subject -> wrapWhenLonger(subject, new SimpleDoubleProperty(SUBJECT_MAX_WIDTH)));
+        DoubleExpression locationWidth = width.subtract(lessonNumberWidth + LESSON_COLUMN_GAP + MODE_CHIP_ALLOWANCE);
+        lessonLocations.forEach(location -> wrapWhenLonger(location, locationWidth));
         wrapWhenLonger(guardian, width);
         wrapWhenLonger(email, width);
         wrapWhenLonger(address, Bindings.min(width, ADDRESS_MAX_WIDTH));
