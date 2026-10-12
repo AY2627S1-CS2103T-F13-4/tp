@@ -1,6 +1,7 @@
 package seedu.address.storage;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -9,6 +10,7 @@ import java.nio.file.Path;
 import java.time.DayOfWeek;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -24,6 +26,8 @@ import seedu.address.model.UserPrefs;
 import seedu.address.model.person.Guardian;
 import seedu.address.model.person.HourlyRate;
 import seedu.address.model.person.Lesson;
+import seedu.address.model.person.LessonLocation;
+import seedu.address.model.person.LessonMode;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Phone;
 import seedu.address.model.person.SchoolingLevel;
@@ -107,6 +111,31 @@ public class TuitionStorageTest {
         Student single = JsonUtil.fromJsonString(withProperty("\"lessons\":[" + VALID_LESSON + "]"),
                 JsonAdaptedPerson.class).toModelType();
         assertEquals(List.of(lesson("Math", DayOfWeek.MONDAY, "45.5")), single.getLessons());
+    }
+
+    @Test
+    public void lessonLocationAndMode_roundTripAndAreOptionalInJson() throws Exception {
+        Lesson withExtras = new Lesson(new Subject("Math"),
+                new WeeklyLessonSlot(DayOfWeek.MONDAY, LocalTime.of(16, 0), LocalTime.of(17, 30)),
+                new HourlyRate(new BigDecimal("45.50")), Optional.of(new LessonLocation("Clementi Library")),
+                Optional.of(LessonMode.PHYSICAL));
+        String saved = JsonUtil.toJsonString(new JsonAdaptedLesson(withExtras));
+        assertTrue(saved.contains("\"mode\" : \"PHYSICAL\""));
+        assertEquals(withExtras, JsonUtil.fromJsonString(saved, JsonAdaptedLesson.class).toModelType());
+
+        String plain = JsonUtil.toJsonString(new JsonAdaptedLesson(lesson("Math", DayOfWeek.MONDAY, "45.50")));
+        assertFalse(plain.contains("location"));
+        assertFalse(plain.contains("mode"));
+
+        Lesson loaded = JsonUtil.fromJsonString(VALID_LESSON.replace("}}", "}").replaceAll("\\}$",
+                ",\"mode\":\"virtual\",\"location\":null}"), JsonAdaptedLesson.class).toModelType();
+        assertEquals(Optional.of(LessonMode.VIRTUAL), loaded.getMode());
+        assertEquals(Optional.empty(), loaded.getLocation());
+        for (String bad : new String[]{",\"mode\":\"hybrid\"", ",\"location\":\"\"", ",\"mode\":1"}) {
+            String json = VALID_LESSON.replaceAll("\\}$", bad + "}");
+            assertThrows(Exception.class, () -> JsonUtil.fromJsonString(json, JsonAdaptedLesson.class)
+                    .toModelType(), json);
+        }
     }
 
     @Test

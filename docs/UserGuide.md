@@ -119,13 +119,13 @@ Subject, phone and other fields are not searched.
 
 ### Manage a student's lessons
 
-Each student can have zero or more lessons. A lesson has a subject, a weekly time slot and an hourly rate, and all three are always present. A student cannot have two identical lessons, but lessons with overlapping time slots are allowed. Lesson commands use the student's positive `STUDENT_INDEX` in the currently displayed list, including search results. They preserve all other student fields.
+Each student can have zero or more lessons. A lesson has a subject, a weekly time slot and an hourly rate, which are always present, and an optional mode (physical or virtual) and location. A student cannot have two identical lessons, but lessons with overlapping time slots are allowed. Lesson commands use the student's positive `STUDENT_INDEX` in the currently displayed list, including search results. They preserve all other student fields.
 
-* **Create:** `lesson-add STUDENT_INDEX s/SUBJECT i/LESSON_SLOT r/HOURLY_RATE`
-  All three fields are required. The new lesson is added to the end of the student's lessons.
-* **Read:** Use `list` or `find` to display the student. Their card lists each lesson in order, for example `- Math, Wednesday 1.00pm-5.00pm, SGD 45.50/hour`, or shows `Lessons: Not recorded` when there are none. The number of a lesson is its position in that list, starting from 1.
-* **Update:** `lesson-edit STUDENT_INDEX LESSON_INDEX [s/SUBJECT] [i/LESSON_SLOT] [r/HOURLY_RATE]`
-  Supply at least one field. Omitted fields stay unchanged.
+* **Create:** `lesson-add STUDENT_INDEX s/SUBJECT i/LESSON_SLOT r/HOURLY_RATE [m/MODE] [loc/LOCATION]`
+  Subject, slot and rate are required; mode and location are optional. The new lesson is added to the end of the student's lessons.
+* **Read:** Use `list` or `find` to display the student. Their card lists each lesson in order, for example `- Math, Wednesday 1.00pm-5.00pm, SGD 45.50/hour, Physical, at Clementi Library` (mode and location are shown only when recorded), or shows `Lessons: Not recorded` when there are none. The number of a lesson is its position in that list, starting from 1.
+* **Update:** `lesson-edit STUDENT_INDEX LESSON_INDEX [s/SUBJECT] [i/LESSON_SLOT] [r/HOURLY_RATE] [m/MODE] [loc/LOCATION]`
+  Supply at least one field. Omitted fields stay unchanged. To remove a recorded mode or location, give its prefix with nothing after it: `m/` clears the mode and `loc/` clears the location (see the examples below).
 * **Delete:** `lesson-delete STUDENT_INDEX LESSON_INDEX`
   Removes only that lesson. Later lessons move up by one position.
 
@@ -134,19 +134,24 @@ Field rules:
 * **Subject** (`s/`): 1 to 40 characters after space cleanup. Start with a letter or digit and include at least one letter. Use English letters, digits, spaces and these symbols: `'`, `-`, `.`, `(`, `)`. Leading and trailing spaces are removed and repeated spaces become one. Subjects are compared ignoring letter case, so `Math` and `math` are the same subject.
 * **Lesson slot** (`i/`): `DAY START END` on a single day, such as `Wed 1.00pm 5.00pm`. Use a three-letter day (`Mon` to `Sun`), and times like `1.00pm` or `10.30am` with minute precision. Days and `am`/`pm` are not case-sensitive, so `wed 1.00PM 5.00PM` also works. The end must be later than the start on the same day; overnight lessons are not supported. The card shows the full day name, for example `Wednesday 1.00pm-5.00pm`.
 * **Hourly rate** (`r/`): an amount in SGD per hour. It must be non-negative and have at most two decimal places; `45`, `45.5` and `45.50` are valid. Currency symbols, negative amounts and scientific notation are invalid.
+* **Mode** (`m/`, optional): `physical` or `virtual`, not case-sensitive. The card shows `Physical` or `Virtual`.
+* **Location** (`loc/`, optional): 1 to 100 characters, such as an address, room or meeting link. Repeated spaces become one, and locations are compared ignoring letter case. It must not contain a word of letters followed by `/` (such as `r/`), which is read as a prefix; `Blk 123/4` and `https://zoom.us/j/1` are fine.
+* **Clearing mode and location:** only `lesson-edit` can clear them, by leaving the value empty, for example `lesson-edit 1 2 loc/` or `lesson-edit 1 2 m/ loc/`. `lesson-add` rejects an empty `m/` or `loc/`, and `lesson-delete` accepts neither.
 
 Errors:
 
-* Adding a lesson, or editing one so that it becomes identical to another of the same student's lessons, is rejected as a duplicate.
+* Adding a lesson, or editing one so that it becomes identical to another of the same student's lessons, is rejected as a duplicate. Mode and location are part of a lesson's identity, so the same subject, slot and rate at a different location or mode is not a duplicate.
 * A student index or lesson index that does not exist is rejected.
-* Empty values, repeated prefixes, unknown prefixes and invalid values are rejected. Any error leaves the record unchanged.
+* Empty values (except an empty `m/` or `loc/` in `lesson-edit`, which clears the field), repeated prefixes, unknown prefixes and invalid values, such as a mode other than `physical` or `virtual`, are rejected. Any error leaves the record unchanged.
 
 For example, after `list`:
 
 1. `lesson-add 1 s/Math i/Wed 1.00pm 5.00pm r/45.50`
-2. `lesson-add 1 s/English i/Mon 4.00pm 5.00pm r/40`
+2. `lesson-add 1 s/English i/Mon 4.00pm 5.00pm r/40 m/virtual loc/https://zoom.us/j/123` adds an online lesson with a meeting link.
 3. `lesson-edit 1 2 r/50` changes the English lesson's rate.
-4. `lesson-delete 1 1` removes the Math lesson. English is now lesson 1.
+4. `lesson-edit 1 2 m/physical loc/Clementi Library` changes it to an in-person lesson at a new place.
+5. `lesson-edit 1 2 loc/` removes the location but keeps the mode. `lesson-edit 1 2 m/ loc/` removes both.
+6. `lesson-delete 1 1` removes the Math lesson. English is now lesson 1.
 
 Lesson commands keep an active search filter. Lessons are saved automatically.
 
@@ -208,7 +213,7 @@ Closes the app.
 
 ## Saving and transferring records
 
-The app saves automatically after each successfully executed command. Schooling levels, guardian contacts and lessons are saved with the contact details. Each student's lessons are stored as a `lessons` array, where every lesson has a `subject`, a `weeklyLessonSlot` and an `hourlyRate`.
+The app saves automatically after each successfully executed command. Schooling levels, guardian contacts and lessons are saved with the contact details. Each student's lessons are stored as a `lessons` array, where every lesson has a `subject`, a `weeklyLessonSlot` and an `hourlyRate`, plus an optional `mode` (`PHYSICAL` or `VIRTUAL`) and `location`. Files without these two fields still load.
 
 Older files that stored a student's `subject`, `subjects`, `weeklyLessonSlot` or `hourlyRate` directly on the student still load, but those values are ignored and are lost the next time the app saves. Re-enter them with `lesson-add` or copy them into a `lessons` array first.
 
@@ -238,8 +243,8 @@ If the file is invalid, the app starts with an empty list. The invalid file rema
 | Clear schooling level | `edit INDEX l/` |
 | Find | `find KEYWORD [MORE_KEYWORDS]` or `find l/TEXT` |
 | List | `list` |
-| Add lesson | `lesson-add STUDENT_INDEX s/SUBJECT i/LESSON_SLOT r/HOURLY_RATE` |
-| Edit lesson | `lesson-edit STUDENT_INDEX LESSON_INDEX [s/SUBJECT] [i/LESSON_SLOT] [r/HOURLY_RATE]` |
+| Add lesson | `lesson-add STUDENT_INDEX s/SUBJECT i/LESSON_SLOT r/HOURLY_RATE [m/MODE] [loc/LOCATION]` |
+| Edit lesson | `lesson-edit STUDENT_INDEX LESSON_INDEX [s/SUBJECT] [i/LESSON_SLOT] [r/HOURLY_RATE] [m/MODE] [loc/LOCATION]` |
 | Delete lesson | `lesson-delete STUDENT_INDEX LESSON_INDEX` |
 | Add guardian | `guardian-add INDEX n/NAME p/PHONE` |
 | Edit guardian | `guardian-edit INDEX [n/NAME] [p/PHONE]` |

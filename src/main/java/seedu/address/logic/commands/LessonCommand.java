@@ -13,6 +13,8 @@ import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.Model;
 import seedu.address.model.person.HourlyRate;
 import seedu.address.model.person.Lesson;
+import seedu.address.model.person.LessonLocation;
+import seedu.address.model.person.LessonMode;
 import seedu.address.model.person.Student;
 import seedu.address.model.person.Subject;
 import seedu.address.model.person.WeeklyLessonSlot;
@@ -34,19 +36,44 @@ public class LessonCommand extends Command {
     private final Optional<Subject> subject;
     private final Optional<WeeklyLessonSlot> weeklyLessonSlot;
     private final Optional<HourlyRate> hourlyRate;
+    private final Optional<LessonLocation> location;
+    private final Optional<LessonMode> mode;
+    private final boolean clearLocation;
+    private final boolean clearMode;
 
-    /** Creates a validated lesson mutation. */
+    /** Creates a validated lesson mutation that clears nothing. */
     public LessonCommand(Index studentIndex, Operation operation, Optional<Index> lessonIndex,
             Optional<Subject> subject, Optional<WeeklyLessonSlot> weeklyLessonSlot,
-            Optional<HourlyRate> hourlyRate) {
+            Optional<HourlyRate> hourlyRate, Optional<LessonLocation> location, Optional<LessonMode> mode) {
+        this(studentIndex, operation, lessonIndex, subject, weeklyLessonSlot, hourlyRate, location, mode,
+                false, false);
+    }
+
+    /**
+     * Creates a validated lesson mutation. {@code clearLocation} and {@code clearMode} remove a recorded
+     * value on edit, and cannot be combined with a new value for the same field.
+     */
+    public LessonCommand(Index studentIndex, Operation operation, Optional<Index> lessonIndex,
+            Optional<Subject> subject, Optional<WeeklyLessonSlot> weeklyLessonSlot,
+            Optional<HourlyRate> hourlyRate, Optional<LessonLocation> location, Optional<LessonMode> mode,
+            boolean clearLocation, boolean clearMode) {
         this.studentIndex = requireNonNull(studentIndex);
         this.operation = requireNonNull(operation);
         this.lessonIndex = requireNonNull(lessonIndex);
         this.subject = requireNonNull(subject);
         this.weeklyLessonSlot = requireNonNull(weeklyLessonSlot);
         this.hourlyRate = requireNonNull(hourlyRate);
+        this.location = requireNonNull(location);
+        this.mode = requireNonNull(mode);
+        this.clearLocation = clearLocation;
+        this.clearMode = clearMode;
         boolean hasAllFields = subject.isPresent() && weeklyLessonSlot.isPresent() && hourlyRate.isPresent();
-        boolean hasAnyField = subject.isPresent() || weeklyLessonSlot.isPresent() || hourlyRate.isPresent();
+        boolean hasAnyField = subject.isPresent() || weeklyLessonSlot.isPresent() || hourlyRate.isPresent()
+                || location.isPresent() || mode.isPresent() || clearLocation || clearMode;
+        if ((clearLocation && location.isPresent()) || (clearMode && mode.isPresent())
+                || (operation != Operation.EDIT && (clearLocation || clearMode))) {
+            throw new IllegalArgumentException("Invalid fields for lesson operation.");
+        }
         if ((operation == Operation.ADD && (lessonIndex.isPresent() || !hasAllFields))
                 || (operation == Operation.EDIT && (lessonIndex.isEmpty() || !hasAnyField))
                 || (operation == Operation.DELETE && (lessonIndex.isEmpty() || hasAnyField))) {
@@ -65,13 +92,15 @@ public class LessonCommand extends Command {
 
         switch (operation) {
             case ADD -> lessons.add(new Lesson(subject.orElseThrow(), weeklyLessonSlot.orElseThrow(),
-                    hourlyRate.orElseThrow()));
+                    hourlyRate.orElseThrow(), location, mode));
             case EDIT -> {
                 int position = requireLessonPosition(lessons);
                 Lesson existing = lessons.get(position);
                 lessons.set(position, new Lesson(subject.orElse(existing.getSubject()),
                         weeklyLessonSlot.orElse(existing.getWeeklyLessonSlot()),
-                        hourlyRate.orElse(existing.getHourlyRate())));
+                        hourlyRate.orElse(existing.getHourlyRate()),
+                        clearLocation ? Optional.empty() : location.or(existing::getLocation),
+                        clearMode ? Optional.empty() : mode.or(existing::getMode)));
             }
             case DELETE -> lessons.remove(requireLessonPosition(lessons));
             default -> throw new AssertionError(operation);
@@ -105,11 +134,14 @@ public class LessonCommand extends Command {
         return other == this || other instanceof LessonCommand command
                 && studentIndex.equals(command.studentIndex) && operation == command.operation
                 && lessonIndex.equals(command.lessonIndex) && subject.equals(command.subject)
-                && weeklyLessonSlot.equals(command.weeklyLessonSlot) && hourlyRate.equals(command.hourlyRate);
+                && weeklyLessonSlot.equals(command.weeklyLessonSlot) && hourlyRate.equals(command.hourlyRate)
+                && location.equals(command.location) && mode.equals(command.mode)
+                && clearLocation == command.clearLocation && clearMode == command.clearMode;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(studentIndex, operation, lessonIndex, subject, weeklyLessonSlot, hourlyRate);
+        return Objects.hash(studentIndex, operation, lessonIndex, subject, weeklyLessonSlot, hourlyRate, location,
+                mode, clearLocation, clearMode);
     }
 }

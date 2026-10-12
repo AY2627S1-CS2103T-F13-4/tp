@@ -3,6 +3,8 @@ package seedu.address.logic.parser;
 import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 import static seedu.address.logic.commands.CommandTestUtil.LESSON_SLOT_DESC;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_LESSON_SLOT;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_LOCATION;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_MODE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_RATE;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseFailure;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseSuccess;
@@ -18,13 +20,16 @@ import seedu.address.logic.Messages;
 import seedu.address.logic.commands.LessonCommand;
 import seedu.address.logic.commands.LessonCommand.Operation;
 import seedu.address.model.person.HourlyRate;
+import seedu.address.model.person.LessonLocation;
+import seedu.address.model.person.LessonMode;
 import seedu.address.model.person.Subject;
 import seedu.address.model.person.WeeklyLessonSlot;
 
 public class LessonCommandParserTest {
-    private static final String ADD_USAGE = "lesson-add STUDENT_INDEX s/SUBJECT i/LESSON_SLOT r/HOURLY_RATE";
+    private static final String ADD_USAGE = "lesson-add STUDENT_INDEX s/SUBJECT i/LESSON_SLOT r/HOURLY_RATE "
+            + "[m/MODE] [loc/LOCATION]";
     private static final String EDIT_USAGE = "lesson-edit STUDENT_INDEX LESSON_INDEX [s/SUBJECT] "
-            + "[i/LESSON_SLOT] [r/HOURLY_RATE] (at least one field required)";
+            + "[i/LESSON_SLOT] [r/HOURLY_RATE] [m/MODE] [loc/LOCATION] (at least one field required)";
     private static final String DELETE_USAGE = "lesson-delete STUDENT_INDEX LESSON_INDEX";
 
     private final LessonCommandParser addParser = new LessonCommandParser(Operation.ADD);
@@ -39,9 +44,61 @@ public class LessonCommandParserTest {
     public void parseAdd_allFields_success() {
         LessonCommand expected = new LessonCommand(INDEX_FIRST_PERSON, Operation.ADD, Optional.empty(),
                 Optional.of(new Subject("Math")), Optional.of(VALID_LESSON_SLOT),
-                Optional.of(new HourlyRate(new BigDecimal("45.50"))));
+                Optional.of(new HourlyRate(new BigDecimal("45.50"))), Optional.empty(), Optional.empty());
         assertParseSuccess(addParser, "1 s/  Math " + LESSON_SLOT_DESC.trim() + " r/45.5", expected);
         assertParseSuccess(addParser, " 1 r/45.50 s/Math" + LESSON_SLOT_DESC, expected);
+    }
+
+    @Test
+    public void parseAdd_optionalModeAndLocation_success() {
+        LessonCommand expected = new LessonCommand(INDEX_FIRST_PERSON, Operation.ADD, Optional.empty(),
+                Optional.of(new Subject("Math")), Optional.of(VALID_LESSON_SLOT),
+                Optional.of(new HourlyRate(new BigDecimal("45"))),
+                Optional.of(new LessonLocation("Blk 123 Clementi Ave 3")), Optional.of(LessonMode.PHYSICAL));
+        assertParseSuccess(addParser, "1 s/Math" + LESSON_SLOT_DESC + " r/45 m/PhysIcal loc/ Blk 123  Clementi Ave 3",
+                expected);
+        assertParseSuccess(addParser, "1 loc/Blk 123 Clementi Ave 3 m/physical s/Math" + LESSON_SLOT_DESC + " r/45",
+                expected);
+        assertParseSuccess(addParser, "1 s/Math" + LESSON_SLOT_DESC + " r/45 loc/https://zoom.us/j/123 m/virtual",
+                new LessonCommand(INDEX_FIRST_PERSON, Operation.ADD, Optional.empty(),
+                        Optional.of(new Subject("Math")), Optional.of(VALID_LESSON_SLOT),
+                        Optional.of(new HourlyRate(new BigDecimal("45"))),
+                        Optional.of(new LessonLocation("https://zoom.us/j/123")), Optional.of(LessonMode.VIRTUAL)));
+    }
+
+    @Test
+    public void parseAddAndEdit_invalidModeOrLocation_failure() {
+        String base = "1 s/Math" + LESSON_SLOT_DESC + " r/45";
+        assertParseFailure(addParser, base + " m/hybrid", LessonMode.MESSAGE_CONSTRAINTS);
+        assertParseFailure(addParser, base + " m/", LessonMode.MESSAGE_CONSTRAINTS);
+        assertParseFailure(addParser, base + " loc/", LessonLocation.MESSAGE_CONSTRAINTS);
+        assertParseFailure(editParser, "1 2 m/hybrid", LessonMode.MESSAGE_CONSTRAINTS);
+        assertParseFailure(addParser, base + " loc/" + "a".repeat(101), LessonLocation.MESSAGE_CONSTRAINTS);
+        assertParseFailure(addParser, base + " loc/home m/virtual m/physical",
+                Messages.getErrorMessageForDuplicatePrefixes(PREFIX_MODE));
+        assertParseFailure(editParser, "1 2 loc/a loc/b",
+                Messages.getErrorMessageForDuplicatePrefixes(PREFIX_LOCATION));
+        assertParseFailure(deleteParser, "1 2 m/virtual", invalidFormat(DELETE_USAGE));
+    }
+
+    @Test
+    public void parseEdit_emptyModeOrLocation_clears() {
+        assertParseSuccess(editParser, "1 2 m/", new LessonCommand(INDEX_FIRST_PERSON, Operation.EDIT,
+                Optional.of(INDEX_SECOND_PERSON), Optional.empty(), Optional.empty(), Optional.empty(),
+                Optional.empty(), Optional.empty(), false, true));
+        assertParseSuccess(editParser, "1 2 loc/  m/virtual", new LessonCommand(INDEX_FIRST_PERSON,
+                Operation.EDIT, Optional.of(INDEX_SECOND_PERSON), Optional.empty(), Optional.empty(),
+                Optional.empty(), Optional.empty(), Optional.of(LessonMode.VIRTUAL), true, false));
+    }
+
+    @Test
+    public void parseEdit_onlyModeOrLocation_success() {
+        assertParseSuccess(editParser, "1 2 m/virtual", new LessonCommand(INDEX_FIRST_PERSON, Operation.EDIT,
+                Optional.of(INDEX_SECOND_PERSON), Optional.empty(), Optional.empty(), Optional.empty(),
+                Optional.empty(), Optional.of(LessonMode.VIRTUAL)));
+        assertParseSuccess(editParser, "1 2 loc/Library", new LessonCommand(INDEX_FIRST_PERSON, Operation.EDIT,
+                Optional.of(INDEX_SECOND_PERSON), Optional.empty(), Optional.empty(), Optional.empty(),
+                Optional.of(new LessonLocation("Library")), Optional.empty()));
     }
 
     @Test
@@ -63,10 +120,11 @@ public class LessonCommandParserTest {
     public void parseEdit_someFields_success() {
         assertParseSuccess(editParser, "1 2 r/50", new LessonCommand(INDEX_FIRST_PERSON, Operation.EDIT,
                 Optional.of(INDEX_SECOND_PERSON), Optional.empty(), Optional.empty(),
-                Optional.of(new HourlyRate(new BigDecimal("50")))));
+                Optional.of(new HourlyRate(new BigDecimal("50"))), Optional.empty(), Optional.empty()));
         assertParseSuccess(editParser, "  1   2  s/Science" + LESSON_SLOT_DESC,
                 new LessonCommand(INDEX_FIRST_PERSON, Operation.EDIT, Optional.of(INDEX_SECOND_PERSON),
-                        Optional.of(new Subject("Science")), Optional.of(VALID_LESSON_SLOT), Optional.empty()));
+                        Optional.of(new Subject("Science")), Optional.of(VALID_LESSON_SLOT), Optional.empty(),
+                        Optional.empty(), Optional.empty()));
     }
 
     @Test
@@ -83,7 +141,8 @@ public class LessonCommandParserTest {
     @Test
     public void parseDelete_success() {
         assertParseSuccess(deleteParser, "1 2", new LessonCommand(INDEX_FIRST_PERSON, Operation.DELETE,
-                Optional.of(INDEX_SECOND_PERSON), Optional.empty(), Optional.empty(), Optional.empty()));
+                Optional.of(INDEX_SECOND_PERSON), Optional.empty(), Optional.empty(), Optional.empty(),
+                Optional.empty(), Optional.empty()));
     }
 
     @Test

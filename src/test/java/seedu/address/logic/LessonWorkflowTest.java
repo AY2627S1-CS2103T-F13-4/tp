@@ -10,6 +10,7 @@ import java.math.BigDecimal;
 import java.nio.file.Path;
 import java.time.DayOfWeek;
 import java.time.LocalTime;
+import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -23,6 +24,8 @@ import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
 import seedu.address.model.person.HourlyRate;
 import seedu.address.model.person.Lesson;
+import seedu.address.model.person.LessonLocation;
+import seedu.address.model.person.LessonMode;
 import seedu.address.model.person.SchoolingLevel;
 import seedu.address.model.person.Student;
 import seedu.address.model.person.Subject;
@@ -87,6 +90,27 @@ public class LessonWorkflowTest {
         assertStudent(new PersonBuilder(original).withLessons(repriced).build());
         logic.execute("lesson-delete 1 1");
         assertStudent(original);
+    }
+
+    @Test
+    public void execute_editWithEmptyModeOrLocation_clearsThemAndSaves() throws Exception {
+        logic.execute("lesson-add 1 s/Math" + LESSON_SLOT_DESC + " r/45.5 m/virtual loc/Zoom");
+        Lesson full = new Lesson(MATH.getSubject(), MATH.getWeeklyLessonSlot(), MATH.getHourlyRate(),
+                Optional.of(new LessonLocation("Zoom")), Optional.of(LessonMode.VIRTUAL));
+        assertStudent(new PersonBuilder(original).withLessons(full).build());
+
+        logic.execute("lesson-edit 1 1 loc/");
+        Lesson noLocation = new Lesson(MATH.getSubject(), MATH.getWeeklyLessonSlot(), MATH.getHourlyRate(),
+                Optional.empty(), Optional.of(LessonMode.VIRTUAL));
+        assertStudent(new PersonBuilder(original).withLessons(noLocation).build());
+
+        logic.execute("lesson-edit 1 1 m/ loc/Library");
+        Lesson swapped = new Lesson(MATH.getSubject(), MATH.getWeeklyLessonSlot(), MATH.getHourlyRate(),
+                Optional.of(new LessonLocation("Library")), Optional.empty());
+        assertStudent(new PersonBuilder(original).withLessons(swapped).build());
+
+        assertThrows(ParseException.class, () -> logic.execute("lesson-add 1 s/Art" + LESSON_SLOT_DESC
+                + " r/45 m/"));
     }
 
     @Test
