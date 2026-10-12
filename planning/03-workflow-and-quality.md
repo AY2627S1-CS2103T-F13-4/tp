@@ -97,8 +97,10 @@ The published rules describe a five-percentage-point tolerance and a case-depend
 
 There is no separate categorical ban on a particular kind of edit in the published freeze rule, but new features are strongly discouraged. Prioritize fixes by user impact, confidence, and remaining allowance. Documented workarounds and lower-priority improvements can affect bug triage, but do not make an actual serious defect disappear. If a proposed fix crosses the allowance, compare the risks rather than automatically expanding scope; the rule notes that an individual bug penalty does not exceed two marks. Reverting a change before the final submission can remove that change from the freeze calculation.
 
-## Applying this guidance to a task
+## Checklist for a task
 
-Before implementation, identify the current week, milestone, feature owner, agreed product behavior, and relevant course rule. Inspect current Git/GitHub state and coordinate with the owner. Make a focused change, run checks appropriate to its behavior, review the affected code and its callers, and report what was verified. Keep course planning updates in this directory and product instructions in the UG/DG.
+- Before starting: check the current week, milestone, feature owner, agreed behavior and relevant course rule, and talk to the owner.
+- While working: keep the change focused, run the checks that match its behavior, and review the code that calls it.
+- In the PR: say what you checked. Keep course planning updates in this directory and product instructions in the UG/DG.
 
-Before marking a task complete, link the required evidence. A local edit is not proof of a merged PR, published release, or submitted assignment. Update the relevant issue and milestone when the work reaches the required state.
+Before marking a task done, link the evidence: the merged PR, release or submission. A local edit is not proof of a merged PR, published release, or submitted assignment. Update the relevant issue and milestone when the work reaches the required state.

@@ -82,7 +82,7 @@ Keep each diagram focused:
 - Use architectural interactions when internal object detail would obscure the point. Show relationships visually with suitable arrows rather than burying them in attribute text.
 - Put diagrams near their explanation, give them readable text, and size their text consistently with the surrounding document.
 
-The example popups illustrate excessive member detail, too many classes, overcomplicated sequence flows, and mismatched diagram/text sizing. Some popup triggers were rendered as plain text in the live site; their source captions were inspected to retain the guidance. The underlying example links are reference illustrations, not mandatory diagrams to reproduce.
+The example popups illustrate excessive member detail, too many classes, overcomplicated sequence flows, and mismatched diagram/text sizing. The underlying example links are reference illustrations, not mandatory diagrams to reproduce.
 
 ## Website and team page
 
@@ -102,6 +102,6 @@ The opening one or two product-description sentences may be shared by team membe
 
 ## What a release check should establish
 
-Before reporting readiness, identify the exact commit and JAR, verify the relevant tests/build and a clean launch, test important real workflows and persistence, check UG command examples and DG/manual-test accuracy, open the published website, and inspect release metadata/assets. Check source attribution and course constraints alongside runtime behavior. Record any remaining uncertainty plainly.
+Before calling a release ready, note the exact commit and JAR, verify the relevant tests/build and a clean launch, test important real workflows and persistence, check UG command examples and DG/manual-test accuracy, open the published website, and inspect release metadata/assets. Check source attribution and course constraints alongside runtime behavior. Record any remaining uncertainty plainly.
 
 Record the checks and their results in the release issue or PR. Coordinate publication and submission with the assigned team member. This checklist alone does not establish that StudentBook is ready for release.

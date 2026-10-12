@@ -70,7 +70,7 @@ Sources: [TP expectations](https://nus-cs2103-ay2627-s1.github.io/website/admin/
 
 Non-trivial AI use is expected; the course suggests about 20% of course-work time on average. Hand-coding first and using AI feedback meets the minimum. Learn unfamiliar tasks manually before increasing automation. Be able to explain the generated code. Full delegation with no code review is discouraged because the student remains responsible for code quality.
 
-Use generated code sparingly during the first one or two coding weeks while the team learns AB3. Increase use only as understanding permits. Every AI-generated commit must use the responsible student's human Git author identity, not an AI tool's name. The student must vet AI review comments before posting them; superficial or spammy reviews remain the student's responsibility. Read the acknowledgement/reuse policy linked in the workflow guide before public documentation changes.
+Use generated code sparingly during the first one or two coding weeks while the team learns AB3. Increase use only as understanding permits. Every AI-generated commit must use the responsible student's human Git author identity, not an AI tool's name. The student must vet AI review comments before posting them; superficial or spammy reviews remain the student's responsibility. Read the acknowledgement and reuse policy linked in the workflow guide before changing public documentation.
 
 ## Supervision, feedback, and decisions
 

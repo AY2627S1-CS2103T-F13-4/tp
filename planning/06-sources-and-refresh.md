@@ -4,9 +4,9 @@ Checked **12 October 2026**, Singapore time. Use this index to trace the plannin
 
 ## Coverage
 
-The research covered **all 20 entries in the TP navigation**, from Overview through Supervision/Guidance, plus **36 weekly pages**: the summary, project, admin, and tutorial tabs for Weeks 5–13. Nested guidance and FAQ answers were inspected through the live browser and the official website source, including repeated embedded panels, optional deliverable details, screenshot example tabs, and the PE response/triage instructions. The guide consolidates requirements and exceptions instead of storing a verbatim website mirror.
+These guides cover **all 20 entries in the TP navigation**, from Overview through Supervision/Guidance, plus **36 weekly pages**: the summary, project, admin, and tutorial tabs for Weeks 5–13, including their expandable panels and FAQs. They summarise requirements and exceptions rather than copying the website.
 
-The three tentative future weeks are intentionally link-only. Some diagram-popup triggers were rendered as plain text rather than working controls; their official source captions and links were inspected. Canvas-only materials, private submissions, TEAMMATES forms/results, and linked videos are not represented as opened, watched, submitted, or verified. Their instructions and access points remain in the relevant weekly page. This reference cannot establish that the team completed a task.
+The three tentative future weeks are link-only. Canvas-only materials, TEAMMATES forms and linked videos are not summarised; follow the weekly page to reach them. These guides cannot show that the team has completed a task.
 
 The [machine-readable source index](source-index.json) lists all 56 core URLs, check date, captured title, source hash, tentative status, and the guide covering them. It contains no private form responses or copied page bodies. Source hashes identify what was fetched, not a guarantee that a live page has stayed unchanged. In the JSON, `page_tentative_banner` describes that individual page. Its `status` also accounts for the weekly summary, so a future TP page remains tentative even if it has no banner of its own.
 
@@ -97,4 +97,4 @@ The source repository includes conditions for other courses, draft variables, an
 - Weeks 11–13 remain tentative even if an individual linked admin page lacks a banner; the summary marks the week's material tentative.
 - The published Week 10 freeze explanation can be recorded now, while its future application dates still require confirmation.
 - PE bug types are not interchangeable labels for maximizing marks, and an incorrect label does not invalidate a real defect.
-- The final assessment uses contribution evidence and judgment. Task counts, PR counts, green dashboards, and AI confidence are not substitutes for quality.
+- The final assessment uses contribution evidence and judgment. Task counts, PR counts and green dashboards are not substitutes for quality.

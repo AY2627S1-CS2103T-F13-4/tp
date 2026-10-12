@@ -6,8 +6,8 @@ Use these guides to plan work, check course requirements, and prepare releases. 
 
 ## Team working documents
 
-- [CS2103T tP: Google Docs project notes](https://docs.google.com/document/d/1pKzPlukZCaR6_79P0JqYNnrS5HLQiv3rqZcaM1cU_qU/edit)
-- [User Stories: Google Sheets planning spreadsheet](https://docs.google.com/spreadsheets/d/1IDiEMkbwMZHQttnT8He7VNDg-BPLfnKC0VkSeOGtHxA/edit)
+- [CS2103T tP: Google Docs project notes](https://docs.google.com/document/d/1pKzPlukZCaR6_79P0JqYNnrS5HLQiv3rqZcaM1cU_qU/view)
+- [User Stories: Google Sheets planning spreadsheet](https://docs.google.com/spreadsheets/d/1IDiEMkbwMZHQttnT8He7VNDg-BPLfnKC0VkSeOGtHxA/view)
 
 Read the latest entries alongside the agreed product scope. Older tabs and brainstorming ideas may describe earlier plans rather than current commitments.
 
@@ -15,7 +15,7 @@ Read the latest entries alongside the agreed product scope. Older tabs and brain
 
 | Planning question | Guide |
 |---|---|
-| What must we do each week, by when, and who is responsible? | [Weekly plan](02-weekly-plan.md) |
+| What must we do each week, by when, and is it for each person or the whole team? | [Weekly plan](02-weekly-plan.md) |
 | What product constraints and contribution expectations apply throughout the TP? | [Standing rules](01-standing-rules.md) |
 | How should we manage issues, PRs, tests, code quality, reuse, and the feature freeze? | [Workflow and quality](03-workflow-and-quality.md) |
 | What must the JAR, UG, DG, diagrams, and website contain? | [Deliverables and release checks](04-deliverables.md) |

@@ -116,7 +116,7 @@ Related [tutorial](https://nus-cs2103-ay2627-s1.github.io/website/schedule/week1
 
 ## Weeks 11–13: links only until republished
 
-These weekly summaries explicitly marked the material tentative on 12 October. The sidebar currently labels the stages v1.5 release candidate, v1.6 public release, and post-release tasks, respectively. Those are orientation labels, not confirmed submission instructions.
+These weekly summaries explicitly marked the material tentative on 12 October. The sidebar currently labels the stages v1.5 release candidate, v1.6 public release, and post-release tasks, respectively. Those are orientation labels, not confirmed submission instructions. The tentative Week 11 page currently lists the **v1.5 release as Thu 29 Oct, 23:59**; recheck it before planning around that date.
 
 | Week | Pages to reread before planning |
 |---|---|

@@ -47,13 +47,13 @@ Severity affects credit/penalty. Functionality, design, and documentation bugs a
 | 3: testers respond | Read developer responses and object only where justified | Wednesday–Friday after developer response; wait for the official start announcement |
 | 4: tutor moderation | Staff resolve disputed classifications | Students normally have no further action |
 
-These relative windows are orientation only. The actual dates and deadlines must be taken from the confirmed live schedule. The longer windows are buffers, not an instruction to spend all available hours testing. Staff assistance is concentrated around the scheduled session.
+These relative windows are orientation only. The PE page currently gives Phase 1 as **Fri 6 Nov, noon, to Sat 7 Nov, noon** (tentative; recheck nearer the date). Take all other dates from the live schedule. The longer windows are buffers, not an instruction to spend all available hours testing. Staff assistance is concentrated around the scheduled session.
 
 ## Phase 1: preparation and launch
 
 - Accept the invitation to the course GitHub organization and verify the required Java **25** environment.
 - Staff creates a private `pe-<your-GitHub-username>` repository shortly before the session. Use that issue tracker. Do not alter the supplied labels' names or colors. Extra convenience labels may be permitted, but do not give them the reserved `type.` or `severity.` prefixes.
-- Obtain the encrypted assigned download in advance following the live instructions. The download, individually supplied password part, common password announcement, and nested ZIP contents have separate roles. Never store a student's identifier/password in these reusable notes.
+- Obtain the encrypted assigned download in advance following the live instructions. The download, individually supplied password part, common password announcement, and nested ZIP contents have separate roles. Don't write your student ID or password into these shared notes.
 - Extract the archive properly into a writable location. Read its README and the linked UG. Ignore packaging/padding files identified by the instructions. Do not launch a JAR from inside a ZIP.
 - Check `java -version` and launch the actual extracted filename with `java -jar`, quoting paths when necessary. A clean folder avoids interference from another run's data. On Linux/Wayland, the course documents `GDK_BACKEND=x11 java -jar ...` for the specified GTK failure; use it only for that relevant environment/problem.
 - If the assigned product cannot start after checking the documented setup and Java version, contact the named course support channel with the requested screenshot and GitHub username. The current page names Prof. Damith through Teams (`dcsdcr`), with email fallback; verify availability at the session. Do not choose an alternative product yourself. If staff assigns a replacement, close reports about the old product and continue only with the replacement.
