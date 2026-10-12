@@ -14,6 +14,8 @@ import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.person.Address;
 import seedu.address.model.person.Email;
 import seedu.address.model.person.HourlyRate;
+import seedu.address.model.person.LessonLocation;
+import seedu.address.model.person.LessonMode;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Phone;
 import seedu.address.model.person.SchoolingLevel;
@@ -183,9 +185,28 @@ public class ParserUtil {
     public static HourlyRate parseHourlyRate(String rate) throws ParseException {
         requireNonNull(rate);
         String trimmedRate = rate.trim();
-        if (!trimmedRate.matches("[0-9]+(\\.[0-9]{1,2})?")) {
+        if (!HourlyRate.isValidHourlyRate(trimmedRate)) {
             throw new ParseException(HourlyRate.MESSAGE_CONSTRAINTS);
         }
         return new HourlyRate(new BigDecimal(trimmedRate));
+    }
+
+    /** Parses a physical or virtual lesson mode, ignoring case and surrounding spaces. */
+    public static LessonMode parseLessonMode(String mode) throws ParseException {
+        requireNonNull(mode);
+        try {
+            return LessonMode.fromString(mode);
+        } catch (IllegalArgumentException e) {
+            throw new ParseException(LessonMode.MESSAGE_CONSTRAINTS);
+        }
+    }
+
+    /** Parses and normalizes a lesson location. */
+    public static LessonLocation parseLessonLocation(String location) throws ParseException {
+        requireNonNull(location);
+        if (!LessonLocation.isValidLocation(location)) {
+            throw new ParseException(LessonLocation.MESSAGE_CONSTRAINTS);
+        }
+        return new LessonLocation(location);
     }
 }

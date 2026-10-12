@@ -11,7 +11,7 @@ import javafx.scene.control.ListView;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import seedu.address.commons.core.LogsCenter;
-import seedu.address.model.person.Person;
+import seedu.address.model.person.Student;
 
 /**
  * Panel containing the list of persons.
@@ -24,7 +24,7 @@ public class PersonListPanel extends UiPart<Region> {
     private final Logger logger = LogsCenter.getLogger(PersonListPanel.class);
 
     @FXML
-    private ListView<Person> personListView;
+    private ListView<Student> personListView;
     @FXML
     private Label listSummary;
 
@@ -35,7 +35,7 @@ public class PersonListPanel extends UiPart<Region> {
      * Creates a {@code PersonListPanel} that shows {@code personList}, the list that commands' indices refer to.
      * {@code allPersons} is the unfiltered list, used only to count students and choose the empty-state message.
      */
-    public PersonListPanel(ObservableList<Person> personList, ObservableList<Person> allPersons) {
+    public PersonListPanel(ObservableList<Student> personList, ObservableList<Student> allPersons) {
         super(FXML);
         personListView.setItems(personList);
         personListView.setCellFactory(listView -> new PersonListViewCell());
@@ -47,7 +47,7 @@ public class PersonListPanel extends UiPart<Region> {
         emptyState.getStyleClass().add("empty-state");
         personListView.setPlaceholder(emptyState);
 
-        ListChangeListener<Person> refresh = change -> updateStatus(personList.size(), allPersons.size());
+        ListChangeListener<Student> refresh = change -> updateStatus(personList.size(), allPersons.size());
         personList.addListener(refresh);
         allPersons.addListener(refresh);
         updateStatus(personList.size(), allPersons.size());
@@ -60,11 +60,11 @@ public class PersonListPanel extends UiPart<Region> {
     }
 
     /**
-     * Custom {@code ListCell} that displays the graphics of a {@code Person} using a {@code PersonCard}.
+     * Custom {@code ListCell} that displays the graphics of a {@code Student} using a {@code PersonCard}.
      */
-    class PersonListViewCell extends ListCell<Person> {
+    class PersonListViewCell extends ListCell<Student> {
         @Override
-        protected void updateItem(Person person, boolean empty) {
+        protected void updateItem(Student person, boolean empty) {
             super.updateItem(person, empty);
 
             if (empty || person == null) {

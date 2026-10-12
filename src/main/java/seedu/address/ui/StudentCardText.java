@@ -1,41 +1,43 @@
 package seedu.address.ui;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
-import seedu.address.model.person.Person;
+import seedu.address.model.person.Lesson;
+import seedu.address.model.person.Student;
 
 /**
- * Formats a student's optional details for {@code PersonCard}.
- * Each method returns empty when the detail has not been recorded, so the card can show a muted placeholder.
+ * Formats a student's lessons and optional details for {@code PersonCard}.
  */
 final class StudentCardText {
 
     static final String NOT_SET = "Not set";
-    static final String NO_SUBJECTS = "No subjects yet";
+    static final String NO_LESSONS = "No lessons yet";
 
     private StudentCardText() {}
 
-    /** Returns the student's subjects in their stored order, separated by commas. */
-    static Optional<String> subjects(Person person) {
-        if (person.getSubjects().isEmpty()) {
-            return Optional.empty();
+    /**
+     * Returns one line per lesson, numbered from 1 in stored order so the numbers match {@code LESSON_INDEX},
+     * e.g. "1. Math · Tuesday 4.00pm-5.30pm · SGD 60.00/hour · Online · at Library".
+     * Returns an empty list when the student has no lessons.
+     */
+    static List<String> lessons(Student student) {
+        List<String> lines = new ArrayList<>();
+        List<Lesson> lessons = student.getLessons();
+        for (int i = 0; i < lessons.size(); i++) {
+            Lesson lesson = lessons.get(i);
+            StringBuilder line = new StringBuilder((i + 1) + ". " + lesson.getSubject() + " · "
+                    + lesson.getWeeklyLessonSlot() + " · SGD " + lesson.getHourlyRate() + "/hour");
+            lesson.getMode().ifPresent(mode -> line.append(" · ").append(mode));
+            lesson.getLocation().ifPresent(location -> line.append(" · at ").append(location));
+            lines.add(line.toString());
         }
-        return Optional.of(person.getSubjects().stream().map(Object::toString).collect(Collectors.joining(", ")));
+        return lines;
     }
 
-    /** Returns the weekly lesson slot, e.g. "Tuesday 4.00pm-5.30pm". */
-    static Optional<String> lesson(Person person) {
-        return person.getWeeklyLessonSlot().map(Object::toString);
-    }
-
-    /** Returns the hourly rate, e.g. "SGD 60.00/hour". */
-    static Optional<String> rate(Person person) {
-        return person.getHourlyRate().map(rate -> "SGD " + rate + "/hour");
-    }
-
-    /** Returns the guardian's name and phone, e.g. "Janet Tan (91234567)". */
-    static Optional<String> guardian(Person person) {
-        return person.getGuardianContact().map(guardian -> guardian.getName() + " (" + guardian.getPhone() + ")");
+    /** Returns the guardian's name and phone, e.g. "Janet Tan (91234567)", or empty if none is recorded. */
+    static Optional<String> guardian(Student student) {
+        return student.getGuardian().map(guardian -> guardian.getName() + " (" + guardian.getPhone() + ")");
     }
 }

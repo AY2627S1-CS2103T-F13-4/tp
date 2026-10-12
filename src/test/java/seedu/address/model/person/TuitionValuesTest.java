@@ -59,9 +59,9 @@ public class TuitionValuesTest {
 
     @Test
     public void guardian_requiresBothDetails() {
-        assertThrows(NullPointerException.class, () -> new GuardianContact(new Name("Janet"), null));
-        assertThrows(NullPointerException.class, () -> new GuardianContact(null, new Phone("91234567")));
-        assertEquals(new GuardianContact(new Name("Janet"), new Phone("91234567")),
-                new GuardianContact(new Name("Janet"), new Phone("91234567")));
+        assertThrows(NullPointerException.class, () -> new Guardian(new Name("Janet"), null));
+        assertThrows(NullPointerException.class, () -> new Guardian(null, new Phone("91234567")));
+        assertEquals(new Guardian(new Name("Janet"), new Phone("91234567")),
+                new Guardian(new Name("Janet"), new Phone("91234567")));
     }
 }

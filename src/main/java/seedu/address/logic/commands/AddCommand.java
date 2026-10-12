@@ -3,19 +3,16 @@ package seedu.address.logic.commands;
 import static java.util.Objects.requireNonNull;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_ADDRESS;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_EMAIL;
-import static seedu.address.logic.parser.CliSyntax.PREFIX_LESSON_SLOT;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_LEVEL;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_NAME;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
-import static seedu.address.logic.parser.CliSyntax.PREFIX_RATE;
-import static seedu.address.logic.parser.CliSyntax.PREFIX_SUBJECT;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_TAG;
 
 import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.logic.Messages;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.Model;
-import seedu.address.model.person.Person;
+import seedu.address.model.person.Student;
 
 /**
  * Adds a person to the address book.
@@ -31,10 +28,7 @@ public class AddCommand extends Command {
             + PREFIX_EMAIL + "EMAIL "
             + PREFIX_ADDRESS + "ADDRESS "
             + "[" + PREFIX_TAG + "TAG]... "
-            + "[" + PREFIX_SUBJECT + "SUBJECT]... "
-            + "[" + PREFIX_LEVEL + "SCHOOLING_LEVEL] "
-            + "[" + PREFIX_LESSON_SLOT + "LESSON_SLOT] "
-            + "[" + PREFIX_RATE + "HOURLY_RATE]\n"
+            + "[" + PREFIX_LEVEL + "SCHOOLING_LEVEL]\n"
             + "Example: " + COMMAND_WORD + " "
             + PREFIX_NAME + "John Doe "
             + PREFIX_PHONE + "98765432 "
@@ -42,19 +36,17 @@ public class AddCommand extends Command {
             + PREFIX_ADDRESS + "311, Clementi Ave 2, #02-25 "
             + PREFIX_TAG + "friends "
             + PREFIX_TAG + "owesMoney "
-            + PREFIX_LEVEL + "Primary 5 "
-            + PREFIX_LESSON_SLOT + "Wed 1.00pm 5.00pm "
-            + PREFIX_RATE + "45.50";
+            + PREFIX_LEVEL + "Primary 5";
 
     public static final String MESSAGE_SUCCESS = "New person added: %1$s";
     public static final String MESSAGE_DUPLICATE_PERSON = "This person already exists in the address book.";
 
-    private final Person toAdd;
+    private final Student toAdd;
 
     /**
-     * Creates an AddCommand to add the specified {@code Person}
+     * Creates an AddCommand to add the specified {@code Student}
      */
-    public AddCommand(Person person) {
+    public AddCommand(Student person) {
         requireNonNull(person);
         toAdd = person;
     }

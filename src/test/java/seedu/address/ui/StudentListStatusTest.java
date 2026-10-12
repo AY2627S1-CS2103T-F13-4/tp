@@ -26,7 +26,8 @@ public class StudentListStatusTest {
     @Test
     public void emptyState_distinguishesEmptyBookFromNoMatches() {
         assertNotEquals(StudentListStatus.emptyTitle(0), StudentListStatus.emptyTitle(3));
-        assertEquals("Add one with: add n/NAME p/PHONE e/EMAIL a/ADDRESS", StudentListStatus.emptyDetail(0));
+        assertEquals("Add one with: add name/NAME phone/PHONE email/EMAIL address/ADDRESS",
+                StudentListStatus.emptyDetail(0));
         assertEquals("Type list to show all 3 students.", StudentListStatus.emptyDetail(3));
         assertTrue(StudentListStatus.emptyDetail(1).endsWith("1 student."));
     }

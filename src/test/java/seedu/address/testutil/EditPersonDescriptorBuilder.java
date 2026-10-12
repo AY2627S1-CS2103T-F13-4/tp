@@ -9,10 +9,9 @@ import seedu.address.logic.commands.EditCommand.EditPersonDescriptor;
 import seedu.address.model.person.Address;
 import seedu.address.model.person.Email;
 import seedu.address.model.person.Name;
-import seedu.address.model.person.Person;
 import seedu.address.model.person.Phone;
 import seedu.address.model.person.SchoolingLevel;
-import seedu.address.model.person.WeeklyLessonSlot;
+import seedu.address.model.person.Student;
 import seedu.address.model.tag.Tag;
 
 /**
@@ -33,7 +32,7 @@ public class EditPersonDescriptorBuilder {
     /**
      * Returns an {@code EditPersonDescriptor} with fields containing {@code person}'s details
      */
-    public EditPersonDescriptorBuilder(Person person) {
+    public EditPersonDescriptorBuilder(Student person) {
         descriptor = new EditPersonDescriptor();
         descriptor.setName(person.getName());
         descriptor.setPhone(person.getPhone());
@@ -41,7 +40,6 @@ public class EditPersonDescriptorBuilder {
         descriptor.setAddress(person.getAddress());
         descriptor.setTags(person.getTags());
         person.getSchoolingLevel().ifPresent(level -> descriptor.setSchoolingLevel(Optional.of(level)));
-        person.getWeeklyLessonSlot().ifPresent(slot -> descriptor.setWeeklyLessonSlot(Optional.of(slot)));
     }
 
     /**
@@ -91,14 +89,6 @@ public class EditPersonDescriptorBuilder {
      */
     public EditPersonDescriptorBuilder withSchoolingLevel(String level) {
         descriptor.setSchoolingLevel(Optional.ofNullable(level).map(SchoolingLevel::new));
-        return this;
-    }
-
-    /**
-     * Sets the weekly lesson slot of the {@code EditPersonDescriptor} that we are building; null clears it.
-     */
-    public EditPersonDescriptorBuilder withWeeklyLessonSlot(WeeklyLessonSlot slot) {
-        descriptor.setWeeklyLessonSlot(Optional.ofNullable(slot));
         return this;
     }
 

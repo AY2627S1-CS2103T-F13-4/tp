@@ -59,6 +59,15 @@ public class WeeklyLessonSlotTest {
     }
 
     @Test
+    public void constructor_caseInsensitiveDayAndMeridiem_normalisesToCanonicalForm() {
+        for (String input : List.of("wed 1.00pm 5.00pm", "WED 1.00PM 5.00PM", "wEd 1.00Pm 5.00pM")) {
+            assertTrue(WeeklyLessonSlot.isValidWeeklyLessonSlot(input), input);
+            assertEquals(new WeeklyLessonSlot("Wed 1.00pm 5.00pm"), new WeeklyLessonSlot(input), input);
+            assertEquals("Wednesday 1.00pm-5.00pm", new WeeklyLessonSlot(input).toString(), input);
+        }
+    }
+
+    @Test
     public void isValidWeeklyLessonSlot_invalidStrings_returnsFalse() {
         for (String input : List.of("", " ", "bad", "Funday " + LESSON_START + " " + LESSON_END,
                 LESSON_DAY + " " + LESSON_START, VALID_LESSON_SLOT_TEXT + " extra",

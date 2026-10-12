@@ -17,28 +17,23 @@
   </Label>
   <VBox spacing="8" minWidth="0" HBox.hgrow="ALWAYS">
     <Text fx:id="name" text="\$first" styleClass="card-name" />
-    <HBox alignment="CENTER_LEFT" spacing="8">
+    <HBox fx:id="badges" alignment="CENTER_LEFT" spacing="6">
       <Label fx:id="schoolingLevel" text="\$schoolingLevel" styleClass="chip, level-chip">
         <minWidth>
           <Region fx:constant="USE_PREF_SIZE" />
         </minWidth>
       </Label>
-      <Text fx:id="subject" text="\$subject" styleClass="card-subjects" />
+      <FlowPane fx:id="tags" hgap="6" vgap="6" HBox.hgrow="ALWAYS" />
     </HBox>
-    <FlowPane fx:id="tags" hgap="6" vgap="6" />
+    <!-- Numbered so that the numbers match LESSON_INDEX in lesson-edit and lesson-delete -->
+    <VBox fx:id="lessons" spacing="3">
+      <Label text="Lessons" styleClass="fact-caption" />
+    </VBox>
     <!-- Each fact keeps its caption above the value; facts wrap onto new rows in narrow windows -->
     <FlowPane fx:id="facts" hgap="32" vgap="10">
       <VBox spacing="2">
-        <Label text="Lesson" styleClass="fact-caption" />
-        <Label fx:id="weeklyLessonSlot" text="\$weeklyLessonSlot" styleClass="fact-value" />
-      </VBox>
-      <VBox spacing="2">
-        <Label text="Rate" styleClass="fact-caption" />
-        <Label fx:id="hourlyRate" text="\$hourlyRate" styleClass="fact-value" />
-      </VBox>
-      <VBox spacing="2">
         <Label text="Guardian" styleClass="fact-caption" />
-        <Label fx:id="guardian" text="\$guardian" styleClass="fact-value" wrapText="true" />
+        <Label fx:id="guardian" text="\$guardian" styleClass="fact-value" />
       </VBox>
       <VBox spacing="2">
         <Label text="Phone" styleClass="fact-caption" />
@@ -46,7 +41,7 @@
       </VBox>
       <VBox spacing="2">
         <Label text="Email" styleClass="fact-caption" />
-        <Label fx:id="email" text="\$email" styleClass="fact-value" wrapText="true" />
+        <Label fx:id="email" text="\$email" styleClass="fact-value" />
       </VBox>
       <VBox spacing="2">
         <Label text="Address" styleClass="fact-caption" />

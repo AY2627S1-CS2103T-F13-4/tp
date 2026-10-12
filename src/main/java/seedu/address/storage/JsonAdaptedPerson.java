@@ -1,9 +1,7 @@
 package seedu.address.storage;
 
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -16,22 +14,20 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import seedu.address.commons.exceptions.IllegalValueException;
 import seedu.address.model.person.Address;
 import seedu.address.model.person.Email;
-import seedu.address.model.person.GuardianContact;
-import seedu.address.model.person.HourlyRate;
+import seedu.address.model.person.Guardian;
+import seedu.address.model.person.Lesson;
 import seedu.address.model.person.Name;
-import seedu.address.model.person.Person;
 import seedu.address.model.person.Phone;
 import seedu.address.model.person.SchoolingLevel;
-import seedu.address.model.person.Subject;
-import seedu.address.model.person.WeeklyLessonSlot;
+import seedu.address.model.person.Student;
 import seedu.address.model.tag.Tag;
 
 /**
- * Jackson-friendly version of {@link Person}.
+ * Jackson-friendly version of {@link Student}.
  */
 class JsonAdaptedPerson {
 
-    public static final String MISSING_FIELD_MESSAGE_FORMAT = "Person's %s field is missing!";
+    public static final String MISSING_FIELD_MESSAGE_FORMAT = "Student's %s field is missing!";
 
     private final String name;
     private final String phone;
@@ -39,21 +35,14 @@ class JsonAdaptedPerson {
     private final String address;
     private final List<JsonAdaptedTag> tags = new ArrayList<>();
 
-    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
-    @JsonDeserialize(using = StrictStringDeserializer.class)
-    private final String subject;
-    @JsonDeserialize(contentUsing = StrictStringDeserializer.class)
-    private final List<String> subjects;
     @JsonDeserialize(using = StrictStringDeserializer.class)
     private final String schoolingLevel;
-    private final JsonAdaptedGuardianContact guardianContact;
-    private final JsonAdaptedWeeklyLessonSlot weeklyLessonSlot;
-    @JsonDeserialize(using = StrictStringDeserializer.class)
-    private final String hourlyRate;
+    private final JsonAdaptedGuardian guardianContact;
+    private final List<JsonAdaptedLesson> lessons = new ArrayList<>();
 
     /** Retains compatibility with existing adapter callers. */
     public JsonAdaptedPerson(String name, String phone, String email, String address, List<JsonAdaptedTag> tags) {
-        this(name, phone, email, address, tags, null, null, null, null, null, null);
+        this(name, phone, email, address, tags, null, null, null);
     }
 
     /**
@@ -62,52 +51,48 @@ class JsonAdaptedPerson {
     @JsonCreator
     public JsonAdaptedPerson(@JsonProperty("name") String name, @JsonProperty("phone") String phone,
             @JsonProperty("email") String email, @JsonProperty("address") String address,
-            @JsonProperty("tags") List<JsonAdaptedTag> tags, @JsonProperty("subject") String subject,
+            @JsonProperty("tags") List<JsonAdaptedTag> tags,
             @JsonProperty("schoolingLevel") String schoolingLevel,
-            @JsonProperty("guardianContact") JsonAdaptedGuardianContact guardianContact,
-            @JsonProperty("weeklyLessonSlot") JsonAdaptedWeeklyLessonSlot weeklyLessonSlot,
-            @JsonProperty("hourlyRate") String hourlyRate,
-            @JsonProperty("subjects") List<String> subjects) {
+            @JsonProperty("guardianContact") JsonAdaptedGuardian guardianContact,
+            @JsonProperty("lessons") List<JsonAdaptedLesson> lessons) {
         this.name = name;
         this.phone = phone;
         this.email = email;
         this.address = address;
-        this.subject = subject;
-        this.subjects = subjects == null ? null : new ArrayList<>(subjects);
         this.schoolingLevel = schoolingLevel;
         this.guardianContact = guardianContact;
-        this.weeklyLessonSlot = weeklyLessonSlot;
-        this.hourlyRate = hourlyRate;
         if (tags != null) {
             this.tags.addAll(tags);
+        }
+        if (lessons != null) {
+            this.lessons.addAll(lessons);
         }
     }
 
     /**
-     * Converts a given {@code Person} into this class for Jackson use.
+     * Converts a given {@code Student} into this class for Jackson use.
      */
-    public JsonAdaptedPerson(Person source) {
+    public JsonAdaptedPerson(Student source) {
         name = source.getName().fullName;
         phone = source.getPhone().value;
         email = source.getEmail().value;
         address = source.getAddress().value;
-        subject = null;
-        subjects = source.getSubjects().stream().map(Subject::toString).collect(Collectors.toList());
         schoolingLevel = source.getSchoolingLevel().map(SchoolingLevel::toString).orElse(null);
-        guardianContact = source.getGuardianContact().map(JsonAdaptedGuardianContact::new).orElse(null);
-        weeklyLessonSlot = source.getWeeklyLessonSlot().map(JsonAdaptedWeeklyLessonSlot::new).orElse(null);
-        hourlyRate = source.getHourlyRate().map(HourlyRate::toString).orElse(null);
+        guardianContact = source.getGuardian().map(JsonAdaptedGuardian::new).orElse(null);
+        lessons.addAll(source.getLessons().stream()
+                .map(JsonAdaptedLesson::new)
+                .collect(Collectors.toList()));
         tags.addAll(source.getTags().stream()
                 .map(JsonAdaptedTag::new)
                 .collect(Collectors.toList()));
     }
 
     /**
-     * Converts this Jackson-friendly adapted person object into the model's {@code Person} object.
+     * Converts this Jackson-friendly adapted person object into the model's {@code Student} object.
      *
      * @throws IllegalValueException if there were any data constraints violated in the adapted person.
      */
-    public Person toModelType() throws IllegalValueException {
+    public Student toModelType() throws IllegalValueException {
         final List<Tag> personTags = new ArrayList<>();
         for (JsonAdaptedTag tag : tags) {
             personTags.add(tag.toModelType());
@@ -147,32 +132,15 @@ class JsonAdaptedPerson {
 
         final Set<Tag> modelTags = new HashSet<>(personTags);
         try {
-            Set<Subject> modelSubjects = new LinkedHashSet<>();
-            if (subjects != null) {
-                if (subject != null) {
-                    throw new IllegalValueException("Use subjects or the older subject property, not both.");
-                }
-                for (String value : subjects) {
-                    if (value == null) {
-                        throw new IllegalValueException(Subject.MESSAGE_CONSTRAINTS);
-                    }
-                    modelSubjects.add(new Subject(value));
-                }
-            } else if (subject != null) {
-                modelSubjects.add(new Subject(subject));
-            }
             Optional<SchoolingLevel> modelLevel = Optional.ofNullable(schoolingLevel).map(SchoolingLevel::new);
-            Optional<GuardianContact> modelGuardian = guardianContact == null ? Optional.empty()
+            Optional<Guardian> modelGuardian = guardianContact == null ? Optional.empty()
                     : Optional.of(guardianContact.toModelType());
-            Optional<WeeklyLessonSlot> modelSlot = weeklyLessonSlot == null ? Optional.empty()
-                    : Optional.of(weeklyLessonSlot.toModelType());
-            if (hourlyRate != null && !hourlyRate.matches("[0-9]+(\\.[0-9]{1,2})?")) {
-                throw new IllegalValueException(HourlyRate.MESSAGE_CONSTRAINTS);
+            final List<Lesson> modelLessons = new ArrayList<>();
+            for (JsonAdaptedLesson lesson : lessons) {
+                modelLessons.add(lesson.toModelType());
             }
-            Optional<HourlyRate> modelRate = Optional.ofNullable(hourlyRate)
-                    .map(value -> new HourlyRate(new BigDecimal(value)));
-            return new Person(modelName, modelPhone, modelEmail, modelAddress, modelTags,
-                    modelSubjects, modelLevel, modelGuardian, modelSlot, modelRate);
+            return new Student(modelName, modelPhone, modelEmail, modelAddress, modelTags,
+                    modelLevel, modelGuardian, modelLessons);
         } catch (IllegalArgumentException e) {
             throw new IllegalValueException(e.getMessage());
         }
