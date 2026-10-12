@@ -23,7 +23,8 @@ import seedu.address.model.person.WeeklyLessonSlot;
 
 /** Parses lesson commands separately from student edits. */
 public class LessonCommandParser implements Parser<LessonCommand> {
-    private static final Pattern UNKNOWN_PREFIX = Pattern.compile("(?:^|\\s)(?!(?:[simr]|loc)/)[A-Za-z]+/");
+    private static final Pattern UNKNOWN_PREFIX = Pattern.compile(
+            "(?:^|\\s)(?!(?:subject|slot|rate|mode|location)/)[A-Za-z]+/");
     private static final Pattern WHITESPACE = Pattern.compile("\\s+");
     private final Operation operation;
 
@@ -35,10 +36,10 @@ public class LessonCommandParser implements Parser<LessonCommand> {
     public LessonCommand parse(String args) throws ParseException {
         requireNonNull(args);
         String usage = switch (operation) {
-            case ADD -> "lesson-add STUDENT_INDEX s/SUBJECT i/LESSON_SLOT r/HOURLY_RATE "
-                    + "[m/MODE] [loc/LOCATION]";
-            case EDIT -> "lesson-edit STUDENT_INDEX LESSON_INDEX [s/SUBJECT] [i/LESSON_SLOT] [r/HOURLY_RATE] "
-                    + "[m/MODE] [loc/LOCATION] (at least one field required)";
+            case ADD -> "lesson-add STUDENT_INDEX subject/SUBJECT slot/LESSON_SLOT rate/HOURLY_RATE "
+                    + "[mode/MODE] [location/LOCATION]";
+            case EDIT -> "lesson-edit STUDENT_INDEX LESSON_INDEX [subject/SUBJECT] [slot/LESSON_SLOT] "
+                    + "[rate/HOURLY_RATE] [mode/MODE] [location/LOCATION] (at least one field required)";
             case DELETE -> "lesson-delete STUDENT_INDEX LESSON_INDEX";
         };
         String formatError = String.format(MESSAGE_INVALID_COMMAND_FORMAT, usage);

@@ -201,14 +201,15 @@ public class AddCommandParserTest {
         Student expected = new PersonBuilder(BOB).withTags()
                 .withSchoolingLevel(new SchoolingLevel("Primary 5")).build();
         assertParseSuccess(parser, NAME_DESC_BOB + PHONE_DESC_BOB + EMAIL_DESC_BOB + ADDRESS_DESC_BOB
-                + " l/  Primary   5 ", new AddCommand(expected));
+                + " level/  Primary   5 ", new AddCommand(expected));
     }
 
     @Test
     public void parse_invalidOrDuplicateSchoolingLevel_failure() {
         String base = NAME_DESC_BOB + PHONE_DESC_BOB + EMAIL_DESC_BOB + ADDRESS_DESC_BOB;
-        assertParseFailure(parser, base + " l/", SchoolingLevel.MESSAGE_CONSTRAINTS);
-        assertParseFailure(parser, base + " l/***", SchoolingLevel.MESSAGE_CONSTRAINTS);
-        assertParseFailure(parser, base + " l/P5 l/P6", Messages.getErrorMessageForDuplicatePrefixes(PREFIX_LEVEL));
+        assertParseFailure(parser, base + " level/", SchoolingLevel.MESSAGE_CONSTRAINTS);
+        assertParseFailure(parser, base + " level/***", SchoolingLevel.MESSAGE_CONSTRAINTS);
+        assertParseFailure(parser, base + " level/P5 level/P6",
+                Messages.getErrorMessageForDuplicatePrefixes(PREFIX_LEVEL));
     }
 }

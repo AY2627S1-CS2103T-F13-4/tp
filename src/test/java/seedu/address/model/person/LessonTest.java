@@ -89,7 +89,7 @@ public class LessonTest {
         assertTrue(LessonLocation.isValidLocation("Blk 123/4 Clementi"));
         assertTrue(LessonLocation.isValidLocation("https://zoom.us/j/123"));
         assertFalse(LessonLocation.isValidLocation("   "));
-        assertFalse(LessonLocation.isValidLocation("home r/50"));
+        assertFalse(LessonLocation.isValidLocation("home rate/50"));
         assertFalse(LessonLocation.isValidLocation("a".repeat(101)));
         assertEquals("Clementi Library", new LessonLocation("  Clementi   Library ").toString());
     }

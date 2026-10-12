@@ -69,7 +69,7 @@ public class TuitionStorageTest {
         String json = "{\"persons\":[" + LEGACY_PERSON + "," + LEGACY_PERSON.replace("Alex Tan", "alex tan") + "]}";
         AddressBook book = JsonUtil.fromJsonString(json, JsonSerializableAddressBook.class).toModelType();
         Model model = new ModelManager(book, new UserPrefs());
-        new AddressBookParser().parseCommand("edit 1 p/87654321").execute(model);
+        new AddressBookParser().parseCommand("edit 1 phone/87654321").execute(model);
         JsonAddressBookStorage storage = new JsonAddressBookStorage(temporaryFolder.resolve("addressbook.json"));
         storage.saveAddressBook(model.getAddressBook());
         ReadOnlyAddressBook loaded = storage.readAddressBook().orElseThrow();
@@ -87,7 +87,7 @@ public class TuitionStorageTest {
         AddressBook book = new AddressBook();
         book.addPerson(original);
         Model model = new ModelManager(book, new UserPrefs());
-        new AddressBookParser().parseCommand("edit 1 a/New address").execute(model);
+        new AddressBookParser().parseCommand("edit 1 address/New address").execute(model);
         Student expected = new PersonBuilder(original).withAddress("New address").build();
         assertEquals(expected, model.getFilteredPersonList().get(0));
         JsonAddressBookStorage storage = new JsonAddressBookStorage(temporaryFolder.resolve("addressbook.json"));

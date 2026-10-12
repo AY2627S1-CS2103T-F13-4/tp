@@ -165,8 +165,8 @@ Tests cover old-file loading, save/reload and preservation of unrelated fields. 
 
 | Step | Code and behavior |
 |---|---|
-| Parse | `AddCommandParser` and `EditCommandParser` accept repeated `s/` prefixes. `ParserUtil.parseSubjects` validates every label and removes case-insensitive duplicates. |
-| Edit | `EditPersonDescriptor` distinguishes omission, replacement of the whole set, and clearing with one empty `s/`. Other fields stay unchanged. |
+| Parse | `AddCommandParser` and `EditCommandParser` accept repeated `subject/` prefixes. `ParserUtil.parseSubjects` validates every label and removes case-insensitive duplicates. |
+| Edit | `EditPersonDescriptor` distinguishes omission, replacement of the whole set, and clearing with one empty `subject/`. Other fields stay unchanged. |
 | Display | `PersonCard` shows all subjects or `Subjects: Not recorded`. |
 | Save | `JsonAdaptedPerson` writes a string array and accepts older single-subject files. |
 
@@ -510,23 +510,23 @@ Use an empty test folder and sample data. These checks are a starting point; als
 ### Subject and saved data
 
 1. Add a unique test student with subject `Combined Science`, using three spaces between the words. The card should show one space.
-2. Change it with `edit INDEX s/Math`, then edit the phone without `s/`. The subject should stay `Math`.
+2. Change it with `edit INDEX subject/Math`, then edit the phone without `subject/`. The subject should stay `Math`.
 3. Restart the app. Both edits should remain.
-4. Run `edit INDEX s/` and restart again. The card should show `Subjects: Not recorded`.
-5. Add or edit with `s/Math s/Science s/math`. The card should show `Math, Science`, including after restart.
-6. Try a blank subject on `add`, `edit INDEX s/Math s/`, and an invalid label such as `s/123`. Each should reject the whole command without changing any record.
+4. Run `edit INDEX subject/` and restart again. The card should show `Subjects: Not recorded`.
+5. Add or edit with `subject/Math subject/Science subject/math`. The card should show `Math, Science`, including after restart.
+6. Try a blank subject on `add`, `edit INDEX subject/Math subject/`, and an invalid label such as `subject/123`. Each should reject the whole command without changing any record.
 
 ### Guardian contacts
 
-1. List students and choose an index without a guardian. Run `guardian-add INDEX n/Janet Tan p/91234567`.
+1. List students and choose an index without a guardian. Run `guardian-add INDEX name/Janet Tan phone/91234567`.
    Check that the guardian appears on that student's card and other fields stay unchanged. Restart and check again.
-2. Run `guardian-edit INDEX p/87654321`. The guardian's name should remain unchanged. Restart and verify persistence.
-3. Run `guardian-edit INDEX n/John Tan`. The phone should remain unchanged.
+2. Run `guardian-edit INDEX phone/87654321`. The guardian's name should remain unchanged. Restart and verify persistence.
+3. Run `guardian-edit INDEX name/John Tan`. The phone should remain unchanged.
 4. Run `guardian-delete INDEX`. The guardian should disappear while the student and all other fields remain.
    Restart and verify that no guardian is recorded.
 5. Try adding a second guardian, editing/deleting an absent guardian, an out-of-range index, empty fields,
    an invalid phone and repeated prefixes. Expect an error with existing records unchanged.
-6. Filter to one student with `find`, then use `guardian-add 1 n/Janet Tan p/91234567`.
+6. Filter to one student with `find`, then use `guardian-add 1 name/Janet Tan phone/91234567`.
    Check that only the displayed student changes, the filter remains active, and other students are untouched.
 
 ### Missing or invalid data files

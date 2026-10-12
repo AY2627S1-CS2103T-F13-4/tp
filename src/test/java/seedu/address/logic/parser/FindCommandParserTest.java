@@ -37,18 +37,18 @@ public class FindCommandParserTest {
     @Test
     public void parse_levelPrefix_returnsLevelFindCommand() {
         FindCommand expected = new FindCommand(new SchoolingLevelContainsKeywordPredicate("Primary 5"));
-        assertParseSuccess(parser, " l/Primary 5", expected);
-        assertParseSuccess(parser, "   l/  Primary   5  ", new FindCommand(
+        assertParseSuccess(parser, " level/Primary 5", expected);
+        assertParseSuccess(parser, "   level/  Primary   5  ", new FindCommand(
                 new SchoolingLevelContainsKeywordPredicate("Primary   5")));
     }
 
     @Test
     public void parse_invalidLevelSearch_throwsParseException() {
         String invalid = String.format(MESSAGE_INVALID_COMMAND_FORMAT, FindCommand.MESSAGE_USAGE);
-        assertParseFailure(parser, " l/", invalid);
-        assertParseFailure(parser, " l/   ", invalid);
-        assertParseFailure(parser, " alice l/Primary", invalid);
-        assertParseFailure(parser, " l/Primary l/Secondary",
+        assertParseFailure(parser, " level/", invalid);
+        assertParseFailure(parser, " level/   ", invalid);
+        assertParseFailure(parser, " alice level/Primary", invalid);
+        assertParseFailure(parser, " level/Primary level/Secondary",
                 Messages.getErrorMessageForDuplicatePrefixes(PREFIX_LEVEL));
     }
 

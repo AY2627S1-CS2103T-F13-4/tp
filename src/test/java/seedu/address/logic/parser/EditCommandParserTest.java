@@ -210,21 +210,21 @@ public class EditCommandParserTest {
 
     @Test
     public void parse_schoolingLevel_success() {
-        assertParseSuccess(parser, "1 l/ Secondary  3 ", new EditCommand(INDEX_FIRST_PERSON,
+        assertParseSuccess(parser, "1 level/ Secondary  3 ", new EditCommand(INDEX_FIRST_PERSON,
                 new EditPersonDescriptorBuilder().withSchoolingLevel("Secondary 3").build()));
     }
 
     @Test
     public void parse_emptySchoolingLevel_clearsLevel() {
         EditPersonDescriptor clear = new EditPersonDescriptorBuilder().withSchoolingLevel(null).build();
-        assertParseSuccess(parser, "1 l/", new EditCommand(INDEX_FIRST_PERSON, clear));
-        assertParseSuccess(parser, "1 l/   ", new EditCommand(INDEX_FIRST_PERSON, clear));
+        assertParseSuccess(parser, "1 level/", new EditCommand(INDEX_FIRST_PERSON, clear));
+        assertParseSuccess(parser, "1 level/   ", new EditCommand(INDEX_FIRST_PERSON, clear));
     }
 
     @Test
     public void parse_invalidOrDuplicateSchoolingLevel_failure() {
-        assertParseFailure(parser, "1 l/***", SchoolingLevel.MESSAGE_CONSTRAINTS);
-        assertParseFailure(parser, "1 l/P5 l/P6", Messages
+        assertParseFailure(parser, "1 level/***", SchoolingLevel.MESSAGE_CONSTRAINTS);
+        assertParseFailure(parser, "1 level/P5 level/P6", Messages
                 .getErrorMessageForDuplicatePrefixes(PREFIX_LEVEL));
     }
 }

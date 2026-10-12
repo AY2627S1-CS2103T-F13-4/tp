@@ -69,20 +69,20 @@ public class LessonWorkflowTest {
 
     @Test
     public void execute_crud_preservesOtherFieldsAndSavesEveryChange() throws Exception {
-        logic.execute("lesson-add 1 s/Math" + LESSON_SLOT_DESC + " r/45.5");
+        logic.execute("lesson-add 1 subject/Math" + LESSON_SLOT_DESC + " rate/45.5");
         assertStudent(new PersonBuilder(original).withLessons(MATH).build());
 
-        logic.execute("lesson-add 1 s/English i/Mon 4.00pm 5.00pm r/40");
+        logic.execute("lesson-add 1 subject/English slot/Mon 4.00pm 5.00pm rate/40");
         Student both = new PersonBuilder(original).withLessons(MATH, ENGLISH).build();
         assertStudent(both);
         assertTrue(Messages.format(both).contains("Lessons: " + MATH + " | " + ENGLISH));
 
-        logic.execute("lesson-edit 1 2 r/50");
+        logic.execute("lesson-edit 1 2 rate/50");
         Lesson repriced = new Lesson(new Subject("English"), ENGLISH.getWeeklyLessonSlot(),
                 new HourlyRate(new BigDecimal("50")));
         assertStudent(new PersonBuilder(original).withLessons(MATH, repriced).build());
 
-        logic.execute("lesson-edit 1 1 s/Science");
+        logic.execute("lesson-edit 1 1 subject/Science");
         Lesson renamed = new Lesson(new Subject("Science"), MATH.getWeeklyLessonSlot(), MATH.getHourlyRate());
         assertStudent(new PersonBuilder(original).withLessons(renamed, repriced).build());
 
@@ -94,32 +94,32 @@ public class LessonWorkflowTest {
 
     @Test
     public void execute_editWithEmptyModeOrLocation_clearsThemAndSaves() throws Exception {
-        logic.execute("lesson-add 1 s/Math" + LESSON_SLOT_DESC + " r/45.5 m/virtual loc/Zoom");
+        logic.execute("lesson-add 1 subject/Math" + LESSON_SLOT_DESC + " rate/45.5 mode/virtual location/Zoom");
         Lesson full = new Lesson(MATH.getSubject(), MATH.getWeeklyLessonSlot(), MATH.getHourlyRate(),
                 Optional.of(new LessonLocation("Zoom")), Optional.of(LessonMode.VIRTUAL));
         assertStudent(new PersonBuilder(original).withLessons(full).build());
 
-        logic.execute("lesson-edit 1 1 loc/");
+        logic.execute("lesson-edit 1 1 location/");
         Lesson noLocation = new Lesson(MATH.getSubject(), MATH.getWeeklyLessonSlot(), MATH.getHourlyRate(),
                 Optional.empty(), Optional.of(LessonMode.VIRTUAL));
         assertStudent(new PersonBuilder(original).withLessons(noLocation).build());
 
-        logic.execute("lesson-edit 1 1 m/ loc/Library");
+        logic.execute("lesson-edit 1 1 mode/ location/Library");
         Lesson swapped = new Lesson(MATH.getSubject(), MATH.getWeeklyLessonSlot(), MATH.getHourlyRate(),
                 Optional.of(new LessonLocation("Library")), Optional.empty());
         assertStudent(new PersonBuilder(original).withLessons(swapped).build());
 
-        assertThrows(ParseException.class, () -> logic.execute("lesson-add 1 s/Art" + LESSON_SLOT_DESC
-                + " r/45 m/"));
+        assertThrows(ParseException.class, () -> logic.execute("lesson-add 1 subject/Art" + LESSON_SLOT_DESC
+                + " rate/45 mode/"));
     }
 
     @Test
     public void execute_invalidTargets_rejectWithoutChangingMemoryOrFile() throws Exception {
-        logic.execute("lesson-add 1 s/Math" + LESSON_SLOT_DESC + " r/45.50");
+        logic.execute("lesson-add 1 subject/Math" + LESSON_SLOT_DESC + " rate/45.50");
         Student withMath = new PersonBuilder(original).withLessons(MATH).build();
-        for (String command : new String[]{"lesson-add 2 s/Math" + LESSON_SLOT_DESC + " r/45.50",
-            "lesson-edit 2 1 r/50", "lesson-edit 1 2 r/50", "lesson-delete 1 2", "lesson-delete 2 1",
-            "lesson-add 1 s/math" + LESSON_SLOT_DESC + " r/45.5"}) {
+        for (String command : new String[]{"lesson-add 2 subject/Math" + LESSON_SLOT_DESC + " rate/45.50",
+            "lesson-edit 2 1 rate/50", "lesson-edit 1 2 rate/50", "lesson-delete 1 2", "lesson-delete 2 1",
+            "lesson-add 1 subject/math" + LESSON_SLOT_DESC + " rate/45.5"}) {
             assertThrows(CommandException.class, () -> logic.execute(command));
             assertStudent(withMath);
         }
@@ -127,24 +127,26 @@ public class LessonWorkflowTest {
 
     @Test
     public void execute_editMakingDuplicate_rejected() throws Exception {
-        logic.execute("lesson-add 1 s/Math" + LESSON_SLOT_DESC + " r/45.50");
-        logic.execute("lesson-add 1 s/English" + LESSON_SLOT_DESC + " r/45.50");
+        logic.execute("lesson-add 1 subject/Math" + LESSON_SLOT_DESC + " rate/45.50");
+        logic.execute("lesson-add 1 subject/English" + LESSON_SLOT_DESC + " rate/45.50");
         Student expected = new PersonBuilder(original).withLessons(MATH, new Lesson(new Subject("English"),
                 VALID_LESSON_SLOT, MATH.getHourlyRate())).build();
 
-        CommandException e = assertThrows(CommandException.class, () -> logic.execute("lesson-edit 1 2 s/Math"));
+        CommandException e = assertThrows(CommandException.class, () -> logic.execute("lesson-edit 1 2 subject/Math"));
         assertEquals(LessonCommand.MESSAGE_DUPLICATE_LESSON, e.getMessage());
         assertStudent(expected);
     }
 
     @Test
     public void execute_invalidInput_rejectWithoutChangingMemoryOrFile() throws Exception {
-        logic.execute("lesson-add 1 s/Math" + LESSON_SLOT_DESC + " r/45.50");
+        logic.execute("lesson-add 1 subject/Math" + LESSON_SLOT_DESC + " rate/45.50");
         Student withMath = new PersonBuilder(original).withLessons(MATH).build();
-        for (String command : new String[]{"lesson-add 1 s/Math", "lesson-add 1 s/123" + LESSON_SLOT_DESC + " r/45",
-            "lesson-add 1 s/Art i/Funday 1.00pm 2.00pm r/45", "lesson-add 1 s/Art" + LESSON_SLOT_DESC + " r/-1",
-            "lesson-edit 1 1", "lesson-edit 1 r/50", "lesson-edit 1 1 r/50 r/60", "lesson-delete 1",
-            "lesson-delete 1 1 r/50", "lesson-add 1 s/Art" + LESSON_SLOT_DESC + " r/45 x/y"}) {
+        for (String command : new String[]{"lesson-add 1 subject/Math",
+            "lesson-add 1 subject/123" + LESSON_SLOT_DESC + " rate/45",
+            "lesson-add 1 subject/Art slot/Funday 1.00pm 2.00pm rate/45",
+            "lesson-add 1 subject/Art" + LESSON_SLOT_DESC + " rate/-1",
+            "lesson-edit 1 1", "lesson-edit 1 rate/50", "lesson-edit 1 1 rate/50 rate/60", "lesson-delete 1",
+            "lesson-delete 1 1 rate/50", "lesson-add 1 subject/Art" + LESSON_SLOT_DESC + " rate/45 x/y"}) {
             assertThrows(ParseException.class, () -> logic.execute(command));
             assertStudent(withMath);
         }
@@ -152,8 +154,8 @@ public class LessonWorkflowTest {
 
     @Test
     public void execute_studentEdits_preserveLessons() throws Exception {
-        logic.execute("lesson-add 1 s/Math" + LESSON_SLOT_DESC + " r/45.50");
-        logic.execute("edit 1 p/90000000");
+        logic.execute("lesson-add 1 subject/Math" + LESSON_SLOT_DESC + " rate/45.50");
+        logic.execute("edit 1 phone/90000000");
         assertStudent(new PersonBuilder(original).withPhone("90000000").withLessons(MATH).build());
     }
 }

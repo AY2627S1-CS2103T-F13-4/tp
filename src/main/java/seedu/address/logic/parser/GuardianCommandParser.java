@@ -17,7 +17,7 @@ import seedu.address.model.person.Phone;
 
 /** Parses guardian commands separately from student edits. */
 public class GuardianCommandParser implements Parser<GuardianCommand> {
-    private static final Pattern UNKNOWN_PREFIX = Pattern.compile("(?:^|\\s)(?![np]/)[^\\s/]+/");
+    private static final Pattern UNKNOWN_PREFIX = Pattern.compile("(?:^|\\s)(?!(?:name|phone)/)[^\\s/]+/");
     private final Operation operation;
 
     public GuardianCommandParser(Operation operation) {
@@ -28,8 +28,8 @@ public class GuardianCommandParser implements Parser<GuardianCommand> {
     public GuardianCommand parse(String args) throws ParseException {
         requireNonNull(args);
         String usage = switch (operation) {
-            case ADD -> "guardian-add INDEX n/NAME p/PHONE";
-            case EDIT -> "guardian-edit INDEX [n/NAME] [p/PHONE] (at least one field required)";
+            case ADD -> "guardian-add INDEX name/NAME phone/PHONE";
+            case EDIT -> "guardian-edit INDEX [name/NAME] [phone/PHONE] (at least one field required)";
             case DELETE -> "guardian-delete INDEX";
         };
         String formatError = String.format(MESSAGE_INVALID_COMMAND_FORMAT, usage);

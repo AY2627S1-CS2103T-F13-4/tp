@@ -66,21 +66,21 @@ public class GuardianWorkflowTest {
 
     @Test
     public void execute_crud_preservesOtherFieldsAndSavesEveryChange() throws Exception {
-        logic.execute("guardian-add 1 n/Janet Tan p/91234567");
+        logic.execute("guardian-add 1 name/Janet Tan phone/91234567");
         Student created = new PersonBuilder(original).withGuardian(CONTACT).build();
         assertStudent(created);
         logic.execute("list");
         assertTrue(Messages.format(created).contains("Guardian: Janet Tan: 91234567"));
 
-        logic.execute("guardian-edit 1 p/87654321");
+        logic.execute("guardian-edit 1 phone/87654321");
         Guardian changedPhone = new Guardian(CONTACT.getName(), new Phone("87654321"));
         assertStudent(new PersonBuilder(original).withGuardian(changedPhone).build());
 
-        logic.execute("guardian-edit 1 n/John Tan");
+        logic.execute("guardian-edit 1 name/John Tan");
         Guardian changedName = new Guardian(new Name("John Tan"), changedPhone.getPhone());
         assertStudent(new PersonBuilder(original).withGuardian(changedName).build());
 
-        logic.execute("guardian-edit 1 n/Janet Tan p/91234567");
+        logic.execute("guardian-edit 1 name/Janet Tan phone/91234567");
         assertStudent(created);
 
         logic.execute("guardian-delete 1");
@@ -90,12 +90,12 @@ public class GuardianWorkflowTest {
     @Test
     public void execute_existingOrMissingGuardian_rejectsWithoutChangingMemoryOrFile() throws Exception {
         logic.execute("list");
-        for (String command : new String[]{"guardian-edit 1 n/Janet", "guardian-delete 1"}) {
+        for (String command : new String[]{"guardian-edit 1 name/Janet", "guardian-delete 1"}) {
             assertThrows(CommandException.class, () -> logic.execute(command));
             assertStudent(original);
         }
-        logic.execute("guardian-add 1 n/Janet Tan p/91234567");
-        assertThrows(CommandException.class, () -> logic.execute("guardian-add 1 n/John p/87654321"));
+        logic.execute("guardian-add 1 name/Janet Tan phone/91234567");
+        assertThrows(CommandException.class, () -> logic.execute("guardian-add 1 name/John phone/87654321"));
         assertStudent(new PersonBuilder(original).withGuardian(CONTACT).build());
     }
 
@@ -104,7 +104,7 @@ public class GuardianWorkflowTest {
         Student second = new PersonBuilder(original).withName("Bob Tan").build();
         model.addPerson(second);
         logic.execute("find Bob");
-        logic.execute("guardian-add 1 n/Janet Tan p/91234567");
+        logic.execute("guardian-add 1 name/Janet Tan phone/91234567");
         assertEquals(1, model.getFilteredPersonList().size());
         assertEquals(original, model.getAddressBook().getPersonList().get(0));
         assertEquals(new PersonBuilder(second).withGuardian(CONTACT).build(),
@@ -115,29 +115,29 @@ public class GuardianWorkflowTest {
 
     @Test
     public void execute_invalidInput_preservesMemoryAndSavedData() throws Exception {
-        logic.execute("guardian-add 1 n/Janet Tan p/91234567");
+        logic.execute("guardian-add 1 name/Janet Tan phone/91234567");
         Student expected = new PersonBuilder(original).withGuardian(CONTACT).build();
         for (String command : new String[]{
-            "guardian-add", "guardian-add 0 n/Janet p/91234567", "guardian-add x n/Janet p/91234567",
-            "guardian-add 1 n/Janet", "guardian-add 1 p/91234567", "guardian-add 1 n/ p/91234567",
-            "guardian-add 1 n/Janet p/abc", "guardian-add 1 n/Janet n/John p/91234567",
-            "guardian-add 1 n/Janet p/91234567 p/87654321", "guardian-edit 1", "guardian-edit 1 n/",
-            "guardian-edit 1 p/", "guardian-edit 1 p/12", "guardian-edit 1 n/Janet Tan p/+6591234567",
-            "guardian-edit 1 s/Math", "guardian-add 1 n/Janet p/91234567 r/50",
-            "guardian-edit 1 n/John n/Janet", "guardian-edit 1 p/91234567 p/87654321",
-            "guardian-delete 1 n/Janet", "guardian-delete 0", "guardian-delete 2147483648"
+            "guardian-add", "guardian-add 0 name/Janet phone/91234567", "guardian-add x name/Janet phone/91234567",
+            "guardian-add 1 name/Janet", "guardian-add 1 phone/91234567", "guardian-add 1 name/ phone/91234567",
+            "guardian-add 1 name/Janet phone/abc", "guardian-add 1 name/Janet name/John phone/91234567",
+            "guardian-add 1 name/Janet phone/91234567 phone/87654321", "guardian-edit 1", "guardian-edit 1 name/",
+            "guardian-edit 1 phone/", "guardian-edit 1 phone/12", "guardian-edit 1 name/Janet Tan phone/+6591234567",
+            "guardian-edit 1 subject/Math", "guardian-add 1 name/Janet phone/91234567 rate/50",
+            "guardian-edit 1 name/John name/Janet", "guardian-edit 1 phone/91234567 phone/87654321",
+            "guardian-delete 1 name/Janet", "guardian-delete 0", "guardian-delete 2147483648"
         }) {
             assertThrows(ParseException.class, () -> logic.execute(command), command);
             assertStudent(expected);
         }
-        assertThrows(CommandException.class, () -> logic.execute("guardian-edit 2 n/John"));
+        assertThrows(CommandException.class, () -> logic.execute("guardian-edit 2 name/John"));
         assertStudent(expected);
     }
 
     @Test
     public void execute_studentEdits_preserveGuardian() throws Exception {
-        logic.execute("guardian-add 1 n/Janet Tan p/91234567");
-        logic.execute("edit 1 p/90000000 l/Primary 6");
+        logic.execute("guardian-add 1 name/Janet Tan phone/91234567");
+        logic.execute("edit 1 phone/90000000 level/Primary 6");
         assertStudent(new PersonBuilder(original).withGuardian(CONTACT).withPhone("90000000")
                 .withSchoolingLevel(new SchoolingLevel("Primary 6")).build());
     }
@@ -145,8 +145,8 @@ public class GuardianWorkflowTest {
     @Test
     public void execute_siblings_allowIndependentCopiesOfSameGuardian() throws Exception {
         model.addPerson(new PersonBuilder(original).withName("Bob Tan").build());
-        logic.execute("guardian-add 1 n/Janet Tan p/91234567");
-        logic.execute("guardian-add 2 n/Janet Tan p/91234567");
+        logic.execute("guardian-add 1 name/Janet Tan phone/91234567");
+        logic.execute("guardian-add 2 name/Janet Tan phone/91234567");
         logic.execute("guardian-delete 1");
         assertTrue(model.getFilteredPersonList().get(0).getGuardian().isEmpty());
         assertEquals(CONTACT, model.getFilteredPersonList().get(1).getGuardian().orElseThrow());
