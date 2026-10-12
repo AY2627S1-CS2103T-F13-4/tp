@@ -14,6 +14,7 @@ import static seedu.address.model.Model.PREDICATE_SHOW_ALL_PERSONS;
 
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -245,7 +246,7 @@ public class EditCommand extends Command {
 
         /** Replaces subjects with a defensive copy; an empty set clears them all. */
         public void setSubjects(Set<Subject> subjects) {
-            this.subjects = (subjects != null) ? new HashSet<>(subjects) : null;
+            this.subjects = (subjects != null) ? new LinkedHashSet<>(subjects) : null;
         }
 
         public Optional<Set<Subject>> getSubjects() {

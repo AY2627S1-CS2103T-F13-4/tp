@@ -204,6 +204,16 @@ public class SubjectWorkflowTest {
     }
 
     @Test
+    public void editSubjects_preservesInputOrderInFeedbackMemoryAndStorage() throws Exception {
+        logic.execute(ADD + " s/English");
+        String feedback = logic.execute("edit 1 s/Math s/Science s/math").getFeedbackToUser();
+        List<Subject> expected = List.of(new Subject("Math"), new Subject("Science"));
+        assertEquals(expected, List.copyOf(model.getFilteredPersonList().get(0).getSubjects()));
+        assertEquals(expected, List.copyOf(reloaded().getSubjects()));
+        assertTrue(feedback.contains("Subjects: Math, Science"));
+    }
+
+    @Test
     public void blankOrInvalidSubjectAmongValidValues_rejectsWholeCommand() throws Exception {
         logic.execute(ADD + " s/Math s/English");
         AddressBook before = new AddressBook(model.getAddressBook());
