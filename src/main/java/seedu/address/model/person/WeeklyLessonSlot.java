@@ -8,6 +8,7 @@ import java.time.DateTimeException;
 import java.time.DayOfWeek;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
 import java.time.format.ResolverStyle;
 import java.time.format.TextStyle;
 import java.util.Locale;
@@ -20,9 +21,11 @@ public final class WeeklyLessonSlot {
     public static final String MESSAGE_CONSTRAINTS =
             "A lesson slot must use minute precision and end after it starts on the same day.";
 
-    private static final DateTimeFormatter DAY_FORMAT = DateTimeFormatter.ofPattern("E", new Locale("EN", "SG"));
-    private static final DateTimeFormatter TIME_FORMAT = DateTimeFormatter.ofPattern(
-            "h.mma", new Locale("EN", "SG")).withResolverStyle(ResolverStyle.STRICT);
+    private static final DateTimeFormatter DAY_FORMAT = new DateTimeFormatterBuilder()
+            .parseCaseInsensitive().appendPattern("E").toFormatter(new Locale("EN", "SG"));
+    private static final DateTimeFormatter TIME_FORMAT = new DateTimeFormatterBuilder()
+            .parseCaseInsensitive().appendPattern("h.mma").toFormatter(new Locale("EN", "SG"))
+            .withResolverStyle(ResolverStyle.STRICT);
 
     private static final String VALIDATION_REGEX = "(\\S+)\\s+(\\S+)\\s+(\\S+)";
 

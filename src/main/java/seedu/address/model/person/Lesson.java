@@ -50,7 +50,7 @@ public final class Lesson {
         return Objects.hash(subject, weeklyLessonSlot, hourlyRate);
     }
 
-    /** Formats the lesson for display, e.g. {@code Math, Wednesday 1.00PM-5.00PM, SGD 45.50/hour}. */
+    /** Formats the lesson for display, e.g. {@code Math, Wednesday 1.00pm-5.00pm, SGD 45.50/hour}. */
     @Override
     public String toString() {
         return subject + ", " + weeklyLessonSlot + ", SGD " + hourlyRate + "/hour";
