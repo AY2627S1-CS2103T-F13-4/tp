@@ -25,6 +25,7 @@ import seedu.address.testutil.PersonBuilder;
 
 public class StudentTest {
 
+    private static final Phone VALID_PHONE_BOB_OBJ = new Phone(VALID_PHONE_BOB);
     private static final Lesson MONDAY_MATH = new Lesson(new Subject("Math"),
             new WeeklyLessonSlot(DayOfWeek.MONDAY, LocalTime.of(16, 0), LocalTime.of(17, 30)),
             new HourlyRate(new BigDecimal("45.50")));
@@ -63,6 +64,17 @@ public class StudentTest {
         String nameWithTrailingSpaces = VALID_NAME_BOB + " ";
         editedBob = new PersonBuilder(BOB).withName(nameWithTrailingSpaces).build();
         assertFalse(BOB.isSamePerson(editedBob));
+    }
+
+    @Test
+    public void isSamePerson_differentKindOfPerson_returnsFalse() {
+        Guardian guardian = new Guardian(ALICE.getName(), ALICE.getPhone());
+        assertFalse(ALICE.isSamePerson(guardian));
+        assertFalse(guardian.isSamePerson(ALICE));
+        assertFalse(ALICE.equals(guardian));
+        assertTrue(guardian.isSamePerson(new Guardian(ALICE.getName(), VALID_PHONE_BOB_OBJ)));
+        assertFalse(guardian.equals(new Guardian(ALICE.getName(), VALID_PHONE_BOB_OBJ)));
+        assertEquals(guardian.hashCode(), new Guardian(ALICE.getName(), ALICE.getPhone()).hashCode());
     }
 
     @Test
