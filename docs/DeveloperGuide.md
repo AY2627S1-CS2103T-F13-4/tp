@@ -108,7 +108,7 @@ A student has zero or more subjects in an immutable `Set<Subject>`. The other tu
 |---|---|---|
 | Subjects | `Set<Subject>` | Zero or more labels, each 1 to 40 ASCII characters after the space cleanup below |
 | Schooling level | `Optional<SchoolingLevel>` | One text label, 1 to 30 ASCII characters after the space cleanup below |
-| Guardian | `Optional<GuardianContact>` | Both `Name` and `Phone`, using AB3 validation |
+| Guardian | `Optional<Guardian>` | Both `Name` and `Phone`, using AB3 validation |
 | Weekly lesson | `Optional<WeeklyLessonSlot>` | `DayOfWeek`, `LocalTime start` and `LocalTime end`; whole minutes, with end later on the same day |
 | Hourly rate | `Optional<HourlyRate>` | SGD/hour as a non-negative `BigDecimal`, with at most two decimal places; zero is a recorded value |
 
@@ -185,7 +185,7 @@ deleting an absent guardian, fails without changing the model. A successful comm
 The current filter remains active. Siblings can hold identical guardian contacts independently.
 
 Reading uses the existing list/find workflow: `PersonCard` displays the name and phone, or `Not recorded`.
-The existing `JsonAdaptedGuardianContact` and `JsonAdaptedPerson` persist the contact; no JSON schema change is
+The existing `JsonAdaptedGuardian` and `JsonAdaptedPerson` persist the contact; no JSON schema change is
 needed. `LogicManager` saves the updated address book through the existing storage workflow.
 
 `GuardianWorkflowTest` covers CRUD, partial updates, filtered indices, invalid requests, siblings sharing a guardian,

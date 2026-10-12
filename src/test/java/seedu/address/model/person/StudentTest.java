@@ -21,7 +21,7 @@ import org.junit.jupiter.api.Test;
 
 import seedu.address.testutil.PersonBuilder;
 
-public class PersonTest {
+public class StudentTest {
 
     private static final WeeklyLessonSlot MONDAY_SLOT = new WeeklyLessonSlot(DayOfWeek.MONDAY,
             LocalTime.of(16, 0), LocalTime.of(17, 30));
@@ -30,7 +30,7 @@ public class PersonTest {
 
     @Test
     public void asObservableList_modifyList_throwsUnsupportedOperationException() {
-        Person person = new PersonBuilder().build();
+        Student person = new PersonBuilder().build();
         assertThrows(UnsupportedOperationException.class, () -> person.getTags().remove(0));
     }
 
@@ -43,7 +43,7 @@ public class PersonTest {
         assertFalse(ALICE.isSamePerson(null));
 
         // same name, all other attributes different -> returns true
-        Person editedAlice = new PersonBuilder(ALICE).withPhone(VALID_PHONE_BOB).withEmail(VALID_EMAIL_BOB)
+        Student editedAlice = new PersonBuilder(ALICE).withPhone(VALID_PHONE_BOB).withEmail(VALID_EMAIL_BOB)
                 .withAddress(VALID_ADDRESS_BOB).withTags(VALID_TAG_HUSBAND).build();
         assertTrue(ALICE.isSamePerson(editedAlice));
 
@@ -52,7 +52,7 @@ public class PersonTest {
         assertFalse(ALICE.isSamePerson(editedAlice));
 
         // name differs in case, all other attributes same -> returns false
-        Person editedBob = new PersonBuilder(BOB).withName(VALID_NAME_BOB.toLowerCase()).build();
+        Student editedBob = new PersonBuilder(BOB).withName(VALID_NAME_BOB.toLowerCase()).build();
         assertFalse(BOB.isSamePerson(editedBob));
 
         // name has trailing spaces, all other attributes same -> returns false
@@ -64,7 +64,7 @@ public class PersonTest {
     @Test
     public void equals() {
         // same values -> returns true
-        Person aliceCopy = new PersonBuilder(ALICE).build();
+        Student aliceCopy = new PersonBuilder(ALICE).build();
         assertTrue(ALICE.equals(aliceCopy));
 
         // same object -> returns true
@@ -80,7 +80,7 @@ public class PersonTest {
         assertFalse(ALICE.equals(BOB));
 
         // different name -> returns false
-        Person editedAlice = new PersonBuilder(ALICE).withName(VALID_NAME_BOB).build();
+        Student editedAlice = new PersonBuilder(ALICE).withName(VALID_NAME_BOB).build();
         assertFalse(ALICE.equals(editedAlice));
 
         // different phone -> returns false
@@ -102,10 +102,10 @@ public class PersonTest {
 
     @Test
     public void equals_weeklyLessonSlot_comparesPresenceAndValue() {
-        Person withMondaySlot = new PersonBuilder(ALICE).withWeeklyLessonSlot(MONDAY_SLOT).build();
-        Person withSameSlot = new PersonBuilder(ALICE).withWeeklyLessonSlot(new WeeklyLessonSlot(DayOfWeek.MONDAY,
+        Student withMondaySlot = new PersonBuilder(ALICE).withWeeklyLessonSlot(MONDAY_SLOT).build();
+        Student withSameSlot = new PersonBuilder(ALICE).withWeeklyLessonSlot(new WeeklyLessonSlot(DayOfWeek.MONDAY,
                 LocalTime.of(16, 0), LocalTime.of(17, 30))).build();
-        Person withTuesdaySlot = new PersonBuilder(ALICE).withWeeklyLessonSlot(TUESDAY_SLOT).build();
+        Student withTuesdaySlot = new PersonBuilder(ALICE).withWeeklyLessonSlot(TUESDAY_SLOT).build();
 
         assertEquals(withMondaySlot, withSameSlot);
         assertEquals(withMondaySlot.hashCode(), withSameSlot.hashCode());
@@ -116,8 +116,8 @@ public class PersonTest {
 
     @Test
     public void isSamePerson_weeklyLessonSlotChanged_identityStillDependsOnName() {
-        Person withMondaySlot = new PersonBuilder(ALICE).withWeeklyLessonSlot(MONDAY_SLOT).build();
-        Person withTuesdaySlot = new PersonBuilder(ALICE).withWeeklyLessonSlot(TUESDAY_SLOT).build();
+        Student withMondaySlot = new PersonBuilder(ALICE).withWeeklyLessonSlot(MONDAY_SLOT).build();
+        Student withTuesdaySlot = new PersonBuilder(ALICE).withWeeklyLessonSlot(TUESDAY_SLOT).build();
 
         assertTrue(ALICE.isSamePerson(withMondaySlot));
         assertTrue(withMondaySlot.isSamePerson(withTuesdaySlot));
@@ -127,8 +127,8 @@ public class PersonTest {
 
     @Test
     public void personBuilder_copy_preservesWeeklyLessonSlot() {
-        Person original = new PersonBuilder(ALICE).withWeeklyLessonSlot(MONDAY_SLOT).build();
-        Person copy = new PersonBuilder(original).build();
+        Student original = new PersonBuilder(ALICE).withWeeklyLessonSlot(MONDAY_SLOT).build();
+        Student copy = new PersonBuilder(original).build();
 
         assertEquals(Optional.of(MONDAY_SLOT), copy.getWeeklyLessonSlot());
         assertEquals(original, copy);
@@ -136,7 +136,7 @@ public class PersonTest {
 
     @Test
     public void toStringMethod() {
-        String expected = Person.class.getCanonicalName() + "{name=" + ALICE.getName() + ", phone=" + ALICE.getPhone()
+        String expected = Student.class.getCanonicalName() + "{name=" + ALICE.getName() + ", phone=" + ALICE.getPhone()
                 + ", email=" + ALICE.getEmail() + ", address=" + ALICE.getAddress() + ", tags=" + ALICE.getTags()
                 + ", subjects=[], schoolingLevel=Optional.empty, guardianContact=Optional.empty"
                 + ", weeklyLessonSlot=Optional.empty, hourlyRate=Optional.empty}";

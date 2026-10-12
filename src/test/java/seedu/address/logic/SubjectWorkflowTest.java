@@ -24,12 +24,12 @@ import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.AddressBook;
 import seedu.address.model.ModelManager;
-import seedu.address.model.person.GuardianContact;
+import seedu.address.model.person.Guardian;
 import seedu.address.model.person.HourlyRate;
 import seedu.address.model.person.Name;
-import seedu.address.model.person.Person;
 import seedu.address.model.person.Phone;
 import seedu.address.model.person.SchoolingLevel;
+import seedu.address.model.person.Student;
 import seedu.address.model.person.Subject;
 import seedu.address.model.person.WeeklyLessonSlot;
 import seedu.address.storage.JsonAddressBookStorage;
@@ -124,11 +124,11 @@ public class SubjectWorkflowTest {
 
     @Test
     public void editAfterLevelSearch_preservesOtherStudentsAndTuitionFields() throws Exception {
-        Person first = new PersonBuilder().withName("Amy Bee").build();
-        Person student = new PersonBuilder().withName("Bobby")
+        Student first = new PersonBuilder().withName("Amy Bee").build();
+        Student student = new PersonBuilder().withName("Bobby")
                 .withSubjects(new Subject("Math"), new Subject("English"))
                 .withSchoolingLevel(new SchoolingLevel("Primary 5"))
-                .withGuardianContact(new GuardianContact(new Name("Janet"), new Phone("91234567")))
+                .withGuardian(new Guardian(new Name("Janet"), new Phone("91234567")))
                 .withWeeklyLessonSlot(new WeeklyLessonSlot(DayOfWeek.MONDAY, LocalTime.of(10, 0), LocalTime.of(11, 0)))
                 .withHourlyRate(new HourlyRate(new BigDecimal("40.50"))).build();
         model.addPerson(first);
@@ -136,7 +136,7 @@ public class SubjectWorkflowTest {
         logic.execute("find l/pRiM");
         assertEquals(List.of(student), model.getFilteredPersonList());
         logic.execute("edit 1 s/Science s/English l/Primary 6");
-        Person expected = new PersonBuilder(student).withSubjects(new Subject("Science"), new Subject("English"))
+        Student expected = new PersonBuilder(student).withSubjects(new Subject("Science"), new Subject("English"))
                 .withSchoolingLevel(new SchoolingLevel("Primary 6")).build();
         assertEquals(first, reloadedAt(0));
         assertEquals(expected, reloadedAt(1));
@@ -144,17 +144,17 @@ public class SubjectWorkflowTest {
 
     @Test
     public void editingSubject_preservesAllOtherFieldsAndFilteredIndex() throws Exception {
-        Person first = new PersonBuilder().withName("Amy Bee").build();
-        Person student = new PersonBuilder().withName("Bobby")
+        Student first = new PersonBuilder().withName("Amy Bee").build();
+        Student student = new PersonBuilder().withName("Bobby")
                 .withSchoolingLevel(new SchoolingLevel("Primary 5"))
-                .withGuardianContact(new GuardianContact(new Name("Janet"), new Phone("91234567")))
+                .withGuardian(new Guardian(new Name("Janet"), new Phone("91234567")))
                 .withWeeklyLessonSlot(new WeeklyLessonSlot(DayOfWeek.MONDAY, LocalTime.of(10, 0), LocalTime.of(11, 0)))
                 .withHourlyRate(new HourlyRate(new BigDecimal("40.50"))).build();
         model.addPerson(first);
         model.addPerson(student);
         logic.execute("find Bobby");
         logic.execute("edit 1 s/Math");
-        Person expected = new PersonBuilder(student).withSubject(new Subject("Math")).build();
+        Student expected = new PersonBuilder(student).withSubject(new Subject("Math")).build();
         assertEquals(first, model.getAddressBook().getPersonList().get(0));
         assertEquals(expected, storage.readAddressBook().orElseThrow().getPersonList().get(1));
         logic.execute("edit 2 p/88888888");
@@ -218,9 +218,9 @@ public class SubjectWorkflowTest {
     @Test
     public void subjects_areDefensivelyCopiedAndCannotBeMutatedThroughGetters() {
         Set<Subject> input = new LinkedHashSet<>(List.of(new Subject("Math"), new Subject("English")));
-        Person base = new PersonBuilder().build();
-        Person person = new Person(base.getName(), base.getPhone(), base.getEmail(), base.getAddress(),
-                base.getTags(), input, base.getSchoolingLevel(), base.getGuardianContact(),
+        Student base = new PersonBuilder().build();
+        Student person = new Student(base.getName(), base.getPhone(), base.getEmail(), base.getAddress(),
+                base.getTags(), input, base.getSchoolingLevel(), base.getGuardian(),
                 base.getWeeklyLessonSlot(), base.getHourlyRate());
         EditPersonDescriptor descriptor = new EditPersonDescriptor();
         descriptor.setSubjects(input);
@@ -234,11 +234,11 @@ public class SubjectWorkflowTest {
         assertEquals(2, copy.getSubjects().get().size());
     }
 
-    private Person reloaded() throws Exception {
+    private Student reloaded() throws Exception {
         return reloadedAt(0);
     }
 
-    private Person reloadedAt(int index) throws Exception {
+    private Student reloadedAt(int index) throws Exception {
         return storage.readAddressBook().orElseThrow().getPersonList().get(index);
     }
 }

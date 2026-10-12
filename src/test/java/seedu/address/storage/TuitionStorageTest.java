@@ -25,12 +25,12 @@ import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.ReadOnlyAddressBook;
 import seedu.address.model.UserPrefs;
-import seedu.address.model.person.GuardianContact;
+import seedu.address.model.person.Guardian;
 import seedu.address.model.person.HourlyRate;
 import seedu.address.model.person.Name;
-import seedu.address.model.person.Person;
 import seedu.address.model.person.Phone;
 import seedu.address.model.person.SchoolingLevel;
+import seedu.address.model.person.Student;
 import seedu.address.model.person.Subject;
 import seedu.address.model.person.WeeklyLessonSlot;
 import seedu.address.testutil.PersonBuilder;
@@ -43,10 +43,10 @@ public class TuitionStorageTest {
     @TempDir
     public Path temporaryFolder;
 
-    private Person completeStudent() {
+    private Student completeStudent() {
         return new PersonBuilder().withSubjects(new Subject("Combined Science"), new Subject("Math"))
                 .withSchoolingLevel(new SchoolingLevel("Primary 5"))
-                .withGuardianContact(new GuardianContact(new Name("Janet Tan"), new Phone("91234567")))
+                .withGuardian(new Guardian(new Name("Janet Tan"), new Phone("91234567")))
                 .withWeeklyLessonSlot(new WeeklyLessonSlot(DayOfWeek.MONDAY,
                         LocalTime.of(16, 0), LocalTime.of(17, 30)))
                 .withHourlyRate(new HourlyRate(new BigDecimal("45.50"))).build();
@@ -63,22 +63,22 @@ public class TuitionStorageTest {
         ReadOnlyAddressBook loaded = storage.readAddressBook().orElseThrow();
         assertEquals(model.getAddressBook(), loaded);
         assertEquals(2, loaded.getPersonList().size());
-        Person first = loaded.getPersonList().get(0);
+        Student first = loaded.getPersonList().get(0);
         assertTrue(first.getSubjects().isEmpty());
         assertTrue(first.getSchoolingLevel().isEmpty());
-        assertTrue(first.getGuardianContact().isEmpty());
+        assertTrue(first.getGuardian().isEmpty());
         assertTrue(first.getWeeklyLessonSlot().isEmpty());
         assertTrue(first.getHourlyRate().isEmpty());
     }
 
     @Test
     public void completeStudent_editOldFieldAndReload_preservesAllTuitionValues() throws Exception {
-        Person original = completeStudent();
+        Student original = completeStudent();
         AddressBook book = new AddressBook();
         book.addPerson(original);
         Model model = new ModelManager(book, new UserPrefs());
         new AddressBookParser().parseCommand("edit 1 a/New address").execute(model);
-        Person expected = new PersonBuilder(original).withAddress("New address").build();
+        Student expected = new PersonBuilder(original).withAddress("New address").build();
         assertEquals(expected, model.getFilteredPersonList().get(0));
         JsonAddressBookStorage storage = new JsonAddressBookStorage(temporaryFolder.resolve("addressbook.json"));
         storage.saveAddressBook(model.getAddressBook());
@@ -89,7 +89,7 @@ public class TuitionStorageTest {
 
     public void olderSingleSubject_migratesToSubjectsArrayWithoutLosingData() throws Exception {
         String json = LEGACY_PERSON.substring(0, LEGACY_PERSON.length() - 1) + ",\"subject\":\"Math\"}";
-        Person original = JsonUtil.fromJsonString(json, JsonAdaptedPerson.class).toModelType();
+        Student original = JsonUtil.fromJsonString(json, JsonAdaptedPerson.class).toModelType();
         assertEquals(Set.of(new Subject("Math")), original.getSubjects());
         String saved = JsonUtil.toJsonString(new JsonAdaptedPerson(original));
         assertTrue(saved.contains("\"subjects\""));
@@ -101,7 +101,7 @@ public class TuitionStorageTest {
     public void subjectArrays_normalizeDeduplicateAndPreserveOrder() throws Exception {
         String json = LEGACY_PERSON.substring(0, LEGACY_PERSON.length() - 1)
                 + ",\"subjects\":[\"Math\",\" Combined  Science \",\"math\"]}";
-        Person person = JsonUtil.fromJsonString(json, JsonAdaptedPerson.class).toModelType();
+        Student person = JsonUtil.fromJsonString(json, JsonAdaptedPerson.class).toModelType();
         assertEquals(List.of(new Subject("Math"), new Subject("Combined Science")),
                 List.copyOf(person.getSubjects()));
         assertEquals("Math", person.getSubjects().iterator().next().value);
@@ -132,13 +132,13 @@ public class TuitionStorageTest {
 
     @Test
     public void completeStudent_replaceWeeklyLessonSlotAndReload_preservesOtherFields() throws Exception {
-        Person original = completeStudent();
+        Student original = completeStudent();
         AddressBook book = new AddressBook();
         book.addPerson(original);
         Model model = new ModelManager(book, new UserPrefs());
 
         new AddressBookParser().parseCommand("edit 1" + LESSON_SLOT_DESC).execute(model);
-        Person expected = new PersonBuilder(original).withWeeklyLessonSlot(VALID_LESSON_SLOT).build();
+        Student expected = new PersonBuilder(original).withWeeklyLessonSlot(VALID_LESSON_SLOT).build();
         JsonAddressBookStorage storage = new JsonAddressBookStorage(temporaryFolder.resolve("addressbook.json"));
         storage.saveAddressBook(model.getAddressBook());
 
@@ -149,13 +149,13 @@ public class TuitionStorageTest {
 
     @Test
     public void completeStudent_clearWeeklyLessonSlotAndReload_preservesOtherFields() throws Exception {
-        Person original = completeStudent();
+        Student original = completeStudent();
         AddressBook book = new AddressBook();
         book.addPerson(original);
         Model model = new ModelManager(book, new UserPrefs());
 
         new AddressBookParser().parseCommand("edit 1 i/").execute(model);
-        Person expected = new PersonBuilder(original).withWeeklyLessonSlot(null).build();
+        Student expected = new PersonBuilder(original).withWeeklyLessonSlot(null).build();
         JsonAddressBookStorage storage = new JsonAddressBookStorage(temporaryFolder.resolve("addressbook.json"));
         storage.saveAddressBook(model.getAddressBook());
 

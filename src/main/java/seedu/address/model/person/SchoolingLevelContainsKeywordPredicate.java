@@ -8,10 +8,10 @@ import java.util.function.Predicate;
 import seedu.address.commons.util.ToStringBuilder;
 
 /**
- * Tests that a {@code Person}'s {@code SchoolingLevel} contains the given text, ignoring case.
+ * Tests that a {@code Student}'s {@code SchoolingLevel} contains the given text, ignoring case.
  * Persons without a schooling level never match.
  */
-public class SchoolingLevelContainsKeywordPredicate implements Predicate<Person> {
+public class SchoolingLevelContainsKeywordPredicate implements Predicate<Student> {
     private final String keyword;
 
     /** Creates a predicate matching levels that contain {@code keyword}, ignoring case. */
@@ -21,7 +21,7 @@ public class SchoolingLevelContainsKeywordPredicate implements Predicate<Person>
     }
 
     @Override
-    public boolean test(Person person) {
+    public boolean test(Student person) {
         return person.getSchoolingLevel()
                 .map(level -> level.value.toLowerCase(Locale.ROOT).contains(keyword))
                 .orElse(false);

@@ -9,10 +9,10 @@ import seedu.address.commons.core.index.Index;
 import seedu.address.logic.Messages;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.Model;
-import seedu.address.model.person.GuardianContact;
+import seedu.address.model.person.Guardian;
 import seedu.address.model.person.Name;
-import seedu.address.model.person.Person;
 import seedu.address.model.person.Phone;
+import seedu.address.model.person.Student;
 
 /** Changes only the guardian contact of a student in the displayed list. */
 public class GuardianCommand extends Command {
@@ -49,20 +49,20 @@ public class GuardianCommand extends Command {
         if (index.getZeroBased() >= model.getFilteredPersonList().size()) {
             throw new CommandException(Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
         }
-        Person student = model.getFilteredPersonList().get(index.getZeroBased());
-        Optional<GuardianContact> existing = student.getGuardianContact();
+        Student student = model.getFilteredPersonList().get(index.getZeroBased());
+        Optional<Guardian> existing = student.getGuardian();
         if (operation == Operation.ADD && existing.isPresent()) {
             throw new CommandException(MESSAGE_ALREADY_EXISTS);
         }
         if (operation != Operation.ADD && existing.isEmpty()) {
             throw new CommandException(MESSAGE_NOT_FOUND);
         }
-        Optional<GuardianContact> updated = switch (operation) {
-            case ADD -> Optional.of(new GuardianContact(name.orElseThrow(), phone.orElseThrow()));
-            case EDIT -> existing.map(g -> new GuardianContact(name.orElse(g.getName()), phone.orElse(g.getPhone())));
+        Optional<Guardian> updated = switch (operation) {
+            case ADD -> Optional.of(new Guardian(name.orElseThrow(), phone.orElseThrow()));
+            case EDIT -> existing.map(g -> new Guardian(name.orElse(g.getName()), phone.orElse(g.getPhone())));
             case DELETE -> Optional.empty();
         };
-        Person replacement = new Person(student.getName(), student.getPhone(), student.getEmail(),
+        Student replacement = new Student(student.getName(), student.getPhone(), student.getEmail(),
                 student.getAddress(), student.getTags(), student.getSubjects(), student.getSchoolingLevel(),
                 updated, student.getWeeklyLessonSlot(), student.getHourlyRate());
         model.setPerson(student, replacement);

@@ -18,9 +18,9 @@ import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
 import seedu.address.model.person.NameContainsKeywordsPredicate;
-import seedu.address.model.person.Person;
 import seedu.address.model.person.SchoolingLevel;
 import seedu.address.model.person.SchoolingLevelContainsKeywordPredicate;
+import seedu.address.model.person.Student;
 import seedu.address.testutil.PersonBuilder;
 
 /**
@@ -95,7 +95,7 @@ public class FindCommandTest {
     @Test
     public void execute_levelPredicate_filtersByLevel() {
         Model model = new ModelManager(getTypicalAddressBook(), new UserPrefs());
-        Person first = model.getFilteredPersonList().get(0);
+        Student first = model.getFilteredPersonList().get(0);
         model.setPerson(first, new PersonBuilder(first)
                 .withSchoolingLevel(new SchoolingLevel("Primary 5")).build());
         FindCommand command = new FindCommand(

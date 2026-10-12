@@ -28,12 +28,12 @@ import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
-import seedu.address.model.person.GuardianContact;
+import seedu.address.model.person.Guardian;
 import seedu.address.model.person.HourlyRate;
 import seedu.address.model.person.Name;
-import seedu.address.model.person.Person;
 import seedu.address.model.person.Phone;
 import seedu.address.model.person.SchoolingLevel;
+import seedu.address.model.person.Student;
 import seedu.address.model.person.Subject;
 import seedu.address.model.person.WeeklyLessonSlot;
 import seedu.address.testutil.EditPersonDescriptorBuilder;
@@ -53,7 +53,7 @@ public class EditCommandTest {
 
     @Test
     public void execute_allFieldsSpecifiedUnfilteredList_success() {
-        Person editedPerson = new PersonBuilder().withWeeklyLessonSlot(MONDAY_SLOT).build();
+        Student editedPerson = new PersonBuilder().withWeeklyLessonSlot(MONDAY_SLOT).build();
         EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder(editedPerson).build();
         EditCommand editCommand = new EditCommand(INDEX_FIRST_PERSON, descriptor);
 
@@ -68,10 +68,10 @@ public class EditCommandTest {
     @Test
     public void execute_someFieldsSpecifiedUnfilteredList_success() {
         Index indexLastPerson = Index.fromOneBased(model.getFilteredPersonList().size());
-        Person lastPerson = model.getFilteredPersonList().get(indexLastPerson.getZeroBased());
+        Student lastPerson = model.getFilteredPersonList().get(indexLastPerson.getZeroBased());
 
         PersonBuilder personInList = new PersonBuilder(lastPerson);
-        Person editedPerson = personInList.withName(VALID_NAME_BOB).withPhone(VALID_PHONE_BOB)
+        Student editedPerson = personInList.withName(VALID_NAME_BOB).withPhone(VALID_PHONE_BOB)
                 .withTags(VALID_TAG_HUSBAND).build();
 
         EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withName(VALID_NAME_BOB)
@@ -89,7 +89,7 @@ public class EditCommandTest {
     @Test
     public void execute_noFieldSpecifiedUnfilteredList_success() {
         EditCommand editCommand = new EditCommand(INDEX_FIRST_PERSON, new EditPersonDescriptor());
-        Person editedPerson = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
+        Student editedPerson = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
 
         String expectedMessage = String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedPerson));
 
@@ -102,8 +102,8 @@ public class EditCommandTest {
     public void execute_filteredList_success() {
         showPersonAtIndex(model, INDEX_FIRST_PERSON);
 
-        Person personInFilteredList = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
-        Person editedPerson = new PersonBuilder(personInFilteredList).withName(VALID_NAME_BOB).build();
+        Student personInFilteredList = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
+        Student editedPerson = new PersonBuilder(personInFilteredList).withName(VALID_NAME_BOB).build();
         EditCommand editCommand = new EditCommand(INDEX_FIRST_PERSON,
                 new EditPersonDescriptorBuilder().withName(VALID_NAME_BOB).build());
 
@@ -117,7 +117,7 @@ public class EditCommandTest {
 
     @Test
     public void execute_duplicatePersonUnfilteredList_failure() {
-        Person firstPerson = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
+        Student firstPerson = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
         EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder(firstPerson).build();
         EditCommand editCommand = new EditCommand(INDEX_SECOND_PERSON, descriptor);
 
@@ -129,7 +129,7 @@ public class EditCommandTest {
         showPersonAtIndex(model, INDEX_FIRST_PERSON);
 
         // edit person in filtered list into a duplicate in address book
-        Person personInList = model.getAddressBook().getPersonList().get(INDEX_SECOND_PERSON.getZeroBased());
+        Student personInList = model.getAddressBook().getPersonList().get(INDEX_SECOND_PERSON.getZeroBased());
         EditCommand editCommand = new EditCommand(INDEX_FIRST_PERSON,
                 new EditPersonDescriptorBuilder(personInList).build());
 
@@ -200,10 +200,10 @@ public class EditCommandTest {
 
     @Test
     public void execute_setThenClearSchoolingLevel_success() {
-        Person first = model.getFilteredPersonList().get(0);
+        Student first = model.getFilteredPersonList().get(0);
 
         EditPersonDescriptor set = new EditPersonDescriptorBuilder().withSchoolingLevel("Primary 5").build();
-        Person withLevel = new PersonBuilder(first)
+        Student withLevel = new PersonBuilder(first)
                 .withSchoolingLevel(new SchoolingLevel("Primary 5")).build();
         Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
         expectedModel.setPerson(first, withLevel);
@@ -211,7 +211,7 @@ public class EditCommandTest {
                 String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(withLevel)), expectedModel);
 
         // editing another field preserves the level
-        Person renamed = new PersonBuilder(withLevel).withPhone(VALID_PHONE_BOB).build();
+        Student renamed = new PersonBuilder(withLevel).withPhone(VALID_PHONE_BOB).build();
         EditPersonDescriptor phoneOnly = new EditPersonDescriptorBuilder().withPhone(VALID_PHONE_BOB).build();
         Model expectedModel2 = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
         expectedModel2.setPerson(withLevel, renamed);
@@ -220,7 +220,7 @@ public class EditCommandTest {
 
         // clearing removes it
         EditPersonDescriptor clear = new EditPersonDescriptorBuilder().withSchoolingLevel(null).build();
-        Person cleared = new PersonBuilder(renamed).withSchoolingLevel(null).build();
+        Student cleared = new PersonBuilder(renamed).withSchoolingLevel(null).build();
         Model expectedModel3 = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
         expectedModel3.setPerson(renamed, cleared);
         assertCommandSuccess(new EditCommand(INDEX_FIRST_PERSON, clear), model,
@@ -229,8 +229,8 @@ public class EditCommandTest {
 
     @Test
     public void execute_setWeeklyLessonSlot_preservesOtherFields() {
-        Person original = personWithTuitionDetails().withWeeklyLessonSlot(null).build();
-        Person editedPerson = new PersonBuilder(original).withWeeklyLessonSlot(MONDAY_SLOT).build();
+        Student original = personWithTuitionDetails().withWeeklyLessonSlot(null).build();
+        Student editedPerson = new PersonBuilder(original).withWeeklyLessonSlot(MONDAY_SLOT).build();
         EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withWeeklyLessonSlot(MONDAY_SLOT).build();
 
         assertSuccessfulEdit(original, descriptor, editedPerson);
@@ -238,8 +238,8 @@ public class EditCommandTest {
 
     @Test
     public void execute_replaceWeeklyLessonSlot_preservesOtherFields() {
-        Person original = personWithTuitionDetails().withWeeklyLessonSlot(MONDAY_SLOT).build();
-        Person editedPerson = new PersonBuilder(original).withWeeklyLessonSlot(TUESDAY_SLOT).build();
+        Student original = personWithTuitionDetails().withWeeklyLessonSlot(MONDAY_SLOT).build();
+        Student editedPerson = new PersonBuilder(original).withWeeklyLessonSlot(TUESDAY_SLOT).build();
         EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withWeeklyLessonSlot(TUESDAY_SLOT).build();
 
         assertSuccessfulEdit(original, descriptor, editedPerson);
@@ -247,8 +247,8 @@ public class EditCommandTest {
 
     @Test
     public void execute_clearWeeklyLessonSlot_preservesOtherFields() {
-        Person original = personWithTuitionDetails().withWeeklyLessonSlot(MONDAY_SLOT).build();
-        Person editedPerson = new PersonBuilder(original).withWeeklyLessonSlot(null).build();
+        Student original = personWithTuitionDetails().withWeeklyLessonSlot(MONDAY_SLOT).build();
+        Student editedPerson = new PersonBuilder(original).withWeeklyLessonSlot(null).build();
         EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withWeeklyLessonSlot(null).build();
 
         assertSuccessfulEdit(original, descriptor, editedPerson);
@@ -256,8 +256,8 @@ public class EditCommandTest {
 
     @Test
     public void execute_editPhone_preservesWeeklyLessonSlotAndOtherTuitionFields() {
-        Person original = personWithTuitionDetails().withWeeklyLessonSlot(MONDAY_SLOT).build();
-        Person editedPerson = new PersonBuilder(original).withPhone(VALID_PHONE_BOB).build();
+        Student original = personWithTuitionDetails().withWeeklyLessonSlot(MONDAY_SLOT).build();
+        Student editedPerson = new PersonBuilder(original).withPhone(VALID_PHONE_BOB).build();
         EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withPhone(VALID_PHONE_BOB).build();
 
         assertSuccessfulEdit(original, descriptor, editedPerson);
@@ -267,11 +267,11 @@ public class EditCommandTest {
         return new PersonBuilder(model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased()))
                 .withSubject(new Subject("Mathematics"))
                 .withSchoolingLevel(new SchoolingLevel("Primary 5"))
-                .withGuardianContact(new GuardianContact(new Name("Janet Tan"), new Phone("91234567")))
+                .withGuardian(new Guardian(new Name("Janet Tan"), new Phone("91234567")))
                 .withHourlyRate(new HourlyRate(new BigDecimal("45.50")));
     }
 
-    private void assertSuccessfulEdit(Person original, EditPersonDescriptor descriptor, Person editedPerson) {
+    private void assertSuccessfulEdit(Student original, EditPersonDescriptor descriptor, Student editedPerson) {
         model.setPerson(model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased()), original);
         Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
         expectedModel.setPerson(original, editedPerson);

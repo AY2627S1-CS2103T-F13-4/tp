@@ -16,7 +16,7 @@ import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.AddressBook;
 import seedu.address.model.ModelManager;
 import seedu.address.model.person.HourlyRate;
-import seedu.address.model.person.Person;
+import seedu.address.model.person.Student;
 import seedu.address.storage.JsonAddressBookStorage;
 import seedu.address.storage.JsonUserPrefsStorage;
 import seedu.address.storage.StorageManager;
@@ -71,7 +71,7 @@ public class HourlyRateWorkflowTest {
         }
     }
 
-    private Person reloaded() throws Exception {
+    private Student reloaded() throws Exception {
         return storage.readAddressBook().orElseThrow().getPersonList().getFirst();
     }
 }

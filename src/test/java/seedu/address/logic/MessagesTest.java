@@ -7,14 +7,14 @@ import java.time.LocalTime;
 
 import org.junit.jupiter.api.Test;
 
-import seedu.address.model.person.Person;
 import seedu.address.model.person.SchoolingLevel;
+import seedu.address.model.person.Student;
 import seedu.address.model.person.WeeklyLessonSlot;
 import seedu.address.testutil.PersonBuilder;
 
 public class MessagesTest {
 
-    private static final Person PERSON = new PersonBuilder().withName("Alice Tan").withPhone("91234567")
+    private static final Student PERSON = new PersonBuilder().withName("Alice Tan").withPhone("91234567")
             .withEmail("alice@example.com").withAddress("Clementi").withTags("student")
             .withSchoolingLevel(new SchoolingLevel("Primary 5")).build();
     private static final WeeklyLessonSlot LESSON_SLOT = new WeeklyLessonSlot(DayOfWeek.MONDAY,
@@ -24,7 +24,7 @@ public class MessagesTest {
 
     @Test
     public void format_weeklyLessonSlotPresent_includesSlot() {
-        Person person = new PersonBuilder(PERSON).withWeeklyLessonSlot(LESSON_SLOT).build();
+        Student person = new PersonBuilder(PERSON).withWeeklyLessonSlot(LESSON_SLOT).build();
 
         assertEquals(PERSON_DETAILS + "; Lesson Slot: " + LESSON_SLOT, Messages.format(person));
     }
@@ -36,8 +36,8 @@ public class MessagesTest {
 
     @Test
     public void format_weeklyLessonSlotCleared_omitsSlot() {
-        Person person = new PersonBuilder(PERSON).withWeeklyLessonSlot(LESSON_SLOT).build();
-        Person cleared = new PersonBuilder(person).withWeeklyLessonSlot(null).build();
+        Student person = new PersonBuilder(PERSON).withWeeklyLessonSlot(LESSON_SLOT).build();
+        Student cleared = new PersonBuilder(person).withWeeklyLessonSlot(null).build();
 
         assertEquals(PERSON_DETAILS, Messages.format(cleared));
     }

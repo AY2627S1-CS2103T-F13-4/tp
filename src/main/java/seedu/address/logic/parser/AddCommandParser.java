@@ -21,9 +21,9 @@ import seedu.address.model.person.Address;
 import seedu.address.model.person.Email;
 import seedu.address.model.person.HourlyRate;
 import seedu.address.model.person.Name;
-import seedu.address.model.person.Person;
 import seedu.address.model.person.Phone;
 import seedu.address.model.person.SchoolingLevel;
+import seedu.address.model.person.Student;
 import seedu.address.model.person.Subject;
 import seedu.address.model.person.WeeklyLessonSlot;
 import seedu.address.model.tag.Tag;
@@ -71,7 +71,7 @@ public class AddCommandParser implements Parser<AddCommand> {
             hourlyRate = Optional.of(ParserUtil.parseHourlyRate(argMultimap.getValue(PREFIX_RATE).get()));
         }
 
-        Person person = new Person(name, phone, email, address, tagList, subjects, schoolingLevel,
+        Student person = new Student(name, phone, email, address, tagList, subjects, schoolingLevel,
                 Optional.empty(), weeklyLessonSlot, hourlyRate);
 
         return new AddCommand(person);
