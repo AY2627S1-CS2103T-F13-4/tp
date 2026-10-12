@@ -22,6 +22,8 @@ public class CommandBox extends UiPart<Region> {
 
     public static final String ERROR_STYLE_CLASS = "error";
     private static final String FXML = "CommandBox.fxml";
+    /** Below this width the key hints would squeeze the placeholder text. */
+    private static final double MIN_WIDTH_FOR_HINTS = 720;
 
     private final CommandExecutor commandExecutor;
     private final CommandHistory history = new CommandHistory();
@@ -42,8 +44,10 @@ public class CommandBox extends UiPart<Region> {
         commandTextField.textProperty().addListener((unused1, unused2, unused3) -> setStyleToDefault());
         commandTextField.setStyle(MonospaceFont.style());
         commandTextField.addEventFilter(KeyEvent.KEY_PRESSED, this::handleKey);
-        // The hints only take space while the box is empty, so long commands keep the full width.
-        keyHints.visibleProperty().bind(commandTextField.textProperty().isEmpty());
+        // The hints only take space while the box is empty, so long commands keep the full width,
+        // and are left out of narrow windows, where they would crowd the placeholder text.
+        keyHints.visibleProperty().bind(commandTextField.textProperty().isEmpty()
+                .and(getRoot().widthProperty().greaterThanOrEqualTo(MIN_WIDTH_FOR_HINTS)));
         keyHints.managedProperty().bind(keyHints.visibleProperty());
     }
 

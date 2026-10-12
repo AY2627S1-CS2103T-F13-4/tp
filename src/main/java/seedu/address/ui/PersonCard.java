@@ -1,17 +1,22 @@
 package seedu.address.ui;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
 
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.DoubleExpression;
 import javafx.fxml.FXML;
+import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
+import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import seedu.address.model.person.Student;
 
@@ -24,8 +29,20 @@ public class PersonCard extends UiPart<Region> {
     private static final String EMPTY_VALUE_STYLE_CLASS = "fact-empty";
     private static final String LESSON_STYLE_CLASS = "fact-value";
     private static final double ADDRESS_MAX_WIDTH = 360;
-    /** Room left for the level chip beside the tags, which share a row. */
-    private static final double LEVEL_CHIP_ALLOWANCE = 120;
+    /** Font sizes of the level chip and of fact values in LightTheme.css, used to measure text before layout. */
+    private static final double CHIP_FONT_SIZE = 12;
+    private static final double FACT_FONT_SIZE = 13;
+    /** The chip's horizontal padding (8 + 8) plus the 6px gap before the tags. */
+    private static final double CHIP_PADDING_AND_GAP = 22;
+    /** A chip's horizontal padding (8 + 8), and the gap between a lesson and its mode chip. */
+    private static final double CHIP_PADDING = 16;
+    private static final double MODE_CHIP_GAP = 8;
+    /** Colours the level chip by school stage; unrecognised levels stay neutral. */
+    private static final Map<StudentCardText.Stage, String> STAGE_STYLE_CLASSES = Map.of(
+            StudentCardText.Stage.PRIMARY, "level-primary",
+            StudentCardText.Stage.SECONDARY, "level-secondary",
+            StudentCardText.Stage.JC, "level-jc",
+            StudentCardText.Stage.OTHER, "level-other");
 
     /**
      * Note: Certain keywords such as "location" and "resources" are reserved keywords in JavaFX.
@@ -54,15 +71,17 @@ public class PersonCard extends UiPart<Region> {
     @FXML
     private FlowPane facts;
     @FXML
-    private Label guardian;
+    private Text guardian;
     @FXML
     private Label phone;
     @FXML
-    private Label email;
+    private Text email;
     @FXML
     private Text address;
 
-    private final List<Text> lessonLines;
+    /** Each lesson's text, with the mode chip beside it if the lesson has a mode. */
+    private final List<Text> lessonTexts = new ArrayList<>();
+    private final List<Optional<Label>> lessonModes = new ArrayList<>();
 
     /**
      * Creates a {@code PersonCard} with the given {@code Student} and index to display.
@@ -75,10 +94,16 @@ public class PersonCard extends UiPart<Region> {
         phone.setText(person.getPhone().value);
         address.setText(person.getAddress().value);
         email.setText(person.getEmail().value);
-        showOrPlaceholder(guardian, StudentCardText.guardian(person), StudentCardText.NOT_SET);
+        Optional<String> guardianText = StudentCardText.guardian(person);
+        guardian.setText(guardianText.orElse(StudentCardText.NOT_SET));
+        if (guardianText.isEmpty()) {
+            guardian.getStyleClass().add(EMPTY_VALUE_STYLE_CLASS);
+        }
 
         if (person.getSchoolingLevel().isPresent()) {
-            schoolingLevel.setText(person.getSchoolingLevel().get().toString());
+            String level = person.getSchoolingLevel().get().toString();
+            schoolingLevel.setText(level);
+            schoolingLevel.getStyleClass().add(STAGE_STYLE_CLASSES.get(StudentCardText.stageOf(level)));
         } else {
             hide(schoolingLevel);
         }
@@ -92,15 +117,30 @@ public class PersonCard extends UiPart<Region> {
             hide(badges);
         }
 
-        List<String> lines = StudentCardText.lessons(person);
-        lessonLines = (lines.isEmpty() ? List.of(StudentCardText.NO_LESSONS) : lines).stream()
-                .map(Text::new)
-                .toList();
-        lessonLines.forEach(line -> line.getStyleClass().add(LESSON_STYLE_CLASS));
+        List<StudentCardText.LessonLine> lines = StudentCardText.lessons(person);
         if (lines.isEmpty()) {
-            lessonLines.get(0).getStyleClass().add(EMPTY_VALUE_STYLE_CLASS);
+            Text none = new Text(StudentCardText.NO_LESSONS);
+            none.getStyleClass().addAll(LESSON_STYLE_CLASS, EMPTY_VALUE_STYLE_CLASS);
+            lessonTexts.add(none);
+            lessonModes.add(Optional.empty());
+            lessons.getChildren().add(none);
         }
-        lessons.getChildren().addAll(lessonLines);
+        for (StudentCardText.LessonLine line : lines) {
+            Text text = new Text(line.text());
+            text.getStyleClass().add(LESSON_STYLE_CLASS);
+            Optional<Label> mode = line.mode().map(lessonMode -> {
+                Label chip = new Label(lessonMode.toString());
+                chip.getStyleClass().addAll("chip", "mode-chip", "mode-" + lessonMode.name().toLowerCase(Locale.ROOT));
+                chip.setMinWidth(Region.USE_PREF_SIZE);
+                return chip;
+            });
+            HBox row = new HBox(MODE_CHIP_GAP, text);
+            row.setAlignment(Pos.CENTER_LEFT);
+            mode.ifPresent(row.getChildren()::add);
+            lessonTexts.add(text);
+            lessonModes.add(mode);
+            lessons.getChildren().add(row);
+        }
     }
 
     /**
@@ -109,19 +149,38 @@ public class PersonCard extends UiPart<Region> {
      * FlowPane would otherwise assume 400px, and wrapped labels would report a single line.
      */
     public void bindWrapWidth(DoubleExpression width) {
-        tags.prefWrapLengthProperty().bind(width.subtract(LEVEL_CHIP_ALLOWANCE));
+        // The tags share a row with the level chip, so they get the width the chip leaves.
+        double chipWidth = schoolingLevel.isManaged()
+                ? textWidth(schoolingLevel.getText(), CHIP_FONT_SIZE) + CHIP_PADDING_AND_GAP : 0;
+        tags.prefWrapLengthProperty().bind(width.subtract(chipWidth));
         facts.prefWrapLengthProperty().bind(width);
         name.wrappingWidthProperty().bind(width);
-        lessonLines.forEach(line -> line.wrappingWidthProperty().bind(width));
-        address.wrappingWidthProperty().bind(Bindings.min(width, ADDRESS_MAX_WIDTH));
+        for (int i = 0; i < lessonTexts.size(); i++) {
+            // A lesson's mode chip follows its text, so the text wraps in the width the chip leaves.
+            double modeWidth = lessonModes.get(i)
+                    .map(chip -> textWidth(chip.getText(), CHIP_FONT_SIZE) + CHIP_PADDING + MODE_CHIP_GAP).orElse(0.0);
+            wrapWhenLonger(lessonTexts.get(i), width.subtract(modeWidth));
+        }
+        wrapWhenLonger(guardian, width);
+        wrapWhenLonger(email, width);
+        wrapWhenLonger(address, Bindings.min(width, ADDRESS_MAX_WIDTH));
     }
 
-    /** Shows {@code text} in {@code label}, or a muted {@code placeholder} when the detail is not recorded. */
-    private static void showOrPlaceholder(Label label, Optional<String> text, String placeholder) {
-        label.setText(text.orElse(placeholder));
-        if (text.isEmpty()) {
-            label.getStyleClass().add(EMPTY_VALUE_STYLE_CLASS);
-        }
+    /**
+     * Wraps {@code text} at {@code limit} only when it is wider than that.
+     * A {@code Text} with a wrapping width always takes that whole width, which would spread short values apart.
+     */
+    private static void wrapWhenLonger(Text text, DoubleExpression limit) {
+        double natural = textWidth(text.getText(), FACT_FONT_SIZE);
+        text.wrappingWidthProperty().bind(Bindings.createDoubleBinding(() ->
+                natural > limit.get() ? limit.get() : 0, limit));
+    }
+
+    /** Returns the width of {@code value} in the system font at {@code size}, as styled in LightTheme.css. */
+    private static double textWidth(String value, double size) {
+        Text measure = new Text(value);
+        measure.setFont(Font.font(size));
+        return measure.getLayoutBounds().getWidth();
     }
 
     private static void hide(Region region) {

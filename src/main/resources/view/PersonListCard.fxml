@@ -18,7 +18,7 @@
   <VBox spacing="8" minWidth="0" HBox.hgrow="ALWAYS">
     <Text fx:id="name" text="\$first" styleClass="card-name" />
     <HBox fx:id="badges" alignment="CENTER_LEFT" spacing="6">
-      <Label fx:id="schoolingLevel" text="\$schoolingLevel" styleClass="chip, level-chip">
+      <Label fx:id="schoolingLevel" text="\$schoolingLevel" styleClass="chip">
         <minWidth>
           <Region fx:constant="USE_PREF_SIZE" />
         </minWidth>
@@ -33,7 +33,7 @@
     <FlowPane fx:id="facts" hgap="32" vgap="10">
       <VBox spacing="2">
         <Label text="Guardian" styleClass="fact-caption" />
-        <Label fx:id="guardian" text="\$guardian" styleClass="fact-value" />
+        <Text fx:id="guardian" text="\$guardian" styleClass="fact-value" />
       </VBox>
       <VBox spacing="2">
         <Label text="Phone" styleClass="fact-caption" />
@@ -41,7 +41,7 @@
       </VBox>
       <VBox spacing="2">
         <Label text="Email" styleClass="fact-caption" />
-        <Label fx:id="email" text="\$email" styleClass="fact-value" />
+        <Text fx:id="email" text="\$email" styleClass="fact-value" />
       </VBox>
       <VBox spacing="2">
         <Label text="Address" styleClass="fact-caption" />

@@ -8,7 +8,7 @@
 <HBox fx:id="resultRow" styleClass="result-row" alignment="TOP_LEFT" xmlns="http://javafx.com/javafx/17"
       xmlns:fx="http://javafx.com/fxml/1">
   <Label fx:id="resultIcon" styleClass="result-icon" />
-  <!-- Grows with the message up to maxHeight, then scrolls (e.g. long command usage at small sizes) -->
+  <!-- Sized to the message (minHeight 0 lets one-line messages stay compact) up to maxHeight, then scrolls -->
   <ScrollPane fx:id="resultScroll" styleClass="result-scroll" fitToWidth="true" hbarPolicy="NEVER"
               focusTraversable="false" minHeight="0" maxHeight="132" HBox.hgrow="ALWAYS">
     <VBox fx:id="resultContent" spacing="5" />

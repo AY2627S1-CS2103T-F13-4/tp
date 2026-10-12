@@ -46,9 +46,10 @@ This development version supports contact details, schooling levels, guardian co
 ![StudentBook main window](images/Ui.png)
 
 * **Student list:** Each card shows a student's number, name, schooling level, tags, lessons, guardian and contact details. Lessons are numbered from 1; use that number as `LESSON_INDEX` in `lesson-edit` and `lesson-delete`. A student with no lessons shows a grey `No lessons yet`, and a missing guardian shows as `Not set`. A missing level or tags are left out. Use the number beside a name as `INDEX` in commands.
+* **Colours:** The level is amber for primary (`P5`, `Primary 5`), blue for secondary (`Sec 3`, `Secondary 4 Express`) and violet for JC (`JC1`). Levels written another way, such as `Poly Y1`, stay grey. A lesson's mode shows beside it, green for `Physical` and teal for `Virtual`. Tags are grey.
 * **Count:** The count beside the title shows how many students there are. After `find`, it shows how many match, such as `Showing 1 of 8`.
 * **Empty list:** When the list is empty, the app suggests the next step. With no students, it shows the `add` format. When a search matches no one, it suggests `list`.
-* **Result:** The row above the command box shows the result of your last command. A green tick marks a success. A red `!` on a pink background marks an error, such as an invalid index or format. When you get a command's format wrong, the row shows what the command does, its **Format** and an **Example**, so you can fix the command without opening help. Long messages scroll.
+* **Result:** The row above the command box shows the result of your last command. A green tick marks a success. A red `!` on a pink background marks an error, such as an invalid index or format. When you get a command's format wrong, the row shows what the command does, its **Format** and an **Example**, so you can fix the command without opening help. Click a Format or Example line to copy it. Long messages scroll.
 * **Command box:** It is focused when the app starts, so you can use the whole app from the keyboard. Press Enter to run a command. After a successful command, the box clears. After an error, your text stays, shown in red, so you can fix it.
 
 | Key | Action |
@@ -141,7 +142,7 @@ Each student can have zero or more lessons. A lesson has a subject, a weekly tim
 
 * **Create:** `lesson-add STUDENT_INDEX subject/SUBJECT slot/LESSON_SLOT rate/HOURLY_RATE [mode/MODE] [location/LOCATION]`
   Subject, slot and rate are required; mode and location are optional. The new lesson is added to the end of the student's lessons.
-* **Read:** Use `list` or `find` to display the student. Their card numbers each lesson in order, for example `1. Math · Wednesday 1.00pm-5.00pm · SGD 45.50/hour · Physical · at Clementi Library` (mode and location are shown only when recorded), or shows a grey `No lessons yet` when there are none. Use that number as `LESSON_INDEX`.
+* **Read:** Use `list` or `find` to display the student. Their card numbers each lesson in order, for example `1. Math · Wednesday 1.00pm-5.00pm · SGD 45.50/hour · at Clementi Library` followed by a `Physical` tag (location and mode are shown only when recorded), or shows a grey `No lessons yet` when there are none. Use that number as `LESSON_INDEX`.
 * **Update:** `lesson-edit STUDENT_INDEX LESSON_INDEX [subject/SUBJECT] [slot/LESSON_SLOT] [rate/HOURLY_RATE] [mode/MODE] [location/LOCATION]`
   Supply at least one field. Omitted fields stay unchanged. To remove a recorded mode or location, give its prefix with nothing after it: `mode/` clears the mode and `location/` clears the location (see the examples below).
 * **Delete:** `lesson-delete STUDENT_INDEX LESSON_INDEX`

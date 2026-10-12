@@ -7,12 +7,17 @@ import java.util.List;
 import javafx.beans.binding.DoubleExpression;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
+import javafx.scene.Cursor;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.control.Tooltip;
+import javafx.scene.input.Clipboard;
+import javafx.scene.input.ClipboardContent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
+import javafx.scene.shape.SVGPath;
 import javafx.scene.text.Text;
 
 /**
@@ -47,8 +52,6 @@ public class ResultDisplay extends UiPart<Region> {
      */
     public ResultDisplay() {
         super(FXML);
-        // Fit the row to the message; maxHeight in the FXML caps it, after which it scrolls.
-        resultScroll.prefViewportHeightProperty().bind(resultContent.heightProperty());
         resultIcon.setText("i");
         render(WELCOME_MESSAGE);
     }
@@ -58,7 +61,7 @@ public class ResultDisplay extends UiPart<Region> {
      */
     public void setFeedbackToUser(String feedbackToUser) {
         requireNonNull(feedbackToUser);
-        show(feedbackToUser, SUCCESS_STYLE_CLASS, "✓");
+        show(feedbackToUser, SUCCESS_STYLE_CLASS, "");
     }
 
     /**
@@ -73,6 +76,8 @@ public class ResultDisplay extends UiPart<Region> {
         resultRow.getStyleClass().removeAll(SUCCESS_STYLE_CLASS, ERROR_STYLE_CLASS);
         resultRow.getStyleClass().add(styleClass);
         resultIcon.setText(icon);
+        // Drawn rather than typed, since not every system font has a check mark character.
+        resultIcon.setGraphic(icon.isEmpty() ? checkMark() : null);
         render(message);
     }
 
@@ -98,6 +103,10 @@ public class ResultDisplay extends UiPart<Region> {
         return text;
     }
 
+    /**
+     * Returns a captioned command line in a monospace font. Clicking it copies the command,
+     * since text in the row cannot be selected.
+     */
     private static Node labelled(String caption, String command, DoubleExpression width) {
         Label label = new Label(caption);
         label.getStyleClass().add("result-caption");
@@ -106,6 +115,21 @@ public class ResultDisplay extends UiPart<Region> {
         text.setStyle(MonospaceFont.style());
         HBox row = new HBox(label, text);
         row.setAlignment(Pos.BASELINE_LEFT);
+        row.getStyleClass().add("result-command-row");
+        row.setCursor(Cursor.HAND);
+        Tooltip.install(row, new Tooltip("Click to copy"));
+        row.setOnMouseClicked(event -> {
+            ClipboardContent content = new ClipboardContent();
+            content.putString(command);
+            Clipboard.getSystemClipboard().setContent(content);
+        });
         return row;
+    }
+
+    private static SVGPath checkMark() {
+        SVGPath check = new SVGPath();
+        check.setContent("M1 5 L4 8 L9 2");
+        check.getStyleClass().add("result-check");
+        return check;
     }
 }

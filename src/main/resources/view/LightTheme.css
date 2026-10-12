@@ -10,7 +10,8 @@
     -sb-divider: #F2F2F4;
     -sb-text: #111113;
     -sb-text-secondary: #55555D;
-    -sb-text-muted: #8A8A92;
+    /* About 5:1 on white, so captions and placeholders stay readable */
+    -sb-text-muted: #6E6E76;
     -sb-accent: #2F6BEA;
     -sb-accent-tint: #EAF1FF;
     -sb-accent-ink: #1F48B8;
@@ -148,9 +149,41 @@
     -fx-font-size: 12px;
 }
 
-.level-chip {
+/* Level chips are coloured by school stage; levels in other forms stay neutral */
+.level-primary {
+    -fx-background-color: #FFF3E0;
+    -fx-text-fill: #8A4300;
+}
+
+.level-secondary {
     -fx-background-color: -sb-accent-tint;
     -fx-text-fill: -sb-accent-ink;
+}
+
+.level-jc {
+    -fx-background-color: #F2EEFF;
+    -fx-text-fill: #5B3CC4;
+}
+
+.level-other {
+    -fx-background-color: #F1F1F3;
+    -fx-text-fill: -sb-text-secondary;
+}
+
+/* Lesson mode chips: the two fixed modes each get a colour */
+.mode-chip {
+    -fx-font-size: 11.5px;
+    -fx-padding: 1 8 1 8;
+}
+
+.mode-physical {
+    -fx-background-color: #E6F4EA;
+    -fx-text-fill: #1E6B3D;
+}
+
+.mode-virtual {
+    -fx-background-color: #E2F3F5;
+    -fx-text-fill: #0E6470;
 }
 
 #tags .label {
@@ -161,25 +194,19 @@
     -fx-text-fill: -sb-text-secondary;
 }
 
-.card-subjects {
-    -fx-font-size: 13px;
-    -fx-fill: -sb-text-secondary;
-}
-
 .fact-caption {
     -fx-font-size: 11.5px;
     -fx-text-fill: -sb-text-muted;
 }
 
-/* Values are Labels, except the address, which is a Text so that it can wrap */
+/* Values are Text so they can wrap, except the phone, which is a Label */
 .fact-value {
     -fx-font-size: 13px;
     -fx-fill: -sb-text;
 }
 
 .fact-empty {
-    -fx-text-fill: #B4B4BA;
-    -fx-fill: #B4B4BA;
+    -fx-fill: -sb-text-muted;
 }
 
 /* ---------- Command panel ---------- */
@@ -259,6 +286,17 @@
     -fx-fill: -sb-text;
 }
 
+/* Format and Example lines copy their command when clicked */
+.result-command-row:hover .result-command {
+    -fx-fill: -sb-accent-ink;
+}
+
+.result-check {
+    -fx-fill: transparent;
+    -fx-stroke: -sb-success;
+    -fx-stroke-width: 1.6;
+}
+
 .command-row {
     -fx-padding: 4 14 4 14;
     -fx-spacing: 10;
@@ -276,7 +314,7 @@
     -fx-padding: 6 0 6 0;
     -fx-font-size: 14px;
     -fx-text-fill: -sb-text;
-    -fx-prompt-text-fill: #A0A0A8;
+    -fx-prompt-text-fill: -sb-text-muted;
     -fx-highlight-fill: -sb-accent-tint;
     -fx-highlight-text-fill: -sb-text;
 }

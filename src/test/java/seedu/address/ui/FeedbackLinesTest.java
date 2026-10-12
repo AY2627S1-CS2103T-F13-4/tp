@@ -1,11 +1,15 @@
 package seedu.address.ui;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
+import seedu.address.logic.parser.AddressBookParser;
+import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.ui.FeedbackLines.Kind;
 import seedu.address.ui.FeedbackLines.Line;
 
@@ -56,5 +60,37 @@ public class FeedbackLinesTest {
         assertEquals(new Line(Kind.TEXT, "Use an empty level/ to clear the schooling level."),
                 FeedbackLines.split("Invalid command format!\n"
                         + "Use an empty level/ to clear the schooling level.").get(1));
+    }
+
+    // Every command's real usage error must yield a Format line, so a teammate rewording a usage message
+    // into a shape this class does not recognise makes this test fail instead of silently losing the format.
+    @Test
+    public void realUsageErrors_allShowAFormat() {
+        String[] incompleteCommands = {"add", "edit", "delete", "find", "lesson-add", "lesson-edit", "lesson-delete",
+            "guardian-add", "guardian-edit", "guardian-delete"};
+        for (String command : incompleteCommands) {
+            List<Line> lines = FeedbackLines.split(usageError(command));
+            assertTrue(lines.stream().anyMatch(line -> line.kind() == Kind.FORMAT
+                    && line.text().startsWith(command)), command + " has no format line: " + lines);
+        }
+    }
+
+    // Commands whose usage includes an example must show it as an Example line.
+    @Test
+    public void realUsageErrors_withExamples_showExample() {
+        for (String command : new String[] {"add", "edit", "delete", "find"}) {
+            List<Line> lines = FeedbackLines.split(usageError(command));
+            assertTrue(lines.stream().anyMatch(line -> line.kind() == Kind.EXAMPLE
+                    && line.text().startsWith(command)), command + " has no example line: " + lines);
+        }
+    }
+
+    private static String usageError(String command) {
+        try {
+            new AddressBookParser().parseCommand(command);
+        } catch (ParseException e) {
+            return e.getMessage();
+        }
+        return fail(command + " parsed without arguments");
     }
 }
