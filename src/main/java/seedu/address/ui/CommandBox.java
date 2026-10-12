@@ -32,6 +32,13 @@ public class CommandBox extends UiPart<Region> {
     }
 
     /**
+     * Moves keyboard focus to the command input.
+     */
+    public void focus() {
+        commandTextField.requestFocus();
+    }
+
+    /**
      * Handles the Enter button pressed event.
      */
     @FXML

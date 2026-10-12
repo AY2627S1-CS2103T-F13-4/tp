@@ -5,11 +5,13 @@ import java.util.logging.Logger;
 
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.geometry.Rectangle2D;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.TextInputControl;
 import javafx.scene.input.KeyCombination;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.StackPane;
+import javafx.stage.Screen;
 import javafx.stage.Stage;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.commons.core.LogsCenter;
@@ -35,6 +37,7 @@ public class MainWindow extends UiPart<Stage> {
     // Independent Ui parts residing in this Ui container
     private PersonListPanel personListPanel;
     private ResultDisplay resultDisplay;
+    private CommandBox commandBox;
     private HelpWindow helpWindow;
 
     @FXML
@@ -114,7 +117,7 @@ public class MainWindow extends UiPart<Stage> {
      * Fills up all the placeholders of this window.
      */
     void fillInnerParts() {
-        personListPanel = new PersonListPanel(logic.getFilteredPersonList());
+        personListPanel = new PersonListPanel(logic.getFilteredPersonList(), logic.getAddressBook().getPersonList());
         personListPanelPlaceholder.getChildren().add(personListPanel.getRoot());
 
         resultDisplay = new ResultDisplay();
@@ -123,20 +126,36 @@ public class MainWindow extends UiPart<Stage> {
         StatusBarFooter statusBarFooter = new StatusBarFooter(dataFilePath);
         statusbarPlaceholder.getChildren().add(statusBarFooter.getRoot());
 
-        CommandBox commandBox = new CommandBox(this::executeCommand);
+        commandBox = new CommandBox(this::executeCommand);
         commandBoxPlaceholder.getChildren().add(commandBox.getRoot());
+        // The list now comes before the command box, so focus the command box explicitly for typing.
+        commandBox.focus();
     }
 
     /**
      * Sets the default size based on {@code guiSettings}.
      */
     private void setWindowDefaultSize(GuiSettings guiSettings) {
-        primaryStage.setHeight(guiSettings.getWindowHeight());
-        primaryStage.setWidth(guiSettings.getWindowWidth());
+        // A saved size can be larger than the screen the window opens on, e.g. a 1280x720 display at 150%.
+        Rectangle2D screen = screenFor(guiSettings).getVisualBounds();
+        primaryStage.setHeight(Math.min(guiSettings.getWindowHeight(), screen.getHeight()));
+        primaryStage.setWidth(Math.min(guiSettings.getWindowWidth(), screen.getWidth()));
         if (guiSettings.getWindowCoordinates() != null) {
             primaryStage.setX(guiSettings.getWindowCoordinates().getX());
             primaryStage.setY(guiSettings.getWindowCoordinates().getY());
         }
+    }
+
+    /**
+     * Returns the screen containing the saved window position, or the primary screen if there is none.
+     */
+    private static Screen screenFor(GuiSettings guiSettings) {
+        if (guiSettings.getWindowCoordinates() == null) {
+            return Screen.getPrimary();
+        }
+        return Screen.getScreensForRectangle(guiSettings.getWindowCoordinates().getX(),
+                        guiSettings.getWindowCoordinates().getY(), 1, 1)
+                .stream().findFirst().orElse(Screen.getPrimary());
     }
 
     /**
@@ -193,7 +212,7 @@ public class MainWindow extends UiPart<Stage> {
             return commandResult;
         } catch (CommandException | ParseException e) {
             logger.info("An error occurred while executing command: " + commandText);
-            resultDisplay.setFeedbackToUser(e.getMessage());
+            resultDisplay.setErrorToUser(e.getMessage());
             throw e;
         }
     }

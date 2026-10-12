@@ -1,41 +1,57 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Label?>
-<?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.FlowPane?>
-<?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Text?>
 
-<HBox id="cardPane" fx:id="cardPane" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
-  <GridPane HBox.hgrow="ALWAYS">
-    <columnConstraints>
-      <ColumnConstraints hgrow="SOMETIMES" minWidth="10" prefWidth="150" />
-    </columnConstraints>
-    <VBox alignment="CENTER_LEFT" minHeight="105" GridPane.columnIndex="0">
-      <padding>
-        <Insets top="5" right="5" bottom="5" left="15" />
-      </padding>
-      <HBox spacing="0.5" alignment="CENTER_LEFT">
-        <Label fx:id="id" styleClass="cell_big_label">
-          <minWidth>
-            <!-- Ensures that the label text is never truncated -->
-            <Region fx:constant="USE_PREF_SIZE" />
-          </minWidth>
-        </Label>
-        <Label fx:id="name" text="\$first" styleClass="cell_big_label" />
-      </HBox>
-      <FlowPane fx:id="tags" />
-      <Label fx:id="phone" styleClass="cell_small_label" text="\$phone" />
-      <Label fx:id="address" styleClass="cell_small_label" text="\$address" />
-      <Label fx:id="email" styleClass="cell_small_label" text="\$email" />
-      <Label fx:id="subject" styleClass="cell_small_label" text="\$subject" wrapText="true" />
-      <Label fx:id="schoolingLevel" styleClass="cell_small_label" text="\$schoolingLevel" />
-      <Label fx:id="weeklyLessonSlot" styleClass="cell_small_label" text="\$weeklyLessonSlot" />
-      <Label fx:id="hourlyRate" styleClass="cell_small_label" text="\$hourlyRate" />
-      <Label fx:id="guardian" styleClass="cell_small_label" text="\$guardian" wrapText="true" />
-    </VBox>
-  </GridPane>
+<HBox id="cardPane" fx:id="cardPane" styleClass="student-card" xmlns="http://javafx.com/javafx/17"
+      xmlns:fx="http://javafx.com/fxml/1">
+  <Label fx:id="id" styleClass="card-index">
+    <minWidth>
+      <!-- Ensures that the label text is never truncated -->
+      <Region fx:constant="USE_PREF_SIZE" />
+    </minWidth>
+  </Label>
+  <VBox spacing="8" minWidth="0" HBox.hgrow="ALWAYS">
+    <Text fx:id="name" text="\$first" styleClass="card-name" />
+    <HBox alignment="CENTER_LEFT" spacing="8">
+      <Label fx:id="schoolingLevel" text="\$schoolingLevel" styleClass="chip, level-chip">
+        <minWidth>
+          <Region fx:constant="USE_PREF_SIZE" />
+        </minWidth>
+      </Label>
+      <Text fx:id="subject" text="\$subject" styleClass="card-subjects" />
+    </HBox>
+    <FlowPane fx:id="tags" hgap="6" vgap="6" />
+    <!-- Each fact keeps its caption above the value; facts wrap onto new rows in narrow windows -->
+    <FlowPane fx:id="facts" hgap="32" vgap="10">
+      <VBox spacing="2">
+        <Label text="Lesson" styleClass="fact-caption" />
+        <Label fx:id="weeklyLessonSlot" text="\$weeklyLessonSlot" styleClass="fact-value" />
+      </VBox>
+      <VBox spacing="2">
+        <Label text="Rate" styleClass="fact-caption" />
+        <Label fx:id="hourlyRate" text="\$hourlyRate" styleClass="fact-value" />
+      </VBox>
+      <VBox spacing="2">
+        <Label text="Guardian" styleClass="fact-caption" />
+        <Label fx:id="guardian" text="\$guardian" styleClass="fact-value" wrapText="true" />
+      </VBox>
+      <VBox spacing="2">
+        <Label text="Phone" styleClass="fact-caption" />
+        <Label fx:id="phone" text="\$phone" styleClass="fact-value" />
+      </VBox>
+      <VBox spacing="2">
+        <Label text="Email" styleClass="fact-caption" />
+        <Label fx:id="email" text="\$email" styleClass="fact-value" wrapText="true" />
+      </VBox>
+      <VBox spacing="2">
+        <Label text="Address" styleClass="fact-caption" />
+        <Text fx:id="address" text="\$address" styleClass="fact-value" />
+      </VBox>
+    </FlowPane>
+  </VBox>
 </HBox>

@@ -13,6 +13,7 @@ Start with [setup](SettingUp.md), then the [shared tuition model](#shared-tuitio
 ## Acknowledgements
 
 * Based on [AddressBook Level 3](https://github.com/se-edu/addressbook-level3) from the [SE-EDU initiative](https://se-education.org).
+* Pranav used Claude (Anthropic), through Claude Code, to draft the v1.3 UI restyle: the mock-ups, the FXML and CSS in `src/main/resources/view`, the UI classes in `seedu.address.ui`, and their tests. He reviewed, ran and tested the changes.
 
 ## Getting started
 
@@ -48,9 +49,19 @@ Diagram sources are in `docs/diagrams`. See the [PlantUML tutorial](https://se-e
 
 ![UI structure](images/UiClassDiagram.png)
 
-`MainWindow` contains `CommandBox`, `ResultDisplay`, `PersonListPanel` and `StatusBarFooter`. These classes extend `UiPart` and use JavaFX layouts in `src/main/resources/view`.
+`MainWindow` contains `CommandBox`, `ResultDisplay`, `PersonListPanel` and `StatusBarFooter`. These classes extend `UiPart` and use JavaFX layouts in `src/main/resources/view`. `LightTheme.css` styles all of them.
 
-The UI sends commands to `Logic` and observes the filtered student list. It displays `Person` objects and refreshes when the list changes.
+The UI sends commands to `Logic` and observes two lists:
+
+* **Filtered list** (`Logic#getFilteredPersonList()`): the rows on screen. `PersonListPanel` shows them in the same order as the model, so the number on each card is the `INDEX` that commands use. The UI never sorts or groups its own copy.
+* **Full list** (`Logic#getAddressBook()`): used only to count students. `StudentListStatus` uses both counts to choose the header text, such as `Showing 1 of 8`. It also chooses the empty-state message: `add` when there are no students, `list` when a search matches no one.
+
+When either list changes, the `ListView` rebuilds the affected `PersonCard`s, so cards never show stale data after an edit.
+
+* **Cards:** `PersonCard` gets display text for optional fields from `StudentCardText`. A detail that is not recorded gets a muted placeholder. JavaFX asks a list cell for its height before laying it out. So the card's wrapping text (`Text`) and its `FlowPane` rows wrap at a width bound to the list's width. Long names, subjects and addresses wrap instead of being cut off.
+* **Results:** `MainWindow#executeCommand` sends successes to `ResultDisplay#setFeedbackToUser` and failures to `ResultDisplay#setErrorToUser`. The row shows a matching mark. It grows to four lines for multi-line messages, such as usage.
+* **Focus:** `CommandBox` keeps the AB3 behaviour: it clears the input after a success, and keeps it with an error style after a failure. `MainWindow` focuses the command box after building its parts.
+* **Window size:** The window's minimum size is 600×400. A saved window size larger than the screen it opens on is reduced to fit, so the app stays usable on a 1280×720 screen at 150% scaling. The saved position is used as before.
 
 ### Logic component
 
@@ -167,7 +178,7 @@ Tests cover old-file loading, save/reload and preservation of unrelated fields. 
 |---|---|
 | Parse | `AddCommandParser` and `EditCommandParser` accept repeated `s/` prefixes. `ParserUtil.parseSubjects` validates every label and removes case-insensitive duplicates. |
 | Edit | `EditPersonDescriptor` distinguishes omission, replacement of the whole set, and clearing with one empty `s/`. Other fields stay unchanged. |
-| Display | `PersonCard` shows all subjects or `Subjects: Not recorded`. |
+| Display | `PersonCard` shows all subjects in entered order, or a muted `No subjects yet`. |
 | Save | `JsonAdaptedPerson` writes a string array and accepts older single-subject files. |
 
 `SubjectWorkflowTest` covers add, edit, clear, filtered indexes, invalid input, duplicates and save/reload. `TuitionStorageTest` checks all shared fields.
@@ -501,6 +512,14 @@ Use an empty test folder and sample data. These checks are a starting point; als
 2. Check that the window opens with sample contacts.
 3. Resize and move the window, then close and reopen the app. Check that it keeps the new size and position.
 
+### Main window
+
+1. Launch with sample data. The command box should have keyboard focus, so you can type `list` straight away.
+2. Run `find` with a name that matches one student. The header should read `Showing 1 of N`. Run `find zzz`; the list should say `No students match` and suggest `list`.
+3. Run `clear` in a test folder. The list should say `No students yet` and show the `add` format.
+4. Run `delete 0`. The result row should turn pink with a red `!`, and `delete 0` should stay in the box in red. Fix it to a valid index and press Enter; the box should clear.
+5. Add a student with a long name, several subjects and a long address. Shrink the window to its minimum size. The text should wrap, and the list and result row should scroll, with nothing cut off.
+
 ### Student deletion
 
 1. Run `list` with several records present, then `delete 1`. The first record should disappear and the result should describe it.
@@ -512,7 +531,7 @@ Use an empty test folder and sample data. These checks are a starting point; als
 1. Add a unique test student with subject `Combined Science`, using three spaces between the words. The card should show one space.
 2. Change it with `edit INDEX s/Math`, then edit the phone without `s/`. The subject should stay `Math`.
 3. Restart the app. Both edits should remain.
-4. Run `edit INDEX s/` and restart again. The card should show `Subjects: Not recorded`.
+4. Run `edit INDEX s/` and restart again. The card should show a grey `No subjects yet`.
 5. Add or edit with `s/Math s/Science s/math`. The card should show `Math, Science`, including after restart.
 6. Try a blank subject on `add`, `edit INDEX s/Math s/`, and an invalid label such as `s/123`. Each should reject the whole command without changing any record.
 
@@ -535,4 +554,4 @@ Close the app and back up the test data before each case.
 
 * **Missing file:** Move `data/addressbook.json` out of the test folder, then restart. Sample records should appear.
 * **Invalid file:** Replace the test file with invalid JSON, then restart. An empty list should appear and the log should record the load failure. Do not run commands before restoring the backup; a successful command saves over the file.
-* **Old valid file:** Load AB3 data without tuition properties. The contact details should remain and subjects should show as not recorded.
+* **Old valid file:** Load AB3 data without tuition properties. The contact details should remain and subjects should show as `No subjects yet`.

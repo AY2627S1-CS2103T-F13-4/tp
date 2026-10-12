@@ -2,11 +2,14 @@ package seedu.address.ui;
 
 import java.util.logging.Logger;
 
+import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.layout.Region;
+import javafx.scene.layout.VBox;
 import seedu.address.commons.core.LogsCenter;
 import seedu.address.model.person.Person;
 
@@ -15,18 +18,45 @@ import seedu.address.model.person.Person;
  */
 public class PersonListPanel extends UiPart<Region> {
     private static final String FXML = "PersonListPanel.fxml";
+    /** Width taken by the card's index column, padding and the list's scroll bar, beside the wrapping rows. */
+    private static final double CARD_CHROME_WIDTH = 100;
+
     private final Logger logger = LogsCenter.getLogger(PersonListPanel.class);
 
     @FXML
     private ListView<Person> personListView;
+    @FXML
+    private Label listSummary;
+
+    private final Label emptyTitle = new Label();
+    private final Label emptyDetail = new Label();
 
     /**
-     * Creates a {@code PersonListPanel} with the given {@code ObservableList}.
+     * Creates a {@code PersonListPanel} that shows {@code personList}, the list that commands' indices refer to.
+     * {@code allPersons} is the unfiltered list, used only to count students and choose the empty-state message.
      */
-    public PersonListPanel(ObservableList<Person> personList) {
+    public PersonListPanel(ObservableList<Person> personList, ObservableList<Person> allPersons) {
         super(FXML);
         personListView.setItems(personList);
         personListView.setCellFactory(listView -> new PersonListViewCell());
+
+        emptyTitle.getStyleClass().add("empty-title");
+        emptyDetail.getStyleClass().add("empty-detail");
+        emptyDetail.setWrapText(true);
+        VBox emptyState = new VBox(emptyTitle, emptyDetail);
+        emptyState.getStyleClass().add("empty-state");
+        personListView.setPlaceholder(emptyState);
+
+        ListChangeListener<Person> refresh = change -> updateStatus(personList.size(), allPersons.size());
+        personList.addListener(refresh);
+        allPersons.addListener(refresh);
+        updateStatus(personList.size(), allPersons.size());
+    }
+
+    private void updateStatus(int shown, int total) {
+        listSummary.setText(StudentListStatus.summary(shown, total));
+        emptyTitle.setText(StudentListStatus.emptyTitle(total));
+        emptyDetail.setText(StudentListStatus.emptyDetail(total));
     }
 
     /**
@@ -41,7 +71,9 @@ public class PersonListPanel extends UiPart<Region> {
                 setGraphic(null);
                 setText(null);
             } else {
-                setGraphic(new PersonCard(person, getIndex() + 1).getRoot());
+                PersonCard card = new PersonCard(person, getIndex() + 1);
+                card.bindWrapWidth(personListView.widthProperty().subtract(CARD_CHROME_WIDTH));
+                setGraphic(card.getRoot());
             }
         }
     }

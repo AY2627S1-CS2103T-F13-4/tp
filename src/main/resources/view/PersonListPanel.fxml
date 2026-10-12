@@ -1,8 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ListView?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
-  <ListView fx:id="personListView" VBox.vgrow="ALWAYS" />
+<VBox styleClass="list-section" minHeight="0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
+  <HBox alignment="BASELINE_LEFT" spacing="10">
+    <Label text="Students" styleClass="view-title" />
+    <Label fx:id="listSummary" styleClass="view-subtitle" />
+  </HBox>
+  <StackPane styleClass="list-card" minHeight="0" VBox.vgrow="ALWAYS">
+    <ListView fx:id="personListView" minHeight="0" />
+  </StackPane>
 </VBox>

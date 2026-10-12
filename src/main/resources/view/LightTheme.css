@@ -1,0 +1,337 @@
+/*
+ * StudentBook light theme.
+ * Neutral surfaces with one blue accent. Colours are kept in the looked-up colours below
+ * so that each one is defined once.
+ */
+.root {
+    -sb-page: #FAFAFB;
+    -sb-surface: #FFFFFF;
+    -sb-border: #ECECEF;
+    -sb-divider: #F2F2F4;
+    -sb-text: #111113;
+    -sb-text-secondary: #55555D;
+    -sb-text-muted: #8A8A92;
+    -sb-accent: #2F6BEA;
+    -sb-accent-tint: #EAF1FF;
+    -sb-accent-ink: #1F48B8;
+    -sb-success: #1F8A4C;
+    -sb-error: #C8302F;
+    -sb-error-tint: #FDF2F2;
+
+    -fx-font-family: "System";
+    -fx-font-size: 13px;
+    -fx-base: #F4F4F5;
+    -fx-accent: -sb-accent;
+    -fx-focus-color: -sb-accent;
+    -fx-faint-focus-color: transparent;
+    -fx-background-color: -sb-page;
+}
+
+.label {
+    -fx-text-fill: -sb-text;
+}
+
+/* ---------- Menu bar ---------- */
+
+.menu-bar {
+    -fx-background-color: -sb-page;
+    -fx-border-color: transparent transparent -sb-border transparent;
+    -fx-padding: 0 8 0 8;
+}
+
+.menu-bar .label {
+    -fx-text-fill: -sb-text-secondary;
+}
+
+.context-menu {
+    -fx-background-color: -sb-surface;
+    -fx-background-radius: 8;
+    -fx-border-color: -sb-border;
+    -fx-border-radius: 8;
+}
+
+.menu-item:focused {
+    -fx-background-color: -sb-accent-tint;
+}
+
+.menu-item:focused .label {
+    -fx-text-fill: -sb-accent-ink;
+}
+
+/* ---------- Student list ---------- */
+
+.list-section {
+    -fx-padding: 14 16 12 16;
+    -fx-spacing: 10;
+}
+
+.view-title {
+    -fx-font-size: 17px;
+    -fx-font-weight: bold;
+}
+
+.view-subtitle {
+    -fx-text-fill: -sb-text-muted;
+}
+
+.list-card {
+    -fx-background-color: -sb-surface;
+    -fx-background-radius: 14;
+    -fx-border-color: -sb-border;
+    -fx-border-radius: 14;
+    -fx-effect: dropshadow(gaussian, rgba(17, 17, 19, 0.05), 3, 0, 0, 1);
+}
+
+.list-view {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-padding: 4 0 4 0;
+}
+
+.list-view:focused {
+    -fx-background-color: transparent;
+}
+
+.list-cell {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+}
+
+.list-cell:filled {
+    -fx-border-color: transparent transparent -sb-divider transparent;
+}
+
+.list-cell:filled:selected {
+    -fx-background-color: #F5F8FF;
+}
+
+.empty-state {
+    -fx-spacing: 6;
+    -fx-alignment: center;
+    -fx-padding: 24;
+}
+
+.empty-title {
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+}
+
+.empty-detail {
+    -fx-text-fill: -sb-text-secondary;
+    -fx-text-alignment: center;
+}
+
+/* ---------- Student card ---------- */
+
+.student-card {
+    -fx-padding: 14 18 14 14;
+    -fx-spacing: 12;
+}
+
+.card-index {
+    -fx-text-fill: -sb-text-muted;
+    -fx-font-size: 13px;
+    -fx-min-width: 28;
+    -fx-alignment: top-right;
+    -fx-padding: 2 0 0 0;
+}
+
+.card-name {
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+    -fx-fill: -sb-text;
+}
+
+.chip {
+    -fx-background-radius: 6;
+    -fx-padding: 2 8 2 8;
+    -fx-font-size: 12px;
+}
+
+.level-chip {
+    -fx-background-color: -sb-accent-tint;
+    -fx-text-fill: -sb-accent-ink;
+}
+
+#tags .label {
+    -fx-background-color: #F4F4F5;
+    -fx-background-radius: 6;
+    -fx-padding: 2 8 2 8;
+    -fx-font-size: 12px;
+    -fx-text-fill: -sb-text-secondary;
+}
+
+.card-subjects {
+    -fx-font-size: 13px;
+    -fx-fill: -sb-text-secondary;
+}
+
+.fact-caption {
+    -fx-font-size: 11.5px;
+    -fx-text-fill: -sb-text-muted;
+}
+
+/* Values are Labels, except the address, which is a Text so that it can wrap */
+.fact-value {
+    -fx-font-size: 13px;
+    -fx-fill: -sb-text;
+}
+
+.fact-empty {
+    -fx-text-fill: #B4B4BA;
+    -fx-fill: #B4B4BA;
+}
+
+/* ---------- Command panel ---------- */
+
+.command-panel {
+    -fx-background-color: -sb-surface;
+    -fx-background-radius: 14;
+    -fx-border-color: -sb-border;
+    -fx-border-radius: 14;
+    -fx-effect: dropshadow(gaussian, rgba(17, 17, 19, 0.05), 3, 0, 0, 1);
+}
+
+.result-row {
+    -fx-padding: 9 14 6 14;
+    -fx-spacing: 10;
+    -fx-border-color: transparent transparent -sb-divider transparent;
+    -fx-background-radius: 14 14 0 0;
+}
+
+.result-row.result-error {
+    -fx-background-color: -sb-error-tint;
+}
+
+.result-icon {
+    -fx-min-width: 20;
+    -fx-min-height: 20;
+    -fx-max-width: 20;
+    -fx-max-height: 20;
+    -fx-background-radius: 10;
+    -fx-alignment: center;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-background-color: #F1F1F3;
+    -fx-text-fill: -sb-text-secondary;
+}
+
+.result-success .result-icon {
+    -fx-background-color: #E5F4EB;
+    -fx-text-fill: -sb-success;
+}
+
+.result-error .result-icon {
+    -fx-background-color: #FDE3E3;
+    -fx-text-fill: -sb-error;
+}
+
+.result-display, .result-display .content, .result-display .scroll-pane, .result-display .viewport {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-padding: 0;
+}
+
+.result-display {
+    -fx-text-fill: -sb-text;
+    -fx-highlight-fill: -sb-accent-tint;
+    -fx-highlight-text-fill: -sb-text;
+    -fx-font-size: 13px;
+}
+
+.result-display:focused {
+    -fx-background-color: transparent;
+}
+
+.command-row {
+    -fx-padding: 4 14 4 14;
+    -fx-spacing: 10;
+    -fx-min-height: 44;
+}
+
+.command-prompt {
+    -fx-text-fill: -sb-text-muted;
+    -fx-font-size: 15px;
+}
+
+.command-row .text-field {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-padding: 6 0 6 0;
+    -fx-font-size: 14px;
+    -fx-text-fill: -sb-text;
+    -fx-prompt-text-fill: #A0A0A8;
+    -fx-highlight-fill: -sb-accent-tint;
+    -fx-highlight-text-fill: -sb-text;
+}
+
+.command-row .text-field.error {
+    -fx-text-fill: -sb-error;
+}
+
+.keycap {
+    -fx-font-size: 11px;
+    -fx-text-fill: -sb-text-secondary;
+    -fx-padding: 1 6 1 6;
+    -fx-background-color: -sb-surface;
+    -fx-border-color: #E4E4E7;
+    -fx-border-radius: 5;
+    -fx-background-radius: 5;
+}
+
+.key-hint {
+    -fx-font-size: 12px;
+    -fx-text-fill: -sb-text-muted;
+}
+
+/* ---------- Status bar ---------- */
+
+.status-bar {
+    -fx-padding: 0 18 6 18;
+}
+
+.status-bar .label {
+    -fx-font-size: 11.5px;
+    -fx-text-fill: -sb-text-muted;
+}
+
+/* ---------- Scroll bars ---------- */
+
+.scroll-bar {
+    -fx-background-color: transparent;
+    -fx-padding: 2;
+}
+
+.scroll-bar .thumb {
+    -fx-background-color: #D9D9DE;
+    -fx-background-radius: 4;
+    -fx-background-insets: 0;
+}
+
+.scroll-bar .increment-button, .scroll-bar .decrement-button {
+    -fx-padding: 0;
+    -fx-background-color: transparent;
+}
+
+.scroll-bar .increment-arrow, .scroll-bar .decrement-arrow {
+    -fx-shape: " ";
+    -fx-padding: 0;
+}
+
+.scroll-bar:vertical {
+    -fx-pref-width: 10;
+}
+
+.scroll-bar:horizontal {
+    -fx-pref-height: 10;
+}
+
+/* ---------- Dialogs ---------- */
+
+.dialog-pane {
+    -fx-background-color: -sb-surface;
+}
+
+.dialog-pane > *.label.content {
+    -fx-text-fill: -sb-text;
+}

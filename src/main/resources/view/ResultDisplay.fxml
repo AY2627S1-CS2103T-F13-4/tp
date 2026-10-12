@@ -1,9 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.scene.control.Label?>
 <?import javafx.scene.control.TextArea?>
-<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.HBox?>
 
-<StackPane fx:id="placeHolder" styleClass="pane-with-border" xmlns="http://javafx.com/javafx/17"
-    xmlns:fx="http://javafx.com/fxml/1">
-  <TextArea fx:id="resultDisplay" editable="false" styleClass="result-display"/>
-</StackPane>
+<HBox fx:id="resultRow" styleClass="result-row" alignment="TOP_LEFT" xmlns="http://javafx.com/javafx/17"
+      xmlns:fx="http://javafx.com/fxml/1">
+  <Label fx:id="resultIcon" styleClass="result-icon" />
+  <!-- A read-only text area so long messages (e.g. command usage) can be scrolled and copied -->
+  <TextArea fx:id="resultDisplay" editable="false" wrapText="true" focusTraversable="false"
+            styleClass="result-display" prefRowCount="2" minHeight="36" prefHeight="36" HBox.hgrow="ALWAYS" />
+</HBox>

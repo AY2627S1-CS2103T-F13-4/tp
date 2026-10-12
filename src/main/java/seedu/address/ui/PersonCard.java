@@ -1,13 +1,16 @@
 package seedu.address.ui;
 
 import java.util.Comparator;
-import java.util.stream.Collectors;
+import java.util.Optional;
 
+import javafx.beans.binding.Bindings;
+import javafx.beans.binding.DoubleExpression;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
+import javafx.scene.text.Text;
 import seedu.address.model.person.Person;
 
 /**
@@ -16,6 +19,9 @@ import seedu.address.model.person.Person;
 public class PersonCard extends UiPart<Region> {
 
     private static final String FXML = "PersonListCard.fxml";
+    private static final String EMPTY_VALUE_STYLE_CLASS = "fact-empty";
+    private static final double LEVEL_CHIP_ALLOWANCE = 120;
+    private static final double ADDRESS_MAX_WIDTH = 360;
 
     /**
      * Note: Certain keywords such as "location" and "resources" are reserved keywords in JavaFX.
@@ -30,17 +36,17 @@ public class PersonCard extends UiPart<Region> {
     @FXML
     private HBox cardPane;
     @FXML
-    private Label name;
+    private Text name;
     @FXML
     private Label id;
     @FXML
     private Label phone;
     @FXML
-    private Label address;
+    private Text address;
     @FXML
     private Label email;
     @FXML
-    private Label subject;
+    private Text subject;
     @FXML
     private Label schoolingLevel;
     @FXML
@@ -51,6 +57,8 @@ public class PersonCard extends UiPart<Region> {
     private Label guardian;
     @FXML
     private FlowPane tags;
+    @FXML
+    private FlowPane facts;
 
     /**
      * Creates a {@code PersonCard} with the given {@code Person} and index to display.
@@ -58,34 +66,51 @@ public class PersonCard extends UiPart<Region> {
     public PersonCard(Person person, int displayedIndex) {
         super(FXML);
         this.person = person;
-        id.setText(displayedIndex + ". ");
+        id.setText(String.valueOf(displayedIndex));
         name.setText(person.getName().fullName);
         phone.setText(person.getPhone().value);
         address.setText(person.getAddress().value);
         email.setText(person.getEmail().value);
-        guardian.setText("Guardian: " + person.getGuardianContact().map(Object::toString).orElse("Not recorded"));
-        subject.setText("Subjects: " + (person.getSubjects().isEmpty() ? "Not recorded"
-                : person.getSubjects().stream().map(Object::toString).collect(Collectors.joining(", "))));
+        subject.setText(StudentCardText.subjects(person).orElse(StudentCardText.NO_SUBJECTS));
+        if (person.getSubjects().isEmpty()) {
+            subject.getStyleClass().add(EMPTY_VALUE_STYLE_CLASS);
+        }
+        showOrPlaceholder(weeklyLessonSlot, StudentCardText.lesson(person), StudentCardText.NOT_SET);
+        showOrPlaceholder(hourlyRate, StudentCardText.rate(person), StudentCardText.NOT_SET);
+        showOrPlaceholder(guardian, StudentCardText.guardian(person), StudentCardText.NOT_SET);
         if (person.getSchoolingLevel().isPresent()) {
-            schoolingLevel.setText("Level: " + person.getSchoolingLevel().get());
+            schoolingLevel.setText(person.getSchoolingLevel().get().toString());
         } else {
             schoolingLevel.setVisible(false);
             schoolingLevel.setManaged(false);
         }
-        if (person.getWeeklyLessonSlot().isPresent()) {
-            weeklyLessonSlot.setText("Lesson: " + person.getWeeklyLessonSlot().get());
-        } else {
-            weeklyLessonSlot.setVisible(false);
-            weeklyLessonSlot.setManaged(false);
-        }
-        if (person.getHourlyRate().isPresent()) {
-            hourlyRate.setText("Rate: SGD " + person.getHourlyRate().get() + "/hour");
-        } else {
-            hourlyRate.setVisible(false);
-            hourlyRate.setManaged(false);
-        }
         person.getTags().stream()
                 .sorted(Comparator.comparing(tag -> tag.tagName))
                 .forEach(tag -> tags.getChildren().add(new Label(tag.tagName)));
+        if (tags.getChildren().isEmpty()) {
+            tags.setVisible(false);
+            tags.setManaged(false);
+        }
+    }
+
+    /**
+     * Wraps the card's text and rows within {@code width}, the space beside the index column.
+     * The list asks a card for its height before laying it out, so wrapping has to be set from a known width:
+     * FlowPane would otherwise assume 400px, and wrapped labels would report a single line.
+     */
+    public void bindWrapWidth(DoubleExpression width) {
+        tags.prefWrapLengthProperty().bind(width);
+        facts.prefWrapLengthProperty().bind(width);
+        name.wrappingWidthProperty().bind(width);
+        subject.wrappingWidthProperty().bind(width.subtract(LEVEL_CHIP_ALLOWANCE));
+        address.wrappingWidthProperty().bind(Bindings.min(width, ADDRESS_MAX_WIDTH));
+    }
+
+    /** Shows {@code text} in {@code label}, or a muted {@code placeholder} when the detail is not recorded. */
+    private static void showOrPlaceholder(Label label, Optional<String> text, String placeholder) {
+        label.setText(text.orElse(placeholder));
+        if (text.isEmpty()) {
+            label.getStyleClass().add(EMPTY_VALUE_STYLE_CLASS);
+        }
     }
 }

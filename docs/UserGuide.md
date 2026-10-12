@@ -14,10 +14,10 @@ This development version supports contact details, subjects, schooling levels, w
 
 1. Install Java `25`. Mac users should follow the [course Java installation guide](https://se-education.org/guides/tutorials/javaInstallationMac.html).
 
-1. Build the development version from [Pranav's fork](https://github.com/pranavp311/tp). The subject feature is awaiting merge into the [team repository](https://github.com/AY2627S1-CS2103T-F13-4/tp).
+1. Build the development version from the [team repository](https://github.com/AY2627S1-CS2103T-F13-4/tp).
 
    ```text
-   git clone --branch student-subject https://github.com/pranavp311/tp.git studentbook
+   git clone https://github.com/AY2627S1-CS2103T-F13-4/tp.git studentbook
    cd studentbook
    ./gradlew shadowJar
    ```
@@ -39,6 +39,16 @@ This development version supports contact details, subjects, schooling levels, w
    ```
 
    This adds Alex with Math as the subject. Type `exit` to close the app.
+
+## The main window
+
+![StudentBook main window](images/Ui.png)
+
+* **Student list:** Each card shows a student's number, name, schooling level, subjects, tags, lesson slot, rate, guardian and contact details. A lesson slot, rate or guardian that has not been recorded shows as a grey `Not set`, and missing subjects show as `No subjects yet`. A missing level or tags are left out. Use the number beside a name as `INDEX` in commands.
+* **Count:** The count beside the title shows how many students there are. After `find`, it shows how many match, such as `Showing 1 of 8`.
+* **Empty list:** When the list is empty, the app suggests the next step. With no students, it shows the `add` format. When a search matches no one, it suggests `list`.
+* **Result:** The row above the command box shows the result of your last command. A green tick marks a success. A red `!` on a pink background marks an error, such as an invalid index or format. Long messages, such as a command's usage, can be scrolled and copied.
+* **Command box:** It is focused when the app starts. Press Enter to run a command. After a successful command, the box clears. After an error, your text stays, shown in red, so you can fix it. Press F1 to open help.
 
 ## Features
 
