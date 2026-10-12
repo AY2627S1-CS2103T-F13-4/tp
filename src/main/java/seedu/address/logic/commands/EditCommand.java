@@ -3,12 +3,9 @@ package seedu.address.logic.commands;
 import static java.util.Objects.requireNonNull;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_ADDRESS;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_EMAIL;
-import static seedu.address.logic.parser.CliSyntax.PREFIX_LESSON_SLOT;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_LEVEL;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_NAME;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
-import static seedu.address.logic.parser.CliSyntax.PREFIX_RATE;
-import static seedu.address.logic.parser.CliSyntax.PREFIX_SUBJECT;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_TAG;
 import static seedu.address.model.Model.PREDICATE_SHOW_ALL_PERSONS;
 
@@ -27,13 +24,10 @@ import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.Model;
 import seedu.address.model.person.Address;
 import seedu.address.model.person.Email;
-import seedu.address.model.person.HourlyRate;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Phone;
 import seedu.address.model.person.SchoolingLevel;
 import seedu.address.model.person.Student;
-import seedu.address.model.person.Subject;
-import seedu.address.model.person.WeeklyLessonSlot;
 import seedu.address.model.tag.Tag;
 
 /**
@@ -46,24 +40,18 @@ public class EditCommand extends Command {
     public static final String MESSAGE_USAGE = COMMAND_WORD + ": Edits the details of the person identified "
             + "by the index number used in the displayed person list. "
             + "Existing values will be overwritten by the input values. "
-            + "Repeat s/ for multiple subjects; use empty s/ to clear all subjects.\n"
+            + "\n"
             + "Parameters: INDEX (must be a positive integer) "
             + "[" + PREFIX_NAME + "NAME] "
             + "[" + PREFIX_PHONE + "PHONE] "
             + "[" + PREFIX_EMAIL + "EMAIL] "
             + "[" + PREFIX_ADDRESS + "ADDRESS] "
             + "[" + PREFIX_TAG + "TAG]... "
-            + "[" + PREFIX_SUBJECT + "SUBJECT]... "
-            + "[" + PREFIX_LEVEL + "SCHOOLING_LEVEL] "
-            + "[" + PREFIX_LESSON_SLOT + "LESSON_SLOT] "
-            + "[" + PREFIX_RATE + "HOURLY_RATE]\n"
+            + "[" + PREFIX_LEVEL + "SCHOOLING_LEVEL]\n"
             + "Use an empty " + PREFIX_LEVEL + " to clear the schooling level.\n"
-            + "Use an empty " + PREFIX_LESSON_SLOT + " to clear the lesson slot.\n"
-            + "Use an empty " + PREFIX_RATE + " to clear the hourly rate.\n"
             + "Example: " + COMMAND_WORD + " 1 "
             + PREFIX_PHONE + "91234567 "
-            + PREFIX_EMAIL + "johndoe@example.com "
-            + PREFIX_RATE + "50.00";
+            + PREFIX_EMAIL + "johndoe@example.com";
 
     public static final String MESSAGE_EDIT_PERSON_SUCCESS = "Edited person: %1$s";
     public static final String MESSAGE_NOT_EDITED = "At least one field to edit must be provided.";
@@ -117,17 +105,11 @@ public class EditCommand extends Command {
         Email updatedEmail = editPersonDescriptor.getEmail().orElse(personToEdit.getEmail());
         Address updatedAddress = editPersonDescriptor.getAddress().orElse(personToEdit.getAddress());
         Set<Tag> updatedTags = editPersonDescriptor.getTags().orElse(personToEdit.getTags());
-        Set<Subject> updatedSubjects = editPersonDescriptor.getSubjects().orElse(personToEdit.getSubjects());
         Optional<SchoolingLevel> updatedSchoolingLevel = editPersonDescriptor.getSchoolingLevel()
                 .orElse(personToEdit.getSchoolingLevel());
-        Optional<WeeklyLessonSlot> updatedWeeklyLessonSlot = editPersonDescriptor.getWeeklyLessonSlot()
-                .orElse(personToEdit.getWeeklyLessonSlot());
-        Optional<HourlyRate> updatedHourlyRate = editPersonDescriptor.getHourlyRate()
-                .orElse(personToEdit.getHourlyRate());
 
         return new Student(updatedName, updatedPhone, updatedEmail, updatedAddress, updatedTags,
-                updatedSubjects, updatedSchoolingLevel, personToEdit.getGuardian(),
-                updatedWeeklyLessonSlot, updatedHourlyRate);
+                updatedSchoolingLevel, personToEdit.getGuardian(), personToEdit.getLessons());
     }
 
     @Override
@@ -163,10 +145,7 @@ public class EditCommand extends Command {
         private Email email;
         private Address address;
         private Set<Tag> tags;
-        private Set<Subject> subjects;
         private Optional<SchoolingLevel> schoolingLevel;
-        private Optional<WeeklyLessonSlot> weeklyLessonSlot;
-        private Optional<HourlyRate> hourlyRate;
 
         public EditPersonDescriptor() {}
 
@@ -180,18 +159,14 @@ public class EditCommand extends Command {
             setEmail(toCopy.email);
             setAddress(toCopy.address);
             setTags(toCopy.tags);
-            setSubjects(toCopy.subjects);
             setSchoolingLevel(toCopy.schoolingLevel);
-            setWeeklyLessonSlot(toCopy.weeklyLessonSlot);
-            setHourlyRate(toCopy.hourlyRate);
         }
 
         /**
          * Returns true if at least one field is edited.
          */
         public boolean isAnyFieldEdited() {
-            return CollectionUtil.isAnyNonNull(name, phone, email, address, tags, subjects, schoolingLevel,
-                    weeklyLessonSlot, hourlyRate);
+            return CollectionUtil.isAnyNonNull(name, phone, email, address, tags, schoolingLevel);
         }
 
         public void setName(Name name) {
@@ -243,15 +218,6 @@ public class EditCommand extends Command {
             return (tags != null) ? Optional.of(Collections.unmodifiableSet(tags)) : Optional.empty();
         }
 
-        /** Replaces subjects with a defensive copy; an empty set clears them all. */
-        public void setSubjects(Set<Subject> subjects) {
-            this.subjects = (subjects != null) ? new HashSet<>(subjects) : null;
-        }
-
-        public Optional<Set<Subject>> getSubjects() {
-            return (subjects != null) ? Optional.of(Collections.unmodifiableSet(subjects)) : Optional.empty();
-        }
-
         /**
          * Sets the schooling level edit. {@code Optional.empty()} clears the level; null leaves it unchanged.
          */
@@ -265,31 +231,6 @@ public class EditCommand extends Command {
          */
         public Optional<Optional<SchoolingLevel>> getSchoolingLevel() {
             return Optional.ofNullable(schoolingLevel);
-        }
-
-        /**
-         * Sets the weekly lesson slot edit. {@code Optional.empty()} clears the lesson slot; null leaves it unchanged.
-         */
-        public void setWeeklyLessonSlot(Optional<WeeklyLessonSlot> weeklyLessonSlot) {
-            this.weeklyLessonSlot = weeklyLessonSlot;
-        }
-
-        /**
-         * Returns {@code Optional#empty()} if the weekly lesson slot is not edited, otherwise the new value, which is
-         * itself empty if the weekly lesson slot is to be cleared.
-         */
-        public Optional<Optional<WeeklyLessonSlot>> getWeeklyLessonSlot() {
-            return Optional.ofNullable(weeklyLessonSlot);
-        }
-
-        /** Sets the hourly rate edit. An empty optional clears it; null leaves it unchanged. */
-        public void setHourlyRate(Optional<HourlyRate> hourlyRate) {
-            this.hourlyRate = hourlyRate;
-        }
-
-        /** Returns whether the hourly rate is edited and the replacement value, if any. */
-        public Optional<Optional<HourlyRate>> getHourlyRate() {
-            return Optional.ofNullable(hourlyRate);
         }
 
         @Override
@@ -308,10 +249,7 @@ public class EditCommand extends Command {
                     && Objects.equals(email, otherEditPersonDescriptor.email)
                     && Objects.equals(address, otherEditPersonDescriptor.address)
                     && Objects.equals(tags, otherEditPersonDescriptor.tags)
-                    && Objects.equals(subjects, otherEditPersonDescriptor.subjects)
-                    && Objects.equals(schoolingLevel, otherEditPersonDescriptor.schoolingLevel)
-                    && Objects.equals(weeklyLessonSlot, otherEditPersonDescriptor.weeklyLessonSlot)
-                    && Objects.equals(hourlyRate, otherEditPersonDescriptor.hourlyRate);
+                    && Objects.equals(schoolingLevel, otherEditPersonDescriptor.schoolingLevel);
         }
 
         @Override
@@ -322,10 +260,7 @@ public class EditCommand extends Command {
                     .add("email", email)
                     .add("address", address)
                     .add("tags", tags)
-                    .add("subjects", subjects)
                     .add("schoolingLevel", schoolingLevel)
-                    .add("weeklyLessonSlot", weeklyLessonSlot)
-                    .add("hourlyRate", hourlyRate)
                     .toString();
         }
     }

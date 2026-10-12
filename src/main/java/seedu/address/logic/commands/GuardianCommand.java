@@ -63,8 +63,8 @@ public class GuardianCommand extends Command {
             case DELETE -> Optional.empty();
         };
         Student replacement = new Student(student.getName(), student.getPhone(), student.getEmail(),
-                student.getAddress(), student.getTags(), student.getSubjects(), student.getSchoolingLevel(),
-                updated, student.getWeeklyLessonSlot(), student.getHourlyRate());
+                student.getAddress(), student.getTags(), student.getSchoolingLevel(),
+                updated, student.getLessons());
         model.setPerson(student, replacement);
         String action = switch (operation) {
             case ADD -> "added";

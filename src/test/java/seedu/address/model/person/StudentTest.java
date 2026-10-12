@@ -13,8 +13,10 @@ import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalPersons.ALICE;
 import static seedu.address.testutil.TypicalPersons.BOB;
 
+import java.math.BigDecimal;
 import java.time.DayOfWeek;
 import java.time.LocalTime;
+import java.util.List;
 import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
@@ -23,10 +25,12 @@ import seedu.address.testutil.PersonBuilder;
 
 public class StudentTest {
 
-    private static final WeeklyLessonSlot MONDAY_SLOT = new WeeklyLessonSlot(DayOfWeek.MONDAY,
-            LocalTime.of(16, 0), LocalTime.of(17, 30));
-    private static final WeeklyLessonSlot TUESDAY_SLOT = new WeeklyLessonSlot(DayOfWeek.TUESDAY,
-            LocalTime.of(16, 0), LocalTime.of(17, 30));
+    private static final Lesson MONDAY_MATH = new Lesson(new Subject("Math"),
+            new WeeklyLessonSlot(DayOfWeek.MONDAY, LocalTime.of(16, 0), LocalTime.of(17, 30)),
+            new HourlyRate(new BigDecimal("45.50")));
+    private static final Lesson TUESDAY_MATH = new Lesson(new Subject("Math"),
+            new WeeklyLessonSlot(DayOfWeek.TUESDAY, LocalTime.of(16, 0), LocalTime.of(17, 30)),
+            new HourlyRate(new BigDecimal("45.50")));
 
     @Test
     public void asObservableList_modifyList_throwsUnsupportedOperationException() {
@@ -101,45 +105,75 @@ public class StudentTest {
     }
 
     @Test
-    public void equals_weeklyLessonSlot_comparesPresenceAndValue() {
-        Student withMondaySlot = new PersonBuilder(ALICE).withWeeklyLessonSlot(MONDAY_SLOT).build();
-        Student withSameSlot = new PersonBuilder(ALICE).withWeeklyLessonSlot(new WeeklyLessonSlot(DayOfWeek.MONDAY,
-                LocalTime.of(16, 0), LocalTime.of(17, 30))).build();
-        Student withTuesdaySlot = new PersonBuilder(ALICE).withWeeklyLessonSlot(TUESDAY_SLOT).build();
+    public void equals_lessons_comparesContentAndOrder() {
+        Student withMonday = new PersonBuilder(ALICE).withLessons(MONDAY_MATH).build();
+        Student withSameLesson = new PersonBuilder(ALICE).withLessons(new Lesson(new Subject("math"),
+                new WeeklyLessonSlot(DayOfWeek.MONDAY, LocalTime.of(16, 0), LocalTime.of(17, 30)),
+                new HourlyRate(new BigDecimal("45.5")))).build();
+        Student withTuesday = new PersonBuilder(ALICE).withLessons(TUESDAY_MATH).build();
 
-        assertEquals(withMondaySlot, withSameSlot);
-        assertEquals(withMondaySlot.hashCode(), withSameSlot.hashCode());
-        assertNotEquals(ALICE, withMondaySlot);
-        assertNotEquals(withMondaySlot, withTuesdaySlot);
-        assertEquals(ALICE, new PersonBuilder(withMondaySlot).withWeeklyLessonSlot(null).build());
+        assertEquals(withMonday, withSameLesson);
+        assertEquals(withMonday.hashCode(), withSameLesson.hashCode());
+        assertNotEquals(ALICE, withMonday);
+        assertNotEquals(withMonday, withTuesday);
+        assertEquals(ALICE, new PersonBuilder(withMonday).withLessons().build());
+
+        Student mondayThenTuesday = new PersonBuilder(ALICE).withLessons(MONDAY_MATH, TUESDAY_MATH).build();
+        Student tuesdayThenMonday = new PersonBuilder(ALICE).withLessons(TUESDAY_MATH, MONDAY_MATH).build();
+        assertNotEquals(mondayThenTuesday, tuesdayThenMonday);
     }
 
     @Test
-    public void isSamePerson_weeklyLessonSlotChanged_identityStillDependsOnName() {
-        Student withMondaySlot = new PersonBuilder(ALICE).withWeeklyLessonSlot(MONDAY_SLOT).build();
-        Student withTuesdaySlot = new PersonBuilder(ALICE).withWeeklyLessonSlot(TUESDAY_SLOT).build();
+    public void isSamePerson_lessonsChanged_identityStillDependsOnName() {
+        Student withMonday = new PersonBuilder(ALICE).withLessons(MONDAY_MATH).build();
+        Student withTuesday = new PersonBuilder(ALICE).withLessons(TUESDAY_MATH).build();
 
-        assertTrue(ALICE.isSamePerson(withMondaySlot));
-        assertTrue(withMondaySlot.isSamePerson(withTuesdaySlot));
-        assertTrue(withMondaySlot.isSamePerson(new PersonBuilder(withMondaySlot).withWeeklyLessonSlot(null).build()));
-        assertFalse(withMondaySlot.isSamePerson(new PersonBuilder(withMondaySlot).withName(VALID_NAME_BOB).build()));
+        assertTrue(ALICE.isSamePerson(withMonday));
+        assertTrue(withMonday.isSamePerson(withTuesday));
+        assertTrue(withMonday.isSamePerson(new PersonBuilder(withMonday).withLessons().build()));
+        assertFalse(withMonday.isSamePerson(new PersonBuilder(withMonday).withName(VALID_NAME_BOB).build()));
     }
 
     @Test
-    public void personBuilder_copy_preservesWeeklyLessonSlot() {
-        Student original = new PersonBuilder(ALICE).withWeeklyLessonSlot(MONDAY_SLOT).build();
+    public void personBuilder_copy_preservesLessons() {
+        Student original = new PersonBuilder(ALICE).withLessons(MONDAY_MATH, TUESDAY_MATH).build();
         Student copy = new PersonBuilder(original).build();
 
-        assertEquals(Optional.of(MONDAY_SLOT), copy.getWeeklyLessonSlot());
+        assertEquals(List.of(MONDAY_MATH, TUESDAY_MATH), copy.getLessons());
         assertEquals(original, copy);
+    }
+
+    @Test
+    public void constructor_noLessons_isEmpty() {
+        assertTrue(ALICE.getLessons().isEmpty());
+    }
+
+    @Test
+    public void constructor_duplicateLessons_throwsIllegalArgumentException() {
+        assertThrows(IllegalArgumentException.class, Student.MESSAGE_DUPLICATE_LESSONS, () ->
+                new PersonBuilder().withLessons(MONDAY_MATH, MONDAY_MATH).build());
+    }
+
+    @Test
+    public void constructor_defensivelyCopiesLessons() {
+        List<Lesson> input = new java.util.ArrayList<>(List.of(MONDAY_MATH));
+        Student person = new Student(ALICE.getName(), ALICE.getPhone(), ALICE.getEmail(), ALICE.getAddress(),
+                ALICE.getTags(), Optional.empty(), Optional.empty(), input);
+        input.clear();
+        assertEquals(List.of(MONDAY_MATH), person.getLessons());
+    }
+
+    @Test
+    public void getLessons_modifyList_throwsUnsupportedOperationException() {
+        Student person = new PersonBuilder().withLessons(MONDAY_MATH).build();
+        assertThrows(UnsupportedOperationException.class, () -> person.getLessons().clear());
     }
 
     @Test
     public void toStringMethod() {
         String expected = Student.class.getCanonicalName() + "{name=" + ALICE.getName() + ", phone=" + ALICE.getPhone()
                 + ", email=" + ALICE.getEmail() + ", address=" + ALICE.getAddress() + ", tags=" + ALICE.getTags()
-                + ", subjects=[], schoolingLevel=Optional.empty, guardianContact=Optional.empty"
-                + ", weeklyLessonSlot=Optional.empty, hourlyRate=Optional.empty}";
+                + ", schoolingLevel=Optional.empty, guardianContact=Optional.empty, lessons=[]}";
         assertEquals(expected, ALICE.toString());
     }
 }

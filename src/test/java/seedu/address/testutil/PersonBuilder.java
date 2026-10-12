@@ -1,21 +1,20 @@
 package seedu.address.testutil;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
 import seedu.address.model.person.Address;
 import seedu.address.model.person.Email;
 import seedu.address.model.person.Guardian;
-import seedu.address.model.person.HourlyRate;
+import seedu.address.model.person.Lesson;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Phone;
 import seedu.address.model.person.SchoolingLevel;
 import seedu.address.model.person.Student;
-import seedu.address.model.person.Subject;
-import seedu.address.model.person.WeeklyLessonSlot;
 import seedu.address.model.tag.Tag;
 import seedu.address.model.util.SampleDataUtil;
 
@@ -34,11 +33,9 @@ public class PersonBuilder {
     private Email email;
     private Address address;
     private Set<Tag> tags;
-    private Set<Subject> subjects = Set.of();
     private Optional<SchoolingLevel> schoolingLevel = Optional.empty();
     private Optional<Guardian> guardianContact = Optional.empty();
-    private Optional<WeeklyLessonSlot> weeklyLessonSlot = Optional.empty();
-    private Optional<HourlyRate> hourlyRate = Optional.empty();
+    private List<Lesson> lessons = new ArrayList<>();
 
     /**
      * Creates a {@code PersonBuilder} with the default details.
@@ -60,11 +57,9 @@ public class PersonBuilder {
         email = personToCopy.getEmail();
         address = personToCopy.getAddress();
         tags = new HashSet<>(personToCopy.getTags());
-        subjects = personToCopy.getSubjects();
         schoolingLevel = personToCopy.getSchoolingLevel();
         guardianContact = personToCopy.getGuardian();
-        weeklyLessonSlot = personToCopy.getWeeklyLessonSlot();
-        hourlyRate = personToCopy.getHourlyRate();
+        lessons = new ArrayList<>(personToCopy.getLessons());
     }
 
     /**
@@ -107,15 +102,9 @@ public class PersonBuilder {
         return this;
     }
 
-    /** Sets the optional subject; null clears it. */
-    public PersonBuilder withSubject(Subject value) {
-        subjects = value == null ? Set.of() : Set.of(value);
-        return this;
-    }
-
-    /** Sets all subjects in input order. */
-    public PersonBuilder withSubjects(Subject... values) {
-        subjects = new LinkedHashSet<>(Arrays.asList(values));
+    /** Sets the lessons of the {@code Student} that we are building, in the given order. */
+    public PersonBuilder withLessons(Lesson... values) {
+        lessons = new ArrayList<>(Arrays.asList(values));
         return this;
     }
 
@@ -131,22 +120,9 @@ public class PersonBuilder {
         return this;
     }
 
-    /** Sets the optional weeklyLessonSlot; null clears it. */
-    public PersonBuilder withWeeklyLessonSlot(WeeklyLessonSlot value) {
-        weeklyLessonSlot = Optional.ofNullable(value);
-        return this;
-    }
-
-    /** Sets the optional hourlyRate; null clears it. */
-    public PersonBuilder withHourlyRate(HourlyRate value) {
-        hourlyRate = Optional.ofNullable(value);
-        return this;
-    }
-
     /** Builds an immutable student record. */
     public Student build() {
-        return new Student(name, phone, email, address, tags, subjects, schoolingLevel, guardianContact,
-                weeklyLessonSlot, hourlyRate);
+        return new Student(name, phone, email, address, tags, schoolingLevel, guardianContact, lessons);
     }
 
 }

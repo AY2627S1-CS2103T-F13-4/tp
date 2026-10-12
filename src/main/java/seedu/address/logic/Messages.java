@@ -45,14 +45,11 @@ public class Messages {
                 .append(person.getAddress())
                 .append("; Tags: ");
         person.getTags().forEach(builder::append);
-        if (!person.getSubjects().isEmpty()) {
-            builder.append("; Subjects: ").append(person.getSubjects().stream()
-                    .map(Object::toString).collect(Collectors.joining(", ")));
-        }
         person.getSchoolingLevel().ifPresent(level -> builder.append("; Level: ").append(level));
-        person.getWeeklyLessonSlot().ifPresent(weeklyLessonSlot -> builder.append("; Lesson Slot: ")
-                .append(weeklyLessonSlot));
-        person.getHourlyRate().ifPresent(rate -> builder.append("; Rate: SGD ").append(rate).append("/hour"));
+        if (!person.getLessons().isEmpty()) {
+            builder.append("; Lessons: ").append(person.getLessons().stream()
+                    .map(Object::toString).collect(Collectors.joining(" | ")));
+        }
         person.getGuardian().ifPresent(guardian -> builder.append("; Guardian: ").append(guardian));
         return builder.toString();
     }

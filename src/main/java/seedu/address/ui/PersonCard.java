@@ -40,13 +40,9 @@ public class PersonCard extends UiPart<Region> {
     @FXML
     private Label email;
     @FXML
-    private Label subject;
-    @FXML
     private Label schoolingLevel;
     @FXML
-    private Label weeklyLessonSlot;
-    @FXML
-    private Label hourlyRate;
+    private Label lessons;
     @FXML
     private Label guardian;
     @FXML
@@ -64,25 +60,18 @@ public class PersonCard extends UiPart<Region> {
         address.setText(person.getAddress().value);
         email.setText(person.getEmail().value);
         guardian.setText("Guardian: " + person.getGuardian().map(Object::toString).orElse("Not recorded"));
-        subject.setText("Subjects: " + (person.getSubjects().isEmpty() ? "Not recorded"
-                : person.getSubjects().stream().map(Object::toString).collect(Collectors.joining(", "))));
         if (person.getSchoolingLevel().isPresent()) {
             schoolingLevel.setText("Level: " + person.getSchoolingLevel().get());
         } else {
             schoolingLevel.setVisible(false);
             schoolingLevel.setManaged(false);
         }
-        if (person.getWeeklyLessonSlot().isPresent()) {
-            weeklyLessonSlot.setText("Lesson: " + person.getWeeklyLessonSlot().get());
+        if (person.getLessons().isEmpty()) {
+            lessons.setText("Lessons: Not recorded");
         } else {
-            weeklyLessonSlot.setVisible(false);
-            weeklyLessonSlot.setManaged(false);
-        }
-        if (person.getHourlyRate().isPresent()) {
-            hourlyRate.setText("Rate: SGD " + person.getHourlyRate().get() + "/hour");
-        } else {
-            hourlyRate.setVisible(false);
-            hourlyRate.setManaged(false);
+            lessons.setText("Lessons:\n" + person.getLessons().stream()
+                    .map(lesson -> "- " + lesson)
+                    .collect(Collectors.joining("\n")));
         }
         person.getTags().stream()
                 .sorted(Comparator.comparing(tag -> tag.tagName))

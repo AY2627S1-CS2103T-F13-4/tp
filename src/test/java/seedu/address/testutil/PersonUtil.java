@@ -2,20 +2,16 @@ package seedu.address.testutil;
 
 import static seedu.address.logic.parser.CliSyntax.PREFIX_ADDRESS;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_EMAIL;
-import static seedu.address.logic.parser.CliSyntax.PREFIX_LESSON_SLOT;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_LEVEL;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_NAME;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_TAG;
 
-import java.time.format.DateTimeFormatter;
-import java.util.Locale;
 import java.util.Set;
 
 import seedu.address.logic.commands.AddCommand;
 import seedu.address.logic.commands.EditCommand.EditPersonDescriptor;
 import seedu.address.model.person.Student;
-import seedu.address.model.person.WeeklyLessonSlot;
 import seedu.address.model.tag.Tag;
 
 /**
@@ -43,8 +39,6 @@ public class PersonUtil {
             s -> sb.append(PREFIX_TAG + s.tagName + " ")
         );
         person.getSchoolingLevel().ifPresent(level -> sb.append(PREFIX_LEVEL).append(level.value).append(" "));
-        person.getWeeklyLessonSlot().ifPresent(weeklyLessonSlot -> sb.append(PREFIX_LESSON_SLOT)
-                .append(getWeeklyLessonSlotDetails(weeklyLessonSlot)).append(" "));
         return sb.toString();
     }
 
@@ -67,18 +61,6 @@ public class PersonUtil {
         }
         descriptor.getSchoolingLevel().ifPresent(level -> sb.append(PREFIX_LEVEL)
                 .append(level.map(l -> l.value).orElse("")).append(" "));
-        descriptor.getWeeklyLessonSlot().ifPresent(slot -> sb.append(PREFIX_LESSON_SLOT)
-                .append(slot.map(PersonUtil::getWeeklyLessonSlotDetails).orElse("")).append(" "));
         return sb.toString();
-    }
-
-    /**
-     * Returns the weekday, start time and end time expected by the weekly lesson slot parser.
-     */
-    private static String getWeeklyLessonSlotDetails(WeeklyLessonSlot slot) {
-        DateTimeFormatter dayFormat = DateTimeFormatter.ofPattern("E", new Locale("EN", "SG"));
-        DateTimeFormatter timeFormat = DateTimeFormatter.ofPattern("h.mma", new Locale("EN", "SG"));
-        return dayFormat.format(slot.getDay()) + " " + slot.getStart().format(timeFormat)
-                + " " + slot.getEnd().format(timeFormat);
     }
 }

@@ -2,9 +2,10 @@ package seedu.address.model.person;
 
 import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -18,6 +19,8 @@ import seedu.address.model.tag.Tag;
  */
 public class Student extends Person {
 
+    public static final String MESSAGE_DUPLICATE_LESSONS = "A student cannot have duplicate lessons.";
+
     // Identity fields
     private final Email email;
 
@@ -25,41 +28,42 @@ public class Student extends Person {
     private final Address address;
     private final Set<Tag> tags = new HashSet<>();
 
-    private final Set<Subject> subjects;
     private final Optional<SchoolingLevel> schoolingLevel;
     private final Optional<Guardian> guardianContact;
-    private final Optional<WeeklyLessonSlot> weeklyLessonSlot;
-    private final Optional<HourlyRate> hourlyRate;
+    private final List<Lesson> lessons;
 
     /**
      * Every field must be present and not null.
      */
     public Student(Name name, Phone phone, Email email, Address address, Set<Tag> tags) {
-        this(name, phone, email, address, tags, Set.of(), Optional.empty(), Optional.empty(),
-                Optional.empty(), Optional.empty());
+        this(name, phone, email, address, tags, Optional.empty(), Optional.empty(), List.of());
     }
 
-    /** Creates a student with all contact fields and optional tuition details. */
+    /**
+     * Creates a student with all contact fields, optional tuition details and zero or more lessons.
+     *
+     * @throws IllegalArgumentException if {@code lessons} contains duplicates.
+     */
     public Student(Name name, Phone phone, Email email, Address address, Set<Tag> tags,
-            Set<Subject> subjects, Optional<SchoolingLevel> schoolingLevel,
-            Optional<Guardian> guardianContact, Optional<WeeklyLessonSlot> weeklyLessonSlot,
-            Optional<HourlyRate> hourlyRate) {
+            Optional<SchoolingLevel> schoolingLevel, Optional<Guardian> guardianContact,
+            List<Lesson> lessons) {
         super(name, phone);
-        requireAllNonNull(email, address, tags, subjects, schoolingLevel,
-                guardianContact, weeklyLessonSlot, hourlyRate);
+        requireAllNonNull(email, address, tags, schoolingLevel, guardianContact, lessons);
+        lessons.forEach(Objects::requireNonNull);
+        if (new HashSet<>(lessons).size() != lessons.size()) {
+            throw new IllegalArgumentException(MESSAGE_DUPLICATE_LESSONS);
+        }
         this.email = email;
         this.address = address;
         this.tags.addAll(tags);
-        subjects.forEach(Objects::requireNonNull);
-        this.subjects = Collections.unmodifiableSet(new LinkedHashSet<>(subjects));
         this.schoolingLevel = schoolingLevel;
         this.guardianContact = guardianContact;
-        this.weeklyLessonSlot = weeklyLessonSlot;
-        this.hourlyRate = hourlyRate;
+        this.lessons = Collections.unmodifiableList(new ArrayList<>(lessons));
     }
 
-    public Set<Subject> getSubjects() {
-        return subjects;
+    /** Returns an unmodifiable list of this student's lessons, which may be empty. */
+    public List<Lesson> getLessons() {
+        return lessons;
     }
 
     public Optional<SchoolingLevel> getSchoolingLevel() {
@@ -68,14 +72,6 @@ public class Student extends Person {
 
     public Optional<Guardian> getGuardian() {
         return guardianContact;
-    }
-
-    public Optional<WeeklyLessonSlot> getWeeklyLessonSlot() {
-        return weeklyLessonSlot;
-    }
-
-    public Optional<HourlyRate> getHourlyRate() {
-        return hourlyRate;
     }
 
     public Email getEmail() {
@@ -113,18 +109,16 @@ public class Student extends Person {
                 && email.equals(otherPerson.email)
                 && address.equals(otherPerson.address)
                 && tags.equals(otherPerson.tags)
-                && subjects.equals(otherPerson.subjects)
                 && schoolingLevel.equals(otherPerson.schoolingLevel)
                 && guardianContact.equals(otherPerson.guardianContact)
-                && weeklyLessonSlot.equals(otherPerson.weeklyLessonSlot)
-                && hourlyRate.equals(otherPerson.hourlyRate);
+                && lessons.equals(otherPerson.lessons);
     }
 
     @Override
     public int hashCode() {
         // use this method for custom fields hashing instead of implementing your own
-        return Objects.hash(super.hashCode(), email, address, tags, subjects, schoolingLevel, guardianContact,
-                weeklyLessonSlot, hourlyRate);
+        return Objects.hash(super.hashCode(), email, address, tags, schoolingLevel, guardianContact,
+                lessons);
     }
 
     @Override
@@ -135,11 +129,9 @@ public class Student extends Person {
                 .add("email", email)
                 .add("address", address)
                 .add("tags", tags)
-                .add("subjects", subjects)
                 .add("schoolingLevel", schoolingLevel)
                 .add("guardianContact", guardianContact)
-                .add("weeklyLessonSlot", weeklyLessonSlot)
-                .add("hourlyRate", hourlyRate)
+                .add("lessons", lessons)
                 .toString();
     }
 

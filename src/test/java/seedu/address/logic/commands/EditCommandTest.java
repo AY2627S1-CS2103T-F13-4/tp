@@ -30,6 +30,7 @@ import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
 import seedu.address.model.person.Guardian;
 import seedu.address.model.person.HourlyRate;
+import seedu.address.model.person.Lesson;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Phone;
 import seedu.address.model.person.SchoolingLevel;
@@ -44,16 +45,18 @@ import seedu.address.testutil.PersonBuilder;
  */
 public class EditCommandTest {
 
-    private static final WeeklyLessonSlot MONDAY_SLOT = new WeeklyLessonSlot(DayOfWeek.MONDAY,
-            LocalTime.of(16, 0), LocalTime.of(17, 30));
-    private static final WeeklyLessonSlot TUESDAY_SLOT = new WeeklyLessonSlot(DayOfWeek.TUESDAY,
-            LocalTime.of(10, 0), LocalTime.of(11, 0));
+    private static final Lesson MATH_LESSON = new Lesson(new Subject("Mathematics"),
+            new WeeklyLessonSlot(DayOfWeek.MONDAY, LocalTime.of(16, 0), LocalTime.of(17, 30)),
+            new HourlyRate(new BigDecimal("45.50")));
+    private static final Lesson ENGLISH_LESSON = new Lesson(new Subject("English"),
+            new WeeklyLessonSlot(DayOfWeek.TUESDAY, LocalTime.of(10, 0), LocalTime.of(11, 0)),
+            new HourlyRate(new BigDecimal("40.00")));
 
     private Model model = new ModelManager(getTypicalAddressBook(), new UserPrefs());
 
     @Test
     public void execute_allFieldsSpecifiedUnfilteredList_success() {
-        Student editedPerson = new PersonBuilder().withWeeklyLessonSlot(MONDAY_SLOT).build();
+        Student editedPerson = new PersonBuilder().withSchoolingLevel(new SchoolingLevel("Primary 5")).build();
         EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder(editedPerson).build();
         EditCommand editCommand = new EditCommand(INDEX_FIRST_PERSON, descriptor);
 
@@ -228,47 +231,20 @@ public class EditCommandTest {
     }
 
     @Test
-    public void execute_setWeeklyLessonSlot_preservesOtherFields() {
-        Student original = personWithTuitionDetails().withWeeklyLessonSlot(null).build();
-        Student editedPerson = new PersonBuilder(original).withWeeklyLessonSlot(MONDAY_SLOT).build();
-        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withWeeklyLessonSlot(MONDAY_SLOT).build();
-
-        assertSuccessfulEdit(original, descriptor, editedPerson);
-    }
-
-    @Test
-    public void execute_replaceWeeklyLessonSlot_preservesOtherFields() {
-        Student original = personWithTuitionDetails().withWeeklyLessonSlot(MONDAY_SLOT).build();
-        Student editedPerson = new PersonBuilder(original).withWeeklyLessonSlot(TUESDAY_SLOT).build();
-        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withWeeklyLessonSlot(TUESDAY_SLOT).build();
-
-        assertSuccessfulEdit(original, descriptor, editedPerson);
-    }
-
-    @Test
-    public void execute_clearWeeklyLessonSlot_preservesOtherFields() {
-        Student original = personWithTuitionDetails().withWeeklyLessonSlot(MONDAY_SLOT).build();
-        Student editedPerson = new PersonBuilder(original).withWeeklyLessonSlot(null).build();
-        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withWeeklyLessonSlot(null).build();
-
-        assertSuccessfulEdit(original, descriptor, editedPerson);
-    }
-
-    @Test
-    public void execute_editPhone_preservesWeeklyLessonSlotAndOtherTuitionFields() {
-        Student original = personWithTuitionDetails().withWeeklyLessonSlot(MONDAY_SLOT).build();
+    public void execute_editPhone_preservesLessonsAndOtherTuitionFields() {
+        Student original = personWithTuitionDetails().build();
         Student editedPerson = new PersonBuilder(original).withPhone(VALID_PHONE_BOB).build();
         EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withPhone(VALID_PHONE_BOB).build();
 
         assertSuccessfulEdit(original, descriptor, editedPerson);
+        assertEquals(original.getLessons(), editedPerson.getLessons());
     }
 
     private PersonBuilder personWithTuitionDetails() {
         return new PersonBuilder(model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased()))
-                .withSubject(new Subject("Mathematics"))
+                .withLessons(MATH_LESSON, ENGLISH_LESSON)
                 .withSchoolingLevel(new SchoolingLevel("Primary 5"))
-                .withGuardian(new Guardian(new Name("Janet Tan"), new Phone("91234567")))
-                .withHourlyRate(new HourlyRate(new BigDecimal("45.50")));
+                .withGuardian(new Guardian(new Name("Janet Tan"), new Phone("91234567")));
     }
 
     private void assertSuccessfulEdit(Student original, EditPersonDescriptor descriptor, Student editedPerson) {

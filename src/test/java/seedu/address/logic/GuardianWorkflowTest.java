@@ -20,6 +20,7 @@ import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
 import seedu.address.model.person.Guardian;
 import seedu.address.model.person.HourlyRate;
+import seedu.address.model.person.Lesson;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Phone;
 import seedu.address.model.person.SchoolingLevel;
@@ -45,11 +46,11 @@ public class GuardianWorkflowTest {
 
     @BeforeEach
     public void setUp() {
-        original = new PersonBuilder().withSubjects(new Subject("Math"), new Subject("English"))
-                .withSchoolingLevel(new SchoolingLevel("Primary 5"))
-                .withWeeklyLessonSlot(new WeeklyLessonSlot(DayOfWeek.MONDAY,
-                        LocalTime.of(16, 0), LocalTime.of(17, 0)))
-                .withHourlyRate(new HourlyRate(new BigDecimal("45.50"))).build();
+        original = new PersonBuilder().withSchoolingLevel(new SchoolingLevel("Primary 5"))
+                .withLessons(new Lesson(new Subject("Math"),
+                        new WeeklyLessonSlot(DayOfWeek.MONDAY, LocalTime.of(16, 0), LocalTime.of(17, 0)),
+                        new HourlyRate(new BigDecimal("45.50"))))
+                .build();
         AddressBook book = new AddressBook();
         book.addPerson(original);
         model = new ModelManager(book, new UserPrefs());
@@ -136,12 +137,9 @@ public class GuardianWorkflowTest {
     @Test
     public void execute_studentEdits_preserveGuardian() throws Exception {
         logic.execute("guardian-add 1 n/Janet Tan p/91234567");
-        logic.execute("edit 1 r/50 s/Science l/Primary 6 i/Tue 2.00pm 3.00pm");
-        assertStudent(new PersonBuilder(original).withGuardian(CONTACT)
-                .withHourlyRate(new HourlyRate(new BigDecimal("50"))).withSubject(new Subject("Science"))
-                .withSchoolingLevel(new SchoolingLevel("Primary 6"))
-                .withWeeklyLessonSlot(new WeeklyLessonSlot(DayOfWeek.TUESDAY,
-                        LocalTime.of(14, 0), LocalTime.of(15, 0))).build());
+        logic.execute("edit 1 p/90000000 l/Primary 6");
+        assertStudent(new PersonBuilder(original).withGuardian(CONTACT).withPhone("90000000")
+                .withSchoolingLevel(new SchoolingLevel("Primary 6")).build());
     }
 
     @Test

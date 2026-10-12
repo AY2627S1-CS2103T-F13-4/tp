@@ -4,12 +4,9 @@ import static java.util.Objects.requireNonNull;
 import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_ADDRESS;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_EMAIL;
-import static seedu.address.logic.parser.CliSyntax.PREFIX_LESSON_SLOT;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_LEVEL;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_NAME;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
-import static seedu.address.logic.parser.CliSyntax.PREFIX_RATE;
-import static seedu.address.logic.parser.CliSyntax.PREFIX_SUBJECT;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_TAG;
 
 import java.util.Collection;
@@ -37,7 +34,7 @@ public class EditCommandParser implements Parser<EditCommand> {
         requireNonNull(args);
         ArgumentMultimap argMultimap =
                 ArgumentTokenizer.tokenize(args, PREFIX_NAME, PREFIX_PHONE, PREFIX_EMAIL, PREFIX_ADDRESS,
-                        PREFIX_TAG, PREFIX_SUBJECT, PREFIX_LEVEL, PREFIX_LESSON_SLOT, PREFIX_RATE);
+                        PREFIX_TAG, PREFIX_LEVEL);
 
         Index index;
 
@@ -48,7 +45,7 @@ public class EditCommandParser implements Parser<EditCommand> {
         }
 
         argMultimap.verifyNoDuplicatePrefixesFor(PREFIX_NAME, PREFIX_PHONE, PREFIX_EMAIL, PREFIX_ADDRESS,
-                PREFIX_LEVEL, PREFIX_LESSON_SLOT, PREFIX_RATE);
+                PREFIX_LEVEL);
 
         EditPersonDescriptor editPersonDescriptor = new EditPersonDescriptor();
 
@@ -64,28 +61,11 @@ public class EditCommandParser implements Parser<EditCommand> {
         if (argMultimap.getValue(PREFIX_ADDRESS).isPresent()) {
             editPersonDescriptor.setAddress(ParserUtil.parseAddress(argMultimap.getValue(PREFIX_ADDRESS).get()));
         }
-        if (argMultimap.getValue(PREFIX_SUBJECT).isPresent()) {
-            Collection<String> values = argMultimap.getAllValues(PREFIX_SUBJECT);
-            editPersonDescriptor.setSubjects(values.size() == 1 && values.iterator().next().isEmpty()
-                    ? Set.of() : ParserUtil.parseSubjects(values));
-        }
         if (argMultimap.getValue(PREFIX_LEVEL).isPresent()) {
             String level = argMultimap.getValue(PREFIX_LEVEL).get();
             editPersonDescriptor.setSchoolingLevel(level.isBlank()
                     ? Optional.empty()
                     : Optional.of(ParserUtil.parseSchoolingLevel(level)));
-        }
-        if (argMultimap.getValue(PREFIX_LESSON_SLOT).isPresent()) {
-            String weeklyLessonSlot = argMultimap.getValue(PREFIX_LESSON_SLOT).get();
-            editPersonDescriptor.setWeeklyLessonSlot(weeklyLessonSlot.isBlank()
-                    ? Optional.empty()
-                    : Optional.of(ParserUtil.parseWeeklyLessonSlot(weeklyLessonSlot)));
-        }
-        if (argMultimap.getValue(PREFIX_RATE).isPresent()) {
-            String rate = argMultimap.getValue(PREFIX_RATE).get();
-            editPersonDescriptor.setHourlyRate(rate.isBlank()
-                    ? Optional.empty()
-                    : Optional.of(ParserUtil.parseHourlyRate(rate)));
         }
         parseTagsForEdit(argMultimap.getAllValues(PREFIX_TAG)).ifPresent(editPersonDescriptor::setTags);
 
