@@ -226,21 +226,37 @@
     -fx-text-fill: -sb-error;
 }
 
-.result-display, .result-display .content, .result-display .scroll-pane, .result-display .viewport {
+.result-scroll, .result-scroll > .viewport {
     -fx-background-color: transparent;
     -fx-background-insets: 0;
     -fx-padding: 0;
 }
 
-.result-display {
-    -fx-text-fill: -sb-text;
-    -fx-highlight-fill: -sb-accent-tint;
-    -fx-highlight-text-fill: -sb-text;
+.result-title {
     -fx-font-size: 13px;
+    -fx-fill: -sb-text;
 }
 
-.result-display:focused {
-    -fx-background-color: transparent;
+/* The first line of a multi-line message, such as command usage, heads the details below it */
+.result-heading {
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-fill: -sb-text;
+}
+
+.result-text {
+    -fx-font-size: 13px;
+    -fx-fill: -sb-text-secondary;
+}
+
+.result-caption {
+    -fx-font-size: 11.5px;
+    -fx-text-fill: -sb-text-muted;
+}
+
+.result-command {
+    -fx-font-size: 12.5px;
+    -fx-fill: -sb-text;
 }
 
 .command-row {

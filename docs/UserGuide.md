@@ -48,8 +48,16 @@ This development version supports contact details, schooling levels, guardian co
 * **Student list:** Each card shows a student's number, name, schooling level, tags, lessons, guardian and contact details. Lessons are numbered from 1; use that number as `LESSON_INDEX` in `lesson-edit` and `lesson-delete`. A student with no lessons shows a grey `No lessons yet`, and a missing guardian shows as `Not set`. A missing level or tags are left out. Use the number beside a name as `INDEX` in commands.
 * **Count:** The count beside the title shows how many students there are. After `find`, it shows how many match, such as `Showing 1 of 8`.
 * **Empty list:** When the list is empty, the app suggests the next step. With no students, it shows the `add` format. When a search matches no one, it suggests `list`.
-* **Result:** The row above the command box shows the result of your last command. A green tick marks a success. A red `!` on a pink background marks an error, such as an invalid index or format. Long messages, such as a command's usage, can be scrolled and copied.
-* **Command box:** It is focused when the app starts. Press Enter to run a command. After a successful command, the box clears. After an error, your text stays, shown in red, so you can fix it. Press F1 to open help.
+* **Result:** The row above the command box shows the result of your last command. A green tick marks a success. A red `!` on a pink background marks an error, such as an invalid index or format. When you get a command's format wrong, the row shows what the command does, its **Format** and an **Example**, so you can fix the command without opening help. Long messages scroll.
+* **Command box:** It is focused when the app starts, so you can use the whole app from the keyboard. Press Enter to run a command. After a successful command, the box clears. After an error, your text stays, shown in red, so you can fix it.
+
+| Key | Action |
+|---|---|
+| Enter | Run the command |
+| Up / Down | Show earlier commands from this session. Down past the newest brings back what you were typing. |
+| Esc | Clear the command box, or close the help window |
+| Page Up / Page Down | Scroll the student list while you keep typing |
+| F1 | Open help |
 
 ## Features
 

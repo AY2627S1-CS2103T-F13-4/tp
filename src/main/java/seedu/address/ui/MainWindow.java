@@ -96,14 +96,13 @@ public class MainWindow extends UiPart<Stage> {
          * is fixed in a later version of the SDK.
          *
          * According to the bug report, TextInputControl (TextField, TextArea) will
-         * consume function-key events. Because CommandBox contains a TextField and
-         * ResultDisplay contains a TextArea, some accelerators (e.g., F1) will
-         * not work when the focus is in them because the key event is consumed by
-         * the TextInputControl(s).
+         * consume function-key events. Because CommandBox contains a TextField, some
+         * accelerators (e.g., F1) will not work when the focus is in it because the
+         * key event is consumed by the TextInputControl.
          *
          * For now, we add the following event filter to capture such key events and open
          * the help window purposely so as to support accelerators even when focus is
-         * in CommandBox or ResultDisplay.
+         * in CommandBox.
          */
         getRoot().addEventFilter(KeyEvent.KEY_PRESSED, event -> {
             if (event.getTarget() instanceof TextInputControl && keyCombination.match(event)) {
@@ -127,6 +126,7 @@ public class MainWindow extends UiPart<Stage> {
         statusbarPlaceholder.getChildren().add(statusBarFooter.getRoot());
 
         commandBox = new CommandBox(this::executeCommand);
+        commandBox.setPageScroller(personListPanel::scrollPage);
         commandBoxPlaceholder.getChildren().add(commandBox.getRoot());
         // The list now comes before the command box, so focus the command box explicitly for typing.
         commandBox.focus();

@@ -8,6 +8,7 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
+import javafx.scene.control.skin.VirtualFlow;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import seedu.address.commons.core.LogsCenter;
@@ -20,6 +21,8 @@ public class PersonListPanel extends UiPart<Region> {
     private static final String FXML = "PersonListPanel.fxml";
     /** Width taken by the card's index column, padding and the list's scroll bar, beside the wrapping rows. */
     private static final double CARD_CHROME_WIDTH = 100;
+    /** Part of the visible height scrolled per page, leaving some overlap for context. */
+    private static final double PAGE_FRACTION = 0.85;
 
     private final Logger logger = LogsCenter.getLogger(PersonListPanel.class);
 
@@ -51,6 +54,17 @@ public class PersonListPanel extends UiPart<Region> {
         personList.addListener(refresh);
         allPersons.addListener(refresh);
         updateStatus(personList.size(), allPersons.size());
+    }
+
+    /**
+     * Scrolls the list by most of one screen: up for a negative {@code direction}, down otherwise.
+     * Lets keyboard users page through the list while focus stays in the command box.
+     */
+    public void scrollPage(int direction) {
+        VirtualFlow<?> flow = (VirtualFlow<?>) personListView.lookup(".virtual-flow");
+        if (flow != null) {
+            flow.scrollPixels(Math.signum(direction) * flow.getHeight() * PAGE_FRACTION);
+        }
     }
 
     private void updateStatus(int shown, int total) {

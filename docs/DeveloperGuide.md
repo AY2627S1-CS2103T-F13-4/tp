@@ -59,8 +59,8 @@ The UI sends commands to `Logic` and observes two lists:
 When either list changes, the `ListView` rebuilds the affected `PersonCard`s, so cards never show stale data after an edit.
 
 * **Cards:** `PersonCard` shows the contact fields, the optional level, tags and guardian, and the student's lessons. `StudentCardText` numbers the lessons from 1 in stored order, so each number is the `LESSON_INDEX` for `lesson-edit` and `lesson-delete`. A missing guardian shows as a muted `Not set` and no lessons as `No lessons yet`. JavaFX asks a list cell for its height before laying it out. So the card's wrapping text (`Text`) and its `FlowPane` rows wrap at a width bound to the list's width. Long names, subjects and addresses wrap instead of being cut off.
-* **Results:** `MainWindow#executeCommand` sends successes to `ResultDisplay#setFeedbackToUser` and failures to `ResultDisplay#setErrorToUser`. The row shows a matching mark. It grows to four lines for multi-line messages, such as usage.
-* **Focus:** `CommandBox` keeps the AB3 behaviour: it clears the input after a success, and keeps it with an error style after a failure. `MainWindow` focuses the command box after building its parts.
+* **Results:** `MainWindow#executeCommand` sends successes to `ResultDisplay#setFeedbackToUser` and failures to `ResultDisplay#setErrorToUser`. The row shows a matching mark. `FeedbackLines` splits a message into a title, text, formats and examples; it recognises the shapes the commands' `MESSAGE_USAGE` strings use. `ResultDisplay` shows formats and examples with captions in a monospace font chosen by `MonospaceFont`, and scrolls when the message is taller than the row's maximum height.
+* **Keyboard:** `CommandBox` keeps the AB3 behaviour: it clears the input after a success, and keeps it with an error style after a failure. It also handles Up and Down through `CommandHistory` (this session only, with the unsent text kept), Esc to clear, and Page Up and Page Down, which call `PersonListPanel#scrollPage` so the list scrolls while focus stays in the box. Key hints show while the box is empty. `MainWindow` focuses the command box after building its parts, and Esc closes `HelpWindow`.
 * **Window size:** The window's minimum size is 600×400. A saved window size larger than the screen it opens on is reduced to fit, so the app stays usable on a 1280×720 screen at 150% scaling. The saved position is used as before.
 
 ### Logic component
@@ -540,7 +540,11 @@ Use an empty test folder and sample data. These checks are a starting point; als
 2. Run `find` with a name that matches one student. The header should read `Showing 1 of N`. Run `find zzz`; the list should say `No students match` and suggest `list`.
 3. Run `clear` in a test folder. The list should say `No students yet` and show the `add` format.
 4. Run `delete 0`. The result row should turn pink with a red `!`, and `delete 0` should stay in the box in red. Fix it to a valid index and press Enter; the box should clear.
-5. Add a student with a long name, several subjects and a long address. Shrink the window to its minimum size. The text should wrap, and the list and result row should scroll, with nothing cut off.
+5. Run `add name/Ryan`. The result row should show the description, a **Format** line and an **Example** line in a monospace font.
+6. Run two commands, then press Up twice and Down twice. The box should show the earlier commands, then what you had typed. Press Esc; the box should clear.
+7. With more students than fit, press Page Down and Page Up while the cursor is in the command box. The list should scroll, and typing should still go into the box.
+8. Press F1, then Esc. The help window should close.
+9. Add a student with a long name, several lessons and a long address. Shrink the window to its minimum size. The text should wrap, and the list and result row should scroll, with nothing cut off.
 
 ### Student deletion
 

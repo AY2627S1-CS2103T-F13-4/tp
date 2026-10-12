@@ -1,8 +1,15 @@
 package seedu.address.ui;
 
+import static java.util.Objects.requireNonNull;
+
+import java.util.function.IntConsumer;
+
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.TextField;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.exceptions.CommandException;
@@ -17,9 +24,13 @@ public class CommandBox extends UiPart<Region> {
     private static final String FXML = "CommandBox.fxml";
 
     private final CommandExecutor commandExecutor;
+    private final CommandHistory history = new CommandHistory();
+    private IntConsumer pageScroller = direction -> { };
 
     @FXML
     private TextField commandTextField;
+    @FXML
+    private HBox keyHints;
 
     /**
      * Creates a {@code CommandBox} with the given {@code CommandExecutor}.
@@ -29,6 +40,18 @@ public class CommandBox extends UiPart<Region> {
         this.commandExecutor = commandExecutor;
         // calls #setStyleToDefault() whenever there is a change to the text of the command box.
         commandTextField.textProperty().addListener((unused1, unused2, unused3) -> setStyleToDefault());
+        commandTextField.setStyle(MonospaceFont.style());
+        commandTextField.addEventFilter(KeyEvent.KEY_PRESSED, this::handleKey);
+        // The hints only take space while the box is empty, so long commands keep the full width.
+        keyHints.visibleProperty().bind(commandTextField.textProperty().isEmpty());
+        keyHints.managedProperty().bind(keyHints.visibleProperty());
+    }
+
+    /**
+     * Sets what Page Up (-1) and Page Down (1) do while typing, so the list can scroll without leaving the box.
+     */
+    public void setPageScroller(IntConsumer pageScroller) {
+        this.pageScroller = requireNonNull(pageScroller);
     }
 
     /**
@@ -48,12 +71,40 @@ public class CommandBox extends UiPart<Region> {
             return;
         }
 
+        history.add(commandText);
         try {
             commandExecutor.execute(commandText);
             commandTextField.setText("");
         } catch (CommandException | ParseException e) {
             setStyleToIndicateCommandFailure();
         }
+    }
+
+    /**
+     * Handles the keyboard shortcuts of the command box: Up and Down for history, Esc to clear,
+     * and Page Up and Page Down to scroll the student list.
+     */
+    private void handleKey(KeyEvent event) {
+        KeyCode code = event.getCode();
+        if (code == KeyCode.UP) {
+            history.previous(commandTextField.getText()).ifPresent(this::replaceText);
+        } else if (code == KeyCode.DOWN) {
+            history.next().ifPresent(this::replaceText);
+        } else if (code == KeyCode.ESCAPE) {
+            commandTextField.clear();
+        } else if (code == KeyCode.PAGE_UP) {
+            pageScroller.accept(-1);
+        } else if (code == KeyCode.PAGE_DOWN) {
+            pageScroller.accept(1);
+        } else {
+            return;
+        }
+        event.consume();
+    }
+
+    private void replaceText(String text) {
+        commandTextField.setText(text);
+        commandTextField.end();
     }
 
     /**

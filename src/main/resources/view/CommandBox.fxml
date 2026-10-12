@@ -9,11 +9,18 @@
       xmlns:fx="http://javafx.com/fxml/1">
   <Label text="&gt;" styleClass="command-prompt" />
   <TextField fx:id="commandTextField" onAction="#handleCommandEntered" HBox.hgrow="ALWAYS"
-             promptText="Type a command and press Enter, e.g. list or find alex" />
-  <HBox alignment="CENTER" spacing="6">
+             promptText="Type a command, e.g. list or find alex" />
+  <!-- Shortcut hints, shown while the box is empty -->
+  <HBox fx:id="keyHints" alignment="CENTER" spacing="6">
     <minWidth>
       <Region fx:constant="USE_PREF_SIZE" />
     </minWidth>
+    <Label text="↑↓" styleClass="keycap" />
+    <Label text="History" styleClass="key-hint" />
+    <Label text="PgUp PgDn" styleClass="keycap" />
+    <Label text="Scroll" styleClass="key-hint" />
+    <Label text="Esc" styleClass="keycap" />
+    <Label text="Clear" styleClass="key-hint" />
     <Label text="F1" styleClass="keycap" />
     <Label text="Help" styleClass="key-hint" />
   </HBox>
