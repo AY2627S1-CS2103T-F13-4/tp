@@ -14,6 +14,7 @@ Start with [setup](SettingUp.md), then the [shared tuition model](#shared-tuitio
 
 * Based on [AddressBook Level 3](https://github.com/se-edu/addressbook-level3) from the [SE-EDU initiative](https://se-education.org).
 * Pranav used Claude (Anthropic), through Claude Code, to draft the v1.3 UI restyle: the mock-ups, the FXML and CSS in `src/main/resources/view`, the UI classes in `seedu.address.ui`, and their tests. He reviewed, ran and tested the changes.
+* The UI uses the [Geist and Geist Mono fonts](https://github.com/vercel/geist-font) (v1.7.2) by The Geist Project Authors, under the SIL Open Font License 1.1. The font files and licence are in `src/main/resources/fonts`.
 
 ## Getting started
 
@@ -49,7 +50,7 @@ Diagram sources are in `docs/diagrams`. See the [PlantUML tutorial](https://se-e
 
 ![UI structure](images/UiClassDiagram.png)
 
-`MainWindow` contains `CommandBox`, `ResultDisplay`, `PersonListPanel` and `StatusBarFooter`. These classes extend `UiPart` and use JavaFX layouts in `src/main/resources/view`. `LightTheme.css` styles all of them.
+`MainWindow` contains `CommandBox`, `ResultDisplay`, `PersonListPanel` and `StatusBarFooter`. These classes extend `UiPart` and use JavaFX layouts in `src/main/resources/view`. `LightTheme.css` styles all of them, using the bundled Geist fonts that `AppFonts` loads at startup.
 
 The UI sends commands to `Logic` and observes two lists:
 
@@ -58,10 +59,10 @@ The UI sends commands to `Logic` and observes two lists:
 
 When either list changes, the `ListView` rebuilds the affected `PersonCard`s, so cards never show stale data after an edit.
 
-* **Cards:** `PersonCard` shows the contact fields, the optional level, tags and guardian, and the student's lessons. `StudentCardText` numbers the lessons from 1 in stored order, so each number is the `LESSON_INDEX` for `lesson-edit` and `lesson-delete`. A missing guardian shows as a muted `Not set` and no lessons as `No lessons yet`. `StudentCardText#stageOf` colours the level chip by school stage, matching only clear forms such as `P5`, `Sec 3 Express` and `JC1`; other levels stay neutral, since levels are free text. Lessons are a `GridPane` so their parts line up; each lesson's mode is a coloured chip on a second line with its location. JavaFX asks a list cell for its height before laying it out. So the card's wrapping text (`Text`) and its `FlowPane` rows wrap at a width bound to the list's width. Long names, subjects and addresses wrap instead of being cut off.
+* **Rows:** The student list is a table. `PersonListPanel` computes the Student, Lessons and Guardian column widths from the list's width and binds both the header and each `PersonCard` row to them; below 1100px the Guardian column folds into the Student cell, and the Lessons column is never narrower than a lesson line. `PersonCard` shows the initials badge, name, level, tags and contact details, a lesson breakdown, and the guardian. `StudentCardText` formats lessons with short days and rates and numbers them from 1 in stored order, so each number is the `LESSON_INDEX` for `lesson-edit` and `lesson-delete`; the lesson columns have fixed widths so they line up across rows. A missing guardian shows as a muted `Not set` and no lessons as `No lessons yet`. `StudentCardText#stageOf` colours the level and initials by school stage, matching only clear forms such as `P5`, `Sec 3 Express` and `JC1`; other levels stay neutral, since levels are free text. JavaFX asks a row for its height before laying it out, so wrapping text (`Text`) has its wrapping width bound to its column.
 * **Results:** `MainWindow#executeCommand` sends successes to `ResultDisplay#setFeedbackToUser` and failures to `ResultDisplay#setErrorToUser`. The row shows a matching mark. `FeedbackLines` splits a message into a title, text, formats and examples; it recognises the shapes the commands' `MESSAGE_USAGE` strings use. `ResultDisplay` shows formats and examples with captions in a monospace font chosen by `MonospaceFont`; clicking one copies it, since `Text` nodes cannot be selected. The row sizes to the message and scrolls past its maximum height. `FeedbackLinesTest` runs every command's real usage error, so rewording a usage message into an unrecognised shape fails a test.
 * **Keyboard:** `CommandBox` keeps the AB3 behaviour: it clears the input after a success, and keeps it with an error style after a failure. It also handles Up and Down through `CommandHistory` (this session only, with the unsent text kept), Esc to clear, and Page Up and Page Down, which call `PersonListPanel#scrollPage` so the list scrolls while focus stays in the box. Key hints show while the box is empty and the window is at least 720px wide. `MainWindow` focuses the command box after building its parts, and Esc closes `HelpWindow`.
-* **Window size:** The window's minimum size is 600×400. A saved window size larger than the screen it opens on is reduced to fit, so the app stays usable on a 1280×720 screen at 150% scaling. The saved position is used as before.
+* **Window size:** The window's minimum size is 760×400, the narrowest that fits a lesson line beside the student details. A saved window size larger than the screen it opens on is reduced to fit, so the app stays usable on a 1280×720 screen at 150% scaling. The saved position is used as before.
 
 ### Logic component
 
@@ -199,7 +200,7 @@ Tests cover loading, save/reload and invalid values (`TuitionStorageTest`). A fa
 | Execute | `LessonCommand` resolves the student from the current filtered list, copies the lesson list, then adds, replaces or removes one entry. Edit keeps any lesson field that was not supplied. |
 | Validate | A result containing duplicate lessons fails with `MESSAGE_DUPLICATE_LESSON`. A bad student or lesson index fails with `MESSAGE_INVALID_PERSON_DISPLAYED_INDEX` or `MESSAGE_INVALID_LESSON_DISPLAYED_INDEX`. Failures leave the model unchanged. |
 | Update | The command builds a replacement `Student` with the new lesson list and every other field copied, then calls `Model#setPerson`. The active filter stays. |
-| Display | `PersonCard` shows a muted `No lessons yet`, or a table built from `StudentCardText#lessons`: number, subject, slot and rate in columns, and a second line with the mode chip and location when recorded. The number is the lesson's `LESSON_INDEX`. |
+| Display | The Lessons column of `PersonCard` shows a muted `No lessons yet`, or the lessons from `StudentCardText#lessons`: number, subject, short day and time, and short rate in fixed-width columns, with the mode chip and location underneath when recorded. The number is the lesson's `LESSON_INDEX`. |
 | Save | `LogicManager` saves through the existing storage workflow; `JsonAdaptedLesson` persists each lesson. |
 
 Tests: `LessonCommandParserTest`, `LessonWorkflowTest` (add, edit, clear, delete, filtered indices, invalid input, duplicates and save/reload), `LessonTest`, `StudentTest` and `WeeklyLessonSlotTest`.
@@ -554,11 +555,11 @@ Use an empty test folder and sample data. These checks are a starting point; als
 
 ### Lessons and saved data
 
-1. Add a unique test student, then run `lesson-add INDEX subject/Combined   Science slot/Wed 1.00pm 5.00pm rate/45.5`, using three spaces between the words. The card should show lesson `1.` with subject `Combined Science`, `Wednesday 1.00pm-5.00pm` and `SGD 45.50/hour`.
-2. Run `lesson-add INDEX subject/English slot/mon 4.00pm 5.00pm rate/40 mode/virtual location/https://zoom.us/j/123`. The card should list both lessons in order, the second with `Virtual` and its location.
+1. Add a unique test student, then run `lesson-add INDEX subject/Combined   Science slot/Wed 1.00pm 5.00pm rate/45.5`, using three spaces between the words. The row should show lesson `1.` with subject `Combined Science`, `Wed 1.00pm-5.00pm` and `SGD 45.50/h`.
+2. Run `lesson-add INDEX subject/English slot/mon 4.00pm 5.00pm rate/40 mode/virtual location/https://zoom.us/j/123`. The row should list both lessons in order, the second with `Virtual` and its location.
 3. Run `lesson-edit INDEX 2 rate/50`, then edit the student's phone with `edit`. Both lessons should stay, and only the rate should change.
 4. Restart the app. Everything above should remain.
-5. Run `lesson-edit INDEX 2 mode/ location/`. The card should show the English lesson without mode or location, including after restart.
+5. Run `lesson-edit INDEX 2 mode/ location/`. The row should show the English lesson without mode or location, including after restart.
 6. Run `lesson-delete INDEX 1`. English becomes lesson 1. Delete it too and the card should show `No lessons yet`.
 7. Try a duplicate `lesson-add`, a lesson index larger than the list, a missing required field, `mode/hybrid`, a repeated prefix, an unknown prefix such as `x/`, and an empty `mode/` on `lesson-add`. Each should report an error and leave every record unchanged.
 

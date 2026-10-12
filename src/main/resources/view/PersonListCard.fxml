@@ -7,46 +7,41 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Text?>
 
-<HBox id="cardPane" fx:id="cardPane" styleClass="student-card" xmlns="http://javafx.com/javafx/17"
+<!-- One table row per student: # | Student | Lessons | Guardian. Column widths are bound by PersonListPanel. -->
+<HBox id="cardPane" fx:id="cardPane" styleClass="student-row" xmlns="http://javafx.com/javafx/17"
       xmlns:fx="http://javafx.com/fxml/1">
-  <Label fx:id="id" styleClass="card-index">
+  <Label fx:id="id" styleClass="row-index">
     <minWidth>
       <!-- Ensures that the label text is never truncated -->
       <Region fx:constant="USE_PREF_SIZE" />
     </minWidth>
   </Label>
-  <VBox spacing="8" minWidth="0" HBox.hgrow="ALWAYS">
-    <Text fx:id="name" text="\$first" styleClass="card-name" />
-    <HBox fx:id="badges" alignment="CENTER_LEFT" spacing="6">
+
+  <VBox fx:id="studentCell" spacing="6">
+    <HBox alignment="CENTER_LEFT" spacing="10">
+      <Label fx:id="initials" styleClass="initials-badge">
+        <minWidth>
+          <Region fx:constant="USE_PREF_SIZE" />
+        </minWidth>
+      </Label>
+      <Text fx:id="name" text="\$first" styleClass="row-name" />
       <Label fx:id="schoolingLevel" text="\$schoolingLevel" styleClass="chip">
         <minWidth>
           <Region fx:constant="USE_PREF_SIZE" />
         </minWidth>
       </Label>
-      <FlowPane fx:id="tags" hgap="6" vgap="6" HBox.hgrow="ALWAYS" />
     </HBox>
-    <!-- Numbered so that the numbers match LESSON_INDEX in lesson-edit and lesson-delete -->
-    <VBox fx:id="lessons" spacing="3">
-      <Label text="Lessons" styleClass="fact-caption" />
-    </VBox>
-    <!-- Each fact keeps its caption above the value; facts wrap onto new rows in narrow windows -->
-    <FlowPane fx:id="facts" hgap="32" vgap="10">
-      <VBox spacing="2">
-        <Label text="Guardian" styleClass="fact-caption" />
-        <Text fx:id="guardian" text="\$guardian" styleClass="fact-value" />
-      </VBox>
-      <VBox spacing="2">
-        <Label text="Phone" styleClass="fact-caption" />
-        <Label fx:id="phone" text="\$phone" styleClass="fact-value" />
-      </VBox>
-      <VBox spacing="2">
-        <Label text="Email" styleClass="fact-caption" />
-        <Text fx:id="email" text="\$email" styleClass="fact-value" />
-      </VBox>
-      <VBox spacing="2">
-        <Label text="Address" styleClass="fact-caption" />
-        <Text fx:id="address" text="\$address" styleClass="fact-value" />
-      </VBox>
-    </FlowPane>
+    <FlowPane fx:id="badges" hgap="6" vgap="6" />
+    <Text fx:id="contact" styleClass="row-muted" />
+    <Text fx:id="address" text="\$address" styleClass="row-muted" />
+    <!-- Shown instead of the Guardian column in narrow windows -->
+    <Text fx:id="guardianInline" styleClass="row-muted" />
+  </VBox>
+
+  <VBox fx:id="lessons" />
+
+  <VBox fx:id="guardianCell" spacing="2">
+    <Text fx:id="guardianName" styleClass="row-value" />
+    <Text fx:id="guardianPhone" styleClass="row-muted" />
   </VBox>
 </HBox>

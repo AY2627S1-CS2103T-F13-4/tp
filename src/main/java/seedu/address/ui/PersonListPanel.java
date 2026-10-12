@@ -2,6 +2,10 @@ package seedu.address.ui;
 
 import java.util.logging.Logger;
 
+import javafx.beans.binding.Bindings;
+import javafx.beans.binding.BooleanBinding;
+import javafx.beans.binding.DoubleBinding;
+import javafx.beans.property.ReadOnlyDoubleProperty;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -19,8 +23,14 @@ import seedu.address.model.person.Student;
  */
 public class PersonListPanel extends UiPart<Region> {
     private static final String FXML = "PersonListPanel.fxml";
-    /** Width taken by the card's index column, padding and the list's scroll bar, beside the wrapping rows. */
-    private static final double CARD_CHROME_WIDTH = 100;
+    /** Width of the list taken by the # column, row padding, the gaps between columns and the scroll bar. */
+    private static final double ROW_CHROME_WIDTH = 140;
+    /** Below this list width the Guardian column is folded into the Student column, so all columns fit. */
+    private static final double WIDE_TABLE_WIDTH = 1100;
+    /** Shares of the free width for the Lessons and Guardian columns; the Student column takes the rest. */
+    private static final double LESSONS_SHARE_WIDE = 0.40;
+    private static final double LESSONS_SHARE_NARROW = 0.58;
+    private static final double GUARDIAN_SHARE_WIDE = 0.22;
     /** Part of the visible height scrolled per page, leaving some overlap for context. */
     private static final double PAGE_FRACTION = 0.85;
 
@@ -30,6 +40,17 @@ public class PersonListPanel extends UiPart<Region> {
     private ListView<Student> personListView;
     @FXML
     private Label listSummary;
+    @FXML
+    private Label studentHeading;
+    @FXML
+    private Label lessonsHeading;
+    @FXML
+    private Label guardianHeading;
+
+    private final BooleanBinding wide;
+    private final DoubleBinding studentWidth;
+    private final DoubleBinding lessonsWidth;
+    private final DoubleBinding guardianWidth;
 
     private final Label emptyTitle = new Label();
     private final Label emptyDetail = new Label();
@@ -40,6 +61,21 @@ public class PersonListPanel extends UiPart<Region> {
      */
     public PersonListPanel(ObservableList<Student> personList, ObservableList<Student> allPersons) {
         super(FXML);
+        ReadOnlyDoubleProperty listWidth = personListView.widthProperty();
+        wide = listWidth.greaterThanOrEqualTo(WIDE_TABLE_WIDTH);
+        // The Lessons column is never narrower than a lesson line, so its columns never overlap the next column.
+        lessonsWidth = Bindings.createDoubleBinding(() -> Math.max(PersonCard.LESSON_GRID_WIDTH,
+                free(listWidth) * (isWide(listWidth) ? LESSONS_SHARE_WIDE : LESSONS_SHARE_NARROW)), listWidth);
+        guardianWidth = Bindings.createDoubleBinding(() ->
+                isWide(listWidth) ? free(listWidth) * GUARDIAN_SHARE_WIDE : 0, listWidth);
+        studentWidth = Bindings.createDoubleBinding(() ->
+                Math.max(0, free(listWidth) - lessonsWidth.get() - guardianWidth.get()), listWidth);
+        sizeHeading(studentHeading, studentWidth);
+        sizeHeading(lessonsHeading, lessonsWidth);
+        sizeHeading(guardianHeading, guardianWidth);
+        guardianHeading.visibleProperty().bind(wide);
+        guardianHeading.managedProperty().bind(wide);
+
         personListView.setItems(personList);
         personListView.setCellFactory(listView -> new PersonListViewCell());
 
@@ -67,6 +103,21 @@ public class PersonListPanel extends UiPart<Region> {
         }
     }
 
+    /** Returns the list width left for the Student, Lessons and Guardian columns. */
+    private static double free(ReadOnlyDoubleProperty listWidth) {
+        return Math.max(0, listWidth.get() - ROW_CHROME_WIDTH);
+    }
+
+    private static boolean isWide(ReadOnlyDoubleProperty listWidth) {
+        return listWidth.get() >= WIDE_TABLE_WIDTH;
+    }
+
+    private static void sizeHeading(Label heading, DoubleBinding width) {
+        heading.minWidthProperty().bind(width);
+        heading.prefWidthProperty().bind(width);
+        heading.maxWidthProperty().bind(width);
+    }
+
     private void updateStatus(int shown, int total) {
         listSummary.setText(StudentListStatus.summary(shown, total));
         emptyTitle.setText(StudentListStatus.emptyTitle(total));
@@ -86,7 +137,7 @@ public class PersonListPanel extends UiPart<Region> {
                 setText(null);
             } else {
                 PersonCard card = new PersonCard(person, getIndex() + 1);
-                card.bindWrapWidth(personListView.widthProperty().subtract(CARD_CHROME_WIDTH));
+                card.bindColumns(studentWidth, lessonsWidth, guardianWidth, wide);
                 setGraphic(card.getRoot());
             }
         }

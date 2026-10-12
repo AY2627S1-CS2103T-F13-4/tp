@@ -6,11 +6,12 @@ import javafx.scene.text.Font;
 
 /**
  * Picks a monospace font for commands, so prefixes such as {@code name/} line up and read clearly.
+ * The bundled Geist Mono comes first; the others are fallbacks if it failed to load.
  */
 final class MonospaceFont {
 
     private static final List<String> FAMILIES = List.of(
-            "Menlo", "SF Mono", "Consolas", "Cascadia Mono", "DejaVu Sans Mono", "Liberation Mono");
+            "Geist Mono", "Menlo", "SF Mono", "Consolas", "Cascadia Mono", "DejaVu Sans Mono", "Liberation Mono");
 
     /** Chosen on first use; the installed fonts do not change while the app runs. */
     private static String family;

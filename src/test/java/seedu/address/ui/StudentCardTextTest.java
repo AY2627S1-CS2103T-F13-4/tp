@@ -48,9 +48,8 @@ public class StudentCardTextTest {
     public void lessons_numberedInStoredOrderWithOptionalDetails() {
         Student student = new PersonBuilder().withLessons(MATH, ENGLISH).build();
         assertEquals(List.of(
-                new LessonLine(1, "Math", "Tuesday 4.00pm-5.30pm", "SGD 60.00/hour", Optional.empty(),
-                        Optional.empty()),
-                new LessonLine(2, "English", "Saturday 10.00am-11.00am", "SGD 45.50/hour",
+                new LessonLine(1, "Math", "Tue 4.00pm-5.30pm", "SGD 60/h", Optional.empty(), Optional.empty()),
+                new LessonLine(2, "English", "Sat 10.00am-11.00am", "SGD 45.50/h",
                         Optional.of("Tampines Library"), Optional.of(LessonMode.PHYSICAL))),
                 StudentCardText.lessons(student));
     }
@@ -75,6 +74,13 @@ public class StudentCardTextTest {
         for (String level : new String[] {"Poly Y1", "IB Year 1", "P7", "Sec 6", "JC4", "Kindergarten", "Pre-U"}) {
             assertEquals(Stage.OTHER, StudentCardText.stageOf(level), level);
         }
+    }
+
+    @Test
+    public void initials_takeFirstTwoWords() {
+        assertEquals("AT", StudentCardText.initials("Alex Tan"));
+        assertEquals("MH", StudentCardText.initials("muhammad hafiz bin abdul"));
+        assertEquals("M", StudentCardText.initials("Madonna"));
     }
 
     @Test

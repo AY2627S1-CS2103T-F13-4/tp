@@ -1,13 +1,17 @@
 package seedu.address.ui;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.regex.Pattern;
 
+import seedu.address.model.person.HourlyRate;
 import seedu.address.model.person.Lesson;
 import seedu.address.model.person.LessonMode;
 import seedu.address.model.person.Student;
+import seedu.address.model.person.WeeklyLessonSlot;
 
 /**
  * Formats a student's lessons and optional details for {@code PersonCard}, and decides their colour coding.
@@ -51,7 +55,7 @@ final class StudentCardText {
 
     /**
      * Returns one entry per lesson, numbered from 1 in stored order so the numbers match {@code LESSON_INDEX},
-     * e.g. 1, "Math", "Tuesday 4.00pm-5.30pm", "SGD 60.00/hour", location "Library", mode Physical.
+     * e.g. 1, "Math", "Tue 4.00pm-5.30pm", "SGD 60/h", location "Library", mode Physical.
      * Returns an empty list when the student has no lessons.
      */
     static List<LessonLine> lessons(Student student) {
@@ -59,11 +63,35 @@ final class StudentCardText {
         List<Lesson> lessons = student.getLessons();
         for (int i = 0; i < lessons.size(); i++) {
             Lesson lesson = lessons.get(i);
-            lines.add(new LessonLine(i + 1, lesson.getSubject().toString(), lesson.getWeeklyLessonSlot().toString(),
-                    "SGD " + lesson.getHourlyRate() + "/hour", lesson.getLocation().map(Object::toString),
+            lines.add(new LessonLine(i + 1, lesson.getSubject().toString(), shortSlot(lesson.getWeeklyLessonSlot()),
+                    shortRate(lesson.getHourlyRate()), lesson.getLocation().map(Object::toString),
                     lesson.getMode()));
         }
         return lines;
+    }
+
+    /** Returns a slot with a three-letter day, e.g. "Tue 4.00pm-5.30pm", so lesson rows stay short. */
+    static String shortSlot(WeeklyLessonSlot slot) {
+        String full = slot.toString();
+        return full.substring(0, 3) + full.substring(full.indexOf(' '));
+    }
+
+    /** Returns a rate per hour without needless decimals, e.g. "SGD 60/h" or "SGD 45.50/h". */
+    static String shortRate(HourlyRate rate) {
+        BigDecimal value = rate.value;
+        String amount = value.stripTrailingZeros().scale() <= 0 ? value.setScale(0).toPlainString()
+                : value.toPlainString();
+        return "SGD " + amount + "/h";
+    }
+
+    /** Returns up to two initials for the name badge, e.g. "AT" for "Alex Tan" or "M" for "Madonna". */
+    static String initials(String name) {
+        String[] words = name.strip().split("\\s+");
+        StringBuilder initials = new StringBuilder();
+        for (int i = 0; i < Math.min(2, words.length); i++) {
+            initials.appendCodePoint(words[i].codePointAt(0));
+        }
+        return initials.toString().toUpperCase(Locale.ROOT);
     }
 
     /** Returns the guardian's name and phone, e.g. "Janet Tan (91234567)", or empty if none is recorded. */

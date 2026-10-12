@@ -45,8 +45,8 @@ This development version supports contact details, schooling levels, guardian co
 
 ![StudentBook main window](images/Ui.png)
 
-* **Student list:** Each card shows a student's number, name, schooling level, tags, lessons, guardian and contact details. Lessons are numbered from 1; use that number as `LESSON_INDEX` in `lesson-edit` and `lesson-delete`. A student with no lessons shows a grey `No lessons yet`, and a missing guardian shows as `Not set`. A missing level or tags are left out. Use the number beside a name as `INDEX` in commands.
-* **Colours:** The level is amber for primary (`P5`, `Primary 5`), blue for secondary (`Sec 3`, `Secondary 4 Express`) and violet for JC (`JC1`). Levels written another way, such as `Poly Y1`, stay grey. A lesson's mode shows beside it, green for `Physical` and teal for `Virtual`. Tags are grey.
+* **Student list:** The list is a table with one row per student and the columns **#**, **Student**, **Lessons** and **Guardian**. The Student column shows the name with its initials and level, any tags, then the phone, email and address. The Lessons column breaks down each lesson: its number, subject, day and time, and rate line up in columns, and its mode and location appear underneath when recorded. A student with no lessons shows a grey `No lessons yet`, and a missing guardian shows as `Not set`. Use the number in the **#** column as `INDEX`, and a lesson's number as `LESSON_INDEX`. In narrow windows the Guardian column folds into the Student column.
+* **Colours:** The level and the initials badge are amber for primary (`P5`, `Primary 5`), blue for secondary (`Sec 3`, `Secondary 4 Express`) and violet for JC (`JC1`). Levels written another way, such as `Poly Y1`, stay grey. A lesson's mode shows in green for `Physical` and teal for `Virtual`. Tags are grey.
 * **Count:** The count beside the title shows how many students there are. After `find`, it shows how many match, such as `Showing 1 of 8`.
 * **Empty list:** When the list is empty, the app suggests the next step. With no students, it shows the `add` format. When a search matches no one, it suggests `list`.
 * **Result:** The row above the command box shows the result of your last command. A green tick marks a success. A red `!` on a pink background marks an error, such as an invalid index or format. When you get a command's format wrong, the row shows what the command does, its **Format** and an **Example**, so you can fix the command without opening help. Click a Format or Example line to copy it. Long messages scroll.
@@ -95,7 +95,7 @@ Records with exactly the same name are duplicates. Name matching is case-sensiti
 | Clear a level | `edit 1 level/` |
 | Include a level when adding a student | Add `level/Primary 5` to the `add` command |
 
-The card shows a `Primary 5` tag when a level is recorded. If none is recorded, the tag is hidden. Leave out `level/` to keep the existing level when editing. Changing a level keeps every other field unchanged, including lessons.
+The student's row shows a `Primary 5` tag beside the name when a level is recorded. If none is recorded, the tag is hidden. Leave out `level/` to keep the existing level when editing. Changing a level keeps every other field unchanged, including lessons.
 
 Levels must have 1 to 30 characters after the space cleanup below. Start with a letter or digit and include at least one letter. Use English letters `A-Z` or `a-z`, digits `0-9`, spaces and these symbols: `'`, `-`, `.`, `(`, `)`. Leading and trailing spaces or tabs are removed, and repeated spaces or tabs become one space. An empty `level/` clears the level with `edit`, but is invalid with `add`. Repeating `level/` in one command is invalid. Invalid input leaves the record unchanged.
 
@@ -142,7 +142,7 @@ Each student can have zero or more lessons. A lesson has a subject, a weekly tim
 
 * **Create:** `lesson-add STUDENT_INDEX subject/SUBJECT slot/LESSON_SLOT rate/HOURLY_RATE [mode/MODE] [location/LOCATION]`
   Subject, slot and rate are required; mode and location are optional. The new lesson is added to the end of the student's lessons.
-* **Read:** Use `list` or `find` to display the student. Their card lists the lessons as a small table: the lesson number, subject, day and time, and rate line up in columns. A lesson's mode (`Physical` or `Virtual`) and location appear on a second line when recorded. A student with no lessons shows a grey `No lessons yet`. Use the lesson number as `LESSON_INDEX`.
+* **Read:** Use `list` or `find` to display the student. The Lessons column lists their lessons: each lesson's number, subject, day and time (e.g. `Tue 4.00pm-5.30pm`) and rate (e.g. `SGD 60/h`) line up, with the mode (`Physical` or `Virtual`) and location underneath when recorded. A student with no lessons shows a grey `No lessons yet`. Use the lesson number as `LESSON_INDEX`.
 * **Update:** `lesson-edit STUDENT_INDEX LESSON_INDEX [subject/SUBJECT] [slot/LESSON_SLOT] [rate/HOURLY_RATE] [mode/MODE] [location/LOCATION]`
   Supply at least one field. Omitted fields stay unchanged. To remove a recorded mode or location, give its prefix with nothing after it: `mode/` clears the mode and `location/` clears the location (see the examples below).
 * **Delete:** `lesson-delete STUDENT_INDEX LESSON_INDEX`
@@ -151,9 +151,9 @@ Each student can have zero or more lessons. A lesson has a subject, a weekly tim
 Field rules:
 
 * **Subject** (`subject/`): 1 to 40 characters after space cleanup. Start with a letter or digit and include at least one letter. Use English letters, digits, spaces and these symbols: `'`, `-`, `.`, `(`, `)`. Leading and trailing spaces are removed and repeated spaces become one. Subjects are compared ignoring letter case, so `Math` and `math` are the same subject.
-* **Lesson slot** (`slot/`): `DAY START END` on a single day, such as `Wed 1.00pm 5.00pm`. Use a three-letter day (`Mon` to `Sun`), and times like `1.00pm` or `10.30am` with minute precision. Days and `am`/`pm` are not case-sensitive, so `wed 1.00PM 5.00PM` also works. The end must be later than the start on the same day; overnight lessons are not supported. The card shows the full day name, for example `Wednesday 1.00pm-5.00pm`.
+* **Lesson slot** (`slot/`): `DAY START END` on a single day, such as `Wed 1.00pm 5.00pm`. Use a three-letter day (`Mon` to `Sun`), and times like `1.00pm` or `10.30am` with minute precision. Days and `am`/`pm` are not case-sensitive, so `wed 1.00PM 5.00PM` also works. The end must be later than the start on the same day; overnight lessons are not supported. The list shows a short day, for example `Wed 1.00pm-5.00pm`.
 * **Hourly rate** (`rate/`): an amount in SGD per hour. It must be non-negative and have at most two decimal places; `45`, `45.5` and `45.50` are valid. Currency symbols, negative amounts and scientific notation are invalid.
-* **Mode** (`mode/`, optional): `physical` or `virtual`, not case-sensitive. The card shows `Physical` or `Virtual`.
+* **Mode** (`mode/`, optional): `physical` or `virtual`, not case-sensitive. The lesson shows `Physical` or `Virtual`.
 * **Location** (`location/`, optional): 1 to 100 characters, such as an address, room or meeting link. Repeated spaces become one, and locations are compared ignoring letter case. It must not contain a word of letters followed by `/` (such as `rate/`), which is read as a prefix; `Blk 123/4` and `https://zoom.us/j/1` are fine.
 * **Clearing mode and location:** only `lesson-edit` can clear them, by leaving the value empty, for example `lesson-edit 1 2 location/` or `lesson-edit 1 2 mode/ location/`. `lesson-add` rejects an empty `mode/` or `location/`, and `lesson-delete` accepts neither.
 
@@ -181,7 +181,7 @@ positive `INDEX` in the currently displayed list, including search results. They
 
 * **Create:** `guardian-add INDEX name/NAME phone/PHONE`
   Both fields are required. If a guardian already exists, use `guardian-edit` instead.
-* **Read:** Use `list` or `find` to display the student. Their card shows the guardian as `NAME (PHONE)`,
+* **Read:** Use `list` or `find` to display the student. The Guardian column shows the guardian's name and phone,
   or a grey `Not set` when none exists.
 * **Update:** `guardian-edit INDEX [name/NAME] [phone/PHONE]`
   Supply at least one field. Omitted fields stay unchanged. Empty values and repeated prefixes are rejected.
