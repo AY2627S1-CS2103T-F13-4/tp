@@ -4,6 +4,13 @@ Shared course planning reference for **CS2103T-F13-4**, based on the AY2026/27 S
 
 Use these guides to plan work, check course requirements, and prepare releases. They cover the TP navigation from Overview through Supervision/Guidance, plus the weekly instructions for Weeks 5–13. They record requirements, recommendations, optional tasks, and FAQ exceptions. The live course site takes precedence when instructions change.
 
+## Team working documents
+
+- [CS2103T tP: Google Docs project notes](https://docs.google.com/document/d/1pKzPlukZCaR6_79P0JqYNnrS5HLQiv3rqZcaM1cU_qU/edit)
+- [User Stories: Google Sheets planning spreadsheet](https://docs.google.com/spreadsheets/d/1IDiEMkbwMZHQttnT8He7VNDg-BPLfnKC0VkSeOGtHxA/edit)
+
+Read the latest entries alongside the agreed product scope. Older tabs and brainstorming ideas may describe earlier plans rather than current commitments.
+
 ## Start here
 
 | Planning question | Guide |
