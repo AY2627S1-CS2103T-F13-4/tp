@@ -22,15 +22,13 @@ This development version supports contact details, schooling levels, guardian co
    ./gradlew shadowJar
    ```
 
-   On Windows, use `gradlew.bat shadowJar` for the last command. The JAR is `build/libs/addressbook.jar`.
+   On Windows, use `gradlew.bat shadowJar` for the last command. The JAR is `build/libs/studentbook.jar`.
 
 1. Copy the JAR into the folder where you want to keep your records. Open a terminal in that folder and run:
 
    ```text
-   java -jar addressbook.jar
+   java -jar studentbook.jar
    ```
-
-   On first launch, the app shows sample contacts. Some windows and messages still use the original AddressBook name.
 
 1. Type `list` in the command box and press Enter. Then try:
 
@@ -219,7 +217,7 @@ Older files that stored a student's `subject`, `subjects`, `weeklyLessonSlot` or
 
 If saving fails, the app reports an error. The change may still appear on screen without being saved to disk.
 
-Records are stored in `data/addressbook.json` under the folder where you start the app.
+Records are stored in `data/studentbook.json` under the folder where you start the app.
 
 To transfer records, close the app on both computers. Copy the data file to the corresponding location on the new computer, then start the app there.
 
