@@ -156,7 +156,7 @@ public class ScheduleGrid extends UiPart<GridPane> {
         int end = (int) ChronoUnit.MINUTES.between(earliestTime, entry.getEnd()) / INTERVAL_MINUTE;
 
         LessonCard lessonCard = new LessonCard(entry);
-        GridPane.setMargin(lessonCard.getRoot(), new Insets(10, 10, 10, 10));
+        GridPane.setMargin(lessonCard.getRoot(), new Insets(3, 5, 5, 3));
         scheduleGrid.add(lessonCard.getRoot(), entry.getDisplayColumn(), 1 + start, 1, end - start);
     }
 }
