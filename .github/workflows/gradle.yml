@@ -28,7 +28,13 @@ jobs:
           java-version: '25'
           java-package: jdk+fx
 
+      # IMPROVEMENT [1], IMPROVEMENT [4]: JavaFX rendering/update tests need a display on the Linux runner.
+      - name: Build and check with Gradle on Linux
+        if: runner.os == 'Linux'
+        run: xvfb-run -a ./gradlew check coverage
+
       - name: Build and check with Gradle
+        if: runner.os != 'Linux'
         run: ./gradlew check coverage
 
       - name: Upload coverage reports to Codecov
