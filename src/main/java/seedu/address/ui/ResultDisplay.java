@@ -48,6 +48,8 @@ public class ResultDisplay extends UiPart<Region> {
     private static final double WINDOW_SHARE = 0.4;
     /** Longest success message shown beside the recent commands; longer ones need the row's full width. */
     private static final int MAX_RECENT_ROW_MESSAGE = 60;
+    /** Widest a recent-command chip gets before its text is cut short. */
+    private static final double MAX_CHIP_WIDTH = 200;
 
     @FXML
     private HBox resultRow;
@@ -150,6 +152,9 @@ public class ResultDisplay extends UiPart<Region> {
             chip.getStyleClass().add("recent-chip");
             chip.setStyle(MonospaceFont.style());
             chip.setCursor(Cursor.HAND);
+            // A long command, such as an add, is cut short with "..." so the chips stay compact.
+            chip.setMaxWidth(MAX_CHIP_WIDTH);
+            Tooltip.install(chip, new Tooltip(command));
             chip.setOnMouseClicked(event -> onRecentPicked.accept(command));
             row.getChildren().add(chip);
         }
