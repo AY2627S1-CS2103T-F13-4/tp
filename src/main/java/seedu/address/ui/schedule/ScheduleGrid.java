@@ -1,5 +1,7 @@
 package seedu.address.ui.schedule;
 
+import static java.util.Objects.requireNonNull;
+
 import java.time.DayOfWeek;
 import java.time.LocalTime;
 import java.time.format.TextStyle;
@@ -9,7 +11,9 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.PriorityQueue;
 
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
@@ -32,9 +36,12 @@ public class ScheduleGrid extends UiPart<GridPane> {
     private static final String FXML = "ScheduleGrid.fxml";
     private static final int INTERVAL_MINUTE = 30;
 
-    private Map<DayOfWeek, ObservableList<ScheduleEntry>> entriesByDay = new EnumMap<>(DayOfWeek.class);
+    private final ObservableList<Student> students;
+    private final ListChangeListener<Student> studentListListener = change -> refreshSchedule();
+    private final Map<DayOfWeek, ObservableList<ScheduleEntry>> entriesByDay = new EnumMap<>(DayOfWeek.class);
     private LocalTime earliestTime;
     private LocalTime latestTime;
+    private boolean disposed;
 
     @FXML
     private GridPane scheduleGrid;
@@ -42,16 +49,36 @@ public class ScheduleGrid extends UiPart<GridPane> {
     /**
      * Creates a {@code ScheduleGrid} with the given students' lessons grouped by day of the week
      * and partitioned into the minimum number of non-overlapping columns, starting from the left.
+     * The component and its source list should be used on the JavaFX application thread.
      */
     public ScheduleGrid(ObservableList<Student> personList) {
         super(FXML);
 
+        students = requireNonNull(personList);
         for (DayOfWeek day : DayOfWeek.values()) {
             entriesByDay.put(day, FXCollections.observableArrayList());
         }
 
-        registerStudentLessons(personList);
-        generateRowsOfInterval(INTERVAL_MINUTE);
+        refreshSchedule();
+        students.addListener(studentListListener);
+    }
+
+    private void refreshSchedule() {
+        // Observable-list listeners run on the modifying thread; render only on the JavaFX thread.
+        if (!Platform.isFxApplicationThread()) {
+            Platform.runLater(this::refreshSchedule);
+            return;
+        }
+        if (disposed) {
+            return;
+        }
+
+        clearSchedule();
+        registerStudentLessons(students);
+        boolean hasLessons = entriesByDay.values().stream().anyMatch(entries -> !entries.isEmpty());
+        if (hasLessons) {
+            generateRowsOfInterval(INTERVAL_MINUTE);
+        }
 
         int currDisplayColumn = 1;
 
@@ -64,6 +91,30 @@ public class ScheduleGrid extends UiPart<GridPane> {
                 makeLessonCard(entry);
             }
         }
+    }
+
+    private void clearSchedule() {
+        entriesByDay.values().forEach(ObservableList::clear);
+
+        // Recreate JavaFX's grid-line helper when clearing the generated labels and cards.
+        boolean gridLinesVisible = scheduleGrid.isGridLinesVisible();
+        scheduleGrid.setGridLinesVisible(false);
+        scheduleGrid.getChildren().clear();
+        scheduleGrid.setGridLinesVisible(gridLinesVisible);
+
+        // Keep the FXML timestamp column and day-heading row; regenerate the remaining constraints.
+        scheduleGrid.getColumnConstraints().remove(1, scheduleGrid.getColumnConstraints().size());
+        scheduleGrid.getRowConstraints().remove(1, scheduleGrid.getRowConstraints().size());
+    }
+
+    /**
+     * Stops observing the source list and prevents queued refreshes from rebuilding the grid.
+     * Call this on the JavaFX application thread when the component is closed or replaced.
+     * Calling this more than once is safe.
+     */
+    public void dispose() {
+        disposed = true;
+        students.removeListener(studentListListener);
     }
 
     private void registerStudentLessons(ObservableList<Student> personList) {

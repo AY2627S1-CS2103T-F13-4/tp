@@ -12,6 +12,7 @@ import javafx.scene.input.KeyCombination;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
+import javafx.stage.WindowEvent;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.commons.core.LogsCenter;
 import seedu.address.logic.Logic;
@@ -76,6 +77,7 @@ public class MainWindow extends UiPart<Stage> {
         setAccelerators();
 
         helpWindow = new HelpWindow();
+        primaryStage.addEventHandler(WindowEvent.WINDOW_HIDDEN, event -> disposeScheduleGrid());
     }
 
     public Stage getPrimaryStage() {
@@ -126,6 +128,7 @@ public class MainWindow extends UiPart<Stage> {
         resultDisplay = new ResultDisplay();
         resultDisplayPlaceholder.getChildren().add(resultDisplay.getRoot());
 
+        disposeScheduleGrid();
         scheduleGrid = new ScheduleGrid(logic.getFilteredPersonList());
         scheduleGridPlaceholder.setContent(scheduleGrid.getRoot());
 
@@ -134,6 +137,12 @@ public class MainWindow extends UiPart<Stage> {
 
         CommandBox commandBox = new CommandBox(this::executeCommand);
         commandBoxPlaceholder.getChildren().add(commandBox.getRoot());
+    }
+
+    private void disposeScheduleGrid() {
+        if (scheduleGrid != null) {
+            scheduleGrid.dispose();
+        }
     }
 
     /**
