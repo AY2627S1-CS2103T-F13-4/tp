@@ -17,7 +17,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /** One weekly lesson, with minute precision and no overnight range. */
-public final class WeeklyLessonSlot {
+public final class WeeklyLessonSlot implements Comparable<WeeklyLessonSlot> {
     public static final String MESSAGE_CONSTRAINTS =
             "A lesson slot must use minute precision and end after it starts on the same day.";
 
@@ -111,6 +111,23 @@ public final class WeeklyLessonSlot {
 
     public LocalTime getEnd() {
         return end;
+    }
+
+    /**
+     * Compares slots by day (Monday to Sunday), then start time, then end time.
+     */
+    @Override
+    public int compareTo(WeeklyLessonSlot other) {
+        requireNonNull(other);
+        int dayComparison = day.compareTo(other.day);
+        if (dayComparison != 0) {
+            return dayComparison;
+        }
+        int startComparison = start.compareTo(other.start);
+        if (startComparison != 0) {
+            return startComparison;
+        }
+        return end.compareTo(other.end);
     }
 
     @Override
