@@ -176,7 +176,8 @@ public class MainWindowTest {
             commandField.fireEvent(new ActionEvent());
             pressKey(KeyCode.TAB, false);
             assertEquals("view 3", commandField.getText());
-            assertTrue(commandField.isFocused());
+            // The window's focus owner, not isFocused(), which also needs the OS to focus the test window.
+            assertSame(commandField, stage.getScene().getFocusOwner());
         });
     }
 
@@ -190,7 +191,8 @@ public class MainWindowTest {
             submitCommand("list");
             pressKey(KeyCode.TAB, false);
             assertEquals("", commandField.getText());
-            assertTrue(commandField.isFocused());
+            // The window's focus owner, not isFocused(), which also needs the OS to focus the test window.
+            assertSame(commandField, stage.getScene().getFocusOwner());
         });
     }
 
