@@ -7,7 +7,9 @@ import static seedu.address.logic.parser.CliSyntax.PREFIX_SUBJECT;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseFailure;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseSuccess;
 
+import java.time.DayOfWeek;
 import java.util.List;
+import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
 
@@ -15,9 +17,11 @@ import seedu.address.logic.Messages;
 import seedu.address.logic.commands.FindCommand;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
+import seedu.address.model.person.LessonMatchesPredicate;
 import seedu.address.model.person.NameContainsKeywordsPredicate;
 import seedu.address.model.person.SchoolingLevel;
 import seedu.address.model.person.SchoolingLevelContainsKeywordPredicate;
+import seedu.address.model.person.StudentLessonMatchesPredicate;
 import seedu.address.testutil.PersonBuilder;
 
 public class FindCommandParserTest {
@@ -74,10 +78,18 @@ public class FindCommandParserTest {
     }
 
     @Test
-    public void parse_lessonCriteria_acceptsSubjectDayAndLevel() throws Exception {
-        parser.parse(" subject/math day/wed");
-        parser.parse(" day/Wednesday subject/Math level/Secondary");
-        parser.parse(" day/mon");
+    public void parse_lessonCriteria_acceptsSubjectDayAndLevel() {
+        LessonMatchesPredicate wednesdayMath = new LessonMatchesPredicate(
+                Optional.of("Math"), Optional.of(DayOfWeek.WEDNESDAY));
+        assertParseSuccess(parser, " subject/math day/wed",
+                new FindCommand(new StudentLessonMatchesPredicate(Optional.empty(), wednesdayMath), wednesdayMath));
+        assertParseSuccess(parser, " day/Wednesday subject/Math level/Secondary",
+                new FindCommand(new StudentLessonMatchesPredicate(Optional.of("Secondary"), wednesdayMath),
+                        wednesdayMath));
+
+        LessonMatchesPredicate monday = new LessonMatchesPredicate(Optional.empty(), Optional.of(DayOfWeek.MONDAY));
+        assertParseSuccess(parser, " day/mon",
+                new FindCommand(new StudentLessonMatchesPredicate(Optional.empty(), monday), monday));
     }
 
     @Test
