@@ -212,6 +212,24 @@
     -fx-background-color: #F5F8FF;
 }
 
+/* A heading above the first student of each school stage, e.g. "Primary 2" */
+.group-heading {
+    -fx-background-color: #FAFAFB;
+    -fx-padding: 10 20 10 28;
+    -fx-border-color: transparent transparent -sb-divider transparent;
+}
+
+.group-name {
+    -fx-font-family: "Geist SemiBold";
+    -fx-font-size: 13px;
+    -fx-text-fill: -sb-text;
+}
+
+.group-count {
+    -fx-font-size: 13px;
+    -fx-text-fill: -sb-text-muted;
+}
+
 .empty-state {
     -fx-spacing: 6;
     -fx-alignment: center;

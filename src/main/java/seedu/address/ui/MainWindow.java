@@ -42,6 +42,7 @@ import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.exceptions.ParseException;
+import seedu.address.model.person.SchoolingLevel;
 import seedu.address.model.person.Student;
 
 /**
@@ -204,7 +205,7 @@ public class MainWindow extends UiPart<Stage> {
         students.stream()
                 .map(Student::getSchoolingLevel).flatMap(Optional::stream).map(Object::toString)
                 .distinct()
-                .sorted(Comparator.comparing(StudentCardText::stageOf).thenComparing(String.CASE_INSENSITIVE_ORDER))
+                .sorted(Comparator.comparing(SchoolingLevel::stageOf).thenComparing(String.CASE_INSENSITIVE_ORDER))
                 .forEach(level -> {
                     Button item = new Button();
                     item.getStyleClass().add("nav-item");

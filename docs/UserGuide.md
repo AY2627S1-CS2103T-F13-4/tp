@@ -109,6 +109,8 @@ Format: `list`
 
 Shows every student and clears any active search filter.
 
+Students are grouped under **Primary**, **Secondary**, **JC** and **Other** headings, in the order you added them within each group. A level counts as Primary for forms like `P5` or `Primary 5`, Secondary for `Sec 3` or `S4`, and JC for `JC1` or `J2`. Any other level, or no level, goes under Other. The number beside each student is the `INDEX` that commands use, so changing a student's level with `edit` can change their number.
+
 ### Edit a student: `edit`
 
 Format: `edit INDEX [name/NAME] [phone/PHONE_NUMBER] [email/EMAIL] [address/ADDRESS] [tag/TAG]... [level/SCHOOLING_LEVEL]`
