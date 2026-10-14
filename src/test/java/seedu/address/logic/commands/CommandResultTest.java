@@ -52,12 +52,22 @@ public class CommandResultTest {
         assertNotEquals(commandResult.hashCode(), new CommandResult("feedback", false, true).hashCode());
     }
 
+    // The screen a command asks for is part of its result: list and week must not compare equal.
+    @Test
+    public void equals_differentScreen_returnsFalse() {
+        CommandResult students = new CommandResult("feedback", CommandResult.Screen.STUDENTS);
+        assertTrue(students.equals(new CommandResult("feedback", CommandResult.Screen.STUDENTS)));
+        assertFalse(students.equals(new CommandResult("feedback", CommandResult.Screen.WEEK)));
+        assertFalse(students.equals(new CommandResult("feedback")));
+        assertNotEquals(students.hashCode(), new CommandResult("feedback", CommandResult.Screen.WEEK).hashCode());
+    }
+
     @Test
     public void toStringMethod() {
         CommandResult commandResult = new CommandResult("feedback");
         String expected = CommandResult.class.getCanonicalName() + "{feedbackToUser="
                 + commandResult.getFeedbackToUser() + ", showHelp=" + commandResult.isShowHelp()
-                + ", exit=" + commandResult.isExit() + "}";
+                + ", exit=" + commandResult.isExit() + ", screen=" + commandResult.getScreen() + "}";
         assertEquals(expected, commandResult.toString());
     }
 }

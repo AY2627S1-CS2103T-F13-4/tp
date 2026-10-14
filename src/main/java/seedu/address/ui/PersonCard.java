@@ -31,6 +31,9 @@ import seedu.address.model.person.Student;
  */
 public class PersonCard extends UiPart<Region> {
 
+    /** Style class for a level in no recognised school stage, or no level at all. */
+    public static final String NO_STAGE_STYLE_CLASS = "level-other";
+
     private static final String FXML = "PersonListCard.fxml";
     private static final String EMPTY_VALUE_STYLE_CLASS = "row-empty";
     /** Font sizes used in LightTheme.css, used to measure text before layout. */
@@ -56,7 +59,7 @@ public class PersonCard extends UiPart<Region> {
             StudentCardText.Stage.PRIMARY, "level-primary",
             StudentCardText.Stage.SECONDARY, "level-secondary",
             StudentCardText.Stage.JC, "level-jc",
-            StudentCardText.Stage.OTHER, "level-other");
+            StudentCardText.Stage.OTHER, PersonCard.NO_STAGE_STYLE_CLASS);
 
     /**
      * Note: Certain keywords such as "location" and "resources" are reserved keywords in JavaFX.
@@ -304,7 +307,7 @@ public class PersonCard extends UiPart<Region> {
     }
 
     /** Returns the style class that colours {@code level} by its school stage. */
-    static String stageStyleClass(String level) {
+    public static String stageStyleClass(String level) {
         return STAGE_STYLE_CLASSES.get(StudentCardText.stageOf(level));
     }
 

@@ -45,10 +45,13 @@ This development version supports contact details, schooling levels, guardian co
 
 ![StudentBook main window](images/Ui.png)
 
-* **Sidebar:** **Students** runs `list`. Under **Levels**, each schooling level in use runs `find level/LEVEL`, and **All commands** opens help. Each item shows the command it runs. The sidebar is hidden in windows narrower than 1100px.
+The app opens on **This week**, a calendar of every student's lessons. `list` and `find` show the **Students** table instead, and `week` brings the calendar back.
+
+* **This week:** The calendar shows Monday to Sunday of the current week, with today's date circled and a red line at the current time. It always shows 9.00am to 8.00pm, and stretches to fit any lesson outside those hours. Each lesson shows the student, the time, and then its number, level and subject, such as `#3.1 · Sec 3 · A-Math`. The number means student `3`, lesson `1`, so `lesson-edit 3 1` changes that lesson. Lessons are coloured by school stage, as shown in the key at the top right. Lessons at the same time sit side by side, and that day widens to fit them. Point at a lesson to see all its details, including ones a short lesson has no room for.
+* **Sidebar:** **This week** runs `week` and **Students** runs `list`. Under **Levels**, each schooling level in use runs `find level/LEVEL`, and **All commands** opens help. Each item shows the command it runs. The sidebar is hidden in windows narrower than 1100px.
 * **Header:** The page header shows how many students there are. **+ Add student** puts the `add` format in the command box for you to fill in.
 * **Student list:** The list is a table with one row per student and the columns **#**, **Name**, **Subjects**, **Next lesson**, **Rate** and **Guardian**. **Next lesson** is the lesson that comes next in the week, with `+2 more` when the student has others; **Rate** is that lesson's rate. Use the number in the **#** column as `INDEX`. In narrow windows the Subjects and Guardian columns are hidden.
-* **Student details:** A student's details open under their row: every lesson with its number, subject, day and time, rate, mode and location, then the phone, email, address, guardian and tags. Details open when a search leaves one student (e.g. `find hafiz`), when you press **Alt+Down** or **Alt+Up** to step through students, or when you click a row. Press **Esc** in an empty command box to close them. Use a lesson's number in the details as `LESSON_INDEX`.
+* **Student details:** On the **Students** table, a student's details open under their row: every lesson with its number, subject, day and time, rate, mode and location, then the phone, email, address, guardian and tags. Details open when a search leaves one student (e.g. `find hafiz`), when you press **Alt+Down** or **Alt+Up** to step through students, or when you click a row. Press **Esc** in an empty command box to close them. Use a lesson's number in the details as `LESSON_INDEX`.
 * **Colours:** The initials badge and the sidebar's level dots are amber for primary (`P5`, `Primary 5`), blue for secondary (`Sec 3`, `Secondary 4 Express`) and violet for JC (`JC1`). Levels written another way, such as `Poly Y1`, stay grey. In a student's details, a lesson's mode shows in green for `Physical` and teal for `Virtual`. Tags are grey.
 * **Count:** The count beside the title shows how many students there are. After `find`, it shows how many match, such as `Showing 1 of 8`.
 * **Empty list:** When the list is empty, the app suggests the next step. With no students, it shows the `add` format. When a search matches no one, it suggests `list`.
@@ -60,8 +63,8 @@ This development version supports contact details, schooling levels, guardian co
 | Enter | Run the command |
 | Up / Down | Show earlier commands from this session. Down past the newest brings back what you were typing. |
 | Esc | Clear the command box. In an empty box, close a student's details. Also closes the help window. |
-| Alt+Down / Alt+Up | Open the next or previous student's details while you keep typing |
-| Page Up / Page Down | Scroll the student list while you keep typing |
+| Alt+Down / Alt+Up | On the **Students** table, open the next or previous student's details while you keep typing |
+| Page Up / Page Down | Scroll the calendar or the student list while you keep typing |
 | F1 | Open help |
 
 ## Features
@@ -107,7 +110,13 @@ Levels must have 1 to 30 characters after the space cleanup below. Start with a 
 
 Format: `list`
 
-Shows every student and clears any active search filter.
+Shows every student in the **Students** table and clears any active search filter.
+
+### See this week's lessons: `week`
+
+Format: `week`
+
+Shows the **This week** calendar with every student's lessons. It also clears any search, so the numbers on the lessons match the indices that commands use. The app opens on this screen.
 
 ### Edit a student: `edit`
 
@@ -129,6 +138,8 @@ Examples:
 
 Format: `find KEYWORD [MORE_KEYWORDS]` or `find level/TEXT`
 
+The matching students show in the **Students** table.
+
 Without `level/`, searches names for whole words, ignoring letter case. A student appears if any keyword matches; keyword order does not matter.
 
 * `find John` matches `John Doe`, but not `Johnny`.
@@ -146,7 +157,7 @@ Each student can have zero or more lessons. A lesson has a subject, a weekly tim
 
 * **Create:** `lesson-add STUDENT_INDEX subject/SUBJECT slot/LESSON_SLOT rate/HOURLY_RATE [mode/MODE] [location/LOCATION]`
   Subject, slot and rate are required; mode and location are optional. The new lesson is added to the end of the student's lessons.
-* **Read:** The row shows the student's next lesson. Open the student's details (e.g. `find` their name, or **Alt+Down**) to see every lesson: its number, subject, day and time (e.g. `Tue 4.00pm-5.30pm`) and rate (e.g. `SGD 60/h`), with the mode (`Physical` or `Virtual`) and location underneath when recorded. Use the lesson number as `LESSON_INDEX`.
+* **Read:** The **This week** calendar shows every lesson with its `#STUDENT_INDEX.LESSON_INDEX` number. In the **Students** table, the row shows the student's next lesson. Open the student's details (e.g. `find` their name, or **Alt+Down** on the table) to see every lesson: its number, subject, day and time (e.g. `Tue 4.00pm-5.30pm`) and rate (e.g. `SGD 60/h`), with the mode (`Physical` or `Virtual`) and location underneath when recorded. Use the lesson number as `LESSON_INDEX`.
 * **Update:** `lesson-edit STUDENT_INDEX LESSON_INDEX [subject/SUBJECT] [slot/LESSON_SLOT] [rate/HOURLY_RATE] [mode/MODE] [location/LOCATION]`
   Supply at least one field. Omitted fields stay unchanged. To remove a recorded mode or location, give its prefix with nothing after it: `mode/` clears the mode and `location/` clears the location (see the examples below).
 * **Delete:** `lesson-delete STUDENT_INDEX LESSON_INDEX`
@@ -266,6 +277,7 @@ If the file is invalid, the app starts with an empty list. The invalid file rema
 | Clear schooling level | `edit INDEX level/` |
 | Find | `find KEYWORD [MORE_KEYWORDS]` or `find level/TEXT` |
 | List | `list` |
+| This week's lessons | `week` |
 | Add lesson | `lesson-add STUDENT_INDEX subject/SUBJECT slot/LESSON_SLOT rate/HOURLY_RATE [mode/MODE] [location/LOCATION]` |
 | Edit lesson | `lesson-edit STUDENT_INDEX LESSON_INDEX [subject/SUBJECT] [slot/LESSON_SLOT] [rate/HOURLY_RATE] [mode/MODE] [location/LOCATION]` |
 | Delete lesson | `lesson-delete STUDENT_INDEX LESSON_INDEX` |
