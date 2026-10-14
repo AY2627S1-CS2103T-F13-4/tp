@@ -1,0 +1,681 @@
+{
+  "scope": "20 TP navigation pages plus 36 weekly summary/project/admin/tutorial pages for the StudentBook team planning guides",
+  "checked_on": "2026-10-12",
+  "note": "Metadata only. Revisit the live site; HTML hashes identify the retrieved version but do not freeze course rules. Supplementary sources are listed in 06-sources-and-refresh.md. page_tentative_banner records the banner on that individual page; future-week status propagates from the weekly summary banner even when a linked page has no banner.",
+  "pages": [
+    {
+      "url": "https://nus-cs2103-ay2627-s1.github.io/website/admin/tp-overview.html",
+      "title": "CS2103/T - Admin: tP (Team Project): Overview",
+      "checked_on": "2026-10-12",
+      "week": null,
+      "status": "published at check",
+      "consolidated_in": [
+        "01-standing-rules.md"
+      ],
+      "source_html_sha256": "767e330c7ffecffa4b14a6838839300981da84f37ba64b945670345dfbd3355a",
+      "page_tentative_banner": false
+    },
+    {
+      "url": "https://nus-cs2103-ay2627-s1.github.io/website/admin/tp-expectations.html",
+      "title": "CS2103/T - Admin: tP: Expectations",
+      "checked_on": "2026-10-12",
+      "week": null,
+      "status": "published at check",
+      "consolidated_in": [
+        "01-standing-rules.md",
+        "03-workflow-and-quality.md",
+        "05-assessment-and-pe.md"
+      ],
+      "source_html_sha256": "980902d811bd3ec03cd6fcd791025342036dc222d4baad9b58874be7b0087cd1",
+      "page_tentative_banner": false
+    },
+    {
+      "url": "https://nus-cs2103-ay2627-s1.github.io/website/admin/tp-timeline.html",
+      "title": "CS2103/T - Admin: tP: Timeline",
+      "checked_on": "2026-10-12",
+      "week": null,
+      "status": "published at check",
+      "consolidated_in": [
+        "02-weekly-plan.md"
+      ],
+      "source_html_sha256": "868214492629baf69969effd0a6a76a4fa4eac632160b8bc016c63b0c2dff417",
+      "page_tentative_banner": false
+    },
+    {
+      "url": "https://nus-cs2103-ay2627-s1.github.io/website/admin/tp-constraints.html",
+      "title": "CS2103/T - Admin: tP: Constraints",
+      "checked_on": "2026-10-12",
+      "week": null,
+      "status": "published at check",
+      "consolidated_in": [
+        "01-standing-rules.md"
+      ],
+      "source_html_sha256": "d0823d1e0c9da5a00a274e14ebef1eb3afe9085508b4cb70bcc7ea50d36b7600",
+      "page_tentative_banner": false
+    },
+    {
+      "url": "https://nus-cs2103-ay2627-s1.github.io/website/admin/tp-teams.html",
+      "title": "CS2103/T - Admin: tP: Forming Teams",
+      "checked_on": "2026-10-12",
+      "week": null,
+      "status": "published at check",
+      "consolidated_in": [
+        "01-standing-rules.md"
+      ],
+      "source_html_sha256": "d0f123a4f9eadd1652b7ec4aede434f28c2a110c5c0ce443155004251b604234",
+      "page_tentative_banner": false
+    },
+    {
+      "url": "https://nus-cs2103-ay2627-s1.github.io/website/admin/tp-w3.html",
+      "title": "CS2103/T - Admin: tP Week 3: Kickoff",
+      "checked_on": "2026-10-12",
+      "week": 3,
+      "status": "published at check",
+      "consolidated_in": [
+        "01-standing-rules.md"
+      ],
+      "source_html_sha256": "ecc1fc69477f429c424dcd25c2f1281982013d3c4bf432424691953e7560b28a",
+      "page_tentative_banner": false
+    },
+    {
+      "url": "https://nus-cs2103-ay2627-s1.github.io/website/admin/tp-w4.html",
+      "title": "CS2103/T - Admin: tP Week 4: Set Direction",
+      "checked_on": "2026-10-12",
+      "week": 4,
+      "status": "published at check",
+      "consolidated_in": [
+        "01-standing-rules.md"
+      ],
+      "source_html_sha256": "fef45c634e28895c8e424c7b46809131aa2e9f5084fa3177760093f33fae414d",
+      "page_tentative_banner": false
+    },
+    {
+      "url": "https://nus-cs2103-ay2627-s1.github.io/website/admin/tp-w5.html",
+      "title": "CS2103/T - Admin: tP Week 5: Gather Requirements",
+      "checked_on": "2026-10-12",
+      "week": 5,
+      "status": "published at check",
+      "consolidated_in": [
+        "02-weekly-plan.md"
+      ],
+      "source_html_sha256": "22e74c42a66783373a51b32b19db4471631e64e29f12d286167233e20fc2bf9a",
+      "page_tentative_banner": false
+    },
+    {
+      "url": "https://nus-cs2103-ay2627-s1.github.io/website/admin/tp-w6.html",
+      "title": "CS2103/T - Admin: tP Week 6: Define the MVP",
+      "checked_on": "2026-10-12",
+      "week": 6,
+      "status": "published at check",
+      "consolidated_in": [
+        "02-weekly-plan.md"
+      ],
+      "source_html_sha256": "bccbb04082844fbfa6fded4d80bccbf5beda20f9d2c3523e62e2fb42144c09e8",
+      "page_tentative_banner": false
+    },
+    {
+      "url": "https://nus-cs2103-ay2627-s1.github.io/website/admin/tp-w7.html",
+      "title": "CS2103/T - Admin: tP Week 7: Practice Iteration → v1.1",
+      "checked_on": "2026-10-12",
+      "week": 7,
+      "status": "published at check",
+      "consolidated_in": [
+        "02-weekly-plan.md"
+      ],
+      "source_html_sha256": "40c07d9dcc498544eec829cf90e9123aa1e1d4fe734074fd5f0c5fb018ff3606",
+      "page_tentative_banner": false
+    },
+    {
+      "url": "https://nus-cs2103-ay2627-s1.github.io/website/admin/tp-w8.html",
+      "title": "CS2103/T - Admin: tP Week 8: First Feature Increment → v1.2",
+      "checked_on": "2026-10-12",
+      "week": 8,
+      "status": "published at check",
+      "consolidated_in": [
+        "02-weekly-plan.md"
+      ],
+      "source_html_sha256": "fe850b7b8c1cf6c5111659372e31f5c70a2f02eefd592a7b670ec411702ae14b",
+      "page_tentative_banner": false
+    },
+    {
+      "url": "https://nus-cs2103-ay2627-s1.github.io/website/admin/tp-w9.html",
+      "title": "CS2103/T - Admin: tP Week 9: MVP → v1.3",
+      "checked_on": "2026-10-12",
+      "week": 9,
+      "status": "published at check",
+      "consolidated_in": [
+        "02-weekly-plan.md"
+      ],
+      "source_html_sha256": "6cd8146cbd123112051090ce757f444ef8cf4baeb0b3f50b2520573cfae786b3",
+      "page_tentative_banner": false
+    },
+    {
+      "url": "https://nus-cs2103-ay2627-s1.github.io/website/admin/tp-w10.html",
+      "title": "CS2103/T - Admin: tP Week 10: Alpha Version → v1.4",
+      "checked_on": "2026-10-12",
+      "week": 10,
+      "status": "published at check",
+      "consolidated_in": [
+        "02-weekly-plan.md"
+      ],
+      "source_html_sha256": "128ff96944665c653748732276b4bf691d7e985c98cf872a991ab4c83a7e7b5a",
+      "page_tentative_banner": false
+    },
+    {
+      "url": "https://nus-cs2103-ay2627-s1.github.io/website/admin/tp-w11.html",
+      "title": "CS2103/T - Admin: tP Week 11: Release Candidate → v1.5",
+      "checked_on": "2026-10-12",
+      "week": 11,
+      "status": "tentative: links only",
+      "consolidated_in": [
+        "02-weekly-plan.md"
+      ],
+      "source_html_sha256": "19e4582083e4cec14f324a83d829dc1f7f9882e19e0b1a54e89a68f75d5d5b75",
+      "page_tentative_banner": false
+    },
+    {
+      "url": "https://nus-cs2103-ay2627-s1.github.io/website/admin/tp-w12.html",
+      "title": "CS2103/T - Admin: tP Week 12: Public Release → v1.6",
+      "checked_on": "2026-10-12",
+      "week": 12,
+      "status": "tentative: links only",
+      "consolidated_in": [
+        "02-weekly-plan.md"
+      ],
+      "source_html_sha256": "77e89366411351da25fca730412362e9a18277a881ac8decca10cbe4b51d0c7e",
+      "page_tentative_banner": false
+    },
+    {
+      "url": "https://nus-cs2103-ay2627-s1.github.io/website/admin/tp-w13.html",
+      "title": "CS2103/T - Admin: tP Week 13: Post-Release Tasks",
+      "checked_on": "2026-10-12",
+      "week": 13,
+      "status": "tentative: links only",
+      "consolidated_in": [
+        "02-weekly-plan.md"
+      ],
+      "source_html_sha256": "0b9636c325a0d8eaa281ed871e683705e716c7a62a030290d3d48e26013c61aa",
+      "page_tentative_banner": false
+    },
+    {
+      "url": "https://nus-cs2103-ay2627-s1.github.io/website/admin/tp-deliverables.html",
+      "title": "CS2103/T - Admin: tP: Deliverables",
+      "checked_on": "2026-10-12",
+      "week": null,
+      "status": "published at check",
+      "consolidated_in": [
+        "04-deliverables.md"
+      ],
+      "source_html_sha256": "19574dd49d1de18430324b9e35fba0374cf4d6b618401f54585adf4e3722409a",
+      "page_tentative_banner": false
+    },
+    {
+      "url": "https://nus-cs2103-ay2627-s1.github.io/website/admin/tp-pe.html",
+      "title": "CS2103/T - Admin: tP: Practical Exam",
+      "checked_on": "2026-10-12",
+      "week": null,
+      "status": "published at check",
+      "consolidated_in": [
+        "05-assessment-and-pe.md"
+      ],
+      "source_html_sha256": "9e759fb6ff44b8c0393cc8f0cab25cb058f6285eb52c5f278936b40ce81dd607",
+      "page_tentative_banner": false
+    },
+    {
+      "url": "https://nus-cs2103-ay2627-s1.github.io/website/admin/tp-grading.html",
+      "title": "CS2103/T - Admin: tP: Grading",
+      "checked_on": "2026-10-12",
+      "week": null,
+      "status": "published at check",
+      "consolidated_in": [
+        "05-assessment-and-pe.md"
+      ],
+      "source_html_sha256": "601099a119c0de818b89b88d467a155067d70801c8c672e2607de6db45f403a9",
+      "page_tentative_banner": false
+    },
+    {
+      "url": "https://nus-cs2103-ay2627-s1.github.io/website/admin/tp-supervision.html",
+      "title": "CS2103/T - Admin: tP: Supervision/Guidance",
+      "checked_on": "2026-10-12",
+      "week": null,
+      "status": "published at check",
+      "consolidated_in": [
+        "01-standing-rules.md"
+      ],
+      "source_html_sha256": "0d1fe262febbff927aafd9ad82d878ac5415a7a8a18f353f5081136aa849c677",
+      "page_tentative_banner": false
+    },
+    {
+      "url": "https://nus-cs2103-ay2627-s1.github.io/website/schedule/week5/index.html",
+      "title": "CS2103/T - Week 5 - Summary",
+      "checked_on": "2026-10-12",
+      "week": 5,
+      "status": "published at check",
+      "consolidated_in": [
+        "02-weekly-plan.md"
+      ],
+      "source_html_sha256": "4194aa8601a619b9953862cab9b6ff2a167d886edc506ee9b6d65f495d2797f8",
+      "page_tentative_banner": false
+    },
+    {
+      "url": "https://nus-cs2103-ay2627-s1.github.io/website/schedule/week5/project.html",
+      "title": "CS2103/T - Week 5 - Project",
+      "checked_on": "2026-10-12",
+      "week": 5,
+      "status": "published at check",
+      "consolidated_in": [
+        "02-weekly-plan.md"
+      ],
+      "source_html_sha256": "2e5f16ec844fe785b0142c4dec1025d11aae2d2ffa0aa6edab73b26f50b3fe4d",
+      "page_tentative_banner": false
+    },
+    {
+      "url": "https://nus-cs2103-ay2627-s1.github.io/website/schedule/week5/admin.html",
+      "title": "CS2103/T - Week 5 - Admin",
+      "checked_on": "2026-10-12",
+      "week": 5,
+      "status": "published at check",
+      "consolidated_in": [
+        "02-weekly-plan.md"
+      ],
+      "source_html_sha256": "68b886c9b7ae9b849c3c12f575ef652895543c3bf85b6b9fee20a0e1ecd230a9",
+      "page_tentative_banner": false
+    },
+    {
+      "url": "https://nus-cs2103-ay2627-s1.github.io/website/schedule/week5/tutorial.html",
+      "title": "CS2103/T - Week 5 - Tutorial",
+      "checked_on": "2026-10-12",
+      "week": 5,
+      "status": "published at check",
+      "consolidated_in": [
+        "02-weekly-plan.md"
+      ],
+      "source_html_sha256": "734070aa2404d8823516ffc4fe8ee533e3c4e06332d267ec5592d3f8c1e1cc67",
+      "page_tentative_banner": false
+    },
+    {
+      "url": "https://nus-cs2103-ay2627-s1.github.io/website/schedule/week6/index.html",
+      "title": "CS2103/T - Week 6 - Summary",
+      "checked_on": "2026-10-12",
+      "week": 6,
+      "status": "published at check",
+      "consolidated_in": [
+        "02-weekly-plan.md"
+      ],
+      "source_html_sha256": "89f2fc95054107fc1b442619f3e37f6a5a4d78a678df348ad7814608a0a73948",
+      "page_tentative_banner": false
+    },
+    {
+      "url": "https://nus-cs2103-ay2627-s1.github.io/website/schedule/week6/project.html",
+      "title": "CS2103/T - Week 6 - Project",
+      "checked_on": "2026-10-12",
+      "week": 6,
+      "status": "published at check",
+      "consolidated_in": [
+        "02-weekly-plan.md"
+      ],
+      "source_html_sha256": "78828092b3f3fc89ec79d0b2bcfd0e74e67cc11cc63cc5fb9c768c3c027d7b82",
+      "page_tentative_banner": false
+    },
+    {
+      "url": "https://nus-cs2103-ay2627-s1.github.io/website/schedule/week6/admin.html",
+      "title": "CS2103/T - Week 6 - Admin",
+      "checked_on": "2026-10-12",
+      "week": 6,
+      "status": "published at check",
+      "consolidated_in": [
+        "02-weekly-plan.md"
+      ],
+      "source_html_sha256": "b0bcd87193f8171aa132919961c253ecb690b9361b831dd53813f4b14037057b",
+      "page_tentative_banner": false
+    },
+    {
+      "url": "https://nus-cs2103-ay2627-s1.github.io/website/schedule/week6/tutorial.html",
+      "title": "CS2103/T - Week 6 - Tutorial",
+      "checked_on": "2026-10-12",
+      "week": 6,
+      "status": "published at check",
+      "consolidated_in": [
+        "02-weekly-plan.md"
+      ],
+      "source_html_sha256": "895f13b0f7a693d491cd389d65a2e43a6b7560895c014534297b4d313dc26af0",
+      "page_tentative_banner": false
+    },
+    {
+      "url": "https://nus-cs2103-ay2627-s1.github.io/website/schedule/week7/index.html",
+      "title": "CS2103/T - Week 7 - Summary",
+      "checked_on": "2026-10-12",
+      "week": 7,
+      "status": "published at check",
+      "consolidated_in": [
+        "02-weekly-plan.md"
+      ],
+      "source_html_sha256": "5f2e46d3709a8c3f969ad316d39c9e5113eb036f1423ea7563f6664dad59cdaa",
+      "page_tentative_banner": false
+    },
+    {
+      "url": "https://nus-cs2103-ay2627-s1.github.io/website/schedule/week7/project.html",
+      "title": "CS2103/T - Week 7 - Project",
+      "checked_on": "2026-10-12",
+      "week": 7,
+      "status": "published at check",
+      "consolidated_in": [
+        "02-weekly-plan.md"
+      ],
+      "source_html_sha256": "2bab759b075643d979ec5b7a5bf1a11b961d0ea084b5c01e7257298909e0270f",
+      "page_tentative_banner": false
+    },
+    {
+      "url": "https://nus-cs2103-ay2627-s1.github.io/website/schedule/week7/admin.html",
+      "title": "CS2103/T - Week 7 - Admin",
+      "checked_on": "2026-10-12",
+      "week": 7,
+      "status": "published at check",
+      "consolidated_in": [
+        "02-weekly-plan.md"
+      ],
+      "source_html_sha256": "a4b3a7df2d2d35a434e43ad7cc80d06f1f1fd0343882e37632369cda8c337175",
+      "page_tentative_banner": false
+    },
+    {
+      "url": "https://nus-cs2103-ay2627-s1.github.io/website/schedule/week7/tutorial.html",
+      "title": "CS2103/T - Week 7 - Tutorial",
+      "checked_on": "2026-10-12",
+      "week": 7,
+      "status": "published at check",
+      "consolidated_in": [
+        "02-weekly-plan.md"
+      ],
+      "source_html_sha256": "5f6b86219fb9b9a47fcc0d7b2e333d3d120f208fec4117c61a275e9e849114e3",
+      "page_tentative_banner": false
+    },
+    {
+      "url": "https://nus-cs2103-ay2627-s1.github.io/website/schedule/week8/index.html",
+      "title": "CS2103/T - Week 8 - Summary",
+      "checked_on": "2026-10-12",
+      "week": 8,
+      "status": "published at check",
+      "consolidated_in": [
+        "02-weekly-plan.md"
+      ],
+      "source_html_sha256": "5ab69e637044a4c376fd73ad9b82080c3a9546e1c57063b46603d50421df9302",
+      "page_tentative_banner": false
+    },
+    {
+      "url": "https://nus-cs2103-ay2627-s1.github.io/website/schedule/week8/project.html",
+      "title": "CS2103/T - Week 8 - Project",
+      "checked_on": "2026-10-12",
+      "week": 8,
+      "status": "published at check",
+      "consolidated_in": [
+        "02-weekly-plan.md"
+      ],
+      "source_html_sha256": "ddd220a5f156f0094bdc9da15819292a123331dfc0c8b7c330447d5017c06d3b",
+      "page_tentative_banner": false
+    },
+    {
+      "url": "https://nus-cs2103-ay2627-s1.github.io/website/schedule/week8/admin.html",
+      "title": "CS2103/T - Week 8 - Admin",
+      "checked_on": "2026-10-12",
+      "week": 8,
+      "status": "published at check",
+      "consolidated_in": [
+        "02-weekly-plan.md"
+      ],
+      "source_html_sha256": "3c75aef34746dca389bace0e1f09534bd5ab09e7936a6cde137737de74237086",
+      "page_tentative_banner": false
+    },
+    {
+      "url": "https://nus-cs2103-ay2627-s1.github.io/website/schedule/week8/tutorial.html",
+      "title": "CS2103/T - Week 8 - Tutorial",
+      "checked_on": "2026-10-12",
+      "week": 8,
+      "status": "published at check",
+      "consolidated_in": [
+        "02-weekly-plan.md"
+      ],
+      "source_html_sha256": "26479ea8aa6c1e8a3122caa904575f47cadb0e09491a796d7808e442a2d4fc46",
+      "page_tentative_banner": false
+    },
+    {
+      "url": "https://nus-cs2103-ay2627-s1.github.io/website/schedule/week9/index.html",
+      "title": "CS2103/T - Week 9 - Summary",
+      "checked_on": "2026-10-12",
+      "week": 9,
+      "status": "published at check",
+      "consolidated_in": [
+        "02-weekly-plan.md"
+      ],
+      "source_html_sha256": "0e97f097b117895d3ddd1ba023253a85f02910b4fbefbfd8235077a85df33fa7",
+      "page_tentative_banner": false
+    },
+    {
+      "url": "https://nus-cs2103-ay2627-s1.github.io/website/schedule/week9/project.html",
+      "title": "CS2103/T - Week 9 - Project",
+      "checked_on": "2026-10-12",
+      "week": 9,
+      "status": "published at check",
+      "consolidated_in": [
+        "02-weekly-plan.md"
+      ],
+      "source_html_sha256": "54d4393104f4ec98950ef254fc6d1b96b2f68765721800284167af4b3249618c",
+      "page_tentative_banner": false
+    },
+    {
+      "url": "https://nus-cs2103-ay2627-s1.github.io/website/schedule/week9/admin.html",
+      "title": "CS2103/T - Week 9 - Admin",
+      "checked_on": "2026-10-12",
+      "week": 9,
+      "status": "published at check",
+      "consolidated_in": [
+        "02-weekly-plan.md"
+      ],
+      "source_html_sha256": "5f8e946aa7d242351ccbfe5c81f2d2143c91ca59e01569a68374c2130463db95",
+      "page_tentative_banner": false
+    },
+    {
+      "url": "https://nus-cs2103-ay2627-s1.github.io/website/schedule/week9/tutorial.html",
+      "title": "CS2103/T - Week 9 - Tutorial",
+      "checked_on": "2026-10-12",
+      "week": 9,
+      "status": "published at check",
+      "consolidated_in": [
+        "02-weekly-plan.md"
+      ],
+      "source_html_sha256": "29df049558849f5f42bf60fa955eb5673148ee8ea21c4052c962ceebc087e65a",
+      "page_tentative_banner": false
+    },
+    {
+      "url": "https://nus-cs2103-ay2627-s1.github.io/website/schedule/week10/index.html",
+      "title": "CS2103/T - Week 10 - Summary",
+      "checked_on": "2026-10-12",
+      "week": 10,
+      "status": "published at check",
+      "consolidated_in": [
+        "02-weekly-plan.md"
+      ],
+      "source_html_sha256": "a071a3a6c0b5f4b1f75a7a6e30cb29256fba1f2595085bf366b3205c3627477a",
+      "page_tentative_banner": false
+    },
+    {
+      "url": "https://nus-cs2103-ay2627-s1.github.io/website/schedule/week10/project.html",
+      "title": "CS2103/T - Week 10 - Project",
+      "checked_on": "2026-10-12",
+      "week": 10,
+      "status": "published at check",
+      "consolidated_in": [
+        "02-weekly-plan.md"
+      ],
+      "source_html_sha256": "7aaa2f930012fee7c0c5d3941ceb0aaf06443fa978e8dc60a9379292f530bbbb",
+      "page_tentative_banner": false
+    },
+    {
+      "url": "https://nus-cs2103-ay2627-s1.github.io/website/schedule/week10/admin.html",
+      "title": "CS2103/T - Week 10 - Admin",
+      "checked_on": "2026-10-12",
+      "week": 10,
+      "status": "published at check",
+      "consolidated_in": [
+        "02-weekly-plan.md"
+      ],
+      "source_html_sha256": "db65b887b6915ab3ac7fe211b87ef966d48ac0cd3f15b5ffc1f80bdc04cff499",
+      "page_tentative_banner": false
+    },
+    {
+      "url": "https://nus-cs2103-ay2627-s1.github.io/website/schedule/week10/tutorial.html",
+      "title": "CS2103/T - Week 10 - Tutorial",
+      "checked_on": "2026-10-12",
+      "week": 10,
+      "status": "published at check",
+      "consolidated_in": [
+        "02-weekly-plan.md"
+      ],
+      "source_html_sha256": "30f853a01fbc530ba5a42c569a67c1e313af8c4ad9c1dc8472c5616fcc237ee2",
+      "page_tentative_banner": false
+    },
+    {
+      "url": "https://nus-cs2103-ay2627-s1.github.io/website/schedule/week11/index.html",
+      "title": "CS2103/T - Week 11 - Summary",
+      "checked_on": "2026-10-12",
+      "week": 11,
+      "status": "tentative: links only",
+      "consolidated_in": [
+        "02-weekly-plan.md"
+      ],
+      "source_html_sha256": "51f6a5efe69c142778570c7785e3716a169fcc9b8ae1bdf31d36b4095e184ae8",
+      "page_tentative_banner": true
+    },
+    {
+      "url": "https://nus-cs2103-ay2627-s1.github.io/website/schedule/week11/project.html",
+      "title": "CS2103/T - Week 11 - Project",
+      "checked_on": "2026-10-12",
+      "week": 11,
+      "status": "tentative: links only",
+      "consolidated_in": [
+        "02-weekly-plan.md"
+      ],
+      "source_html_sha256": "0a34d708e7e2a93778411818dcf43cde75d2bd58935085d611c1ab535ecc2fc3",
+      "page_tentative_banner": false
+    },
+    {
+      "url": "https://nus-cs2103-ay2627-s1.github.io/website/schedule/week11/admin.html",
+      "title": "CS2103/T - Week 11 - Admin",
+      "checked_on": "2026-10-12",
+      "week": 11,
+      "status": "tentative: links only",
+      "consolidated_in": [
+        "02-weekly-plan.md"
+      ],
+      "source_html_sha256": "f0b960d3245c8345a6ac080c0cff4a528ef560d1aa31b6bc92d99412aac9587c",
+      "page_tentative_banner": false
+    },
+    {
+      "url": "https://nus-cs2103-ay2627-s1.github.io/website/schedule/week11/tutorial.html",
+      "title": "CS2103/T - Week 11 - Tutorial",
+      "checked_on": "2026-10-12",
+      "week": 11,
+      "status": "tentative: links only",
+      "consolidated_in": [
+        "02-weekly-plan.md"
+      ],
+      "source_html_sha256": "c4a4f4e9da4fcd445c0e041b95e4c8e3b2512e545229b5604c39c7c4805eac4b",
+      "page_tentative_banner": false
+    },
+    {
+      "url": "https://nus-cs2103-ay2627-s1.github.io/website/schedule/week12/index.html",
+      "title": "CS2103/T - Week 12 - Summary",
+      "checked_on": "2026-10-12",
+      "week": 12,
+      "status": "tentative: links only",
+      "consolidated_in": [
+        "02-weekly-plan.md"
+      ],
+      "source_html_sha256": "3f7db626f965a2aec09b7e6533515cdf482b118278640ce39378520cbfcc0b8d",
+      "page_tentative_banner": true
+    },
+    {
+      "url": "https://nus-cs2103-ay2627-s1.github.io/website/schedule/week12/project.html",
+      "title": "CS2103/T - Week 12 - Project",
+      "checked_on": "2026-10-12",
+      "week": 12,
+      "status": "tentative: links only",
+      "consolidated_in": [
+        "02-weekly-plan.md"
+      ],
+      "source_html_sha256": "046ea393bf7118bab57e1c21ff6cd8ccc5786ec511d18001caa6ea7ec75794de",
+      "page_tentative_banner": false
+    },
+    {
+      "url": "https://nus-cs2103-ay2627-s1.github.io/website/schedule/week12/admin.html",
+      "title": "CS2103/T - Week 12 - Admin",
+      "checked_on": "2026-10-12",
+      "week": 12,
+      "status": "tentative: links only",
+      "consolidated_in": [
+        "02-weekly-plan.md"
+      ],
+      "source_html_sha256": "09c238a4728dd61be7cf832fda2d82aad09618ea4fe39a6c7c2f1396a378dda0",
+      "page_tentative_banner": false
+    },
+    {
+      "url": "https://nus-cs2103-ay2627-s1.github.io/website/schedule/week12/tutorial.html",
+      "title": "CS2103/T - Week 12 - Tutorial",
+      "checked_on": "2026-10-12",
+      "week": 12,
+      "status": "tentative: links only",
+      "consolidated_in": [
+        "02-weekly-plan.md"
+      ],
+      "source_html_sha256": "149785dd6efef01a6ac11d06c2000ddc12ad4702f175ec0b826fb8243eebe836",
+      "page_tentative_banner": false
+    },
+    {
+      "url": "https://nus-cs2103-ay2627-s1.github.io/website/schedule/week13/index.html",
+      "title": "CS2103/T - Week 13 - Summary",
+      "checked_on": "2026-10-12",
+      "week": 13,
+      "status": "tentative: links only",
+      "consolidated_in": [
+        "02-weekly-plan.md"
+      ],
+      "source_html_sha256": "a5a541390af7c7e5d32d83234e2426d968cc02ad451fa8330b7a1ee02686ad82",
+      "page_tentative_banner": true
+    },
+    {
+      "url": "https://nus-cs2103-ay2627-s1.github.io/website/schedule/week13/project.html",
+      "title": "CS2103/T - Week 13 - Project",
+      "checked_on": "2026-10-12",
+      "week": 13,
+      "status": "tentative: links only",
+      "consolidated_in": [
+        "02-weekly-plan.md"
+      ],
+      "source_html_sha256": "3a585c9d3c4d46819cb7c879e02b5bf2923805e87dd22599e9de0b5c9c342127",
+      "page_tentative_banner": false
+    },
+    {
+      "url": "https://nus-cs2103-ay2627-s1.github.io/website/schedule/week13/admin.html",
+      "title": "CS2103/T - Week 13 - Admin",
+      "checked_on": "2026-10-12",
+      "week": 13,
+      "status": "tentative: links only",
+      "consolidated_in": [
+        "02-weekly-plan.md"
+      ],
+      "source_html_sha256": "8bd48dd62e855f14c930a3a67c946c5f0204675f9bcbb435c3a8df99ec874079",
+      "page_tentative_banner": false
+    },
+    {
+      "url": "https://nus-cs2103-ay2627-s1.github.io/website/schedule/week13/tutorial.html",
+      "title": "CS2103/T - Week 13 - Tutorial",
+      "checked_on": "2026-10-12",
+      "week": 13,
+      "status": "tentative: links only",
+      "consolidated_in": [
+        "02-weekly-plan.md"
+      ],
+      "source_html_sha256": "61ce1de5c2da7c6371c0c9db4a4bcd22d2bdcc2258b1326dbbf9921674f76cf6",
+      "page_tentative_banner": false
+    }
+  ]
+}
