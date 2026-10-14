@@ -1,7 +1,10 @@
 package seedu.address.model.person;
 
+import static java.util.Objects.requireNonNull;
 import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 
+import java.time.DayOfWeek;
+import java.time.LocalTime;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -10,7 +13,7 @@ import java.util.Optional;
  * The location and mode (physical or virtual) are optional.
  * Guarantees: required details are present and not null, immutable.
  */
-public final class Lesson {
+public final class Lesson implements Comparable<Lesson> {
     private final Subject subject;
     private final WeeklyLessonSlot weeklyLessonSlot;
     private final HourlyRate hourlyRate;
@@ -51,6 +54,24 @@ public final class Lesson {
 
     public Optional<LessonMode> getMode() {
         return mode;
+    }
+
+    public DayOfWeek getDay() {
+        return weeklyLessonSlot.getDay();
+    }
+
+    public LocalTime getStart() {
+        return weeklyLessonSlot.getStart();
+    }
+
+    public LocalTime getEnd() {
+        return weeklyLessonSlot.getEnd();
+    }
+
+    @Override
+    public int compareTo(Lesson other) {
+        requireNonNull(other);
+        return weeklyLessonSlot.compareTo(other.weeklyLessonSlot);
     }
 
     @Override

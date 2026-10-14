@@ -21,4 +21,6 @@ This mock-up shows the planned MVP. The User Guide describes the commands availa
 
 Start with the [User Guide](docs/UserGuide.md) to use the app or the [Developer Guide](docs/DeveloperGuide.md) to contribute. The [project website](https://ay2627s1-cs2103t-f13-4.github.io/tp/) publishes the merged documentation.
 
+For course milestones, weekly tasks, and release requirements, see the [TP planning guides](planning/README.md).
+
 This project is based on the AddressBook-Level3 project created by the [SE-EDU initiative](https://se-education.org). It uses Java and JavaFX, with Gradle for building and testing.

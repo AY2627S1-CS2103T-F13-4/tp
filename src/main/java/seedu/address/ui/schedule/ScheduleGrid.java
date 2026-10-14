@@ -1,0 +1,230 @@
+package seedu.address.ui.schedule;
+
+import static java.util.Objects.requireNonNull;
+
+import java.time.DayOfWeek;
+import java.time.LocalTime;
+import java.time.format.TextStyle;
+import java.util.Comparator;
+import java.util.EnumMap;
+import java.util.Locale;
+import java.util.Map;
+import java.util.PriorityQueue;
+
+import javafx.application.Platform;
+import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
+import javafx.collections.ObservableList;
+import javafx.fxml.FXML;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.geometry.VPos;
+import javafx.scene.control.Label;
+import javafx.scene.layout.ColumnConstraints;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.RowConstraints;
+import seedu.address.model.person.Lesson;
+import seedu.address.model.person.Student;
+import seedu.address.ui.UiPart;
+
+/**
+ * Grid containing lessons grouped by day of the week.
+ */
+public class ScheduleGrid extends UiPart<GridPane> {
+
+    private static final String FXML = "ScheduleGrid.fxml";
+    private static final int INTERVAL_MINUTE = 30;
+    private static final double TIME_ROW_HEIGHT = 60;
+    private static final double PIXELS_PER_MINUTE = TIME_ROW_HEIGHT / INTERVAL_MINUTE;
+
+    private final ObservableList<Student> students;
+    private final ListChangeListener<Student> studentListListener = change -> refreshSchedule();
+    private final Map<DayOfWeek, ObservableList<ScheduleEntry>> entriesByDay = new EnumMap<>(DayOfWeek.class);
+    private LocalTime earliestTime;
+    private LocalTime latestTime;
+    private int gridStartMinute;
+    private boolean disposed;
+
+    @FXML
+    private GridPane scheduleGrid;
+
+    /**
+     * Creates a {@code ScheduleGrid} with the given students' lessons grouped by day of the week
+     * and partitioned into the minimum number of non-overlapping columns, starting from the left.
+     * The component and its source list should be used on the JavaFX application thread.
+     */
+    public ScheduleGrid(ObservableList<Student> personList) {
+        super(FXML);
+
+        students = requireNonNull(personList);
+        for (DayOfWeek day : DayOfWeek.values()) {
+            entriesByDay.put(day, FXCollections.observableArrayList());
+        }
+
+        refreshSchedule();
+        students.addListener(studentListListener);
+    }
+
+    private void refreshSchedule() {
+        // Observable-list listeners run on the modifying thread; render only on the JavaFX thread.
+        if (!Platform.isFxApplicationThread()) {
+            Platform.runLater(this::refreshSchedule);
+            return;
+        }
+        if (disposed) {
+            return;
+        }
+
+        clearSchedule();
+        registerStudentLessons(students);
+        boolean hasLessons = entriesByDay.values().stream().anyMatch(entries -> !entries.isEmpty());
+        if (hasLessons) {
+            generateRowsOfInterval(INTERVAL_MINUTE);
+        }
+
+        int currDisplayColumn = 1;
+
+        for (DayOfWeek day : DayOfWeek.values()) {
+            int dayColumnWidth = assignColumnValues(currDisplayColumn, entriesByDay.get(day));
+            addDayLabel(day, currDisplayColumn, dayColumnWidth);
+            currDisplayColumn += dayColumnWidth;
+
+            for (ScheduleEntry entry : entriesByDay.get(day)) {
+                makeLessonCard(entry);
+            }
+        }
+    }
+
+    private void clearSchedule() {
+        entriesByDay.values().forEach(ObservableList::clear);
+
+        // Recreate JavaFX's grid-line helper when clearing the generated labels and cards.
+        boolean gridLinesVisible = scheduleGrid.isGridLinesVisible();
+        scheduleGrid.setGridLinesVisible(false);
+        scheduleGrid.getChildren().clear();
+        scheduleGrid.setGridLinesVisible(gridLinesVisible);
+
+        // Keep the FXML timestamp column and day-heading row; regenerate the remaining constraints.
+        scheduleGrid.getColumnConstraints().remove(1, scheduleGrid.getColumnConstraints().size());
+        scheduleGrid.getRowConstraints().remove(1, scheduleGrid.getRowConstraints().size());
+    }
+
+    /**
+     * Stops observing the source list and prevents queued refreshes from rebuilding the grid.
+     * Call this on the JavaFX application thread when the component is closed or replaced.
+     * Calling this more than once is safe.
+     */
+    public void dispose() {
+        disposed = true;
+        students.removeListener(studentListListener);
+    }
+
+    private void registerStudentLessons(ObservableList<Student> personList) {
+        earliestTime = LocalTime.MAX;
+        latestTime = LocalTime.MIN;
+
+        for (Student student : personList) {
+            for (Lesson lesson : student.getLessons()) {
+                earliestTime = lesson.getStart().isBefore(earliestTime) ? lesson.getStart() : earliestTime;
+                latestTime = lesson.getEnd().isAfter(latestTime) ? lesson.getEnd() : latestTime;
+                entriesByDay.get(lesson.getDay()).add(new ScheduleEntry(student, lesson));
+            }
+        }
+    }
+
+    private void addColumn() {
+        ColumnConstraints col = new ColumnConstraints();
+        col.setMinWidth(100);
+        col.setPrefWidth(100);
+        col.setHgrow(Priority.SOMETIMES);
+        scheduleGrid.getColumnConstraints().add(col);
+    }
+
+    private void addRow() {
+        RowConstraints row = new RowConstraints();
+        // A fixed time scale keeps per-card minute offsets accurate when the window is resized.
+        row.setMinHeight(TIME_ROW_HEIGHT);
+        row.setPrefHeight(TIME_ROW_HEIGHT);
+        row.setMaxHeight(TIME_ROW_HEIGHT);
+        row.setVgrow(Priority.NEVER);
+        scheduleGrid.getRowConstraints().add(row);
+    }
+
+    private void addDayLabel(DayOfWeek day, int currDisplayColumn, int dayColumnWidth) {
+        Label dayLabel = new Label(day.getDisplayName(TextStyle.SHORT_STANDALONE, new Locale("EN", "SG")));
+        dayLabel.setAlignment(Pos.CENTER);
+        dayLabel.getStyleClass().add("background");
+        dayLabel.setMaxHeight(Double.MAX_VALUE);
+        dayLabel.setMaxWidth(Double.MAX_VALUE);
+        GridPane.setMargin(dayLabel, new Insets(1, 1, 1, 1));
+        scheduleGrid.add(dayLabel, currDisplayColumn, 0, dayColumnWidth, 1);
+    }
+
+    /** Returns the number of unique column values assigned */
+    private int assignColumnValues(int startColumn, ObservableList<ScheduleEntry> dayEntries) {
+        if (dayEntries.isEmpty()) {
+            addColumn();
+            return 1;
+        }
+
+        int currColumn = startColumn;
+
+        dayEntries.sort(null);
+        PriorityQueue<ScheduleEntry> activeEntries = new PriorityQueue<>(Comparator.comparing(ScheduleEntry::getEnd));
+        PriorityQueue<Integer> availableColumns = new PriorityQueue<>();
+
+        for (ScheduleEntry entry : dayEntries) {
+            while (!activeEntries.isEmpty() && !activeEntries.peek().getEnd().isAfter(entry.getStart())) {
+                availableColumns.add(activeEntries.remove().getDisplayColumn());
+            }
+            int column;
+            if (availableColumns.isEmpty()) {
+                addColumn();
+                column = currColumn++;
+            } else {
+                column = availableColumns.remove();
+            }
+            entry.setDisplayColumn(column);
+            activeEntries.add(entry);
+        }
+
+        return currColumn - startColumn;
+    }
+
+    private void generateRowsOfInterval(int minuteInterval) {
+        gridStartMinute = toMinuteOfDay(earliestTime) / minuteInterval * minuteInterval;
+        // Keep the rounded end as minutes so 1440 represents the next midnight without wrapping to zero.
+        int endMinute = (toMinuteOfDay(latestTime) + minuteInterval - 1) / minuteInterval * minuteInterval;
+
+        int rowCount = (endMinute - gridStartMinute) / minuteInterval;
+
+        LocalTime currTime = LocalTime.MIDNIGHT.plusMinutes(gridStartMinute);
+        for (int i = 0; i < rowCount; i++) {
+            addRow();
+            Label timeLabel = new Label(currTime.toString());
+            scheduleGrid.add(timeLabel, 0, i + 1, 1, 1);
+            GridPane.setValignment(timeLabel, VPos.TOP);
+            currTime = currTime.plusMinutes(minuteInterval);
+        }
+    }
+
+    private void makeLessonCard(ScheduleEntry entry) {
+        int startMinute = toMinuteOfDay(entry.getStart()) - gridStartMinute;
+        int endMinute = toMinuteOfDay(entry.getEnd()) - gridStartMinute;
+        int startRow = startMinute / INTERVAL_MINUTE;
+        int endRowExclusive = (endMinute + INTERVAL_MINUTE - 1) / INTERVAL_MINUTE;
+
+        // Span enclosing intervals, then inset to the exact times, even for a one-minute lesson.
+        double topMargin = (startMinute - startRow * INTERVAL_MINUTE) * PIXELS_PER_MINUTE;
+        double bottomMargin = (endRowExclusive * INTERVAL_MINUTE - endMinute) * PIXELS_PER_MINUTE;
+
+        LessonCard lessonCard = new LessonCard(entry);
+        GridPane.setMargin(lessonCard.getRoot(), new Insets(topMargin, 5, bottomMargin, 3));
+        scheduleGrid.add(lessonCard.getRoot(), entry.getDisplayColumn(), 1 + startRow, 1, endRowExclusive - startRow);
+    }
+
+    private static int toMinuteOfDay(LocalTime time) {
+        return time.getHour() * 60 + time.getMinute();
+    }
+}

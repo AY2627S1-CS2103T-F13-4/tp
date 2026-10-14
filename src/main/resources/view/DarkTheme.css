@@ -281,6 +281,22 @@
     -fx-text-fill: white;
 }
 
+.lesson-card {
+    -fx-background-color: #e2e2e2;
+    -fx-background-radius: 5px;
+    -fx-padding: 8px;
+    -fx-spacing: 2px;
+}
+
+.lesson-card .label {
+    -fx-text-fill: derive(#1d1d1d, 20%);
+    -fx-font-size: 11px;
+}
+
+.lesson-card .lesson-card-name {
+    -fx-font-weight: bold;
+}
+
 .scroll-bar {
     -fx-background-color: derive(#1d1d1d, 20%);
 }
