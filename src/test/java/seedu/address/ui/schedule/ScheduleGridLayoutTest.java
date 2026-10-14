@@ -34,6 +34,7 @@ import seedu.address.testutil.PersonBuilder;
  */
 public class ScheduleGridLayoutTest {
     private static final double EPSILON = 0.001;
+    private static final double PIXEL_SNAP = 1;
 
     private ScheduleGrid schedule;
     private ScrollPane viewport;
@@ -151,21 +152,23 @@ public class ScheduleGridLayoutTest {
         });
     }
 
-    // A lesson only shares its day's width with lessons it overlaps; at other times it fills the day.
+    // A day with overlapping lessons widens to one lesson column per overlap; every block keeps the
+    // normal width of one lesson column, including the ones that overlap nothing.
     @Test
-    public void layout_overlapLaterInDay_earlierLessonFillsWholeDay() throws Exception {
+    public void layout_overlapLaterInDay_widensDayAndKeepsBlocksOneColumnWide() throws Exception {
         runOnFxThread(() -> {
             showStudents(FXCollections.observableArrayList(
                     student("Morning", DayOfWeek.MONDAY, "10:00", "11:00"),
                     student("First", DayOfWeek.MONDAY, "14:00", "15:00"),
-                    student("Second", DayOfWeek.MONDAY, "14:30", "15:30")));
+                    student("Second", DayOfWeek.MONDAY, "14:30", "15:30"),
+                    student("Tuesday", DayOfWeek.TUESDAY, "10:00", "11:00")));
 
-            assertEquals(Integer.valueOf(2), GridPane.getColumnSpan(card("Morning")));
-            assertEquals(Integer.valueOf(1), GridPane.getColumnSpan(card("First")));
-            assertEquals(Integer.valueOf(1), GridPane.getColumnSpan(card("Second")));
+            for (String name : List.of("Morning", "First", "Second", "Tuesday")) {
+                assertEquals(Integer.valueOf(1), GridPane.getColumnSpan(card(name)), name);
+                // Column edges snap to whole pixels, so equal shares can differ by one pixel.
+                assertEquals(card("Tuesday").getWidth(), card(name).getWidth(), PIXEL_SNAP);
+            }
             assertEquals(card("First").getBoundsInParent().getMinX(), card("Morning").getBoundsInParent().getMinX(),
-                    EPSILON);
-            assertEquals(card("Second").getBoundsInParent().getMaxX(), card("Morning").getBoundsInParent().getMaxX(),
                     EPSILON);
         });
     }

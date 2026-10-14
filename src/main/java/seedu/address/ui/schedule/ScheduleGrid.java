@@ -154,10 +154,8 @@ public class ScheduleGrid extends UiPart<GridPane> {
         shareDayWidths();
         // Lessons go on top of the day backgrounds and hour lines, so they are added last.
         for (DayOfWeek day : DayOfWeek.values()) {
-            List<ScheduleEntry> dayEntries = entriesByDay.get(day);
-            int dayEndColumn = dayStartColumns.get(day) + dayColumnCounts.get(day.ordinal());
-            for (ScheduleEntry entry : dayEntries) {
-                makeLessonCard(entry, columnSpan(entry, dayEntries, dayEndColumn));
+            for (ScheduleEntry entry : entriesByDay.get(day)) {
+                makeLessonCard(entry);
             }
         }
         placeNowLine();
@@ -373,25 +371,7 @@ public class ScheduleGrid extends UiPart<GridPane> {
         return rowCount;
     }
 
-    /**
-     * Returns how many columns {@code entry} can fill: its own, plus each column to its right that no lesson
-     * at the same time uses. So a lesson only shares the day's width with lessons it actually overlaps.
-     */
-    private static int columnSpan(ScheduleEntry entry, List<ScheduleEntry> dayEntries, int dayEndColumn) {
-        int span = 1;
-        while (entry.getDisplayColumn() + span < dayEndColumn
-                && isColumnFree(entry.getDisplayColumn() + span, entry, dayEntries)) {
-            span++;
-        }
-        return span;
-    }
-
-    private static boolean isColumnFree(int column, ScheduleEntry entry, List<ScheduleEntry> dayEntries) {
-        return dayEntries.stream().noneMatch(other -> other.getDisplayColumn() == column
-                && other.getStart().isBefore(entry.getEnd()) && entry.getStart().isBefore(other.getEnd()));
-    }
-
-    private void makeLessonCard(ScheduleEntry entry, int columnSpan) {
+    private void makeLessonCard(ScheduleEntry entry) {
         int startMinute = toMinuteOfDay(entry.getStart()) - gridStartMinute;
         int endMinute = toMinuteOfDay(entry.getEnd()) - gridStartMinute;
         int startRow = startMinute / INTERVAL_MINUTE;
@@ -403,8 +383,7 @@ public class ScheduleGrid extends UiPart<GridPane> {
 
         LessonCard lessonCard = new LessonCard(entry);
         GridPane.setMargin(lessonCard.getRoot(), new Insets(topMargin, CARD_SIDE_GAP, bottomMargin, CARD_SIDE_GAP));
-        scheduleGrid.add(lessonCard.getRoot(), entry.getDisplayColumn(), 1 + startRow, columnSpan,
-                endRowExclusive - startRow);
+        scheduleGrid.add(lessonCard.getRoot(), entry.getDisplayColumn(), 1 + startRow, 1, endRowExclusive - startRow);
     }
 
     private static int toMinuteOfDay(LocalTime time) {

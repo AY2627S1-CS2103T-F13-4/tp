@@ -650,14 +650,15 @@
 }
 
 /* A lesson block, filled with its school stage's tint; the text uses the stage's ink */
+/* Sized so a one-hour block (60px) shows all three lines */
 .lesson-card {
     -fx-background-radius: 8;
-    -fx-padding: 8 10 8 10;
-    -fx-spacing: 2;
+    -fx-padding: 6 10 6 10;
+    -fx-spacing: 1;
 }
 
 .lesson-card .label {
-    -fx-font-size: 12px;
+    -fx-font-size: 11px;
 }
 
 .lesson-card .lesson-card-name {
