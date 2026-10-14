@@ -7,6 +7,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
 
+import seedu.address.commons.core.index.Index;
+
 public class CommandResultTest {
     @Test
     public void equals() {
@@ -62,12 +64,22 @@ public class CommandResultTest {
         assertNotEquals(students.hashCode(), new CommandResult("feedback", CommandResult.Screen.WEEK).hashCode());
     }
 
+    // Which student view opens is part of the result: view 1 and view 2 differ.
+    @Test
+    public void equals_differentStudentToOpen_returnsFalse() {
+        CommandResult first = new CommandResult("feedback", Index.fromOneBased(1));
+        assertTrue(first.equals(new CommandResult("feedback", Index.fromOneBased(1))));
+        assertFalse(first.equals(new CommandResult("feedback", Index.fromOneBased(2))));
+        assertFalse(first.equals(new CommandResult("feedback", CommandResult.Screen.STUDENTS)));
+    }
+
     @Test
     public void toStringMethod() {
         CommandResult commandResult = new CommandResult("feedback");
         String expected = CommandResult.class.getCanonicalName() + "{feedbackToUser="
                 + commandResult.getFeedbackToUser() + ", showHelp=" + commandResult.isShowHelp()
-                + ", exit=" + commandResult.isExit() + ", screen=" + commandResult.getScreen() + "}";
+                + ", exit=" + commandResult.isExit() + ", screen=" + commandResult.getScreen()
+                + ", studentToOpen=" + commandResult.getStudentToOpen() + "}";
         assertEquals(expected, commandResult.toString());
     }
 }

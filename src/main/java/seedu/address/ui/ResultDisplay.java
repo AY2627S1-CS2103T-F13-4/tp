@@ -3,8 +3,10 @@ package seedu.address.ui;
 import static java.util.Objects.requireNonNull;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Consumer;
 
+import javafx.beans.binding.Bindings;
 import javafx.beans.binding.DoubleExpression;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
@@ -30,7 +32,7 @@ import javafx.scene.text.Text;
 public class ResultDisplay extends UiPart<Region> {
 
     static final String WELCOME_MESSAGE = "Type a command below and press Enter. "
-            + "Try list, find NAME, or help (F1) for all commands.";
+            + "Try week, list, view INDEX, or help (F1) for all commands.";
 
     private static final String FXML = "ResultDisplay.fxml";
     private static final String SUCCESS_STYLE_CLASS = "result-success";
@@ -39,6 +41,11 @@ public class ResultDisplay extends UiPart<Region> {
     private static final double CAPTION_WIDTH = 64;
     /** Room for the scroll pane's vertical bar, so wrapped text never sits under it. */
     private static final double SCROLL_BAR_ALLOWANCE = 14;
+    /** Width of the "Tab to use" hint after an example. */
+    private static final double TAB_HINT_WIDTH = 84;
+    /** Smallest height the result may grow to before scrolling, and its share of the window above that. */
+    private static final double MIN_MAX_HEIGHT = 132;
+    private static final double WINDOW_SHARE = 0.4;
     /** Longest success message shown beside the recent commands; longer ones need the row's full width. */
     private static final int MAX_RECENT_ROW_MESSAGE = 60;
 
@@ -52,6 +59,7 @@ public class ResultDisplay extends UiPart<Region> {
     private VBox resultContent;
 
     private List<String> recent = List.of();
+    private Optional<String> example = Optional.empty();
     private Consumer<String> onRecentPicked = command -> { };
 
     /**
@@ -61,6 +69,14 @@ public class ResultDisplay extends UiPart<Region> {
         super(FXML);
         resultIcon.setText("i");
         render(WELCOME_MESSAGE);
+        // Long messages, such as a command's full usage, may take up to 40% of the window before they scroll,
+        // so they can be read without the mouse wheel.
+        resultScroll.sceneProperty().addListener((unused, oldScene, scene) -> {
+            if (scene != null) {
+                resultScroll.maxHeightProperty().bind(
+                        Bindings.max(MIN_MAX_HEIGHT, scene.heightProperty().multiply(WINDOW_SHARE)));
+            }
+        });
     }
 
     /**
@@ -91,7 +107,15 @@ public class ResultDisplay extends UiPart<Region> {
         show(errorMessage, ERROR_STYLE_CLASS, "!");
     }
 
+    /**
+     * Returns the example command shown with the last usage error, if any, for Tab to put in the command box.
+     */
+    public Optional<String> getExample() {
+        return example;
+    }
+
     private void show(String message, String styleClass, String icon) {
+        example = Optional.empty();
         resultRow.getStyleClass().removeAll(SUCCESS_STYLE_CLASS, ERROR_STYLE_CLASS);
         resultRow.getStyleClass().add(styleClass);
         resultIcon.setText(icon);
@@ -148,7 +172,7 @@ public class ResultDisplay extends UiPart<Region> {
                 case TITLE -> text(line.text(), lines.size() > 1 ? "result-heading" : "result-title", textWidth);
                 case TEXT -> text(line.text(), "result-text", textWidth);
                 case FORMAT -> labelled("Format", line.text(), textWidth);
-                case EXAMPLE -> labelled("Example", line.text(), textWidth);
+                case EXAMPLE -> exampleRow(line.text(), textWidth);
             });
         }
         resultScroll.setVvalue(0);
@@ -159,6 +183,28 @@ public class ResultDisplay extends UiPart<Region> {
         text.getStyleClass().add(styleClass);
         text.wrappingWidthProperty().bind(width);
         return text;
+    }
+
+    /**
+     * Returns the Example line with a "Tab to use" hint. The first example becomes the one Tab puts in the box.
+     */
+    private Node exampleRow(String command, DoubleExpression width) {
+        boolean usedByTab = example.isEmpty();
+        if (usedByTab) {
+            example = Optional.of(command);
+        }
+        HBox row = (HBox) labelled("Example", command, usedByTab ? width.subtract(TAB_HINT_WIDTH) : width);
+        if (usedByTab) {
+            Label key = new Label("Tab");
+            key.getStyleClass().add("keycap");
+            Label action = new Label("to use");
+            action.getStyleClass().add("key-hint");
+            HBox hint = new HBox(6, key, action);
+            hint.setAlignment(Pos.CENTER_LEFT);
+            hint.setMinWidth(Region.USE_PREF_SIZE);
+            row.getChildren().add(hint);
+        }
+        return row;
     }
 
     /**
@@ -175,7 +221,7 @@ public class ResultDisplay extends UiPart<Region> {
         row.setAlignment(Pos.BASELINE_LEFT);
         row.getStyleClass().add("result-command-row");
         row.setCursor(Cursor.HAND);
-        Tooltip.install(row, new Tooltip("Click to copy"));
+        Tooltip.install(row, new Tooltip("Click to copy. Press Tab to put an example in the command box."));
         row.setOnMouseClicked(event -> {
             ClipboardContent content = new ClipboardContent();
             content.putString(command);

@@ -9,7 +9,7 @@
       xmlns:fx="http://javafx.com/fxml/1">
   <Label text="&gt;" styleClass="command-prompt" />
   <TextField fx:id="commandTextField" onAction="#handleCommandEntered" HBox.hgrow="ALWAYS"
-             promptText="Type a command, e.g. list or find alex" />
+             promptText="Type a command, e.g. week, list, view 1 or help" />
   <!-- Shortcut hints, shown while the box is empty -->
   <HBox fx:id="keyHints" alignment="CENTER" spacing="6">
     <minWidth>
@@ -18,9 +18,8 @@
     <Label text="↑↓" styleClass="keycap" />
     <Label text="History" styleClass="key-hint" />
     <Label text="Alt ↑↓" styleClass="keycap" />
-    <Label text="Details" styleClass="key-hint" />
-    <Label text="PgUp PgDn" styleClass="keycap" />
-    <Label text="Scroll" styleClass="key-hint" />
+    <!-- What Alt+Up/Down does on the current screen, set by MainWindow -->
+    <Label fx:id="altHint" text="Details" styleClass="key-hint" />
     <Label text="Esc" styleClass="keycap" />
     <Label text="Clear" styleClass="key-hint" />
     <Label text="F1" styleClass="keycap" />

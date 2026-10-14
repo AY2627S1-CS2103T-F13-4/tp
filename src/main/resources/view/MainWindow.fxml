@@ -55,7 +55,7 @@
             <StackPane fx:id="personListPanelPlaceholder" VBox.vgrow="ALWAYS" minHeight="0" />
             <!-- Command panel: the latest result above the input, docked at the bottom.
                  minHeight -Infinity (USE_PREF_SIZE) keeps it whole; the list shrinks instead. -->
-            <VBox styleClass="command-panel" VBox.vgrow="NEVER" minHeight="-Infinity">
+            <VBox fx:id="commandPanel" styleClass="command-panel" VBox.vgrow="NEVER" minHeight="-Infinity">
               <VBox.margin>
                 <Insets right="24" bottom="12" left="24" />
               </VBox.margin>
