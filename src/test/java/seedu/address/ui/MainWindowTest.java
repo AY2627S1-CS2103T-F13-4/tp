@@ -36,6 +36,9 @@ import javafx.stage.Stage;
 import javafx.stage.Window;
 import javafx.stage.WindowEvent;
 import seedu.address.logic.LogicManager;
+import seedu.address.logic.commands.HelpCommand;
+import seedu.address.logic.commands.ListCommand;
+import seedu.address.logic.commands.WeekCommand;
 import seedu.address.model.ModelManager;
 import seedu.address.model.person.HourlyRate;
 import seedu.address.model.person.Lesson;
@@ -172,6 +175,24 @@ public class MainWindowTest {
 
             submitCommand("edit 1 level/P5");
             assertEquals(List.of("P5"), levelFilterNames());
+        });
+    }
+
+    // Each tab shows the command it runs, so mouse users learn the commands; the hint is fixed text in the FXML,
+    // so it must still match the command word, and pressing the tab must do what typing that command does.
+    @Test
+    public void tabs_showAndRunTheirCommands() throws Exception {
+        runOnFxThread(() -> {
+            assertEquals(WeekCommand.COMMAND_WORD, navHint("#weekNav"));
+            assertEquals(ListCommand.COMMAND_WORD, navHint("#studentsNav"));
+            assertEquals(HelpCommand.COMMAND_WORD, navHint("#helpNav"));
+
+            Button studentsTab = assertInstanceOf(Button.class, stage.getScene().lookup("#studentsNav"));
+            studentsTab.fire();
+            assertTrue(isShown(studentTable()));
+            Button weekTab = assertInstanceOf(Button.class, stage.getScene().lookup("#weekNav"));
+            weekTab.fire();
+            assertTrue(isShown(schedulePlaceholder()));
         });
     }
 
@@ -469,6 +490,13 @@ public class MainWindowTest {
 
     private void pressKey(KeyCode code, boolean alt) {
         commandField().fireEvent(new KeyEvent(KeyEvent.KEY_PRESSED, "", "", code, false, false, alt, false));
+    }
+
+    /** Returns a tab's command hint, checking it is in the command font like the command box. */
+    private String navHint(String tabId) {
+        Label hint = (Label) stage.getScene().lookup(tabId).lookup(".nav-hint");
+        assertEquals(MonospaceFont.style(), hint.getStyle(), tabId);
+        return hint.getText();
     }
 
     private void assertActiveNav(String activeId) {

@@ -11,13 +11,10 @@ import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
 
-import seedu.address.model.person.Guardian;
 import seedu.address.model.person.HourlyRate;
 import seedu.address.model.person.Lesson;
 import seedu.address.model.person.LessonLocation;
 import seedu.address.model.person.LessonMode;
-import seedu.address.model.person.Name;
-import seedu.address.model.person.Phone;
 import seedu.address.model.person.Student;
 import seedu.address.model.person.Subject;
 import seedu.address.model.person.WeeklyLessonSlot;
@@ -35,13 +32,12 @@ public class StudentCardTextTest {
             new HourlyRate(new BigDecimal("45.5")), Optional.of(new LessonLocation("Tampines Library")),
             Optional.of(LessonMode.PHYSICAL));
 
-    // A student without lessons or a guardian must produce nothing, so the card shows a muted placeholder.
+    // A student without lessons must produce nothing, so the card shows a muted placeholder.
     @Test
     public void unrecordedDetails_areEmpty() {
         Student student = new PersonBuilder().build();
         assertEquals(List.of(), StudentCardText.lessons(student));
         assertEquals(Optional.empty(), StudentCardText.subjects(student));
-        assertEquals(Optional.empty(), StudentCardText.guardian(student));
     }
 
     // lesson-edit and lesson-delete take LESSON_INDEX, so the card must number lessons from 1 in stored order.
@@ -99,12 +95,5 @@ public class StudentCardTextTest {
         assertEquals("AT", StudentCardText.initials("Alex Tan"));
         assertEquals("MH", StudentCardText.initials("muhammad hafiz bin abdul"));
         assertEquals("M", StudentCardText.initials("Madonna"));
-    }
-
-    @Test
-    public void guardian_showsNameAndPhone() {
-        Student student = new PersonBuilder()
-                .withGuardian(new Guardian(new Name("Janet Tan"), new Phone("91234567"))).build();
-        assertEquals(Optional.of("Janet Tan (91234567)"), StudentCardText.guardian(student));
     }
 }
