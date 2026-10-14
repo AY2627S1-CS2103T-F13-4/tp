@@ -3,6 +3,7 @@ package seedu.address.ui;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.logging.Logger;
 
 import javafx.beans.binding.Bindings;
@@ -29,6 +30,9 @@ import seedu.address.model.person.Student;
  * Panel containing the table of students.
  */
 public class PersonListPanel extends UiPart<Region> {
+    /** Part of the visible height scrolled per page, leaving some overlap for context; also used by the week. */
+    static final double PAGE_FRACTION = 0.85;
+
     private static final String FXML = "PersonListPanel.fxml";
     /** Below this list width the Subjects and Guardian columns are hidden; the details still show them. */
     private static final double WIDE_TABLE_WIDTH = 900;
@@ -40,8 +44,6 @@ public class PersonListPanel extends UiPart<Region> {
     private static final double CHROME_NARROW = 26 + 3 * 20 + 32 + 14;
     /** Width of the list not available to a row's details: row padding, the details' indent and the scroll bar. */
     private static final double DETAILS_CHROME_WIDTH = 100;
-    /** Part of the visible height scrolled per page, leaving some overlap for context. */
-    private static final double PAGE_FRACTION = 0.85;
     private static final Map<Stage, String> STAGE_NAMES = Map.of(
             Stage.PRIMARY, "Primary", Stage.SECONDARY, "Secondary", Stage.JC, "JC", Stage.OTHER, "Other");
 
@@ -68,9 +70,12 @@ public class PersonListPanel extends UiPart<Region> {
 
     private Runnable onAddStudent = () -> { };
 
-    private final Label emptyTitle = new Label();
-    private final Label emptyDetail = new Label();
-    private final Label emptyCommand = new Label();
+    @FXML
+    private Label emptyTitle;
+    @FXML
+    private Label emptyDetail;
+    @FXML
+    private Label emptyCommand;
     private final Columns columns;
     /** The student whose details were open just before the list last changed. */
     private Student openBeforeChange;
@@ -86,11 +91,11 @@ public class PersonListPanel extends UiPart<Region> {
         columns = new Columns(column(listWidth, 0.30, 0.50), column(listWidth, 0.22, 0),
                 column(listWidth, 0.20, 0.34), column(listWidth, 0.08, 0.16), column(listWidth, 0.20, 0),
                 listWidth.subtract(DETAILS_CHROME_WIDTH), wide);
-        size(nameHeading, columns.name());
-        size(subjectsHeading, columns.subjects());
-        size(lessonHeading, columns.lesson());
-        size(rateHeading, columns.rate());
-        size(guardianHeading, columns.guardian());
+        PersonCard.size(nameHeading, columns.name());
+        PersonCard.size(subjectsHeading, columns.subjects());
+        PersonCard.size(lessonHeading, columns.lesson());
+        PersonCard.size(rateHeading, columns.rate());
+        PersonCard.size(guardianHeading, columns.guardian());
         for (Label optional : new Label[] {subjectsHeading, guardianHeading}) {
             optional.visibleProperty().bind(wide);
             optional.managedProperty().bind(wide);
@@ -102,15 +107,7 @@ public class PersonListPanel extends UiPart<Region> {
         personListView.setItems(personList);
         personListView.setCellFactory(listView -> new PersonListViewCell());
 
-        emptyTitle.getStyleClass().add("empty-title");
-        emptyDetail.getStyleClass().add("empty-detail");
-        emptyDetail.setWrapText(true);
-        emptyCommand.getStyleClass().add("empty-command");
         emptyCommand.setStyle(MonospaceFont.style());
-        emptyCommand.setWrapText(true);
-        VBox emptyState = new VBox(emptyTitle, emptyDetail, emptyCommand);
-        emptyState.getStyleClass().add("empty-state");
-        personListView.setPlaceholder(emptyState);
 
         personList.addListener(this::followOpenStudent);
         ListChangeListener<Student> refresh = change -> {
@@ -138,12 +135,7 @@ public class PersonListPanel extends UiPart<Region> {
             return;
         }
         int current = personListView.getSelectionModel().getSelectedIndex();
-        int next = current < 0 ? (direction > 0 ? 0 : size - 1) : Math.max(0, Math.min(size - 1, current + direction));
-        personListView.getSelectionModel().select(next);
-        VirtualFlow<?> flow = (VirtualFlow<?>) personListView.lookup(".virtual-flow");
-        if (flow != null) {
-            flow.scrollTo(next);
-        }
+        openStudent(current < 0 ? (direction > 0 ? 0 : size - 1) : Math.clamp(current + direction, 0, size - 1));
     }
 
     /**
@@ -151,10 +143,7 @@ public class PersonListPanel extends UiPart<Region> {
      */
     public void openStudent(int zeroBasedIndex) {
         personListView.getSelectionModel().select(zeroBasedIndex);
-        VirtualFlow<?> flow = (VirtualFlow<?>) personListView.lookup(".virtual-flow");
-        if (flow != null) {
-            flow.scrollTo(zeroBasedIndex);
-        }
+        withFlow(flow -> flow.scrollTo(zeroBasedIndex));
     }
 
     /** Sets what the Add student button does. */
@@ -177,9 +166,14 @@ public class PersonListPanel extends UiPart<Region> {
      * Lets keyboard users page through the list while focus stays in the command box.
      */
     public void scrollPage(int direction) {
+        withFlow(flow -> flow.scrollPixels(Math.signum(direction) * flow.getHeight() * PAGE_FRACTION));
+    }
+
+    /** Runs {@code action} on the list's scrolling area, which exists once the list has been shown. */
+    private void withFlow(Consumer<VirtualFlow<?>> action) {
         VirtualFlow<?> flow = (VirtualFlow<?>) personListView.lookup(".virtual-flow");
         if (flow != null) {
-            flow.scrollPixels(Math.signum(direction) * flow.getHeight() * PAGE_FRACTION);
+            action.accept(flow);
         }
     }
 
@@ -222,12 +216,6 @@ public class PersonListPanel extends UiPart<Region> {
             double free = Math.max(0, listWidth.get() - (wide ? CHROME_WIDE : CHROME_NARROW));
             return free * (wide ? wideShare : narrowShare);
         }, listWidth);
-    }
-
-    private static void size(Region cell, DoubleExpression width) {
-        cell.minWidthProperty().bind(width);
-        cell.prefWidthProperty().bind(width);
-        cell.maxWidthProperty().bind(width);
     }
 
     private void updateStatus(int shown, int total) {

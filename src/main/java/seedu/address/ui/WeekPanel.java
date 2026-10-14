@@ -26,8 +26,6 @@ public class WeekPanel extends UiPart<Region> {
     static final String EMPTY_COMMAND = "lesson-add 1 subject/Math slot/Wed 1.00pm 5.00pm rate/45.50";
 
     private static final String FXML = "WeekPanel.fxml";
-    /** Share of the visible height that Page Up and Page Down scroll, as in the student table. */
-    private static final double PAGE_FRACTION = 0.85;
     /** How far down the visible calendar the current time is placed when it opens. */
     private static final double NOW_POSITION = 0.25;
 
@@ -87,9 +85,9 @@ public class WeekPanel extends UiPart<Region> {
         if (contentHeight <= viewportHeight) {
             return;
         }
-        double step = viewportHeight * PAGE_FRACTION / (contentHeight - viewportHeight);
+        double step = viewportHeight * PersonListPanel.PAGE_FRACTION / (contentHeight - viewportHeight);
         double next = scheduleScroll.getVvalue() + Math.signum(direction) * step;
-        scheduleScroll.setVvalue(Math.max(0, Math.min(1, next)));
+        scheduleScroll.setVvalue(Math.clamp(next, 0, 1));
     }
 
     /**
@@ -106,7 +104,7 @@ public class WeekPanel extends UiPart<Region> {
                 return;
             }
             double target = offset.getAsDouble() - scheduleScroll.getViewportBounds().getHeight() * NOW_POSITION;
-            scheduleScroll.setVvalue(Math.max(0, Math.min(1, target / hidden)));
+            scheduleScroll.setVvalue(Math.clamp(target / hidden, 0, 1));
         });
     }
 

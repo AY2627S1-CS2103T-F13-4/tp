@@ -120,8 +120,4 @@ final class StudentCardText {
         return line.rate().replace("SGD ", "$");
     }
 
-    /** Returns the guardian's name and phone, e.g. "Janet Tan (91234567)", or empty if none is recorded. */
-    static Optional<String> guardian(Student student) {
-        return student.getGuardian().map(guardian -> guardian.getName() + " (" + guardian.getPhone() + ")");
-    }
 }

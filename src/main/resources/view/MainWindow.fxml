@@ -53,8 +53,22 @@
           </VBox>
           <!-- Navigation under the command bar: every item runs the command it shows -->
           <HBox fx:id="navBar" styleClass="nav-bar" alignment="CENTER_LEFT" spacing="4" minHeight="-Infinity">
-            <Button fx:id="weekNav" styleClass="nav-item" onAction="#handleShowWeek" />
-            <Button fx:id="studentsNav" styleClass="nav-item" onAction="#handleListStudents" />
+            <Button fx:id="weekNav" styleClass="nav-item" onAction="#handleShowWeek" focusTraversable="false">
+              <graphic>
+                <HBox alignment="CENTER_LEFT" spacing="8">
+                  <Label text="This week" styleClass="nav-label" minWidth="-Infinity" />
+                  <Label text="week" styleClass="nav-hint" minWidth="-Infinity" />
+                </HBox>
+              </graphic>
+            </Button>
+            <Button fx:id="studentsNav" styleClass="nav-item" onAction="#handleListStudents" focusTraversable="false">
+              <graphic>
+                <HBox alignment="CENTER_LEFT" spacing="8">
+                  <Label text="Students" styleClass="nav-label" minWidth="-Infinity" />
+                  <Label text="list" styleClass="nav-hint" minWidth="-Infinity" />
+                </HBox>
+              </graphic>
+            </Button>
             <!-- One chip per schooling level in use, each running find level/LEVEL (filled by MainWindow) -->
             <HBox fx:id="levelNav" alignment="CENTER_LEFT" spacing="4" minWidth="0">
               <Region styleClass="nav-divider">
@@ -64,7 +78,14 @@
               </Region>
             </HBox>
             <Region HBox.hgrow="ALWAYS" />
-            <Button fx:id="helpNav" styleClass="nav-item" onAction="#handleHelp" minWidth="-Infinity" />
+            <Button fx:id="helpNav" styleClass="nav-item" onAction="#handleHelp" focusTraversable="false" minWidth="-Infinity">
+              <graphic>
+                <HBox alignment="CENTER_LEFT" spacing="8">
+                  <Label text="All commands" styleClass="nav-label" minWidth="-Infinity" />
+                  <Label text="help" styleClass="nav-hint" minWidth="-Infinity" />
+                </HBox>
+              </graphic>
+            </Button>
           </HBox>
           <!-- Holds both screens, the week's lessons and the student table; one shows at a time -->
           <StackPane fx:id="personListPanelPlaceholder" VBox.vgrow="ALWAYS" minHeight="0" />

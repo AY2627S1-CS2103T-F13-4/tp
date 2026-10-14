@@ -125,7 +125,7 @@ public class PersonCard extends UiPart<Region> {
 
         String stageClass = person.getSchoolingLevel()
                 .map(level -> STAGE_STYLE_CLASSES.get(SchoolingLevel.stageOf(level.toString())))
-                .orElse("level-other");
+                .orElse(NO_STAGE_STYLE_CLASS);
         initials.getStyleClass().add(stageClass);
         if (person.getSchoolingLevel().isPresent()) {
             schoolingLevel.setText(person.getSchoolingLevel().get().toString());
@@ -323,7 +323,8 @@ public class PersonCard extends UiPart<Region> {
         return new VBox(8, label, content);
     }
 
-    private static void size(Region cell, DoubleExpression width) {
+    /** Fixes {@code cell} to {@code width}, so it lines up with its column. */
+    static void size(Region cell, DoubleExpression width) {
         cell.minWidthProperty().bind(width);
         cell.prefWidthProperty().bind(width);
         cell.maxWidthProperty().bind(width);

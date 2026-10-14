@@ -42,7 +42,6 @@ import seedu.address.logic.Logic;
 import seedu.address.logic.commands.AddCommand;
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.FindCommand;
-import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.commands.WeekCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
@@ -258,9 +257,9 @@ public class MainWindow extends UiPart<Stage> {
      * students change.
      */
     private void fillNavigation() {
-        navItem(weekNav, null, "This week", WeekCommand.COMMAND_WORD);
-        navItem(studentsNav, null, "Students", ListCommand.COMMAND_WORD);
-        navItem(helpNav, null, "All commands", HelpCommand.COMMAND_WORD);
+        for (Button tab : List.of(weekNav, studentsNav, helpNav)) {
+            tab.getGraphic().lookup(".nav-hint").setStyle(MonospaceFont.style());
+        }
         ObservableList<Student> students = logic.getAddressBook().getPersonList();
         students.addListener((ListChangeListener<Student>) change -> fillLevelNav(students));
         fillLevelNav(students);
@@ -281,7 +280,7 @@ public class MainWindow extends UiPart<Stage> {
                     item.getStyleClass().addAll("nav-item", "level-chip");
                     String command = FindCommand.COMMAND_WORD + " " + PREFIX_LEVEL + level;
                     // Chips stay short, so the command they run shows on hover instead
-                    navItem(item, PersonCard.stageStyleClass(level), level, null);
+                    levelChip(item, PersonCard.stageStyleClass(level), level);
                     item.setTooltip(new Tooltip(command));
                     item.setOnAction(event -> commandBox.submit(command));
                     item.boundsInParentProperty().addListener((unused, oldBounds, newBounds) -> hideCutOffFilters());
@@ -300,28 +299,16 @@ public class MainWindow extends UiPart<Stage> {
         }
     }
 
-    /** Lays out a navigation item: an optional coloured dot, its label, and the command it runs if given. */
-    private static void navItem(Button item, String dotStyleClass, String label, String command) {
-        HBox content = new HBox(8);
-        content.setAlignment(Pos.CENTER_LEFT);
-        if (dotStyleClass != null) {
-            Region dot = new Region();
-            dot.getStyleClass().addAll("nav-dot", dotStyleClass);
-            content.getChildren().add(dot);
-        }
+    /** Lays out a level filter: a dot in its stage's colour and the level. */
+    private static void levelChip(Button item, String dotStyleClass, String label) {
+        Region dot = new Region();
+        dot.getStyleClass().addAll("nav-dot", dotStyleClass);
         Label name = new Label(label);
         name.getStyleClass().add("nav-label");
         name.setMinWidth(Region.USE_PREF_SIZE);
-        content.getChildren().add(name);
-        if (command != null) {
-            Label hint = new Label(command);
-            hint.getStyleClass().add("nav-hint");
-            hint.setStyle(MonospaceFont.style());
-            hint.setMinWidth(Region.USE_PREF_SIZE);
-            content.getChildren().add(hint);
-        }
+        HBox content = new HBox(8, dot, name);
+        content.setAlignment(Pos.CENTER_LEFT);
         item.setGraphic(content);
-        item.setText(null);
         item.setFocusTraversable(false);
     }
 
