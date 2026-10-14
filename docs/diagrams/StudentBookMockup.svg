@@ -43,6 +43,6 @@
     <rect x="1177" y="254" width="8" height="674" rx="4" fill="#e1e5ea"/>
     <rect x="1177" y="254" width="8" height="210" rx="4" fill="#aeb9c7"/>
     <text x="22" y="963" font-size="17" fill="#5e6978">2 students</text>
-    <text x="1178" y="963" text-anchor="end" font-size="17" fill="#5e6978">data/addressbook.json</text>
+    <text x="1178" y="963" text-anchor="end" font-size="17" fill="#5e6978">data/studentbook.json</text>
   </g>
 </svg>
