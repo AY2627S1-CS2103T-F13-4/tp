@@ -214,6 +214,42 @@ public class ScheduleWorkflowTest {
         });
     }
 
+    @Test
+    public void find_combinedCriteriaAndViewSwitch_showOnlyMatchingLessons() throws Exception {
+        callOnFxThread(() -> {
+            logic.execute("lesson-add 1 subject/Math slot/Tue 9.00am 10.00am rate/45");
+            logic.execute("lesson-add 1 subject/English slot/Wed 9.00am 10.00am rate/45");
+            logic.execute("lesson-add 2 subject/Math slot/Wed 10.00am 11.00am rate/50");
+            logic.execute("lesson-add 2 subject/English slot/Thu 10.00am 11.00am rate/50");
+            logic.execute("edit 1 level/Primary 5");
+            logic.execute("edit 2 level/Secondary 3");
+
+            // Alice has both the requested subject and day, but in different lessons.
+            logic.execute("find level/Secondary subject/math day/wed");
+            assertEquals(List.of("Bob"), model.getFilteredPersonList().stream()
+                    .map(student -> student.getName().fullName).toList());
+            logic.execute("week");
+            assertEquals(1, cards().size());
+            card("Bob", "Math");
+
+            // Both searches show the same students, so the calendar must also observe the lesson criterion.
+            logic.execute("find subject/english");
+            assertEquals(2, model.getFilteredPersonList().size());
+            assertEquals(2, cards().size());
+            card("Alice", "English");
+            card("Bob", "English");
+            logic.execute("find subject/math");
+            assertEquals(2, model.getFilteredPersonList().size());
+            assertEquals(2, cards().size());
+            card("Alice", "Math");
+            card("Bob", "Math");
+
+            logic.execute("list");
+            assertEquals(4, cards().size());
+            return null;
+        });
+    }
+
     private void connectSchedule(ReadOnlyAddressBook book) {
         if (schedule != null) {
             schedule.dispose();
@@ -221,7 +257,7 @@ public class ScheduleWorkflowTest {
         model = new ModelManager(book, new UserPrefs());
         logic = new LogicManager(model, new StorageManager(storage,
                 new JsonUserPrefsStorage(temporaryFolder.resolve("preferences.json"))));
-        schedule = new ScheduleGrid(logic.getFilteredPersonList());
+        schedule = new ScheduleGrid(logic.getFilteredPersonList(), logic.getLessonPredicate());
     }
 
     private List<Region> cards() {

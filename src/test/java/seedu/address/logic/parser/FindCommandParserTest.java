@@ -2,6 +2,7 @@ package seedu.address.logic.parser;
 
 import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_LEVEL;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_SUBJECT;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseFailure;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseSuccess;
 
@@ -55,6 +56,24 @@ public class FindCommandParserTest {
     @Test
     public void parse_levelPrefixInsideWord_treatedAsNameKeyword() {
         assertParseSuccess(parser, "bil/l", new FindCommand(new NameContainsKeywordsPredicate(List.of("bil/l"))));
+    }
+
+    @Test
+    public void parse_lessonCriteria_acceptsSubjectDayAndLevel() throws Exception {
+        parser.parse(" subject/math day/wed");
+        parser.parse(" day/Wednesday subject/Math level/Secondary");
+        parser.parse(" day/mon");
+    }
+
+    @Test
+    public void parse_invalidLessonCriteria_throwsParseException() {
+        String invalid = String.format(MESSAGE_INVALID_COMMAND_FORMAT, FindCommand.MESSAGE_USAGE);
+        assertParseFailure(parser, " subject/", invalid);
+        assertParseFailure(parser, " day/Funday", invalid);
+        assertParseFailure(parser, " level/Primary subject/", invalid);
+        assertParseFailure(parser, " alice subject/Math", invalid);
+        assertParseFailure(parser, " subject/Math subject/English",
+                Messages.getErrorMessageForDuplicatePrefixes(PREFIX_SUBJECT));
     }
 
 }

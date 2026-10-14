@@ -128,16 +128,18 @@ public class MainWindowTest {
             assertTrue(isShown(studentTable()));
             assertFalse(isShown(schedulePlaceholder()));
 
-            // Every student is listed again, so the numbers on the calendar match command indices.
+            // The week keeps the search; its numbers still match the shown student list.
             submitCommand("week");
             assertTrue(isShown(schedulePlaceholder()));
             assertFalse(isShown(studentTable()));
-            assertEquals(2, model.getFilteredPersonList().size());
-            assertEquals(List.of("Alice", "Bob"), cardNames(scheduleGrid()));
+            assertEquals(1, model.getFilteredPersonList().size());
+            assertEquals(List.of("Bob"), cardNames(scheduleGrid()));
 
             submitCommand("list");
             assertTrue(isShown(studentTable()));
             assertActiveNav("#studentsNav");
+            assertEquals(List.of("Alice", "Bob"), model.getFilteredPersonList().stream()
+                    .map(student -> student.getName().fullName).toList());
 
             // A rejected command leaves the screen where it was.
             TextField commandField = commandField();

@@ -1,7 +1,6 @@
 package seedu.address.logic.commands;
 
 import static java.util.Objects.requireNonNull;
-import static seedu.address.model.Model.PREDICATE_SHOW_ALL_PERSONS;
 
 import seedu.address.model.Model;
 
@@ -17,9 +16,7 @@ public class WeekCommand extends Command {
     @Override
     public CommandResult execute(Model model) {
         requireNonNull(model);
-        // The calendar labels each lesson with its student's number, so every student must be listed
-        // for those numbers to match the indices that commands use.
-        model.updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS);
+        // Keep the current find results; calendar numbers use the same displayed student list.
         return new CommandResult(MESSAGE_SUCCESS, CommandResult.Screen.WEEK);
     }
 }

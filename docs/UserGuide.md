@@ -117,7 +117,7 @@ Shows every student in the **Students** table and clears any active search filte
 
 Format: `week`
 
-Shows the **This week** calendar with every student's lessons. It also clears any search, so the numbers on the lessons match the indices that commands use. The app opens on this screen.
+Shows the **This week** calendar. After `find`, it keeps the search and shows only matching lessons; otherwise it shows every student's lessons. Use `list` to clear the search. The app opens on this screen.
 
 ### See a student's details: `view`
 
@@ -146,9 +146,9 @@ Examples:
 * `edit 2 name/Mei Ling tag/` changes the second displayed student's name and clears their tags.
 * `edit 1 level/Primary 6` changes the first displayed student's schooling level.
 
-### Find students by name or schooling level: `find`
+### Find students by name, schooling level or lesson: `find`
 
-Format: `find KEYWORD [MORE_KEYWORDS]` or `find level/TEXT`
+Format: `find KEYWORD [MORE_KEYWORDS]` or `find [level/TEXT] [subject/TEXT] [day/DAY]`
 
 The matching students show in the **Students** table.
 
@@ -157,9 +157,13 @@ Without `level/`, searches names for whole words, ignoring letter case. A studen
 * `find John` matches `John Doe`, but not `Johnny`.
 * `find alex david` matches names containing `Alex` or `David`.
 
-Use `find level/TEXT` to search schooling levels, ignoring letter case. Partial matches are allowed: `find level/prim` matches `Primary 5`. Students without a level are excluded. Supply one non-empty `level/` value; it cannot be combined with name keywords.
+Use `find level/TEXT` to search schooling levels, ignoring letter case. Partial matches are allowed: `find level/prim` matches `Primary 5`. Students without a level are excluded.
 
-Subject, phone and other fields are not searched.
+Use `subject/` to match part of a lesson's subject, ignoring case, and `day/` with a short or full weekday name (`Mon` to `Sun`). Combine prefixes in any order; every supplied criterion must match, and subject and day must match the **same lesson**. For example, `find level/Secondary subject/math day/wed` finds secondary students with a Wednesday Math lesson. Name keywords cannot be combined with prefixes. Empty or repeated prefixes and invalid days are rejected.
+
+`find` opens the Students table. `week` then shows only the matching lessons on the calendar; lesson numbers still refer to their positions in each student's full lesson list. `list` clears the search.
+
+Phone and other contact fields are not searched.
 
 ![Name search results](images/findAlexDavidResult.png)
 
@@ -287,7 +291,7 @@ If the file is invalid, the app starts with an empty list. The invalid file rema
 | Add | `add name/NAME phone/PHONE_NUMBER email/EMAIL address/ADDRESS [tag/TAG]... [level/SCHOOLING_LEVEL]` |
 | Edit | `edit INDEX [name/NAME] [phone/PHONE_NUMBER] [email/EMAIL] [address/ADDRESS] [tag/TAG]... [level/SCHOOLING_LEVEL]` |
 | Clear schooling level | `edit INDEX level/` |
-| Find | `find KEYWORD [MORE_KEYWORDS]` or `find level/TEXT` |
+| Find | `find KEYWORD [MORE_KEYWORDS]` or `find [level/TEXT] [subject/TEXT] [day/DAY]` |
 | List | `list` |
 | This week's lessons | `week` |
 | A student's details | `view INDEX` |

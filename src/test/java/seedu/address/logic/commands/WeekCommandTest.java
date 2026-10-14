@@ -31,11 +31,10 @@ public class WeekCommandTest {
         assertCommandSuccess(new WeekCommand(), model, SHOWS_WEEK, expectedModel);
     }
 
-    // The calendar numbers lessons by the student's index, so after a find the week must list everyone
-    // again; otherwise "#1.1" on a block would not be the student that lesson-edit 1 1 changes.
     @Test
-    public void execute_listFiltered_listsEveryStudentAgain() {
+    public void execute_listFiltered_keepsSearch() {
         showPersonAtIndex(model, INDEX_FIRST_PERSON);
+        showPersonAtIndex(expectedModel, INDEX_FIRST_PERSON);
         assertCommandSuccess(new WeekCommand(), model, SHOWS_WEEK, expectedModel);
     }
 }

@@ -199,7 +199,7 @@ public class MainWindow extends UiPart<Stage> {
         resultDisplayPlaceholder.getChildren().add(resultDisplay.getRoot());
 
         disposeWeekPanel();
-        weekPanel = new WeekPanel(logic.getFilteredPersonList());
+        weekPanel = new WeekPanel(logic.getFilteredPersonList(), logic.getLessonPredicate());
         personListPanelPlaceholder.getChildren().add(weekPanel.getRoot());
 
         StatusBarFooter statusBarFooter = new StatusBarFooter(dataFilePath);

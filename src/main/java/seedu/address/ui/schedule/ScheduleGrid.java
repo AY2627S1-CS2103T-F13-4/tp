@@ -17,11 +17,15 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.OptionalDouble;
 import java.util.PriorityQueue;
+import java.util.function.Predicate;
 
 import javafx.animation.Animation;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
@@ -38,6 +42,7 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.RowConstraints;
 import javafx.scene.layout.StackPane;
 import javafx.util.Duration;
+import seedu.address.model.Model;
 import seedu.address.model.person.Lesson;
 import seedu.address.model.person.Student;
 import seedu.address.model.person.WeeklyLessonSlot;
@@ -69,8 +74,10 @@ public class ScheduleGrid extends UiPart<GridPane> {
     private static final double NOW_DOT_SIZE = 8;
 
     private final ObservableList<Student> students;
+    private final ObservableValue<Predicate<Lesson>> lessonPredicate;
     private final Clock clock;
     private final ListChangeListener<Student> studentListListener = change -> refreshSchedule();
+    private final ChangeListener<Predicate<Lesson>> filterListener = (unused, oldValue, newValue) -> refreshSchedule();
     private final Map<DayOfWeek, ObservableList<ScheduleEntry>> entriesByDay = new EnumMap<>(DayOfWeek.class);
     /** How many columns each day uses, in order; a day with overlapping lessons uses more than one. */
     private final List<Integer> dayColumnCounts = new ArrayList<>();
@@ -97,7 +104,12 @@ public class ScheduleGrid extends UiPart<GridPane> {
      * Creates a {@code ScheduleGrid} for the current week by the system clock.
      */
     public ScheduleGrid(ObservableList<Student> personList) {
-        this(personList, Clock.systemDefaultZone());
+        this(personList, new SimpleObjectProperty<>(Model.PREDICATE_SHOW_ALL_LESSONS), Clock.systemDefaultZone());
+    }
+
+    /** Creates a calendar that follows the active lesson filter. */
+    public ScheduleGrid(ObservableList<Student> personList, ObservableValue<Predicate<Lesson>> lessonPredicate) {
+        this(personList, lessonPredicate, Clock.systemDefaultZone());
     }
 
     /**
@@ -107,9 +119,16 @@ public class ScheduleGrid extends UiPart<GridPane> {
      * The component and its source list should be used on the JavaFX application thread.
      */
     public ScheduleGrid(ObservableList<Student> personList, Clock clock) {
+        this(personList, new SimpleObjectProperty<>(Model.PREDICATE_SHOW_ALL_LESSONS), clock);
+    }
+
+    /** Creates a calendar with an observable lesson filter and a clock for deterministic dates. */
+    public ScheduleGrid(ObservableList<Student> personList, ObservableValue<Predicate<Lesson>> lessonPredicate,
+            Clock clock) {
         super(FXML);
 
         students = requireNonNull(personList);
+        this.lessonPredicate = requireNonNull(lessonPredicate);
         this.clock = requireNonNull(clock);
         for (DayOfWeek day : DayOfWeek.values()) {
             entriesByDay.put(day, FXCollections.observableArrayList());
@@ -131,6 +150,7 @@ public class ScheduleGrid extends UiPart<GridPane> {
 
         refreshSchedule();
         students.addListener(studentListListener);
+        lessonPredicate.addListener(filterListener);
         // Percentages include the fixed time column, so each day's share is worked out from the width.
         scheduleGrid.widthProperty().addListener((unused, oldWidth, newWidth) -> shareDayWidths());
         nowLineUpdater = new Timeline(new KeyFrame(NOW_LINE_REFRESH, event -> updateForTime()));
@@ -210,6 +230,7 @@ public class ScheduleGrid extends UiPart<GridPane> {
     public void dispose() {
         disposed = true;
         students.removeListener(studentListListener);
+        lessonPredicate.removeListener(filterListener);
         nowLineUpdater.stop();
     }
 
@@ -222,6 +243,9 @@ public class ScheduleGrid extends UiPart<GridPane> {
             List<Lesson> lessons = student.getLessons();
             for (int lessonIndex = 0; lessonIndex < lessons.size(); lessonIndex++) {
                 Lesson lesson = lessons.get(lessonIndex);
+                if (!lessonPredicate.getValue().test(lesson)) {
+                    continue;
+                }
                 earliestTime = lesson.getStart().isBefore(earliestTime) ? lesson.getStart() : earliestTime;
                 latestTime = lesson.getEnd().isAfter(latestTime) ? lesson.getEnd() : latestTime;
                 entriesByDay.get(lesson.getDay())
