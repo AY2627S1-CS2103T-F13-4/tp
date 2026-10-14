@@ -22,12 +22,15 @@ import org.junit.jupiter.api.io.TempDir;
 
 import javafx.event.ActionEvent;
 import javafx.scene.Node;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 import javafx.stage.Stage;
 import javafx.stage.Window;
@@ -142,6 +145,74 @@ public class MainWindowTest {
 
             submitCommand("week");
             assertActiveNav("#weekNav");
+        });
+    }
+
+    // The level filters follow the levels in use, primary before secondary, and each one runs find level/LEVEL.
+    @Test
+    public void levelFilters_followLevelsInUseAndRunFind() throws Exception {
+        runOnFxThread(() -> {
+            assertFalse(levelNav().isVisible());
+
+            submitCommand("edit 1 level/Sec 3");
+            submitCommand("edit 2 level/P5");
+            assertFalse(levelNav().isVisible(), "narrow windows leave the tabs room");
+        });
+        resizeWindow(1000);
+        runOnFxThread(() -> {
+            assertTrue(levelNav().isVisible());
+            assertEquals(List.of("P5", "Sec 3"), levelFilterNames());
+
+            Button secondary = assertInstanceOf(Button.class, levelNav().getChildren().get(2));
+            secondary.fire();
+            assertTrue(isShown(studentTable()));
+            assertActiveNav("#studentsNav");
+            assertEquals(List.of("Alice"), model.getFilteredPersonList().stream()
+                    .map(student -> student.getName().fullName).toList());
+
+            submitCommand("edit 1 level/P5");
+            assertEquals(List.of("P5"), levelFilterNames());
+        });
+    }
+
+    // A filter that does not fully fit is hidden, never shown cut short, and returns when the window widens.
+    @Test
+    public void levelFilters_tooManyToFit_hidesOnlyThoseCutOff() throws Exception {
+        runOnFxThread(() -> {
+            submitCommand("edit 1 level/P5");
+            for (String level : List.of("Secondary 1 Express Stream One", "Secondary 2 Express Stream Two",
+                    "Secondary 3 Express Stream Six")) {
+                submitCommand("add name/" + level.substring(level.length() - 3)
+                        + " phone/91234567 email/a@b.co address/1 level/" + level);
+            }
+        });
+        resizeWindow(920);
+        runOnFxThread(() -> {
+            List<Node> filters = levelNav().getChildren().subList(1, levelNav().getChildren().size());
+            assertEquals(4, filters.size());
+            assertTrue(filters.get(0).isVisible());
+            assertFalse(filters.get(3).isVisible());
+            assertVisibleFiltersFit();
+        });
+        resizeWindow(1400);
+        runOnFxThread(() -> {
+            assertTrue(levelNav().getChildren().stream().allMatch(Node::isVisible));
+            assertVisibleFiltersFit();
+        });
+    }
+
+    // A short window, such as 1280x720 at 150%, drops the brand and the footer so the screen keeps a few rows.
+    @Test
+    public void shortWindow_hidesBrandAndFooter() throws Exception {
+        resizeWindow(1000, 800);
+        runOnFxThread(() -> {
+            assertTrue(stage.getScene().lookup("#brand").isVisible());
+            assertTrue(stage.getScene().lookup("#statusbarPlaceholder").isVisible());
+        });
+        resizeWindow(1000, 450);
+        runOnFxThread(() -> {
+            assertFalse(stage.getScene().lookup("#brand").isVisible());
+            assertFalse(stage.getScene().lookup("#statusbarPlaceholder").isVisible());
         });
     }
 
@@ -297,6 +368,56 @@ public class MainWindowTest {
 
     private ScrollPane schedulePlaceholder() {
         return assertInstanceOf(ScrollPane.class, stage.getScene().lookup("#scheduleScroll"));
+    }
+
+    private HBox levelNav() {
+        return assertInstanceOf(HBox.class, stage.getScene().lookup("#levelNav"));
+    }
+
+    /**
+     * Resizes the window and waits for its content to follow, as the window system resizes it after the
+     * request returns. A screen narrower than {@code width} caps the window, so this waits for any change.
+     */
+    private void resizeWindow(double width) throws Exception {
+        resizeWindow(width, Double.NaN);
+    }
+
+    /** Resizes the window as {@link #resizeWindow(double)} does, also setting its height unless it is NaN. */
+    private void resizeWindow(double width, double height) throws Exception {
+        List<Double> before = FxTestUtil.callOnFxThread(() -> {
+            List<Double> sceneSize = List.of(stage.getScene().getWidth(), stage.getScene().getHeight());
+            stage.setWidth(width);
+            if (!Double.isNaN(height)) {
+                stage.setHeight(height);
+            }
+            return sceneSize;
+        });
+        for (int attempt = 0; attempt < 100; attempt++) {
+            boolean resized = FxTestUtil.callOnFxThread(() -> !List.of(stage.getScene().getWidth(),
+                    stage.getScene().getHeight()).equals(before));
+            if (resized) {
+                runOnFxThread(() -> stage.getScene().getRoot().layout());
+                return;
+            }
+            Thread.sleep(20);
+        }
+        throw new AssertionError("The window did not resize to " + width);
+    }
+
+    private void assertVisibleFiltersFit() {
+        for (Node filter : levelNav().getChildren()) {
+            if (filter.isVisible()) {
+                assertTrue(filter.getBoundsInParent().getMaxX() <= levelNav().getWidth());
+            }
+        }
+    }
+
+    private List<String> levelFilterNames() {
+        // Read from each filter's graphic, as a filter added since the last layout has no skin to look up yet
+        return levelNav().getChildren().stream().skip(1)
+                .map(filter -> ((HBox) ((Button) filter).getGraphic()).getChildren().stream()
+                        .filter(Label.class::isInstance).map(label -> ((Label) label).getText()).findFirst().get())
+                .toList();
     }
 
     private Node studentTable() {

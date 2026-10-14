@@ -12,21 +12,24 @@ import java.util.List;
 import java.util.Optional;
 import java.util.logging.Logger;
 
+import javafx.beans.binding.Bindings;
+import javafx.beans.binding.BooleanBinding;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
 import javafx.geometry.Rectangle2D;
+import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.TextInputControl;
+import javafx.scene.control.Tooltip;
 import javafx.scene.input.KeyCombination;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
@@ -54,8 +57,12 @@ import seedu.address.model.person.Student;
 public class MainWindow extends UiPart<Stage> {
 
     private static final String FXML = "MainWindow.fxml";
-    /** Below this window width the sidebar is hidden, leaving the table its columns. */
-    private static final double SIDEBAR_MIN_WINDOW_WIDTH = 1100;
+    /** Index of the first level filter; the divider before them is child 0 of their row. */
+    private static final int LEVEL_NAV_FIRST_FILTER = 1;
+    /** Below this height the brand and the footer are hidden, leaving the screen room for a few rows. */
+    private static final double SHORT_WINDOW_HEIGHT = 560;
+    /** Below this width the level filters are hidden, leaving the tabs room. */
+    private static final double LEVEL_NAV_MIN_WIDTH = 900;
     /** Number of recent commands shown as chips beside a successful result. */
     private static final int RECENT_COMMANDS = 3;
     private static final String NAV_ACTIVE_STYLE_CLASS = "nav-item-active";
@@ -96,9 +103,6 @@ public class MainWindow extends UiPart<Stage> {
     private MenuBar menuBar;
 
     @FXML
-    private VBox sidebar;
-
-    @FXML
     private VBox commandPanel;
 
     @FXML
@@ -108,10 +112,13 @@ public class MainWindow extends UiPart<Stage> {
     private Button studentsNav;
 
     @FXML
-    private VBox levelNav;
+    private HBox brand;
 
     @FXML
-    private Label levelCaption;
+    private HBox navBar;
+
+    @FXML
+    private HBox levelNav;
 
     @FXML
     private Button helpNav;
@@ -231,7 +238,13 @@ public class MainWindow extends UiPart<Stage> {
         });
         personListPanel.setOnAddStudent(() -> commandBox.prefill(ADD_TEMPLATE));
         resultDisplay.setOnRecentPicked(commandBox::prefill);
-        fillSidebar();
+        fillNavigation();
+        Region content = (Region) brand.getParent();
+        BooleanBinding tall = content.heightProperty().greaterThanOrEqualTo(SHORT_WINDOW_HEIGHT);
+        for (Node node : List.of(brand, statusbarPlaceholder)) {
+            node.visibleProperty().bind(tall);
+            node.managedProperty().bind(tall);
+        }
         // The app opens on the week's lessons; list and find bring up the student table.
         showScreen(CommandResult.Screen.WEEK);
         commandBoxPlaceholder.getChildren().add(commandBox.getRoot());
@@ -240,42 +253,54 @@ public class MainWindow extends UiPart<Stage> {
     }
 
     /**
-     * Fills the sidebar. Each item shows the command it runs, so mouse users learn the commands too.
-     * The level items list the schooling levels in use and are rebuilt whenever the students change.
+     * Fills the navigation under the command bar. Each tab shows the command it runs, so mouse users learn
+     * the commands too. The level filters list the schooling levels in use and are rebuilt whenever the
+     * students change.
      */
-    private void fillSidebar() {
+    private void fillNavigation() {
         navItem(weekNav, null, "This week", WeekCommand.COMMAND_WORD);
         navItem(studentsNav, null, "Students", ListCommand.COMMAND_WORD);
         navItem(helpNav, null, "All commands", HelpCommand.COMMAND_WORD);
         ObservableList<Student> students = logic.getAddressBook().getPersonList();
         students.addListener((ListChangeListener<Student>) change -> fillLevelNav(students));
         fillLevelNav(students);
-        Region content = (Region) sidebar.getParent();
-        sidebar.visibleProperty().bind(content.widthProperty().greaterThanOrEqualTo(SIDEBAR_MIN_WINDOW_WIDTH));
-        sidebar.managedProperty().bind(sidebar.visibleProperty());
+        levelNav.widthProperty().addListener((unused, oldWidth, newWidth) -> hideCutOffFilters());
+        levelNav.visibleProperty().bind(Bindings.size(levelNav.getChildren()).greaterThan(LEVEL_NAV_FIRST_FILTER)
+                .and(navBar.widthProperty().greaterThanOrEqualTo(LEVEL_NAV_MIN_WIDTH)));
+        levelNav.managedProperty().bind(levelNav.visibleProperty());
     }
 
     private void fillLevelNav(List<Student> students) {
-        levelNav.getChildren().clear();
+        levelNav.getChildren().remove(LEVEL_NAV_FIRST_FILTER, levelNav.getChildren().size());
         students.stream()
                 .map(Student::getSchoolingLevel).flatMap(Optional::stream).map(Object::toString)
                 .distinct()
                 .sorted(Comparator.comparing(SchoolingLevel::stageOf).thenComparing(String.CASE_INSENSITIVE_ORDER))
                 .forEach(level -> {
                     Button item = new Button();
-                    item.getStyleClass().add("nav-item");
-                    item.setMaxWidth(Double.MAX_VALUE);
+                    item.getStyleClass().addAll("nav-item", "level-chip");
                     String command = FindCommand.COMMAND_WORD + " " + PREFIX_LEVEL + level;
-                    navItem(item, PersonCard.stageStyleClass(level), level, command);
+                    // Chips stay short, so the command they run shows on hover instead
+                    navItem(item, PersonCard.stageStyleClass(level), level, null);
+                    item.setTooltip(new Tooltip(command));
                     item.setOnAction(event -> commandBox.submit(command));
+                    item.boundsInParentProperty().addListener((unused, oldBounds, newBounds) -> hideCutOffFilters());
                     levelNav.getChildren().add(item);
                 });
-        // An empty book has no levels, so hide the caption rather than show a heading with nothing under it.
-        levelCaption.setVisible(!levelNav.getChildren().isEmpty());
-        levelCaption.setManaged(levelCaption.isVisible());
     }
 
-    /** Lays out a sidebar item: an optional coloured dot, its label, and the command it runs. */
+    /**
+     * Hides the level filters that do not fully fit, so a book with many levels never shows half a level,
+     * such as "Secondary" for "Secondary 1 Express", or covers "All commands".
+     */
+    private void hideCutOffFilters() {
+        List<Node> filters = levelNav.getChildren();
+        for (Node filter : filters.subList(LEVEL_NAV_FIRST_FILTER, filters.size())) {
+            filter.setVisible(filter.getBoundsInParent().getMaxX() <= levelNav.getWidth());
+        }
+    }
+
+    /** Lays out a navigation item: an optional coloured dot, its label, and the command it runs if given. */
     private static void navItem(Button item, String dotStyleClass, String label, String command) {
         HBox content = new HBox(8);
         content.setAlignment(Pos.CENTER_LEFT);
@@ -287,12 +312,14 @@ public class MainWindow extends UiPart<Stage> {
         Label name = new Label(label);
         name.getStyleClass().add("nav-label");
         name.setMinWidth(Region.USE_PREF_SIZE);
-        Region spacer = new Region();
-        HBox.setHgrow(spacer, Priority.ALWAYS);
-        Label hint = new Label(command);
-        hint.getStyleClass().add("nav-hint");
-        hint.setStyle(MonospaceFont.style());
-        content.getChildren().addAll(name, spacer, hint);
+        content.getChildren().add(name);
+        if (command != null) {
+            Label hint = new Label(command);
+            hint.getStyleClass().add("nav-hint");
+            hint.setStyle(MonospaceFont.style());
+            hint.setMinWidth(Region.USE_PREF_SIZE);
+            content.getChildren().add(hint);
+        }
         item.setGraphic(content);
         item.setText(null);
         item.setFocusTraversable(false);
@@ -308,7 +335,7 @@ public class MainWindow extends UiPart<Stage> {
         commandBox.submit(WeekCommand.COMMAND_WORD);
     }
 
-    /** Shows the week's lessons or the student table, and marks the matching sidebar item. */
+    /** Shows the week's lessons or the student table, and marks the matching tab. */
     private void showScreen(CommandResult.Screen screen) {
         if (screen == CommandResult.Screen.UNCHANGED) {
             return;

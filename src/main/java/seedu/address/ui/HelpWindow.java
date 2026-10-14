@@ -55,7 +55,7 @@ public class HelpWindow extends UiPart<Stage> {
     }
 
     /**
-     * Also says where the data file is, since narrow windows hide the sidebar that shows it.
+     * Also says where the data file is, as the footer under the screens does.
      */
     public void showDataFile(Path dataFilePath) {
         helpMessage.setText(HELP_MESSAGE + "\nYour data is saved in: " + dataFilePath);
