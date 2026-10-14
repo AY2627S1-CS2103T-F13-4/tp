@@ -43,7 +43,7 @@
             </HBox>
             <Button fx:id="studentsNav" styleClass="nav-item, nav-item-active" maxWidth="Infinity"
                     onAction="#handleListStudents" />
-            <Label text="Levels" styleClass="nav-caption" />
+            <Label fx:id="levelCaption" text="Levels" styleClass="nav-caption" />
             <!-- One item per schooling level in use, each running find level/LEVEL (filled by MainWindow) -->
             <VBox fx:id="levelNav" spacing="2" />
             <Region VBox.vgrow="ALWAYS" />
