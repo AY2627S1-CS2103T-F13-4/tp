@@ -1,5 +1,6 @@
 package seedu.address.ui;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -71,6 +72,8 @@ public class PersonListPanel extends UiPart<Region> {
     private final Label emptyDetail = new Label();
     private final Label emptyCommand = new Label();
     private final Columns columns;
+    /** The student whose details were open just before the list last changed. */
+    private Student openBeforeChange;
 
     /**
      * Creates a {@code PersonListPanel} that shows {@code personList}, the list that commands' indices refer to.
@@ -93,6 +96,9 @@ public class PersonListPanel extends UiPart<Region> {
             optional.managedProperty().bind(wide);
         }
 
+        // Added before setItems, so it runs before the list view moves its selection for the same change.
+        personList.addListener((ListChangeListener<Student>) change ->
+                openBeforeChange = personListView.getSelectionModel().getSelectedItem());
         personListView.setItems(personList);
         personListView.setCellFactory(listView -> new PersonListViewCell());
 
@@ -106,6 +112,7 @@ public class PersonListPanel extends UiPart<Region> {
         emptyState.getStyleClass().add("empty-state");
         personListView.setPlaceholder(emptyState);
 
+        personList.addListener(this::followOpenStudent);
         ListChangeListener<Student> refresh = change -> {
             updateStatus(personList.size(), allPersons.size());
             openOnlyRow();
@@ -173,6 +180,28 @@ public class PersonListPanel extends UiPart<Region> {
         VirtualFlow<?> flow = (VirtualFlow<?>) personListView.lookup(".virtual-flow");
         if (flow != null) {
             flow.scrollPixels(Math.signum(direction) * flow.getHeight() * PAGE_FRACTION);
+        }
+    }
+
+    /**
+     * Keeps the open details on the same student when the list changes. The list view keeps the selected row
+     * number, so without this, deleting the open student would open whoever takes their row.
+     * An edited student is a new object, so if the open one is gone, the details follow the one student the change
+     * added in its place; a delete adds no one, so the details close.
+     */
+    private void followOpenStudent(ListChangeListener.Change<? extends Student> change) {
+        Student open = openBeforeChange;
+        if (open == null || personListView.getItems().stream().anyMatch(student -> student == open)) {
+            return;
+        }
+        List<Student> added = new ArrayList<>();
+        while (change.next()) {
+            added.addAll(change.getAddedSubList());
+        }
+        if (added.size() == 1) {
+            openStudent(personListView.getItems().indexOf(added.get(0)));
+        } else {
+            closeDetails();
         }
     }
 
