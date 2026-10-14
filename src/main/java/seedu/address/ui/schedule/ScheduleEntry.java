@@ -3,10 +3,10 @@ package seedu.address.ui.schedule;
 import static java.util.Objects.requireNonNull;
 import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 
+import java.time.LocalTime;
+
 import seedu.address.model.person.Lesson;
 import seedu.address.model.person.Student;
-
-import java.time.LocalTime;
 
 /**
  * An immutable pairing of a lesson with the student attending it.

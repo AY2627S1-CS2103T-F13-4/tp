@@ -155,7 +155,7 @@ public class ScheduleGrid extends UiPart<GridPane> {
         scheduleGrid.add(dayLabel, currDisplayColumn, 0, dayColumnWidth, 1);
     }
 
-    /**Returns the number of unique column values assigned*/
+    /** Returns the number of unique column values assigned */
     private int assignColumnValues(int startColumn, ObservableList<ScheduleEntry> dayEntries) {
         if (dayEntries.isEmpty()) {
             addColumn();
