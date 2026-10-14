@@ -4,22 +4,27 @@
  * so that each one is defined once.
  */
 .root {
-    -sb-page: #FAFAFB;
+    /* The page around the command bar is a shade darker, so the command bar stands out */
+    -sb-page: #ECECEF;
+    /* Cards on the page (calendar, table); white is kept for the command bar and highlights */
+    -sb-card: #F7F7F9;
     -sb-surface: #FFFFFF;
-    -sb-border: #ECECEF;
-    -sb-divider: #F2F2F4;
+    -sb-border: #E2E2E6;
+    -sb-divider: #EFEFF2;
     -sb-text: #111113;
     -sb-text-secondary: #55555D;
     /* About 5:1 on white, so captions and placeholders stay readable */
     -sb-text-muted: #6E6E76;
+    /* For quiet labels such as times and key hints */
+    -sb-text-faint: #8A8A93;
     -sb-accent: #2F6BEA;
     -sb-accent-tint: #EAF1FF;
     -sb-accent-ink: #1F48B8;
     -sb-success: #1F8A4C;
     -sb-error: #C8302F;
     -sb-error-tint: #FDF2F2;
-    /* The current-time line on the calendar; softer than the error red */
-    -sb-now: #D35555;
+    /* The current-time line on the calendar, a bright red that stands out on the grid */
+    -sb-now: #E5484D;
 
     /* Bundled Geist (see AppFonts); each weight is its own family, e.g. "Geist SemiBold" */
     -fx-font-family: "Geist";
@@ -65,8 +70,8 @@
 /* ---------- Sidebar ---------- */
 
 .sidebar {
-    -fx-background-color: #F3F3F5;
-    -fx-border-color: transparent -sb-border transparent transparent;
+    -fx-background-color: #E6E6EA;
+    -fx-border-color: transparent;
     -fx-padding: 18 12 14 12;
     -fx-spacing: 4;
 }
@@ -106,8 +111,8 @@
 }
 
 .nav-item-active, .nav-item-active:hover {
-    -fx-background-color: -sb-surface;
-    -fx-effect: dropshadow(gaussian, rgba(17, 17, 19, 0.06), 3, 0, 0, 1);
+    -fx-background-color: #F6F6F8;
+    -fx-effect: dropshadow(gaussian, rgba(17, 17, 19, 0.04), 4, 0, 0, 1);
 }
 
 .nav-label {
@@ -155,9 +160,8 @@
 
 .page-header {
     -fx-padding: 0 24 0 28;
-    -fx-min-height: 64;
-    -fx-pref-height: 64;
-    -fx-border-color: transparent transparent -sb-border transparent;
+    -fx-min-height: 56;
+    -fx-pref-height: 56;
 }
 
 .primary-button {
@@ -176,19 +180,17 @@
 
 .view-title {
     -fx-font-family: "Geist SemiBold";
-    -fx-font-size: 17px;
+    -fx-font-size: 20px;
 }
 
 .view-subtitle {
-    -fx-text-fill: -sb-text-muted;
+    -fx-text-fill: -sb-text-faint;
 }
 
 .list-card {
-    -fx-background-color: -sb-surface;
+    -fx-background-color: -sb-card;
     -fx-background-radius: 14;
-    -fx-border-color: -sb-border;
-    -fx-border-radius: 14;
-    -fx-effect: dropshadow(gaussian, rgba(17, 17, 19, 0.05), 3, 0, 0, 1);
+    -fx-effect: dropshadow(gaussian, rgba(17, 17, 19, 0.04), 12, 0, 0, 2);
 }
 
 .list-view {
@@ -211,7 +213,7 @@
 }
 
 .list-cell:filled:selected {
-    -fx-background-color: #F5F8FF;
+    -fx-background-color: -sb-surface;
 }
 
 .empty-state {
@@ -239,7 +241,7 @@
 
 .table-header {
     -fx-padding: 10 18 8 14;
-    -fx-border-color: transparent transparent -sb-border transparent;
+    -fx-border-color: transparent transparent -sb-divider transparent;
 }
 
 .table-heading {
@@ -337,22 +339,22 @@
 
 /* The level chip and initials badge are coloured by school stage; levels in other forms stay neutral */
 .level-primary {
-    -fx-background-color: #FFF3E0;
-    -fx-text-fill: #8A4300;
+    -fx-background-color: #FCEBD3;
+    -fx-text-fill: #7A3B00;
 }
 
 .level-secondary {
-    -fx-background-color: -sb-accent-tint;
-    -fx-text-fill: -sb-accent-ink;
+    -fx-background-color: #E0E9FD;
+    -fx-text-fill: #1A3FA3;
 }
 
 .level-jc {
-    -fx-background-color: #F2EEFF;
-    -fx-text-fill: #5B3CC4;
+    -fx-background-color: #ECE6FD;
+    -fx-text-fill: #4C2FB0;
 }
 
 .level-other {
-    -fx-background-color: #F1F1F3;
+    -fx-background-color: #EAEAEE;
     -fx-text-fill: -sb-text-secondary;
 }
 
@@ -389,7 +391,7 @@
 .recent-chip {
     -fx-font-size: 11.5px;
     -fx-text-fill: -sb-text-secondary;
-    -fx-background-color: #F1F1F3;
+    -fx-background-color: #F4F4F6;
     -fx-background-radius: 5;
     -fx-padding: 2 7 2 7;
 }
@@ -401,16 +403,18 @@
 .command-panel {
     -fx-background-color: -sb-surface;
     -fx-background-radius: 14;
-    -fx-border-color: -sb-border;
+    /* An invisible border the focus ring fills in, so focusing never shifts the page below */
+    -fx-border-color: transparent;
+    -fx-border-width: 1;
     -fx-border-radius: 14;
-    -fx-effect: dropshadow(gaussian, rgba(17, 17, 19, 0.05), 3, 0, 0, 1);
+    -fx-effect: dropshadow(gaussian, rgba(17, 17, 19, 0.08), 24, 0, 0, 6);
 }
 
 .result-row {
-    -fx-padding: 9 14 6 14;
+    -fx-padding: 10 18 10 18;
     -fx-spacing: 10;
-    -fx-border-color: transparent transparent -sb-divider transparent;
-    -fx-background-radius: 14 14 0 0;
+    -fx-border-color: #F0F0F3 transparent transparent transparent;
+    -fx-background-radius: 0 0 14 14;
 }
 
 .result-row.result-error {
@@ -485,23 +489,23 @@
 }
 
 .command-row {
-    -fx-padding: 4 14 4 14;
+    -fx-padding: 10 18 10 18;
     -fx-spacing: 10;
-    -fx-min-height: 44;
+    -fx-min-height: 60;
 }
 
 .command-prompt {
-    -fx-text-fill: -sb-text-muted;
-    -fx-font-size: 15px;
+    -fx-text-fill: -sb-accent;
+    -fx-font-size: 20px;
 }
 
 .command-row .text-field {
     -fx-background-color: transparent;
     -fx-background-insets: 0;
     -fx-padding: 6 0 6 0;
-    -fx-font-size: 14px;
+    -fx-font-size: 17px;
     -fx-text-fill: -sb-text;
-    -fx-prompt-text-fill: -sb-text-muted;
+    -fx-prompt-text-fill: #A1A1AA;
     -fx-highlight-fill: -sb-accent-tint;
     -fx-highlight-text-fill: -sb-text;
 }
@@ -512,17 +516,17 @@
 
 .keycap {
     -fx-font-size: 11px;
-    -fx-text-fill: -sb-text-secondary;
+    -fx-text-fill: #71717A;
     -fx-padding: 1 6 1 6;
     -fx-background-color: -sb-surface;
-    -fx-border-color: #E4E4E7;
+    -fx-border-color: #E7E7EB;
     -fx-border-radius: 5;
     -fx-background-radius: 5;
 }
 
 .key-hint {
     -fx-font-size: 12px;
-    -fx-text-fill: -sb-text-muted;
+    -fx-text-fill: #A1A1AA;
 }
 
 /* ---------- Status bar ---------- */
@@ -595,13 +599,13 @@
 
 /* Day headings: "Mon 12", with today's date in a dark circle */
 .schedule-day {
-    -fx-background-color: -sb-surface;
-    -fx-border-color: transparent transparent -sb-border transparent;
+    -fx-background-color: -sb-card;
+    -fx-border-color: transparent transparent #EDEDF0 transparent;
 }
 
 .schedule-day-name {
     -fx-font-size: 12px;
-    -fx-text-fill: -sb-text-muted;
+    -fx-text-fill: #A1A1AA;
 }
 
 .schedule-day-number {
@@ -611,6 +615,10 @@
     -fx-alignment: center;
     -fx-min-width: 26;
     -fx-min-height: 26;
+}
+
+.schedule-day.schedule-today {
+    -fx-background-color: #FCFCFD;
 }
 
 .schedule-today .schedule-day-name {
@@ -630,7 +638,7 @@
 }
 
 .schedule-today-column {
-    -fx-background-color: #FAFAFB;
+    -fx-background-color: #FCFCFD;
 }
 
 .schedule-hour-line {
@@ -638,23 +646,23 @@
 }
 
 .schedule-time {
-    -fx-font-size: 11px;
-    -fx-text-fill: -sb-text-muted;
+    -fx-font-size: 10.5px;
+    -fx-text-fill: #A1A1AA;
     -fx-padding: 4 8 0 10;
 }
 
 /* The current time across today: a dot on the day's left edge and a line */
 .schedule-now-line {
-    -fx-max-height: 10;
+    -fx-max-height: 8;
 }
 
 .schedule-now-dot {
-    -fx-min-width: 10;
-    -fx-min-height: 10;
-    -fx-max-width: 10;
-    -fx-max-height: 10;
+    -fx-min-width: 8;
+    -fx-min-height: 8;
+    -fx-max-width: 8;
+    -fx-max-height: 8;
     -fx-background-color: -sb-now;
-    -fx-background-radius: 5;
+    -fx-background-radius: 4;
 }
 
 .schedule-now-bar {
@@ -667,7 +675,9 @@
 /* A lesson block, filled with its school stage's tint; the text uses the stage's ink */
 /* Sized so a one-hour block (60px) shows all three lines */
 .lesson-card {
-    -fx-background-radius: 8;
+    -fx-background-radius: 7;
+    /* A 1px inset leaves a hairline gap between back-to-back lessons, with no border */
+    -fx-background-insets: 1 0 1 0;
     -fx-padding: 6 10 6 10;
     -fx-spacing: 1;
 }
@@ -678,19 +688,19 @@
 
 .lesson-card .lesson-card-name {
     -fx-font-family: "Geist SemiBold";
-    -fx-font-size: 13px;
+    -fx-font-size: 12.5px;
 }
 
 .lesson-card.level-primary .label {
-    -fx-text-fill: #8A4300;
+    -fx-text-fill: #7A3B00;
 }
 
 .lesson-card.level-secondary .label {
-    -fx-text-fill: -sb-accent-ink;
+    -fx-text-fill: #1A3FA3;
 }
 
 .lesson-card.level-jc .label {
-    -fx-text-fill: #5B3CC4;
+    -fx-text-fill: #4C2FB0;
 }
 
 .lesson-card.level-other .label {
@@ -700,10 +710,12 @@
 /* The key to the stage colours, at the right of the page header */
 .legend-label {
     -fx-font-size: 12px;
-    -fx-text-fill: -sb-text-secondary;
+    -fx-text-fill: -sb-text-faint;
 }
 
 /* The command panel while the cursor is in the command box */
 .command-panel.command-panel-focused {
-    -fx-border-color: -sb-accent;
+    -fx-border-color: rgba(47, 107, 234, 0.35);
+    -fx-border-width: 1;
+    -fx-effect: dropshadow(gaussian, rgba(47, 107, 234, 0.16), 24, 0, 0, 6);
 }

@@ -17,7 +17,8 @@ public class FeedbackLinesTest {
 
     @Test
     public void singleLineMessage_isOnlyTitle() {
-        assertEquals(List.of(new Line(Kind.TITLE, "Listed all persons.")), FeedbackLines.split("Listed all persons."));
+        assertEquals(List.of(new Line(Kind.TITLE, "Listed all students.")),
+                FeedbackLines.split("Listed all students."));
     }
 
     // Usage with "Parameters:" inline: the format must include the command word so it can be typed as shown.
