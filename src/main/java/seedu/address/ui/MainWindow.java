@@ -100,6 +100,9 @@ public class MainWindow extends UiPart<Stage> {
     private VBox levelNav;
 
     @FXML
+    private Label levelCaption;
+
+    @FXML
     private Button helpNav;
 
     /**
@@ -215,6 +218,9 @@ public class MainWindow extends UiPart<Stage> {
                     item.setOnAction(event -> commandBox.submit(command));
                     levelNav.getChildren().add(item);
                 });
+        // An empty book has no levels, so hide the caption rather than show a heading with nothing under it.
+        levelCaption.setVisible(!levelNav.getChildren().isEmpty());
+        levelCaption.setManaged(levelCaption.isVisible());
     }
 
     /** Lays out a sidebar item: an optional coloured dot, its label, and the command it runs. */
