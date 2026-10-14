@@ -22,14 +22,23 @@ import org.junit.jupiter.api.io.TempDir;
 
 import javafx.event.ActionEvent;
 import javafx.scene.Node;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.ListView;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 import javafx.stage.WindowEvent;
 import seedu.address.logic.LogicManager;
+import seedu.address.logic.commands.HelpCommand;
+import seedu.address.logic.commands.ListCommand;
+import seedu.address.logic.commands.WeekCommand;
 import seedu.address.model.ModelManager;
 import seedu.address.model.person.HourlyRate;
 import seedu.address.model.person.Lesson;
@@ -102,9 +111,239 @@ public class MainWindowTest {
             assertTrue(stage.isShowing());
             assertSame(stage.getScene(), grid.getScene());
             assertTrue(placeholder.isFitToWidth());
-            assertTrue(placeholder.isFitToHeight());
             assertEquals(List.of("Alice", "Bob"), cardNames(grid));
             assertEquals(8, grid.getColumnConstraints().size());
+        });
+    }
+
+    // The app opens on the week's lessons; list and find bring up the student table, and week goes back.
+    @Test
+    public void commands_switchBetweenWeekAndStudentTable() throws Exception {
+        runOnFxThread(() -> {
+            assertTrue(isShown(schedulePlaceholder()));
+            assertFalse(isShown(studentTable()));
+            assertActiveNav("#weekNav");
+
+            submitCommand("find Bob");
+            assertTrue(isShown(studentTable()));
+            assertFalse(isShown(schedulePlaceholder()));
+
+            // Every student is listed again, so the numbers on the calendar match command indices.
+            submitCommand("week");
+            assertTrue(isShown(schedulePlaceholder()));
+            assertFalse(isShown(studentTable()));
+            assertEquals(2, model.getFilteredPersonList().size());
+            assertEquals(List.of("Alice", "Bob"), cardNames(scheduleGrid()));
+
+            submitCommand("list");
+            assertTrue(isShown(studentTable()));
+            assertActiveNav("#studentsNav");
+
+            // A rejected command leaves the screen where it was.
+            TextField commandField = commandField();
+            commandField.setText("delete 99");
+            commandField.fireEvent(new ActionEvent());
+            assertTrue(isShown(studentTable()));
+            assertActiveNav("#studentsNav");
+
+            submitCommand("week");
+            assertActiveNav("#weekNav");
+        });
+    }
+
+    // The level filters follow the levels in use, primary before secondary, and each one runs find level/LEVEL.
+    @Test
+    public void levelFilters_followLevelsInUseAndRunFind() throws Exception {
+        runOnFxThread(() -> {
+            assertFalse(levelNav().isVisible());
+
+            submitCommand("edit 1 level/Sec 3");
+            submitCommand("edit 2 level/P5");
+            assertFalse(levelNav().isVisible(), "narrow windows leave the tabs room");
+        });
+        resizeWindow(1000);
+        runOnFxThread(() -> {
+            assertTrue(levelNav().isVisible());
+            assertEquals(List.of("P5", "Sec 3"), levelFilterNames());
+
+            Button secondary = assertInstanceOf(Button.class, levelNav().getChildren().get(2));
+            secondary.fire();
+            assertTrue(isShown(studentTable()));
+            assertActiveNav("#studentsNav");
+            assertEquals(List.of("Alice"), model.getFilteredPersonList().stream()
+                    .map(student -> student.getName().fullName).toList());
+
+            submitCommand("edit 1 level/P5");
+            assertEquals(List.of("P5"), levelFilterNames());
+        });
+    }
+
+    // Each tab shows the command it runs, so mouse users learn the commands; the hint is fixed text in the FXML,
+    // so it must still match the command word, and pressing the tab must do what typing that command does.
+    @Test
+    public void tabs_showAndRunTheirCommands() throws Exception {
+        runOnFxThread(() -> {
+            assertEquals(WeekCommand.COMMAND_WORD, navHint("#weekNav"));
+            assertEquals(ListCommand.COMMAND_WORD, navHint("#studentsNav"));
+            assertEquals(HelpCommand.COMMAND_WORD, navHint("#helpNav"));
+
+            Button studentsTab = assertInstanceOf(Button.class, stage.getScene().lookup("#studentsNav"));
+            studentsTab.fire();
+            assertTrue(isShown(studentTable()));
+            Button weekTab = assertInstanceOf(Button.class, stage.getScene().lookup("#weekNav"));
+            weekTab.fire();
+            assertTrue(isShown(schedulePlaceholder()));
+        });
+    }
+
+    // A filter that does not fully fit is hidden, never shown cut short, and returns when the window widens.
+    // Text widths differ between systems, and a window cannot be wider than the screen, which can be narrow on
+    // CI machines; so the window widens only by what the hidden filter needs, measured on this system.
+    @Test
+    public void levelFilters_tooManyToFit_hidesOnlyThoseCutOff() throws Exception {
+        runOnFxThread(() -> {
+            submitCommand("edit 1 level/P5");
+            for (String level : List.of("Secondary 1 Express Stream One", "Secondary 2 Express Stream Two",
+                    "JC1")) {
+                submitCommand("add name/" + level.substring(level.length() - 3)
+                        + " phone/91234567 email/a@b.co address/1 level/" + level);
+            }
+        });
+        resizeWindow(920);
+        runOnFxThread(() -> {
+            List<Node> filters = levelNav().getChildren().subList(1, levelNav().getChildren().size());
+            assertEquals(4, filters.size());
+            assertTrue(filters.get(0).isVisible());
+            assertFalse(filters.get(3).isVisible());
+            assertVisibleFiltersFit();
+        });
+        double widthNeeded = FxTestUtil.callOnFxThread(() -> {
+            List<Node> children = levelNav().getChildren();
+            double overflow = children.get(children.size() - 1).getBoundsInParent().getMaxX() - levelNav().getWidth();
+            return stage.getWidth() + overflow + 10;
+        });
+        resizeWindow(widthNeeded);
+        runOnFxThread(() -> {
+            String sizes = "window " + stage.getWidth() + " of " + widthNeeded + ", filters " + levelNav().getWidth();
+            assertTrue(levelNav().getChildren().stream().allMatch(Node::isVisible), sizes);
+            assertVisibleFiltersFit();
+        });
+    }
+
+    // A short window, such as 1280x720 at 150%, drops the brand and the footer so the screen keeps a few rows.
+    @Test
+    public void shortWindow_hidesBrandAndFooter() throws Exception {
+        resizeWindow(1000, 800);
+        runOnFxThread(() -> {
+            assertTrue(stage.getScene().lookup("#brand").isVisible());
+            assertTrue(stage.getScene().lookup("#statusbarPlaceholder").isVisible());
+        });
+        resizeWindow(1000, 450);
+        runOnFxThread(() -> {
+            assertFalse(stage.getScene().lookup("#brand").isVisible());
+            assertFalse(stage.getScene().lookup("#statusbarPlaceholder").isVisible());
+        });
+    }
+
+    // Alt+Down opens a student's details in the table; on the calendar it must not change the hidden table.
+    @Test
+    public void altDown_onCalendar_leavesStudentTableUnselected() throws Exception {
+        runOnFxThread(() -> {
+            pressKey(KeyCode.DOWN, true);
+            submitCommand("list");
+            ListView<?> table = assertInstanceOf(ListView.class, studentTable());
+            assertEquals(-1, table.getSelectionModel().getSelectedIndex());
+        });
+    }
+
+    // view INDEX is the keyboard way to see a student's full details, e.g. from a calendar lesson's "#2".
+    @Test
+    public void view_index_opensThatStudentInTable() throws Exception {
+        runOnFxThread(() -> {
+            submitCommand("view 2");
+            assertTrue(isShown(studentTable()));
+            ListView<?> table = assertInstanceOf(ListView.class, studentTable());
+            assertEquals(1, table.getSelectionModel().getSelectedIndex());
+        });
+    }
+
+    // An edit keeps the student's details open, and deleting them closes the details instead of opening the
+    // details of whoever takes their row.
+    @Test
+    public void openStudent_editedOrDeleted_detailsFollowThem() throws Exception {
+        runOnFxThread(() -> {
+            submitCommand("add name/Carol phone/91234567 email/carol@example.com address/1");
+            submitCommand("view 1");
+            ListView<?> table = assertInstanceOf(ListView.class, studentTable());
+
+            submitCommand("edit 1 name/Alicia");
+            assertEquals(0, table.getSelectionModel().getSelectedIndex());
+
+            submitCommand("delete 1");
+            assertEquals(-1, table.getSelectionModel().getSelectedIndex());
+        });
+    }
+
+    // After a usage error, Tab puts the shown example in the box, so the user edits it instead of retyping.
+    @Test
+    public void tab_afterUsageError_putsExampleInCommandBox() throws Exception {
+        runOnFxThread(() -> {
+            TextField commandField = commandField();
+            commandField.setText("view");
+            commandField.fireEvent(new ActionEvent());
+            pressKey(KeyCode.TAB, false);
+            assertEquals("view 3", commandField.getText());
+            // The window's focus owner, not isFocused(), which also needs the OS to focus the test window.
+            assertSame(commandField, stage.getScene().getFocusOwner());
+        });
+    }
+
+    // Tab only uses the example shown now: after a later success, an old error's example must not come back.
+    @Test
+    public void tab_afterLaterSuccess_doesNothing() throws Exception {
+        runOnFxThread(() -> {
+            TextField commandField = commandField();
+            commandField.setText("view");
+            commandField.fireEvent(new ActionEvent());
+            submitCommand("list");
+            pressKey(KeyCode.TAB, false);
+            assertEquals("", commandField.getText());
+            // The window's focus owner, not isFocused(), which also needs the OS to focus the test window.
+            assertSame(commandField, stage.getScene().getFocusOwner());
+        });
+    }
+
+    // On Windows and Linux, releasing Alt focuses the menu bar; after Alt+Down the user is still typing.
+    @Test
+    public void altRelease_afterAltDown_isKeptFromWindow() throws Exception {
+        runOnFxThread(() -> {
+            boolean[] reachedWindow = {false};
+            stage.getScene().addEventHandler(KeyEvent.KEY_RELEASED, event -> reachedWindow[0] = true);
+
+            pressKey(KeyCode.DOWN, true);
+            commandField().fireEvent(new KeyEvent(KeyEvent.KEY_RELEASED, "", "", KeyCode.ALT,
+                    false, false, false, false));
+            assertFalse(reachedWindow[0]);
+
+            // A release without a shortcut before it is left alone.
+            commandField().fireEvent(new KeyEvent(KeyEvent.KEY_RELEASED, "", "", KeyCode.ALT,
+                    false, false, false, false));
+            assertTrue(reachedWindow[0]);
+        });
+    }
+
+    // On the calendar, Alt+Down scrolls, so laptops without Page Down keys can see later hours.
+    @Test
+    public void altDown_onCalendar_scrollsCalendar() throws Exception {
+        runOnFxThread(() -> {
+            stage.setWidth(1000);
+            stage.setHeight(500);
+            stage.getScene().getRoot().applyCss();
+            stage.getScene().getRoot().layout();
+            ScrollPane calendar = schedulePlaceholder();
+            calendar.setVvalue(0);
+            pressKey(KeyCode.DOWN, true);
+            assertTrue(calendar.getVvalue() > 0);
         });
     }
 
@@ -174,15 +413,101 @@ public class MainWindowTest {
     }
 
     private ScrollPane schedulePlaceholder() {
-        return assertInstanceOf(ScrollPane.class, stage.getScene().lookup("#scheduleGridPlaceholder"));
+        return assertInstanceOf(ScrollPane.class, stage.getScene().lookup("#scheduleScroll"));
+    }
+
+    private HBox levelNav() {
+        return assertInstanceOf(HBox.class, stage.getScene().lookup("#levelNav"));
+    }
+
+    /**
+     * Resizes the window and waits for its content to follow, as the window system resizes it after the
+     * request returns. A screen narrower than {@code width} caps the window, so this waits for any change.
+     */
+    private void resizeWindow(double width) throws Exception {
+        resizeWindow(width, Double.NaN);
+    }
+
+    /** Resizes the window as {@link #resizeWindow(double)} does, also setting its height unless it is NaN. */
+    private void resizeWindow(double width, double height) throws Exception {
+        List<Double> before = FxTestUtil.callOnFxThread(() -> {
+            List<Double> sceneSize = List.of(stage.getScene().getWidth(), stage.getScene().getHeight());
+            stage.setWidth(width);
+            if (!Double.isNaN(height)) {
+                stage.setHeight(height);
+            }
+            return sceneSize;
+        });
+        for (int attempt = 0; attempt < 100; attempt++) {
+            boolean resized = FxTestUtil.callOnFxThread(() -> !List.of(stage.getScene().getWidth(),
+                    stage.getScene().getHeight()).equals(before));
+            if (resized) {
+                runOnFxThread(() -> stage.getScene().getRoot().layout());
+                return;
+            }
+            Thread.sleep(20);
+        }
+        throw new AssertionError("The window did not resize to " + width);
+    }
+
+    private void assertVisibleFiltersFit() {
+        for (Node filter : levelNav().getChildren()) {
+            if (filter.isVisible()) {
+                assertTrue(filter.getBoundsInParent().getMaxX() <= levelNav().getWidth());
+            }
+        }
+    }
+
+    private List<String> levelFilterNames() {
+        // Read from each filter's graphic, as a filter added since the last layout has no skin to look up yet
+        return levelNav().getChildren().stream().skip(1)
+                .map(filter -> ((HBox) ((Button) filter).getGraphic()).getChildren().stream()
+                        .filter(Label.class::isInstance).map(label -> ((Label) label).getText()).findFirst().get())
+                .toList();
+    }
+
+    private Node studentTable() {
+        return stage.getScene().lookup("#personListView");
+    }
+
+    /** Returns true if {@code node} and every container around it are visible. */
+    private static boolean isShown(Node node) {
+        for (Node current = node; current != null; current = current.getParent()) {
+            if (!current.isVisible()) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private GridPane scheduleGrid() {
         return assertInstanceOf(GridPane.class, schedulePlaceholder().getContent());
     }
 
+    private TextField commandField() {
+        return assertInstanceOf(TextField.class, stage.getScene().lookup("#commandTextField"));
+    }
+
+    private void pressKey(KeyCode code, boolean alt) {
+        commandField().fireEvent(new KeyEvent(KeyEvent.KEY_PRESSED, "", "", code, false, false, alt, false));
+    }
+
+    /** Returns a tab's command hint, checking it is in the command font like the command box. */
+    private String navHint(String tabId) {
+        Label hint = (Label) stage.getScene().lookup(tabId).lookup(".nav-hint");
+        assertEquals(MonospaceFont.style(), hint.getStyle(), tabId);
+        return hint.getText();
+    }
+
+    private void assertActiveNav(String activeId) {
+        for (String id : List.of("#weekNav", "#studentsNav")) {
+            boolean active = stage.getScene().lookup(id).getStyleClass().contains("nav-item-active");
+            assertEquals(id.equals(activeId), active, id);
+        }
+    }
+
     private void submitCommand(String command) {
-        TextField commandField = assertInstanceOf(TextField.class, stage.getScene().lookup("#commandTextField"));
+        TextField commandField = commandField();
         commandField.setText(command);
         commandField.fireEvent(new ActionEvent());
         assertEquals("", commandField.getText(), "Command should execute successfully: " + command);
@@ -191,7 +516,7 @@ public class MainWindowTest {
     private static List<String> cardNames(GridPane grid) {
         return grid.getChildren().stream().filter(Region.class::isInstance).map(Region.class::cast)
                 .filter(node -> node.getStyleClass().contains("lesson-card"))
-                .map(node -> node.getAccessibleText().split("\n", 2)[0]).sorted().toList();
+                .map(node -> node.getAccessibleText().split("\n", 2)[0].split(" ", 2)[1]).sorted().toList();
     }
 
     private static Student student(String name, DayOfWeek day) {

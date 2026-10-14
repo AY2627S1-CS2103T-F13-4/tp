@@ -26,14 +26,14 @@ public class ScheduleEntryTest {
 
     @Test
     public void constructor_nullValues_throwsNullPointerException() {
-        assertThrows(NullPointerException.class, () -> new ScheduleEntry(null, LESSON));
-        assertThrows(NullPointerException.class, () -> new ScheduleEntry(STUDENT, null));
-        assertThrows(NullPointerException.class, () -> new ScheduleEntry(null, null));
+        assertThrows(NullPointerException.class, () -> new ScheduleEntry(null, LESSON, 1, 1));
+        assertThrows(NullPointerException.class, () -> new ScheduleEntry(STUDENT, null, 1, 1));
+        assertThrows(NullPointerException.class, () -> new ScheduleEntry(null, null, 1, 1));
     }
 
     @Test
     public void constructor_validValues_preservesStudentLessonAndTimes() {
-        ScheduleEntry entry = new ScheduleEntry(STUDENT, LESSON);
+        ScheduleEntry entry = new ScheduleEntry(STUDENT, LESSON, 1, 1);
 
         assertSame(STUDENT, entry.getStudent());
         assertSame(LESSON, entry.getLesson());
@@ -43,14 +43,14 @@ public class ScheduleEntryTest {
 
     @Test
     public void getDisplayColumn_newEntry_returnsZero() {
-        ScheduleEntry entry = new ScheduleEntry(STUDENT, LESSON);
+        ScheduleEntry entry = new ScheduleEntry(STUDENT, LESSON, 1, 1);
 
         assertEquals(0, entry.getDisplayColumn());
     }
 
     @Test
     public void setDisplayColumn_nonNegativeValues_updatesColumnAndPreservesEntry() {
-        ScheduleEntry entry = new ScheduleEntry(STUDENT, LESSON);
+        ScheduleEntry entry = new ScheduleEntry(STUDENT, LESSON, 1, 1);
 
         for (int column : List.of(0, 1, 4, Integer.MAX_VALUE, 0)) {
             entry.setDisplayColumn(column);
@@ -92,16 +92,27 @@ public class ScheduleEntryTest {
         assertTrue(longer.compareTo(shorter) > 0);
     }
 
+    // Lessons at the same time keep the list's order, so each has one place in the day and the grid
+    // lays them out the same way every time.
     @Test
-    public void compareTo_sameSlotDifferentStudentsAndLessonDetails_returnsZero() {
+    public void compareTo_sameSlot_ordersByStudentThenLessonNumber() {
         Lesson englishLesson = new Lesson(new Subject("English"), LESSON.getWeeklyLessonSlot(),
                 new HourlyRate(new BigDecimal("60")));
         Student otherStudent = new PersonBuilder().withName("Bob Tan").withLessons(englishLesson).build();
-        ScheduleEntry first = new ScheduleEntry(STUDENT, LESSON);
-        ScheduleEntry second = new ScheduleEntry(otherStudent, englishLesson);
+        ScheduleEntry first = new ScheduleEntry(STUDENT, LESSON, 1, 1);
+        ScheduleEntry secondStudent = new ScheduleEntry(otherStudent, englishLesson, 2, 1);
+        ScheduleEntry secondLesson = new ScheduleEntry(STUDENT, LESSON, 1, 2);
 
-        assertEquals(0, first.compareTo(second));
-        assertEquals(0, second.compareTo(first));
+        assertTrue(first.compareTo(secondStudent) < 0);
+        assertTrue(secondStudent.compareTo(first) > 0);
+        assertTrue(first.compareTo(secondLesson) < 0);
+        assertTrue(secondLesson.compareTo(secondStudent) < 0);
+    }
+
+    // The label is what a tutor types in commands, e.g. lesson-edit 3 2.
+    @Test
+    public void getCommandLabel_returnsStudentAndLessonNumbers() {
+        assertEquals("#3.2", new ScheduleEntry(STUDENT, LESSON, 3, 2).getCommandLabel());
     }
 
     @Test
@@ -119,14 +130,14 @@ public class ScheduleEntryTest {
 
     @Test
     public void compareTo_sameEntry_returnsZero() {
-        ScheduleEntry entry = new ScheduleEntry(STUDENT, LESSON);
+        ScheduleEntry entry = new ScheduleEntry(STUDENT, LESSON, 1, 1);
 
         assertEquals(0, entry.compareTo(entry));
     }
 
     @Test
     public void compareTo_null_throwsNullPointerException() {
-        ScheduleEntry entry = new ScheduleEntry(STUDENT, LESSON);
+        ScheduleEntry entry = new ScheduleEntry(STUDENT, LESSON, 1, 1);
 
         assertThrows(NullPointerException.class, () -> entry.compareTo(null));
     }
@@ -134,7 +145,7 @@ public class ScheduleEntryTest {
     private static ScheduleEntry createEntry(DayOfWeek day, String start, String end) {
         Lesson lesson = createLesson(day, start, end);
         Student student = new PersonBuilder().withLessons(lesson).build();
-        return new ScheduleEntry(student, lesson);
+        return new ScheduleEntry(student, lesson, 1, 1);
     }
 
     private static Lesson createLesson(DayOfWeek day, String start, String end) {

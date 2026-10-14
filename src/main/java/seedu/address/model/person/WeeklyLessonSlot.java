@@ -141,6 +141,11 @@ public final class WeeklyLessonSlot implements Comparable<WeeklyLessonSlot> {
         return Objects.hash(day, start, end);
     }
 
+    /** Returns {@code time} the way lesson slots are written, e.g. "9.00am" or "4.30pm". */
+    public static String formatTime(LocalTime time) {
+        return time.format(TIME_FORMAT);
+    }
+
     @Override
     public String toString() {
         return day.getDisplayName(TextStyle.FULL, new Locale("EN", "SG")) + " " + start.format(TIME_FORMAT) + "-"

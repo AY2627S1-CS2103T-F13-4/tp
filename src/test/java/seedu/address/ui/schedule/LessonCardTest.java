@@ -24,6 +24,7 @@ import seedu.address.model.person.HourlyRate;
 import seedu.address.model.person.Lesson;
 import seedu.address.model.person.LessonLocation;
 import seedu.address.model.person.LessonMode;
+import seedu.address.model.person.SchoolingLevel;
 import seedu.address.model.person.Student;
 import seedu.address.model.person.Subject;
 import seedu.address.model.person.WeeklyLessonSlot;
@@ -46,7 +47,7 @@ public class LessonCardTest {
     }
 
     @Test
-    public void constructor_standardLesson_showsStudentSubjectAndExactTimes() throws Exception {
+    public void constructor_standardLesson_showsStudentExactTimesAndCommandNumber() throws Exception {
         FxTestUtil.runOnFxThread(() -> {
             Lesson lesson = new Lesson(new Subject("Math"),
                     new WeeklyLessonSlot(DayOfWeek.MONDAY, LocalTime.of(9, 7), LocalTime.of(9, 22)),
@@ -55,13 +56,14 @@ public class LessonCardTest {
             resizeAndLayout(root, 250, 140);
 
             List<Label> labels = getLabels(root);
-            assertEquals(List.of("Alice Tan", "Math", "09:07-09:22"), labels.stream().map(Label::getText).toList());
+            assertEquals(List.of("Alice Tan", "9.07am-9.22am", "#1.1 \u00b7 Math"),
+                    labels.stream().map(Label::getText).toList());
             for (Label label : labels) {
                 assertTrue(label.isVisible());
                 assertTrue(label.getWidth() > 0);
                 assertTrue(label.getHeight() >= label.prefHeight(-1));
             }
-            assertEquals("Alice Tan\nMath, Monday 9.07am-9.22am, SGD 45.50/hour", root.getAccessibleText());
+            assertEquals("#1.1 Alice Tan\nMath, Monday 9.07am-9.22am, SGD 45.50/hour", root.getAccessibleText());
         });
     }
 
@@ -73,11 +75,11 @@ public class LessonCardTest {
             Lesson virtual = createLesson("Math", Optional.empty(), Optional.of(LessonMode.VIRTUAL));
             Lesson locationOnly = createLesson("Math", Optional.of(new LessonLocation("Room 2")), Optional.empty());
 
-            assertEquals("Alice Tan\nMath, Monday 9.00am-10.00am, SGD 45.50/hour, Physical, at Clementi Library",
+            assertEquals("#1.1 Alice Tan\nMath, Monday 9.00am-10.00am, SGD 45.50/hour, Physical, at Clementi Library",
                     createCard("Alice Tan", physical).getRoot().getAccessibleText());
-            assertEquals("Alice Tan\nMath, Monday 9.00am-10.00am, SGD 45.50/hour, Virtual",
+            assertEquals("#1.1 Alice Tan\nMath, Monday 9.00am-10.00am, SGD 45.50/hour, Virtual",
                     createCard("Alice Tan", virtual).getRoot().getAccessibleText());
-            assertEquals("Alice Tan\nMath, Monday 9.00am-10.00am, SGD 45.50/hour, at Room 2",
+            assertEquals("#1.1 Alice Tan\nMath, Monday 9.00am-10.00am, SGD 45.50/hour, at Room 2",
                     createCard("Alice Tan", locationOnly).getRoot().getAccessibleText());
         });
     }
@@ -90,8 +92,8 @@ public class LessonCardTest {
             Lesson lesson = createLesson("  Advanced\t Mathematics and  Applied Physics  ",
                     Optional.empty(), Optional.empty());
             Region root = prepareCard(createCard(name, lesson));
-            List<String> expectedLabels = List.of(name, subject, "09:00-10:00");
-            String expectedDetails = name + "\n" + subject + ", Monday 9.00am-10.00am, SGD 45.50/hour";
+            List<String> expectedLabels = List.of(name, "9.00am-10.00am", "#1.1 \u00b7 " + subject);
+            String expectedDetails = "#1.1 " + name + "\n" + subject + ", Monday 9.00am-10.00am, SGD 45.50/hour";
 
             resizeAndLayout(root, 25, 2);
             assertEquals(expectedLabels, getLabels(root).stream().map(Label::getText).toList());
@@ -111,9 +113,9 @@ public class LessonCardTest {
             Region root = prepareCard(createCard("Alice Tan", lesson));
             resizeAndLayout(root, 100, 2);
 
-            assertEquals(List.of("Alice Tan", "Math", "09:00-10:00"),
+            assertEquals(List.of("Alice Tan", "9.00am-10.00am", "#1.1 \u00b7 Math"),
                     getLabels(root).stream().map(Label::getText).toList());
-            assertEquals("Alice Tan\nMath, Monday 9.00am-10.00am, SGD 45.50/hour, Physical, "
+            assertEquals("#1.1 Alice Tan\nMath, Monday 9.00am-10.00am, SGD 45.50/hour, Physical, "
                     + "at Clementi Library\nRoom 2", root.getAccessibleText());
         });
     }
@@ -137,7 +139,7 @@ public class LessonCardTest {
                 assertEquals(height, clip.getHeight(), 0.001);
                 assertTrue(root.getBoundsInLocal().getWidth() <= width + 0.001);
                 assertTrue(root.getBoundsInLocal().getHeight() <= height + 0.001);
-                assertEquals(List.of("Alice Tan", "Math", "09:00-10:00"),
+                assertEquals(List.of("Alice Tan", "9.00am-10.00am", "#1.1 \u00b7 Math"),
                         getLabels(root).stream().map(Label::getText).toList());
             }
         });
@@ -155,12 +157,12 @@ public class LessonCardTest {
             assertNotSame(alice, bob);
             assertNotSame(alice.getClip(), bob.getClip());
             assertNotSame(getLabels(alice).get(0), getLabels(bob).get(0));
-            assertEquals(List.of("Alice Tan", "Math", "09:00-10:00"),
+            assertEquals(List.of("Alice Tan", "9.00am-10.00am", "#1.1 \u00b7 Math"),
                     getLabels(alice).stream().map(Label::getText).toList());
-            assertEquals(List.of("Bob Lim", "Math", "09:00-10:00"),
+            assertEquals(List.of("Bob Lim", "9.00am-10.00am", "#1.1 \u00b7 Math"),
                     getLabels(bob).stream().map(Label::getText).toList());
-            assertEquals("Alice Tan\nMath, Monday 9.00am-10.00am, SGD 45.50/hour", alice.getAccessibleText());
-            assertEquals("Bob Lim\nMath, Monday 9.00am-10.00am, SGD 45.50/hour", bob.getAccessibleText());
+            assertEquals("#1.1 Alice Tan\nMath, Monday 9.00am-10.00am, SGD 45.50/hour", alice.getAccessibleText());
+            assertEquals("#1.1 Bob Lim\nMath, Monday 9.00am-10.00am, SGD 45.50/hour", bob.getAccessibleText());
 
             Rectangle bobClip = assertInstanceOf(Rectangle.class, bob.getClip());
             resizeAndLayout(alice, 0, 0);
@@ -171,9 +173,30 @@ public class LessonCardTest {
         });
     }
 
+    // Blocks use the same school-stage colours as the student table; any other level, or none, stays neutral.
+    @Test
+    public void constructor_schoolingLevel_coloursCardByStage() throws Exception {
+        FxTestUtil.runOnFxThread(() -> {
+            Lesson lesson = createLesson("Math", Optional.empty(), Optional.empty());
+            assertTrue(cardForLevel("P5", lesson).getRoot().getStyleClass().contains("level-primary"));
+            assertTrue(cardForLevel("Sec 3", lesson).getRoot().getStyleClass().contains("level-secondary"));
+            assertTrue(cardForLevel("JC1", lesson).getRoot().getStyleClass().contains("level-jc"));
+            assertTrue(cardForLevel("Poly Y1", lesson).getRoot().getStyleClass().contains("level-other"));
+            assertTrue(createCard("Alice Tan", lesson).getRoot().getStyleClass().contains("level-other"));
+            assertEquals("#1.1 \u00b7 Sec 3 \u00b7 Math",
+                    getLabels(cardForLevel("Sec 3", lesson).getRoot()).get(2).getText());
+        });
+    }
+
+    private static LessonCard cardForLevel(String level, Lesson lesson) {
+        Student student = new PersonBuilder().withName("Alice Tan").withSchoolingLevel(new SchoolingLevel(level))
+                .withLessons(lesson).build();
+        return new LessonCard(new ScheduleEntry(student, lesson, 1, 1));
+    }
+
     private static LessonCard createCard(String name, Lesson lesson) {
         Student student = new PersonBuilder().withName(name).withLessons(lesson).build();
-        return new LessonCard(new ScheduleEntry(student, lesson));
+        return new LessonCard(new ScheduleEntry(student, lesson, 1, 1));
     }
 
     private static Lesson createLesson(String subject, Optional<LessonLocation> location, Optional<LessonMode> mode) {
@@ -186,7 +209,7 @@ public class LessonCardTest {
         Region root = card.getRoot();
         root.setManaged(false);
         Scene scene = new Scene(new Group(root));
-        scene.getStylesheets().add(LessonCardTest.class.getResource("/view/DarkTheme.css").toExternalForm());
+        scene.getStylesheets().add(LessonCardTest.class.getResource("/view/LightTheme.css").toExternalForm());
         root.applyCss();
         return root;
     }

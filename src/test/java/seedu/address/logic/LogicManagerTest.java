@@ -82,6 +82,14 @@ public class LogicManagerTest {
                 LogicManager.FILE_OPS_PERMISSION_ERROR_FORMAT, DUMMY_AD_EXCEPTION.getMessage()));
     }
 
+    // The UI counts all students from this list; it must stay the model's live list, not a copy.
+    @Test
+    public void getAddressBook_reflectsLaterChanges() throws Exception {
+        int before = logic.getAddressBook().getPersonList().size();
+        logic.execute(AddCommand.COMMAND_WORD + NAME_DESC_AMY + PHONE_DESC_AMY + EMAIL_DESC_AMY + ADDRESS_DESC_AMY);
+        assertEquals(before + 1, logic.getAddressBook().getPersonList().size());
+    }
+
     @Test
     public void getFilteredPersonList_modifyList_throwsUnsupportedOperationException() {
         assertThrows(UnsupportedOperationException.class, () -> logic.getFilteredPersonList().remove(0));

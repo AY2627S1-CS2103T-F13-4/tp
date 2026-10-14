@@ -1,0 +1,739 @@
+/*
+ * StudentBook light theme.
+ * Neutral surfaces with one blue accent. Colours are kept in the looked-up colours below
+ * so that each one is defined once.
+ */
+.root {
+    /* The page around the command bar is a shade darker, so the command bar stands out */
+    -sb-page: #ECECEF;
+    /* Cards on the page (calendar, table); white is kept for the command bar and highlights */
+    -sb-card: #F7F7F9;
+    -sb-surface: #FFFFFF;
+    -sb-border: #E2E2E6;
+    -sb-divider: #EFEFF2;
+    -sb-text: #111113;
+    -sb-text-secondary: #55555D;
+    /* About 5:1 on white, so captions and placeholders stay readable */
+    -sb-text-muted: #6E6E76;
+    /* For quiet labels such as times and key hints */
+    -sb-text-faint: #8A8A93;
+    -sb-accent: #2F6BEA;
+    -sb-accent-tint: #EAF1FF;
+    -sb-accent-ink: #1F48B8;
+    -sb-success: #1F8A4C;
+    -sb-error: #C8302F;
+    -sb-error-tint: #FDF2F2;
+    /* The current-time line on the calendar, a bright red that stands out on the grid */
+    -sb-now: #E5484D;
+
+    /* Bundled Geist (see AppFonts); each weight is its own family, e.g. "Geist SemiBold" */
+    -fx-font-family: "Geist";
+    -fx-font-size: 13px;
+    -fx-base: #F4F4F5;
+    -fx-accent: -sb-accent;
+    -fx-focus-color: -sb-accent;
+    -fx-faint-focus-color: transparent;
+    -fx-background-color: -sb-page;
+}
+
+.label {
+    -fx-text-fill: -sb-text;
+}
+
+/* ---------- Menu bar ---------- */
+
+.menu-bar {
+    -fx-background-color: -sb-page;
+    -fx-border-color: transparent transparent -sb-border transparent;
+    -fx-padding: 0 8 0 8;
+}
+
+.menu-bar .label {
+    -fx-text-fill: -sb-text-secondary;
+}
+
+.context-menu {
+    -fx-background-color: -sb-surface;
+    -fx-background-radius: 8;
+    -fx-border-color: -sb-border;
+    -fx-border-radius: 8;
+}
+
+.menu-item:focused {
+    -fx-background-color: -sb-accent-tint;
+}
+
+.menu-item:focused .label {
+    -fx-text-fill: -sb-accent-ink;
+}
+
+/* ---------- Brand and navigation ---------- */
+
+.brand {
+    -fx-padding: 0 24 12 26;
+}
+
+.brand-mark {
+    -fx-min-width: 26;
+    -fx-min-height: 26;
+    -fx-max-width: 26;
+    -fx-max-height: 26;
+    -fx-alignment: center;
+    -fx-background-color: #111113;
+    -fx-background-radius: 7;
+    -fx-text-fill: #FFFFFF;
+    -fx-font-family: "Geist SemiBold";
+    -fx-font-size: 10px;
+}
+
+.brand-name {
+    -fx-font-family: "Geist SemiBold";
+    -fx-font-size: 15px;
+}
+
+/* A row of tabs under the command bar; the active tab is underlined */
+.nav-bar {
+    -fx-padding: 10 24 0 20;
+}
+
+.nav-item {
+    -fx-background-color: transparent;
+    -fx-background-radius: 8;
+    -fx-padding: 6 10 6 10;
+    -fx-cursor: hand;
+}
+
+.nav-item:hover {
+    -fx-background-color: #E4E4E8;
+}
+
+.nav-item-active .nav-label {
+    -fx-text-fill: -sb-text;
+    -fx-font-family: "Geist Medium";
+}
+
+.nav-item-active, .nav-item-active:hover {
+    -fx-background-color: -sb-surface;
+    -fx-effect: dropshadow(gaussian, rgba(17, 17, 19, 0.06), 4, 0, 0, 1);
+}
+
+.nav-label {
+    -fx-font-size: 13px;
+    -fx-text-fill: -sb-text-muted;
+}
+
+.nav-hint {
+    -fx-font-size: 11px;
+    -fx-text-fill: -sb-text-faint;
+}
+
+/* Level filters sit after the tabs, set apart by a hairline */
+.nav-divider {
+    -fx-min-width: 1;
+    -fx-max-width: 1;
+    -fx-min-height: 16;
+    -fx-max-height: 16;
+    -fx-background-color: #D4D4DA;
+}
+
+.level-chip {
+    -fx-padding: 5 9 5 9;
+}
+
+.nav-dot {
+    -fx-min-width: 8;
+    -fx-min-height: 8;
+    -fx-max-width: 8;
+    -fx-max-height: 8;
+    -fx-background-radius: 2;
+}
+
+/* The dots use the ink of each school stage's colour */
+.nav-dot.level-primary {
+    -fx-background-color: #F5A524;
+}
+
+.nav-dot.level-secondary {
+    -fx-background-color: #3E7BFA;
+}
+
+.nav-dot.level-jc {
+    -fx-background-color: #8E6CF0;
+}
+
+.nav-dot.level-other {
+    -fx-background-color: #B4B4BA;
+}
+
+/* ---------- Student list ---------- */
+
+.page-header {
+    -fx-padding: 0 24 0 28;
+    -fx-min-height: 56;
+    -fx-pref-height: 56;
+}
+
+.primary-button {
+    -fx-background-color: #111113;
+    -fx-background-radius: 9;
+    -fx-text-fill: #FFFFFF;
+    -fx-font-family: "Geist Medium";
+    -fx-font-size: 13px;
+    -fx-padding: 8 14 8 14;
+    -fx-cursor: hand;
+}
+
+.primary-button:hover {
+    -fx-background-color: #2A2A2E;
+}
+
+.view-title {
+    -fx-font-family: "Geist SemiBold";
+    -fx-font-size: 20px;
+}
+
+.view-subtitle {
+    -fx-text-fill: -sb-text-faint;
+}
+
+.list-card {
+    -fx-background-color: -sb-card;
+    -fx-background-radius: 14;
+    -fx-effect: dropshadow(gaussian, rgba(17, 17, 19, 0.04), 12, 0, 0, 2);
+}
+
+.list-view {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-padding: 4 0 4 0;
+}
+
+.list-view:focused {
+    -fx-background-color: transparent;
+}
+
+.list-cell {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+}
+
+.list-cell:filled {
+    -fx-border-color: transparent transparent -sb-divider transparent;
+}
+
+.list-cell:filled:selected {
+    -fx-background-color: -sb-surface;
+}
+
+.empty-state {
+    -fx-spacing: 6;
+    -fx-alignment: center;
+    -fx-padding: 24;
+}
+
+.empty-title {
+    -fx-font-family: "Geist SemiBold";
+    -fx-font-size: 15px;
+}
+
+.empty-detail {
+    -fx-text-fill: -sb-text-secondary;
+    -fx-text-alignment: center;
+}
+
+/* A command in the empty state, shown as it would be typed */
+.empty-command {
+    -fx-font-size: 12.5px;
+    -fx-text-alignment: center;
+    -fx-background-color: #F4F4F6;
+    -fx-background-radius: 6;
+    -fx-padding: 5 10 5 10;
+}
+
+/* ---------- Student table ---------- */
+
+/* Each row and the header use the same padding and gaps, so their columns line up */
+.table-header, .row-line {
+    -fx-spacing: 20;
+}
+
+.table-header {
+    -fx-padding: 10 18 8 14;
+    -fx-border-color: transparent transparent -sb-divider transparent;
+}
+
+.table-heading {
+    -fx-font-family: "Geist Medium";
+    -fx-font-size: 12px;
+    -fx-text-fill: -sb-text-muted;
+}
+
+.heading-index {
+    -fx-min-width: 26;
+    -fx-alignment: center-right;
+}
+
+.heading-right {
+    -fx-alignment: center-right;
+}
+
+.student-row {
+    -fx-padding: 11 18 11 14;
+}
+
+.student-row-open {
+    -fx-background-color: #F8F9FB;
+}
+
+/* Details start under the Student column: # column (26) plus the gap (20) */
+.row-details {
+    -fx-padding: 14 0 6 46;
+}
+
+.detail-caption {
+    -fx-font-family: "Geist Medium";
+    -fx-font-size: 11.5px;
+    -fx-text-fill: -sb-text-muted;
+}
+
+.row-index {
+    -fx-text-fill: -sb-text-muted;
+    -fx-font-size: 13px;
+    -fx-min-width: 26;
+    -fx-alignment: center-right;
+}
+
+.row-level {
+    -fx-font-size: 12.5px;
+    -fx-fill: -sb-text-muted;
+}
+
+.row-name {
+    -fx-font-family: "Geist Medium";
+    -fx-font-size: 14px;
+    -fx-fill: -sb-text;
+}
+
+.row-value {
+    -fx-font-size: 13px;
+    -fx-fill: -sb-text;
+}
+
+.row-secondary {
+    -fx-font-size: 13px;
+    -fx-fill: -sb-text-secondary;
+}
+
+.row-muted {
+    -fx-font-size: 13px;
+    -fx-fill: -sb-text-muted;
+}
+
+.row-empty {
+    -fx-fill: -sb-text-muted;
+}
+
+.initials-badge {
+    -fx-min-width: 28;
+    -fx-min-height: 28;
+    -fx-max-width: 28;
+    -fx-max-height: 28;
+    -fx-background-radius: 14;
+    -fx-alignment: center;
+    -fx-font-family: "Geist SemiBold";
+    -fx-font-size: 11px;
+}
+
+.chip {
+    -fx-background-radius: 6;
+    -fx-padding: 2 8 2 8;
+    -fx-font-size: 12px;
+}
+
+.tag-chip {
+    -fx-background-color: #F4F4F5;
+    -fx-text-fill: -sb-text-secondary;
+}
+
+/* The level chip and initials badge are coloured by school stage; levels in other forms stay neutral */
+.level-primary {
+    -fx-background-color: #FCEBD3;
+    -fx-text-fill: #7A3B00;
+}
+
+.level-secondary {
+    -fx-background-color: #E0E9FD;
+    -fx-text-fill: #1A3FA3;
+}
+
+.level-jc {
+    -fx-background-color: #ECE6FD;
+    -fx-text-fill: #4C2FB0;
+}
+
+.level-other {
+    -fx-background-color: #EAEAEE;
+    -fx-text-fill: -sb-text-secondary;
+}
+
+/* A student's lesson breakdown */
+.lesson-number {
+    -fx-font-size: 13px;
+    -fx-fill: -sb-text-muted;
+}
+
+.lesson-subject {
+    -fx-font-family: "Geist Medium";
+    -fx-font-size: 13px;
+    -fx-fill: -sb-text;
+}
+
+/* Lesson mode chips: the two fixed modes each get a colour */
+.mode-chip {
+    -fx-font-size: 11.5px;
+    -fx-padding: 1 8 1 8;
+}
+
+.mode-physical {
+    -fx-background-color: #E6F4EA;
+    -fx-text-fill: #1E6B3D;
+}
+
+.mode-virtual {
+    -fx-background-color: #E2F3F5;
+    -fx-text-fill: #0E6470;
+}
+
+/* ---------- Command panel ---------- */
+
+.recent-chip {
+    -fx-font-size: 11.5px;
+    -fx-text-fill: -sb-text-secondary;
+    -fx-background-color: #F4F4F6;
+    -fx-background-radius: 5;
+    -fx-padding: 2 7 2 7;
+}
+
+.recent-chip:hover {
+    -fx-background-color: #E6E6EA;
+}
+
+.command-panel {
+    -fx-background-color: -sb-surface;
+    -fx-background-radius: 14;
+    /* An invisible border the focus ring fills in, so focusing never shifts the page below */
+    -fx-border-color: transparent;
+    -fx-border-width: 1;
+    -fx-border-radius: 14;
+    -fx-effect: dropshadow(gaussian, rgba(17, 17, 19, 0.08), 24, 0, 0, 6);
+}
+
+.result-row {
+    -fx-padding: 10 18 10 18;
+    -fx-spacing: 10;
+    -fx-border-color: #F0F0F3 transparent transparent transparent;
+    -fx-background-radius: 0 0 14 14;
+}
+
+.result-row.result-error {
+    -fx-background-color: -sb-error-tint;
+}
+
+.result-icon {
+    -fx-min-width: 20;
+    -fx-min-height: 20;
+    -fx-max-width: 20;
+    -fx-max-height: 20;
+    -fx-background-radius: 10;
+    -fx-alignment: center;
+    -fx-font-size: 11px;
+    -fx-font-family: "Geist SemiBold";
+    -fx-background-color: #F1F1F3;
+    -fx-text-fill: -sb-text-secondary;
+}
+
+.result-success .result-icon {
+    -fx-background-color: #E5F4EB;
+    -fx-text-fill: -sb-success;
+}
+
+.result-error .result-icon {
+    -fx-background-color: #FDE3E3;
+    -fx-text-fill: -sb-error;
+}
+
+.result-scroll, .result-scroll > .viewport {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-padding: 0;
+}
+
+.result-title {
+    -fx-font-size: 13px;
+    -fx-fill: -sb-text;
+}
+
+/* The first line of a multi-line message, such as command usage, heads the details below it */
+.result-heading {
+    -fx-font-size: 13px;
+    -fx-font-family: "Geist SemiBold";
+    -fx-fill: -sb-text;
+}
+
+.result-text {
+    -fx-font-size: 13px;
+    -fx-fill: -sb-text-secondary;
+}
+
+.result-caption {
+    -fx-font-size: 11.5px;
+    -fx-text-fill: -sb-text-muted;
+}
+
+.result-command {
+    -fx-font-size: 12.5px;
+    -fx-fill: -sb-text;
+}
+
+/* Format and Example lines copy their command when clicked */
+.result-command-row:hover .result-command {
+    -fx-fill: -sb-accent-ink;
+}
+
+.result-check {
+    -fx-fill: transparent;
+    -fx-stroke: -sb-success;
+    -fx-stroke-width: 1.6;
+}
+
+.command-row {
+    -fx-padding: 10 18 10 18;
+    -fx-spacing: 10;
+    -fx-min-height: 60;
+}
+
+.command-prompt {
+    -fx-text-fill: -sb-accent;
+    -fx-font-size: 20px;
+}
+
+.command-row .text-field {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-padding: 6 0 6 0;
+    -fx-font-size: 17px;
+    -fx-text-fill: -sb-text;
+    -fx-prompt-text-fill: #A1A1AA;
+    -fx-highlight-fill: -sb-accent-tint;
+    -fx-highlight-text-fill: -sb-text;
+}
+
+.command-row .text-field.error {
+    -fx-text-fill: -sb-error;
+}
+
+.keycap {
+    -fx-font-size: 11px;
+    -fx-text-fill: #71717A;
+    -fx-padding: 1 6 1 6;
+    -fx-background-color: -sb-surface;
+    -fx-border-color: #E7E7EB;
+    -fx-border-radius: 5;
+    -fx-background-radius: 5;
+}
+
+.key-hint {
+    -fx-font-size: 12px;
+    -fx-text-fill: #A1A1AA;
+}
+
+/* ---------- Status bar ---------- */
+
+.status-bar {
+    -fx-padding: 0 26 8 26;
+}
+
+.status-bar .label {
+    -fx-font-size: 11.5px;
+    -fx-text-fill: -sb-text-muted;
+}
+
+/* ---------- Scroll bars ---------- */
+
+.scroll-bar {
+    -fx-background-color: transparent;
+    -fx-padding: 2;
+}
+
+.scroll-bar .thumb {
+    -fx-background-color: #D9D9DE;
+    -fx-background-radius: 4;
+    -fx-background-insets: 0;
+}
+
+.scroll-bar .increment-button, .scroll-bar .decrement-button {
+    -fx-padding: 0;
+    -fx-background-color: transparent;
+}
+
+.scroll-bar .increment-arrow, .scroll-bar .decrement-arrow {
+    -fx-shape: " ";
+    -fx-padding: 0;
+}
+
+.scroll-bar:vertical {
+    -fx-pref-width: 10;
+}
+
+.scroll-bar:horizontal {
+    -fx-pref-height: 10;
+}
+
+/* ---------- Dialogs ---------- */
+
+.dialog-pane {
+    -fx-background-color: -sb-surface;
+}
+
+.dialog-pane > *.label.content {
+    -fx-text-fill: -sb-text;
+}
+
+/* ---------- Week calendar ---------- */
+
+.schedule-scroll,
+.schedule-scroll > .viewport {
+    -fx-background-color: transparent;
+    -fx-background-radius: 14;
+}
+
+.schedule-scroll {
+    -fx-padding: 0;
+}
+
+.schedule-grid {
+    -fx-padding: 0 0 8 0;
+}
+
+/* Day headings: "Mon 12", with today's date in a dark circle */
+.schedule-day {
+    -fx-background-color: -sb-card;
+    -fx-border-color: transparent transparent #EDEDF0 transparent;
+}
+
+.schedule-day-name {
+    -fx-font-size: 12px;
+    -fx-text-fill: #A1A1AA;
+}
+
+.schedule-day-number {
+    -fx-font-family: "Geist SemiBold";
+    -fx-font-size: 14px;
+    -fx-text-fill: -sb-text;
+    -fx-alignment: center;
+    -fx-min-width: 26;
+    -fx-min-height: 26;
+}
+
+.schedule-day.schedule-today {
+    -fx-background-color: #FCFCFD;
+}
+
+.schedule-today .schedule-day-name {
+    -fx-font-family: "Geist Medium";
+    -fx-text-fill: -sb-text;
+}
+
+.schedule-today .schedule-day-number {
+    -fx-background-color: -sb-text;
+    -fx-background-radius: 13;
+    -fx-text-fill: -sb-surface;
+}
+
+/* The line on the left of each day; today is lightly shaded */
+.schedule-day-column {
+    -fx-border-color: transparent transparent transparent -sb-divider;
+}
+
+.schedule-today-column {
+    -fx-background-color: #FCFCFD;
+}
+
+.schedule-hour-line {
+    -fx-border-color: -sb-divider transparent transparent transparent;
+}
+
+.schedule-time {
+    -fx-font-size: 10.5px;
+    -fx-text-fill: #A1A1AA;
+    -fx-padding: 4 8 0 10;
+}
+
+/* The current time across today: a dot on the day's left edge and a line */
+.schedule-now-line {
+    -fx-max-height: 8;
+}
+
+.schedule-now-dot {
+    -fx-min-width: 8;
+    -fx-min-height: 8;
+    -fx-max-width: 8;
+    -fx-max-height: 8;
+    -fx-background-color: -sb-now;
+    -fx-background-radius: 4;
+}
+
+.schedule-now-bar {
+    -fx-min-height: 2;
+    -fx-pref-height: 2;
+    -fx-max-height: 2;
+    -fx-background-color: -sb-now;
+}
+
+/* A lesson block, filled with its school stage's tint; the text uses the stage's ink */
+/* Sized so a one-hour block (60px) shows all three lines */
+.lesson-card {
+    -fx-background-radius: 7;
+    /* A 1px inset leaves a hairline gap between back-to-back lessons, with no border */
+    -fx-background-insets: 1 0 1 0;
+    -fx-padding: 6 10 6 10;
+    -fx-spacing: 1;
+}
+
+.lesson-card .label {
+    -fx-font-size: 11px;
+}
+
+.lesson-card .lesson-card-name {
+    -fx-font-family: "Geist SemiBold";
+    -fx-font-size: 12.5px;
+}
+
+.lesson-card.level-primary .label {
+    -fx-text-fill: #7A3B00;
+}
+
+.lesson-card.level-secondary .label {
+    -fx-text-fill: #1A3FA3;
+}
+
+.lesson-card.level-jc .label {
+    -fx-text-fill: #4C2FB0;
+}
+
+.lesson-card.level-other .label {
+    -fx-text-fill: -sb-text-secondary;
+}
+
+/* The key to the stage colours, at the right of the page header */
+.legend-label {
+    -fx-font-size: 12px;
+    -fx-text-fill: -sb-text-faint;
+}
+
+/* The command panel while the cursor is in the command box */
+.command-panel.command-panel-focused {
+    -fx-border-color: rgba(47, 107, 234, 0.35);
+    -fx-border-width: 1;
+    -fx-effect: dropshadow(gaussian, rgba(47, 107, 234, 0.16), 24, 0, 0, 6);
+}

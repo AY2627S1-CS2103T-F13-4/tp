@@ -15,9 +15,9 @@ The MVP will let tutors:
 
 All five tuition features are part of the MVP. Payment processing and sending messages are out of scope. Other brainstormed ideas are backlog candidates, not promised additions.
 
-![Planned StudentBook interface](docs/images/Ui.png)
+![StudentBook interface](docs/images/Ui.png)
 
-This mock-up shows the planned MVP. The User Guide describes the commands available now. See the [Developer Guide](docs/DeveloperGuide.md#product-scope) for feature owners and decisions still to confirm.
+This screenshot shows the current app with sample students. The User Guide describes the commands available now. See the [Developer Guide](docs/DeveloperGuide.md#product-scope) for feature owners and decisions still to confirm.
 
 Start with the [User Guide](docs/UserGuide.md) to use the app or the [Developer Guide](docs/DeveloperGuide.md) to contribute. The [project website](https://ay2627s1-cs2103t-f13-4.github.io/tp/) publishes the merged documentation.
 

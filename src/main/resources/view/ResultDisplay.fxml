@@ -1,9 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.TextArea?>
-<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
 
-<StackPane fx:id="placeHolder" styleClass="pane-with-border" xmlns="http://javafx.com/javafx/17"
-    xmlns:fx="http://javafx.com/fxml/1">
-  <TextArea fx:id="resultDisplay" editable="false" styleClass="result-display"/>
-</StackPane>
+<HBox fx:id="resultRow" styleClass="result-row" alignment="TOP_LEFT" xmlns="http://javafx.com/javafx/17"
+      xmlns:fx="http://javafx.com/fxml/1">
+  <Label fx:id="resultIcon" styleClass="result-icon" />
+  <!-- Sized to the message (minHeight 0 lets one-line messages stay compact) up to maxHeight, then scrolls -->
+  <ScrollPane fx:id="resultScroll" styleClass="result-scroll" fitToWidth="true" hbarPolicy="NEVER"
+              focusTraversable="false" minHeight="0" maxHeight="132" HBox.hgrow="ALWAYS">
+    <VBox fx:id="resultContent" spacing="5" />
+  </ScrollPane>
+</HBox>

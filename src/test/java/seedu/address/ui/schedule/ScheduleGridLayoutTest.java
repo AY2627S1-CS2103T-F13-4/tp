@@ -34,6 +34,7 @@ import seedu.address.testutil.PersonBuilder;
  */
 public class ScheduleGridLayoutTest {
     private static final double EPSILON = 0.001;
+    private static final double PIXEL_SNAP = 1;
 
     private ScheduleGrid schedule;
     private ScrollPane viewport;
@@ -54,35 +55,40 @@ public class ScheduleGridLayoutTest {
     public void layout_partialIntervals_preservesExactLessonBounds() throws Exception {
         runOnFxThread(() -> {
             showStudents(FXCollections.observableArrayList(student("Alice", DayOfWeek.MONDAY, "09:05", "09:20")));
-            assertCardGeometry("Alice", 1, 1, 10, 20, 30);
+            assertCardGeometry("Alice", 1, 1, 5, 40, 15);
 
             showStudents(FXCollections.observableArrayList(student("Alice", DayOfWeek.MONDAY, "09:25", "09:35")));
-            assertCardGeometry("Alice", 1, 2, 50, 50, 20);
+            assertCardGeometry("Alice", 1, 1, 25, 25, 10);
 
             showStudents(FXCollections.observableArrayList(student("Alice", DayOfWeek.MONDAY, "09:00", "09:01")));
-            assertCardGeometry("Alice", 1, 1, 0, 58, 2);
+            assertCardGeometry("Alice", 1, 1, 0, 59, 1);
 
-            showStudents(FXCollections.observableArrayList(student("Alice", DayOfWeek.MONDAY, "09:29", "09:31")));
-            assertCardGeometry("Alice", 1, 2, 58, 58, 4);
+            // Crossing the hour line: the card spans both rows and keeps its exact two minutes.
+            showStudents(FXCollections.observableArrayList(student("Alice", DayOfWeek.MONDAY, "09:59", "10:01")));
+            assertCardGeometry("Alice", 1, 2, 59, 59, 2);
 
-            showStudents(FXCollections.observableArrayList(student("Alice", DayOfWeek.MONDAY, "09:29", "09:30")));
-            assertCardGeometry("Alice", 1, 1, 58, 0, 2);
+            showStudents(FXCollections.observableArrayList(student("Alice", DayOfWeek.MONDAY, "09:59", "10:00")));
+            assertCardGeometry("Alice", 1, 1, 59, 0, 1);
 
-            showStudents(FXCollections.observableArrayList(student("Alice", DayOfWeek.MONDAY, "09:30", "09:31")));
-            assertCardGeometry("Alice", 1, 1, 0, 58, 2);
+            showStudents(FXCollections.observableArrayList(student("Alice", DayOfWeek.MONDAY, "10:00", "10:01")));
+            assertCardGeometry("Alice", 2, 1, 0, 59, 1);
         });
     }
 
+    // The calendar always shows 9am to 8pm, so a light week still reads as a working day,
+    // and grows to fit any lesson outside those hours instead of hiding it.
     @Test
-    public void layout_unalignedEarliestTime_alignsOtherDaysWithRoundedOrigin() throws Exception {
+    public void layout_lessonBeforeNine_extendsGridEarlierAndAlignsOtherDays() throws Exception {
         runOnFxThread(() -> {
             showStudents(FXCollections.observableArrayList(
-                    student("Early", DayOfWeek.MONDAY, "09:15", "09:45"),
+                    student("Early", DayOfWeek.MONDAY, "08:15", "08:45"),
                     student("Later", DayOfWeek.TUESDAY, "10:00", "10:30")));
 
-            assertEquals(List.of("09:00", "09:30", "10:00"), timeLabels());
-            assertCardGeometry("Early", 1, 2, 30, 30, 60);
-            assertCardGeometry("Later", 3, 1, 0, 0, 60);
+            assertEquals(12, timeLabels().size());
+            assertEquals(List.of("8.00am", "9.00am"), timeLabels().subList(0, 2));
+            assertEquals("7.00pm", timeLabels().get(11));
+            assertCardGeometry("Early", 1, 1, 15, 15, 30);
+            assertCardGeometry("Later", 3, 1, 0, 30, 30);
             assertEquals(120, card("Later").getLayoutY() - grid().getCellBounds(1, 1).getMinY(), EPSILON);
         });
     }
@@ -91,15 +97,16 @@ public class ScheduleGridLayoutTest {
     public void layout_endOfDay_preservesFinalMinuteAndFullDayExtent() throws Exception {
         runOnFxThread(() -> {
             showStudents(FXCollections.observableArrayList(student("Late", DayOfWeek.SUNDAY, "23:58", "23:59")));
-            assertEquals(List.of("23:30"), timeLabels());
-            assertCardGeometry("Late", 1, 1, 56, 2, 2);
+            assertEquals(15, timeLabels().size());
+            assertEquals("11.00pm", timeLabels().get(14));
+            assertCardGeometry("Late", 15, 1, 58, 1, 1);
 
             showStudents(FXCollections.observableArrayList(student("Full Day", DayOfWeek.MONDAY, "00:00", "23:59")));
-            assertEquals(48, timeLabels().size());
-            assertEquals("00:00", timeLabels().get(0));
-            assertEquals("23:30", timeLabels().get(47));
-            assertEquals(49, grid().getRowConstraints().size());
-            assertCardGeometry("Full Day", 1, 48, 0, 2, 2878);
+            assertEquals(24, timeLabels().size());
+            assertEquals("12.00am", timeLabels().get(0));
+            assertEquals("11.00pm", timeLabels().get(23));
+            assertEquals(25, grid().getRowConstraints().size());
+            assertCardGeometry("Full Day", 1, 24, 0, 1, 1439);
         });
     }
 
@@ -111,14 +118,14 @@ public class ScheduleGridLayoutTest {
                     student("Adjacent", DayOfWeek.MONDAY, "09:05", "09:10"),
                     student("Gapped", DayOfWeek.MONDAY, "09:15", "09:20")));
 
-            assertCardGeometry("First", 1, 1, 0, 50, 10);
-            assertCardGeometry("Adjacent", 1, 1, 10, 40, 10);
-            assertCardGeometry("Gapped", 1, 1, 30, 20, 10);
+            assertCardGeometry("First", 1, 1, 0, 55, 5);
+            assertCardGeometry("Adjacent", 1, 1, 5, 50, 5);
+            assertCardGeometry("Gapped", 1, 1, 15, 40, 5);
             assertEquals(GridPane.getColumnIndex(card("First")), GridPane.getColumnIndex(card("Adjacent")));
             assertEquals(GridPane.getColumnIndex(card("First")), GridPane.getColumnIndex(card("Gapped")));
             assertEquals(card("First").getBoundsInParent().getMaxY(),
                     card("Adjacent").getBoundsInParent().getMinY(), EPSILON);
-            assertEquals(10, card("Gapped").getBoundsInParent().getMinY()
+            assertEquals(5, card("Gapped").getBoundsInParent().getMinY()
                     - card("Adjacent").getBoundsInParent().getMaxY(), EPSILON);
             assertEquals(8, grid().getColumnConstraints().size());
         });
@@ -132,9 +139,9 @@ public class ScheduleGridLayoutTest {
                     student("Short", DayOfWeek.MONDAY, "09:05", "09:15"),
                     student("Next", DayOfWeek.MONDAY, "09:15", "09:25")));
 
-            assertCardGeometry("Long", 1, 1, 0, 20, 40);
-            assertCardGeometry("Short", 1, 1, 10, 30, 20);
-            assertCardGeometry("Next", 1, 1, 30, 10, 20);
+            assertCardGeometry("Long", 1, 1, 0, 40, 20);
+            assertCardGeometry("Short", 1, 1, 5, 45, 10);
+            assertCardGeometry("Next", 1, 1, 15, 35, 10);
             assertEquals(Integer.valueOf(1), GridPane.getColumnIndex(card("Long")));
             assertEquals(Integer.valueOf(2), GridPane.getColumnIndex(card("Short")));
             assertEquals(Integer.valueOf(2), GridPane.getColumnIndex(card("Next")));
@@ -145,50 +152,71 @@ public class ScheduleGridLayoutTest {
         });
     }
 
+    // A day with overlapping lessons widens to one lesson column per overlap; every block keeps the
+    // normal width of one lesson column, including the ones that overlap nothing.
     @Test
-    public void layout_viewportResized_keepsMinuteScaleAndCardHeights() throws Exception {
+    public void layout_overlapLaterInDay_widensDayAndKeepsBlocksOneColumnWide() throws Exception {
         runOnFxThread(() -> {
-            showStudents(FXCollections.observableArrayList(student("Alice", DayOfWeek.MONDAY, "09:25", "09:35")));
-            assertCardGeometry("Alice", 1, 2, 50, 50, 20);
+            showStudents(FXCollections.observableArrayList(
+                    student("Morning", DayOfWeek.MONDAY, "10:00", "11:00"),
+                    student("First", DayOfWeek.MONDAY, "14:00", "15:00"),
+                    student("Second", DayOfWeek.MONDAY, "14:30", "15:30"),
+                    student("Tuesday", DayOfWeek.TUESDAY, "10:00", "11:00")));
 
-            layoutViewport(1100, 1000);
-            assertCardGeometry("Alice", 1, 2, 50, 50, 20);
-
-            layoutViewport(350, 90);
-            assertCardGeometry("Alice", 1, 2, 50, 50, 20);
+            for (String name : List.of("Morning", "First", "Second", "Tuesday")) {
+                assertEquals(Integer.valueOf(1), GridPane.getColumnSpan(card(name)), name);
+                // Column edges snap to whole pixels, so equal shares can differ by one pixel.
+                assertEquals(card("Tuesday").getWidth(), card(name).getWidth(), PIXEL_SNAP);
+            }
+            assertEquals(card("First").getBoundsInParent().getMinX(), card("Morning").getBoundsInParent().getMinX(),
+                    EPSILON);
         });
     }
 
     @Test
-    public void source_changed_rebuildsExactGeometryAndRoundedOrigin() throws Exception {
+    public void layout_viewportResized_keepsMinuteScaleAndCardHeights() throws Exception {
+        runOnFxThread(() -> {
+            showStudents(FXCollections.observableArrayList(student("Alice", DayOfWeek.MONDAY, "09:25", "09:35")));
+            assertCardGeometry("Alice", 1, 1, 25, 25, 10);
+
+            layoutViewport(1100, 1000);
+            assertCardGeometry("Alice", 1, 1, 25, 25, 10);
+
+            layoutViewport(350, 90);
+            assertCardGeometry("Alice", 1, 1, 25, 25, 10);
+        });
+    }
+
+    @Test
+    public void source_changed_rebuildsExactGeometryAndOrigin() throws Exception {
         runOnFxThread(() -> {
             ObservableList<Student> students = FXCollections.observableArrayList(
                     student("Alice", DayOfWeek.MONDAY, "09:05", "09:20"));
             showStudents(students);
-            assertCardGeometry("Alice", 1, 1, 10, 20, 30);
+            assertCardGeometry("Alice", 1, 1, 5, 40, 15);
 
             students.add(student("Bob", DayOfWeek.TUESDAY, "08:59", "09:01"));
             layoutViewport(900, 700);
-            assertCardGeometry("Alice", 2, 1, 10, 20, 30);
-            assertCardGeometry("Bob", 1, 2, 58, 58, 4);
+            assertCardGeometry("Alice", 2, 1, 5, 40, 15);
+            assertCardGeometry("Bob", 1, 2, 59, 59, 2);
 
             students.set(0, student("Alice", DayOfWeek.MONDAY, "09:29", "09:31"));
             layoutViewport(900, 700);
-            assertCardGeometry("Alice", 2, 2, 58, 58, 4);
+            assertCardGeometry("Alice", 2, 1, 29, 29, 2);
 
             students.remove(1);
             layoutViewport(900, 700);
-            assertCardGeometry("Alice", 1, 2, 58, 58, 4);
+            assertCardGeometry("Alice", 1, 1, 29, 29, 2);
 
             students.clear();
             layoutViewport(900, 700);
-            assertEquals(1, grid().getRowConstraints().size());
-            assertTrue(timeLabels().isEmpty());
+            assertEquals(List.of("9.00am"), timeLabels().subList(0, 1));
+            assertEquals(12, grid().getRowConstraints().size());
             assertTrue(grid().getChildren().stream().noneMatch(node -> node.getStyleClass().contains("lesson-card")));
 
             students.add(student("New", DayOfWeek.MONDAY, "09:00", "09:01"));
             layoutViewport(900, 700);
-            assertCardGeometry("New", 1, 1, 0, 58, 2);
+            assertCardGeometry("New", 1, 1, 0, 59, 1);
         });
     }
 
@@ -201,7 +229,7 @@ public class ScheduleGridLayoutTest {
         viewport.setFitToWidth(true);
         viewport.setFitToHeight(true);
         Scene scene = new Scene(viewport, 900, 700);
-        scene.getStylesheets().add(getClass().getResource("/view/DarkTheme.css").toExternalForm());
+        scene.getStylesheets().add(getClass().getResource("/view/LightTheme.css").toExternalForm());
         layoutViewport(900, 700);
     }
 
@@ -218,16 +246,17 @@ public class ScheduleGridLayoutTest {
         assertEquals(Integer.valueOf(row), GridPane.getRowIndex(card));
         assertEquals(Integer.valueOf(span), GridPane.getRowSpan(card));
         int column = GridPane.getColumnIndex(card);
+        int lastColumn = column + GridPane.getColumnSpan(card) - 1;
         Bounds firstCell = grid().getCellBounds(column, row);
-        Bounds lastCell = grid().getCellBounds(column, row + span - 1);
+        Bounds lastCell = grid().getCellBounds(lastColumn, row + span - 1);
         for (int i = row; i < row + span; i++) {
             assertEquals(60, grid().getCellBounds(column, i).getHeight(), EPSILON);
         }
         assertEquals(firstCell.getMinY() + top, card.getLayoutY(), EPSILON);
         assertEquals(lastCell.getMaxY() - bottom, card.getLayoutY() + card.getHeight(), EPSILON);
         assertEquals(height, card.getHeight(), EPSILON);
-        assertEquals(firstCell.getMinX() + 3, card.getLayoutX(), EPSILON);
-        assertEquals(firstCell.getMaxX() - 5, card.getLayoutX() + card.getWidth(), EPSILON);
+        assertEquals(firstCell.getMinX() + 4, card.getLayoutX(), EPSILON);
+        assertEquals(lastCell.getMaxX() - 4, card.getLayoutX() + card.getWidth(), EPSILON);
 
         Bounds visibleBounds = card.getBoundsInParent();
         Bounds clipBounds = card.localToParent(card.getClip().getBoundsInLocal());
@@ -244,7 +273,7 @@ public class ScheduleGridLayoutTest {
     private Region card(String name) {
         return grid().getChildren().stream().filter(Region.class::isInstance).map(Region.class::cast)
                 .filter(node -> node.getStyleClass().contains("lesson-card"))
-                .filter(node -> node.getAccessibleText().startsWith(name + "\n")).findFirst().orElseThrow();
+                .filter(node -> node.getAccessibleText().split("\n")[0].endsWith(" " + name)).findFirst().orElseThrow();
     }
 
     private List<String> timeLabels() {

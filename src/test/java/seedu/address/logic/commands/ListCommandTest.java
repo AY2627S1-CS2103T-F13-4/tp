@@ -17,6 +17,10 @@ import seedu.address.model.UserPrefs;
  */
 public class ListCommandTest {
 
+    /** list shows the student table, wherever the user was. */
+    private static final CommandResult SHOWS_TABLE =
+            new CommandResult(ListCommand.MESSAGE_SUCCESS, CommandResult.Screen.STUDENTS);
+
     private Model model;
     private Model expectedModel;
 
@@ -28,12 +32,12 @@ public class ListCommandTest {
 
     @Test
     public void execute_listIsNotFiltered_showsSameList() {
-        assertCommandSuccess(new ListCommand(), model, ListCommand.MESSAGE_SUCCESS, expectedModel);
+        assertCommandSuccess(new ListCommand(), model, SHOWS_TABLE, expectedModel);
     }
 
     @Test
     public void execute_listIsFiltered_showsEverything() {
         showPersonAtIndex(model, INDEX_FIRST_PERSON);
-        assertCommandSuccess(new ListCommand(), model, ListCommand.MESSAGE_SUCCESS, expectedModel);
+        assertCommandSuccess(new ListCommand(), model, SHOWS_TABLE, expectedModel);
     }
 }

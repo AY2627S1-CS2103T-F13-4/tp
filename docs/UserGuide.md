@@ -14,10 +14,10 @@ This development version supports contact details, schooling levels, guardian co
 
 1. Install Java `25`. Mac users should follow the [course Java installation guide](https://se-education.org/guides/tutorials/javaInstallationMac.html).
 
-1. Build the development version from [Pranav's fork](https://github.com/pranavp311/tp). The subject feature is awaiting merge into the [team repository](https://github.com/AY2627S1-CS2103T-F13-4/tp).
+1. Build the development version from the [team repository](https://github.com/AY2627S1-CS2103T-F13-4/tp).
 
    ```text
-   git clone --branch student-subject https://github.com/pranavp311/tp.git studentbook
+   git clone https://github.com/AY2627S1-CS2103T-F13-4/tp.git studentbook
    cd studentbook
    ./gradlew shadowJar
    ```
@@ -38,6 +38,35 @@ This development version supports contact details, schooling levels, guardian co
    ```
 
    The first command adds Alex, who appears at the bottom of the list. Replace `1` in the second command with Alex's number in the list. It gives that student a Math lesson on Wednesdays from 1pm to 5pm at SGD 45.50 per hour. Type `exit` to close the app.
+
+## The main window
+
+![StudentBook main window](images/Ui.png)
+
+The command box sits at the top of the window, under the StudentBook name, since you use the app by typing. The app opens on **This week**, a calendar of every student's lessons. `list` and `find` show the **Students** table instead, and `week` brings the calendar back.
+
+* **This week:** The calendar shows Monday to Sunday of the current week, with today's date circled and a red line at the current time. It always shows 9.00am to 8.00pm, and stretches to fit any lesson outside those hours. Each lesson shows the student, the time, and then its number, level and subject, such as `#3.1 · Sec 3 · A-Math`. The number means student `3`, lesson `1`, so `lesson-edit 3 1` changes that lesson. Lessons are coloured by school stage, as shown in the key at the top right. Lessons at the same time sit side by side, and that day widens to fit them. To see a lesson's rate, mode and location, type `view` with its student's number (e.g. `view 3` for `#3.1`), or point at the lesson. The calendar opens scrolled to the current time.
+* **Tabs:** The row under the command box has **This week**, which runs `week`, and **Students**, which runs `list`; each tab shows the command it runs. After them, each schooling level in use runs `find level/LEVEL` (point at one to see the command). **All commands** at the right opens help. The levels are hidden in windows narrower than 900px, and any that do not fit are left out. In windows shorter than 560px, the StudentBook name and the data file path at the bottom are hidden to leave room for your students.
+* **Header:** The page header shows how many students there are. **+ Add student** puts the `add` format in the command box for you to fill in.
+* **Student list:** The list is a table with one row per student and the columns **#**, **Name**, **Subjects**, **Next lesson**, **Rate** and **Guardian**. **Next lesson** is the lesson that comes next in the week, with `+2 more` when the student has others; **Rate** is that lesson's rate. Use the number in the **#** column as `INDEX`. In narrow windows the Subjects and Guardian columns are hidden.
+* **Student details:** On the **Students** table, a student's details open under their row: every lesson with its number, subject, day and time, rate, mode and location, then the phone, email, address, guardian and tags. Details open when a search leaves one student (e.g. `find hafiz`), when you press **Alt+Down** or **Alt+Up** to step through students, or when you click a row. Press **Esc** in an empty command box to close them. Use a lesson's number in the details as `LESSON_INDEX`.
+* **Colours:** The initials badge and the level dots under the command box are amber for primary (`P5`, `Primary 5`), blue for secondary (`Sec 3`, `Secondary 4 Express`) and violet for JC (`JC1`). Levels written another way, such as `Poly Y1`, stay grey. In a student's details, a lesson's mode shows in green for `Physical` and teal for `Virtual`. Tags are grey.
+* **Count:** The count beside the title shows how many students there are. After `find`, it shows how many match, such as `Showing 1 of 8`.
+* **Empty list:** When the list is empty, the app suggests the next step. With no students, it shows an example `add` command you can type as shown. When a search matches no one, it suggests `list`. The This week screen does the same for `lesson-add` when there are no lessons.
+* **Result:** The row under the command box shows the result of your last command. After a one-line success, it also shows your last few commands; click one to put it back in the command box, or press Up to step through all your earlier commands. A green tick marks a success. A red `!` on a pink background marks an error, such as an invalid index or format. When you get a command's format wrong, the row shows what the command does, its **Format** and an **Example**, so you can fix the command without opening help. Press **Tab** to put the Example in the command box, then edit it; you can also click a Format or Example line to copy it. Long messages take up to 40% of the window, so they can be read without scrolling.
+* **Command box:** It is focused when the app starts and stays focused, so you can use the whole app from the keyboard: clicking elsewhere and closing the help window leave the cursor in the box, which is outlined in blue. Press Enter to run a command. After a successful command, the box clears. After an error, your text stays, shown in red, so you can fix it.
+
+| Key | Action |
+|---|---|
+| Enter | Run the command |
+| Up / Down | Show earlier commands from this session. Down past the newest brings back what you were typing. |
+| Esc | Clear the command box. In an empty box, close a student's details. Also closes the help window. |
+| Alt+Down / Alt+Up | On **This week**, scroll the calendar. On **Students**, open the next or previous student's details. (On a Mac, Alt is the Option key.) |
+| Tab | When the result shows an Example (e.g. after a format error), put that Example in the command box |
+| Page Up / Page Down | Also scroll, if your keyboard has these keys (on a Mac laptop: Fn+Up / Fn+Down) |
+| F1 | Open help, as the `help` command does (on a Mac laptop you may need Fn+F1) |
+
+Every shortcut is optional: each one has a command that does the same, such as `week`, `list`, `view INDEX` and `help`.
 
 ## Features
 
@@ -74,7 +103,7 @@ Records with exactly the same name are duplicates. Name matching is case-sensiti
 | Clear a level | `edit 1 level/` |
 | Include a level when adding a student | Add `level/Primary 5` to the `add` command |
 
-The card shows `Level: Primary 5` when a level is recorded. If none is recorded, the level line is hidden. Leave out `level/` to keep the existing level when editing. Changing a level keeps every other field unchanged, including lessons.
+The student's row shows the level `Primary 5` beside the name when one is recorded. If none is recorded, it is left out. Leave out `level/` to keep the existing level when editing. Changing a level keeps every other field unchanged, including lessons.
 
 Levels must have 1 to 30 characters after the space cleanup below. Start with a letter or digit and include at least one letter. Use English letters `A-Z` or `a-z`, digits `0-9`, spaces and these symbols: `'`, `-`, `.`, `(`, `)`. Leading and trailing spaces or tabs are removed, and repeated spaces or tabs become one space. An empty `level/` clears the level with `edit`, but is invalid with `add`. Repeating `level/` in one command is invalid. Invalid input leaves the record unchanged.
 
@@ -82,7 +111,24 @@ Levels must have 1 to 30 characters after the space cleanup below. Start with a 
 
 Format: `list`
 
-Shows every student and clears any active search filter.
+Shows every student in the **Students** table and clears any active search filter.
+
+### See this week's lessons: `week`
+
+Format: `week`
+
+Shows the **This week** calendar with every student's lessons. It also clears any search, so the numbers on the lessons match the indices that commands use. The app opens on this screen.
+
+### See a student's details: `view`
+
+Format: `view INDEX`
+
+Shows the **Students** table with the student at `INDEX` opened: every lesson with its number, day and time, rate, mode and location, then the phone, email, address, guardian and tags. On the calendar, a lesson labelled `#3.1` belongs to student `3`, so `view 3` shows its details.
+
+Examples:
+
+* `view 3` shows the third student's details.
+* `find alex` then `view 1` shows the details of the first student found.
 
 ### Edit a student: `edit`
 
@@ -104,6 +150,8 @@ Examples:
 
 Format: `find KEYWORD [MORE_KEYWORDS]` or `find level/TEXT`
 
+The matching students show in the **Students** table.
+
 Without `level/`, searches names for whole words, ignoring letter case. A student appears if any keyword matches; keyword order does not matter.
 
 * `find John` matches `John Doe`, but not `Johnny`.
@@ -121,7 +169,7 @@ Each student can have zero or more lessons. A lesson has a subject, a weekly tim
 
 * **Create:** `lesson-add STUDENT_INDEX subject/SUBJECT slot/LESSON_SLOT rate/HOURLY_RATE [mode/MODE] [location/LOCATION]`
   Subject, slot and rate are required; mode and location are optional. The new lesson is added to the end of the student's lessons.
-* **Read:** Use `list` or `find` to display the student. Their card lists each lesson in order, for example `- Math, Wednesday 1.00pm-5.00pm, SGD 45.50/hour, Physical, at Clementi Library` (mode and location are shown only when recorded), or shows `Lessons: Not recorded` when there are none. The number of a lesson is its position in that list, starting from 1.
+* **Read:** The **This week** calendar shows every lesson with its `#STUDENT_INDEX.LESSON_INDEX` number. In the **Students** table, the row shows the student's next lesson. Open the student's details (e.g. `find` their name, or **Alt+Down** on the table) to see every lesson: its number, subject, day and time (e.g. `Tue 4.00pm-5.30pm`) and rate (e.g. `SGD 60/h`), with the mode (`Physical` or `Virtual`) and location underneath when recorded. Use the lesson number as `LESSON_INDEX`.
 * **Update:** `lesson-edit STUDENT_INDEX LESSON_INDEX [subject/SUBJECT] [slot/LESSON_SLOT] [rate/HOURLY_RATE] [mode/MODE] [location/LOCATION]`
   Supply at least one field. Omitted fields stay unchanged. To remove a recorded mode or location, give its prefix with nothing after it: `mode/` clears the mode and `location/` clears the location (see the examples below).
 * **Delete:** `lesson-delete STUDENT_INDEX LESSON_INDEX`
@@ -130,9 +178,9 @@ Each student can have zero or more lessons. A lesson has a subject, a weekly tim
 Field rules:
 
 * **Subject** (`subject/`): 1 to 40 characters after space cleanup. Start with a letter or digit and include at least one letter. Use English letters, digits, spaces and these symbols: `'`, `-`, `.`, `(`, `)`. Leading and trailing spaces are removed and repeated spaces become one. Subjects are compared ignoring letter case, so `Math` and `math` are the same subject.
-* **Lesson slot** (`slot/`): `DAY START END` on a single day, such as `Wed 1.00pm 5.00pm`. Use a three-letter day (`Mon` to `Sun`), and times like `1.00pm` or `10.30am` with minute precision. Days and `am`/`pm` are not case-sensitive, so `wed 1.00PM 5.00PM` also works. The end must be later than the start on the same day; overnight lessons are not supported. The card shows the full day name, for example `Wednesday 1.00pm-5.00pm`.
+* **Lesson slot** (`slot/`): `DAY START END` on a single day, such as `Wed 1.00pm 5.00pm`. Use a three-letter day (`Mon` to `Sun`), and times like `1.00pm` or `10.30am` with minute precision. Days and `am`/`pm` are not case-sensitive, so `wed 1.00PM 5.00PM` also works. The end must be later than the start on the same day; overnight lessons are not supported. The details show a short day, for example `Wed 1.00pm-5.00pm`.
 * **Hourly rate** (`rate/`): an amount in SGD per hour. It must be non-negative and have at most two decimal places; `45`, `45.5` and `45.50` are valid. Currency symbols, negative amounts and scientific notation are invalid.
-* **Mode** (`mode/`, optional): `physical` or `virtual`, not case-sensitive. The card shows `Physical` or `Virtual`.
+* **Mode** (`mode/`, optional): `physical` or `virtual`, not case-sensitive. The lesson shows `Physical` or `Virtual`.
 * **Location** (`location/`, optional): 1 to 100 characters, such as an address, room or meeting link. Repeated spaces become one, and locations are compared ignoring letter case. It must not contain a word of letters followed by `/` (such as `rate/`), which is read as a prefix; `Blk 123/4` and `https://zoom.us/j/1` are fine.
 * **Clearing mode and location:** only `lesson-edit` can clear them, by leaving the value empty, for example `lesson-edit 1 2 location/` or `lesson-edit 1 2 mode/ location/`. `lesson-add` rejects an empty `mode/` or `location/`, and `lesson-delete` accepts neither.
 
@@ -160,8 +208,8 @@ positive `INDEX` in the currently displayed list, including search results. They
 
 * **Create:** `guardian-add INDEX name/NAME phone/PHONE`
   Both fields are required. If a guardian already exists, use `guardian-edit` instead.
-* **Read:** Use `list` or `find` to display the student. Their card shows `Guardian: NAME: PHONE`,
-  or `Guardian: Not recorded` when none exists.
+* **Read:** The Guardian column shows the guardian's name, or a grey `Not set` when none exists.
+  The student's details show the guardian's phone too.
 * **Update:** `guardian-edit INDEX [name/NAME] [phone/PHONE]`
   Supply at least one field. Omitted fields stay unchanged. Empty values and repeated prefixes are rejected.
 * **Delete:** `guardian-delete INDEX`
@@ -199,7 +247,7 @@ Deletes every student record. There is no confirmation or undo.
 
 Format: `help`
 
-Opens a window with a help-page link. That link currently points to the original AddressBook guide; use this guide for lesson and schooling-level commands.
+Opens a window with a link to this guide and the location of your data file. Press **Enter** to copy the link, and **Esc** to close the window and return to the command box. **F1** opens it too.
 
 ![Help window](images/helpMessage.png)
 
@@ -241,6 +289,8 @@ If the file is invalid, the app starts with an empty list. The invalid file rema
 | Clear schooling level | `edit INDEX level/` |
 | Find | `find KEYWORD [MORE_KEYWORDS]` or `find level/TEXT` |
 | List | `list` |
+| This week's lessons | `week` |
+| A student's details | `view INDEX` |
 | Add lesson | `lesson-add STUDENT_INDEX subject/SUBJECT slot/LESSON_SLOT rate/HOURLY_RATE [mode/MODE] [location/LOCATION]` |
 | Edit lesson | `lesson-edit STUDENT_INDEX LESSON_INDEX [subject/SUBJECT] [slot/LESSON_SLOT] [rate/HOURLY_RATE] [mode/MODE] [location/LOCATION]` |
 | Delete lesson | `lesson-delete STUDENT_INDEX LESSON_INDEX` |

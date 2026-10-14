@@ -11,7 +11,7 @@
     <rect x="20" y="110" width="1160" height="58" rx="4" fill="#fff" stroke="#8592a3"/>
     <text x="38" y="147" font-family="monospace" font-size="24">list</text>
     <rect x="20" y="180" width="1160" height="58" rx="4" fill="#e6edf5"/>
-    <text x="38" y="216" font-size="21">Listed all persons.</text>
+    <text x="38" y="216" font-size="21">Listed all students.</text>
 
     <rect x="20" y="254" width="1144" height="330" rx="5" fill="#fff" stroke="#ccd3dc"/>
     <text x="42" y="297" font-size="28" font-weight="700">1. Alex Tan</text>

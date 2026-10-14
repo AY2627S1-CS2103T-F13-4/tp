@@ -13,6 +13,8 @@ Start with [setup](SettingUp.md), then the [shared tuition model](#shared-tuitio
 ## Acknowledgements
 
 * Based on [AddressBook Level 3](https://github.com/se-edu/addressbook-level3) from the [SE-EDU initiative](https://se-education.org).
+* Pranav used Claude (Anthropic), through Claude Code, to draft the v1.3 UI restyle: the mock-ups, the FXML and CSS in `src/main/resources/view`, the UI classes in `seedu.address.ui`, and their tests. He reviewed, ran and tested the changes.
+* The UI uses the [Geist and Geist Mono fonts](https://github.com/vercel/geist-font) (v1.7.2) by The Geist Project Authors, under the SIL Open Font License 1.1. The font files and licence are in `src/main/resources/fonts`.
 
 ## Getting started
 
@@ -48,9 +50,22 @@ Diagram sources are in `docs/diagrams`. See the [PlantUML tutorial](https://se-e
 
 ![UI structure](images/UiClassDiagram.png)
 
-`MainWindow` contains `CommandBox`, `ResultDisplay`, `PersonListPanel` and `StatusBarFooter`. These classes extend `UiPart` and use JavaFX layouts in `src/main/resources/view`.
+`MainWindow` contains `CommandBox`, `ResultDisplay`, `WeekPanel`, `PersonListPanel` and `StatusBarFooter`. These classes extend `UiPart` and use JavaFX layouts in `src/main/resources/view`. `LightTheme.css` styles all of them, using the bundled Geist fonts that `AppFonts` loads at startup.
 
-The UI sends commands to `Logic` and observes the filtered student list. It displays `Student` objects and refreshes when the list changes. `PersonCard` shows the contact fields, the optional level, the guardian and one `Lessons` label that lists every lesson.
+The UI sends commands to `Logic` and observes two lists:
+
+* **Filtered list** (`Logic#getFilteredPersonList()`): the rows on screen. `PersonListPanel` shows them in the same order as the model, so the number on each card is the `INDEX` that commands use. The UI never sorts or groups its own copy.
+* **Full list** (`Logic#getAddressBook()`): used only to count students. `StudentListStatus` uses both counts to choose the header text, such as `Showing 1 of 8`. It also chooses the empty-state message: `add` when there are no students, `list` when a search matches no one.
+
+When either list changes, the `ListView` rebuilds the affected `PersonCard`s, so cards never show stale data after an edit.
+
+* **Window:** `MainWindow` stacks the brand, the command panel (`CommandBox`, then `ResultDisplay`), a row of tabs and the screen below it. `LightTheme.css` keeps the command panel white and the rest of the window a shade darker, so the command panel stands out. Tabs run commands through `CommandBox#submit`, so they get the same feedback and history as typed commands. The level filters after the tabs are rebuilt from the schooling levels in use and run `find level/LEVEL`; they are hidden below 900px, and `MainWindow#hideCutOffFilters` hides any that do not fully fit, so a long level is never shown cut short. Below 560px of height, the brand and the status bar footer are hidden, so the screen keeps a few rows on a 1280x720 screen at 150% scaling (a window of about 853x410). The menu bar moves into the macOS system menu bar. The page header's **+ Add student** button calls `CommandBox#prefill` with the `add` format.
+* **Screens:** The main area holds two screens, `WeekPanel` (the week's lessons, shown at startup) and `PersonListPanel` (the student table); one is visible at a time. A command chooses the screen through `CommandResult#getScreen`: `week` returns `WEEK`, `list` and `find` return `STUDENTS`, and every other command returns `UNCHANGED`. `MainWindow#showScreen` swaps the screens and marks the matching tab. `week` also resets the filter, because the calendar labels each lesson with its student's index.
+* **Week calendar:** `WeekPanel` shows a page header with the lesson count and a colour key, then `ScheduleGrid` in a scroll pane. `ScheduleGrid` lays out the filtered list's lessons on a `GridPane`: column 0 holds the times, and every lesson column gets an equal share of the remaining width, so a day with overlapping lessons is wider than the others. Rows are one hour, from 9am to 8pm, extended to the whole hours around any earlier or later lesson. Each lesson is a `LessonCard` placed by minute, using margins inside the hours it spans. Within a day, overlapping lessons get separate columns (a greedy interval partition); every block is one column wide, so a day with overlaps is wider rather than its lessons narrower. `ScheduleEntry` carries the student and lesson numbers that the card shows, such as `#3.1`. The grid takes a `Clock` so tests can fix the dates in the day headings, today's shading and the current-time line; a `Timeline` moves that line at the start of every minute and redraws the week when the date changes. The day headings are pinned to the top: `WeekPanel` passes the scroll offset to `ScheduleGrid#setHeadingOffset`.
+* **Rows:** The student list is a table. `PersonListPanel` computes the column widths (Name, Subjects, Next lesson, Rate, Guardian) from the list's width and binds the header and each `PersonCard` to them; below 900px the Subjects and Guardian columns are hidden. A row shows the initials badge, name and level, the subjects across lessons, the next lesson (`StudentCardText#nextLesson`, the soonest start in the weekly cycle) and its rate, and the guardian's name. Its details (every lesson, contact details, guardian with phone, tags) are built the first time the row opens and then shown or hidden by `PersonCard#setOpen`. A row is open while it is selected: the list selects the only row after a search, a click selects a row, and Alt+Up/Alt+Down in the command box call `PersonListPanel#moveDetails`, which selects the next row and scrolls only if it is out of view. Esc in an empty box calls `closeDetails`. Only the two rows whose selection changes are updated, so browsing details does not rebuild the list. `StudentCardText` formats lessons with short days and rates and numbers them from 1 in stored order, matching `LESSON_INDEX`. `StudentCardText#stageOf` colours the initials badge and level filter dots by school stage, matching only clear forms such as `P5`, `Sec 3 Express` and `JC1`. JavaFX asks a row for its height before laying it out, so wrapping text (`Text`) has its wrapping width bound to its column.
+* **Results:** `MainWindow#executeCommand` sends successes to `ResultDisplay#setFeedbackToUser` (with the last three commands from `CommandHistory#recent`, shown as chips beside a one-line result) and failures to `ResultDisplay#setErrorToUser`. The row shows a matching mark. `FeedbackLines` splits a message into a title, text, formats and examples; it recognises the shapes the commands' `MESSAGE_USAGE` strings use. `ResultDisplay` shows formats and examples with captions in a monospace font chosen by `MonospaceFont`; clicking one copies it, since `Text` nodes cannot be selected. The row sizes to the message and scrolls past its maximum height. `FeedbackLinesTest` runs every command's real usage error, so rewording a usage message into an unrecognised shape fails a test.
+* **Keyboard:** `CommandBox` keeps the AB3 behaviour: it clears the input after a success, and keeps it with an error style after a failure. Every feature has a command, and the command box keeps focus (the list, calendar, tabs and buttons are not focus-traversable, and closing `HelpWindow` refocuses it), so shortcuts are only speed-ups. They use keys every laptop has: Up and Down for `CommandHistory` (this session only, with the unsent text kept), Esc to clear (or, in an empty box, close a student's details), Alt+Up and Alt+Down to step through students' details on the table or scroll the calendar (`MainWindow` routes them by screen and sets the matching hint), and Tab to put the example of the last usage error (`ResultDisplay#getExample`) in the box. Page Up and Page Down also scroll, as an extra. After Alt+Up/Down, `CommandBox` keeps the Alt release from focusing the menu bar on Windows and Linux. Key hints show while the box is empty and the command panel is at least 900px wide. `view INDEX` returns a `CommandResult` carrying the student to open, which `PersonListPanel#openStudent` selects.
+* **Window size:** The window's minimum size is 760×400, so a row's Student and Next lesson columns always fit side by side. A saved window size larger than the screen it opens on is reduced to fit, so the app stays usable on a 1280×720 screen at 150% scaling. The saved position is used as before.
 
 ### Logic component
 
@@ -188,7 +203,7 @@ Tests cover loading, save/reload and invalid values (`TuitionStorageTest`). A fa
 | Execute | `LessonCommand` resolves the student from the current filtered list, copies the lesson list, then adds, replaces or removes one entry. Edit keeps any lesson field that was not supplied. |
 | Validate | A result containing duplicate lessons fails with `MESSAGE_DUPLICATE_LESSON`. A bad student or lesson index fails with `MESSAGE_INVALID_PERSON_DISPLAYED_INDEX` or `MESSAGE_INVALID_LESSON_DISPLAYED_INDEX`. Failures leave the model unchanged. |
 | Update | The command builds a replacement `Student` with the new lesson list and every other field copied, then calls `Model#setPerson`. The active filter stays. |
-| Display | `PersonCard` shows `Lessons: Not recorded`, or one `- ` line per lesson using `Lesson#toString`, for example `Math, Wednesday 1.00pm-5.00pm, SGD 45.50/hour, Physical, at Clementi Library`. A lesson's number is its position in that list, starting from 1. |
+| Display | A row shows the student's next lesson; its details list every lesson from `StudentCardText#lessons`: number, subject, short day and time, and short rate in fixed-width columns, with the mode chip and location underneath when recorded. The number is the lesson's `LESSON_INDEX`. |
 | Save | `LogicManager` saves through the existing storage workflow; `JsonAdaptedLesson` persists each lesson. |
 
 Tests: `LessonCommandParserTest`, `LessonWorkflowTest` (add, edit, clear, delete, filtered indices, invalid input, duplicates and save/reload), `LessonTest`, `StudentTest` and `WeeklyLessonSlotTest`.
@@ -205,7 +220,7 @@ deleting an absent guardian, fails without changing the model. A successful comm
 `Student` with the new optional guardian and copies every other field unchanged before calling `Model#setPerson`.
 The current filter remains active. Siblings can hold identical guardian contacts independently.
 
-Reading uses the existing list/find workflow: `PersonCard` displays the name and phone, or `Not recorded`.
+Reading uses the existing list/find workflow: `PersonCard` displays the name and phone, or a muted `Not set`.
 `JsonAdaptedGuardian` and `JsonAdaptedPerson` persist the contact under the `guardianContact` key. `LogicManager` saves the updated address book through the existing storage workflow.
 
 `GuardianWorkflowTest` covers CRUD, partial updates, filtered indices, invalid requests, siblings sharing a guardian,
@@ -523,6 +538,19 @@ Use an empty test folder and sample data. These checks are a starting point; als
 2. Check that the window opens with sample contacts.
 3. Resize and move the window, then close and reopen the app. Check that it keeps the new size and position.
 
+### Main window
+
+1. Launch with sample data. The command box should have keyboard focus, so you can type `list` straight away.
+2. Run `find` with a name that matches one student. The header should read `Showing 1 of N`. Run `find zzz`; the list should say `No students match` and suggest `list`.
+3. Run `clear` in a test folder. The list should say `No students yet` and show an example `add` command; running it as shown should add a student.
+4. Run `delete 0`. The result row should turn pink with a red `!`, and `delete 0` should stay in the box in red. Fix it to a valid index and press Enter; the box should clear.
+5. Run `add name/Ryan`. The result row should show the description, a **Format** line and an **Example** line in a monospace font.
+6. Run two commands, then press Up twice and Down twice. The box should show the earlier commands, then what you had typed. Press Esc; the box should clear.
+7. With more students than fit, press Page Down and Page Up while the cursor is in the command box. The list should scroll, and typing should still go into the box.
+8. Press F1, then Esc. The help window should close.
+9. With the command box empty, press Alt+Down twice. The second student's details should open, with focus still in the box. Press Esc to close them. Run `find` with one student's name; their details should open.
+10. Add a student with a long name, several lessons and a long address. Shrink the window to its minimum size. The text should wrap, and the list and result row should scroll, with nothing cut off.
+
 ### Student deletion
 
 1. Run `list` with several records present, then `delete 1`. The first record should disappear and the result should describe it.
@@ -531,12 +559,12 @@ Use an empty test folder and sample data. These checks are a starting point; als
 
 ### Lessons and saved data
 
-1. Add a unique test student, then run `lesson-add INDEX subject/Combined   Science slot/Wed 1.00pm 5.00pm rate/45.5`, using three spaces between the words. The card should show `Combined Science, Wednesday 1.00pm-5.00pm, SGD 45.50/hour`.
-2. Run `lesson-add INDEX subject/English slot/mon 4.00pm 5.00pm rate/40 mode/virtual location/https://zoom.us/j/123`. The card should list both lessons in order, the second with `Virtual` and its location.
+1. Add a unique test student, then run `lesson-add INDEX subject/Combined   Science slot/Wed 1.00pm 5.00pm rate/45.5`, using three spaces between the words. The student's details should show lesson `1.` with subject `Combined Science`, `Wed 1.00pm-5.00pm` and `SGD 45.50/h`.
+2. Run `lesson-add INDEX subject/English slot/mon 4.00pm 5.00pm rate/40 mode/virtual location/https://zoom.us/j/123`. The student's details should list both lessons in order, the second with `Virtual` and its location.
 3. Run `lesson-edit INDEX 2 rate/50`, then edit the student's phone with `edit`. Both lessons should stay, and only the rate should change.
 4. Restart the app. Everything above should remain.
-5. Run `lesson-edit INDEX 2 mode/ location/`. The card should show the English lesson without mode or location, including after restart.
-6. Run `lesson-delete INDEX 1`. English becomes lesson 1. Delete it too and the card should show `Lessons: Not recorded`.
+5. Run `lesson-edit INDEX 2 mode/ location/`. The student's details should show the English lesson without mode or location, including after restart.
+6. Run `lesson-delete INDEX 1`. English becomes lesson 1. Delete it too and the card should show `No lessons yet`.
 7. Try a duplicate `lesson-add`, a lesson index larger than the list, a missing required field, `mode/hybrid`, a repeated prefix, an unknown prefix such as `x/`, and an empty `mode/` on `lesson-add`. Each should report an error and leave every record unchanged.
 
 ### Guardian contacts
@@ -558,5 +586,5 @@ Close the app and back up the test data before each case.
 
 * **Missing file:** Move `data/studentbook.json` out of the test folder, then restart. Sample records should appear.
 * **Invalid file:** Replace the test file with invalid JSON, then restart. An empty list should appear and the log should record the load failure. Do not run commands before restoring the backup; a successful command saves over the file.
-* **Old valid file:** Load AB3 data without tuition properties. The contact details should remain and the card should show `Lessons: Not recorded`.
+* **Old valid file:** Load AB3 data without tuition properties. The contact details should remain and the card should show `No lessons yet`.
 * **Pre-lesson file:** Load a file whose students have `subjects`, `weeklyLessonSlot` and `hourlyRate`. The contact details load, but those properties are ignored and removed on the next save.
