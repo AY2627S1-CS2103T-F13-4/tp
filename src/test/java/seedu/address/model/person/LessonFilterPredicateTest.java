@@ -1,6 +1,8 @@
 package seedu.address.model.person;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.math.BigDecimal;
@@ -56,6 +58,27 @@ public class LessonFilterPredicateTest {
         assertFalse(secondaryWednesdayMath.test(primaryWithWednesdayMath));
         assertTrue(new StudentLessonMatchesPredicate(Optional.empty(), mathOnWednesday)
                 .test(primaryWithWednesdayMath));
+    }
+
+    @Test
+    public void filterValueEquality_distinguishesCriteria() {
+        LessonMatchesPredicate wednesdayMath = new LessonMatchesPredicate(
+                Optional.of("Math"), Optional.of(DayOfWeek.WEDNESDAY));
+        LessonMatchesPredicate sameLessonFilter = new LessonMatchesPredicate(
+                Optional.of("math"), Optional.of(DayOfWeek.WEDNESDAY));
+        LessonMatchesPredicate tuesdayMath = new LessonMatchesPredicate(
+                Optional.of("Math"), Optional.of(DayOfWeek.TUESDAY));
+        assertEquals(wednesdayMath, sameLessonFilter);
+        assertEquals(wednesdayMath.hashCode(), sameLessonFilter.hashCode());
+        assertNotEquals(wednesdayMath, tuesdayMath);
+
+        StudentLessonMatchesPredicate secondaryMath = new StudentLessonMatchesPredicate(
+                Optional.of("Secondary"), wednesdayMath);
+        StudentLessonMatchesPredicate sameStudentFilter = new StudentLessonMatchesPredicate(
+                Optional.of("secondary"), sameLessonFilter);
+        assertEquals(secondaryMath, sameStudentFilter);
+        assertEquals(secondaryMath.hashCode(), sameStudentFilter.hashCode());
+        assertNotEquals(secondaryMath, new StudentLessonMatchesPredicate(Optional.of("Primary"), wednesdayMath));
     }
 
     private static Lesson lesson(String subject, DayOfWeek day) {
