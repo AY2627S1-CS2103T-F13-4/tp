@@ -10,7 +10,6 @@ import java.util.Map;
 import java.util.Optional;
 
 import javafx.beans.binding.Bindings;
-import javafx.beans.binding.BooleanExpression;
 import javafx.beans.binding.DoubleExpression;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
@@ -27,8 +26,8 @@ import javafx.scene.text.Text;
 import seedu.address.model.person.Student;
 
 /**
- * A table row that displays a {@code Student}. The row shows only the name, level, next lesson and guardian;
- * an expanded row also shows every lesson, the contact details and tags.
+ * A table row that displays a {@code Student}: name and level, subjects, next lesson, rate and guardian.
+ * An open row also shows its details: every lesson, the contact details, guardian and tags.
  */
 public class PersonCard extends UiPart<Region> {
 
@@ -37,9 +36,8 @@ public class PersonCard extends UiPart<Region> {
     /** Font sizes used in LightTheme.css, used to measure text before layout. */
     private static final double BODY_FONT_SIZE = 13;
     private static final double NAME_FONT_SIZE = 14;
-    private static final double CHIP_FONT_SIZE = 12;
-    /** A chip's horizontal padding (8 + 8) plus the gap before it. */
-    private static final double CHIP_PADDING_AND_GAP = 26;
+    /** The gap before the level, which follows the name. */
+    private static final double LEVEL_GAP = 10;
     /** Width of the initials badge and the gap after it, beside the name. */
     private static final double BADGE_WIDTH = 38;
     /** Fixed widths of the lesson columns in the details (number, subject, day and time, rate). */
@@ -75,21 +73,27 @@ public class PersonCard extends UiPart<Region> {
     @FXML
     private Label id;
     @FXML
-    private HBox studentCell;
+    private HBox nameCell;
     @FXML
     private Label initials;
     @FXML
     private Text name;
     @FXML
-    private Label schoolingLevel;
+    private Text schoolingLevel;
     @FXML
-    private HBox nextLessonCell;
+    private HBox subjectsCell;
     @FXML
-    private Text nextSubject;
+    private Text subjects;
+    @FXML
+    private HBox lessonCell;
     @FXML
     private Text nextTime;
     @FXML
     private Text moreLessons;
+    @FXML
+    private HBox rateCell;
+    @FXML
+    private Text rate;
     @FXML
     private HBox guardianCell;
     @FXML
@@ -100,11 +104,15 @@ public class PersonCard extends UiPart<Region> {
     /** Text in the details that wraps: lesson locations and contact lines. */
     private final List<Text> lessonLocations = new ArrayList<>();
     private final List<Text> contactLines = new ArrayList<>();
+    private final List<StudentCardText.LessonLine> lines;
+    private boolean detailsBuilt;
+    private boolean open;
+    private DoubleExpression detailsWidth;
 
     /**
-     * Creates a row for {@code person} with the index to display. An {@code expanded} row also shows the details.
+     * Creates a row for {@code person} with the index to display. Its details stay hidden until {@link #setOpen}.
      */
-    public PersonCard(Student person, int displayedIndex, boolean expanded) {
+    public PersonCard(Student person, int displayedIndex) {
         super(FXML);
         this.person = person;
         id.setText(String.valueOf(displayedIndex));
@@ -117,32 +125,77 @@ public class PersonCard extends UiPart<Region> {
         initials.getStyleClass().add(stageClass);
         if (person.getSchoolingLevel().isPresent()) {
             schoolingLevel.setText(person.getSchoolingLevel().get().toString());
-            schoolingLevel.getStyleClass().add(stageClass);
         } else {
             hide(schoolingLevel);
         }
 
-        List<StudentCardText.LessonLine> lines = StudentCardText.lessons(person);
+        lines = StudentCardText.lessons(person);
+        subjects.setText(StudentCardText.subjects(person).orElse("None yet"));
         Optional<StudentCardText.LessonLine> next =
                 StudentCardText.nextLesson(lines, StudentCardText.slots(person), LocalDateTime.now());
         if (next.isPresent()) {
-            nextSubject.setText(next.get().subject());
             nextTime.setText(StudentCardText.dayAndStart(next.get()));
             moreLessons.setText(lines.size() > 1 ? "+" + (lines.size() - 1) + " more" : "");
+            rate.setText(StudentCardText.tableRate(next.get()));
         } else {
-            nextSubject.setText(StudentCardText.NO_LESSONS);
-            nextSubject.getStyleClass().setAll("row-muted");
+            nextTime.setText(StudentCardText.NOT_SET);
+            rate.setText("\u2014");
+            subjects.getStyleClass().add(EMPTY_VALUE_STYLE_CLASS);
+            nextTime.getStyleClass().add(EMPTY_VALUE_STYLE_CLASS);
+            rate.getStyleClass().add(EMPTY_VALUE_STYLE_CLASS);
         }
-        guardianName.setText(person.getGuardian().map(g -> g.getName().fullName).orElse(StudentCardText.NOT_SET));
+        guardianName.setText(person.getGuardian().map(g -> g.getName().fullName).orElse("None yet"));
         if (person.getGuardian().isEmpty()) {
             guardianName.getStyleClass().add(EMPTY_VALUE_STYLE_CLASS);
         }
+        hide(details);
+    }
 
-        if (expanded) {
-            cardPane.getStyleClass().add("student-row-expanded");
+    /**
+     * Shows or hides the row's details at once. They are built the first time the row is opened.
+     */
+    public void setOpen(boolean open) {
+        this.open = open;
+        if (open && !detailsBuilt) {
             fillDetails(lines);
+            bindDetails();
+            detailsBuilt = true;
+        }
+        details.setVisible(open);
+        details.setManaged(open);
+        markOpen(open);
+    }
+
+    /**
+     * Opens or closes the row's details with a short animation, for when the user changes which row is open.
+     * Does nothing if the row is already in that state.
+     */
+    public void animateOpen(boolean open) {
+        if (open == this.open) {
+            return;
+        }
+        if (open) {
+            setOpen(true);
+            Motion.expand(details);
         } else {
-            hide(details);
+            this.open = false;
+            markOpen(false);
+            // Re-opened before the close finished: leave the details showing.
+            Motion.collapse(details, () -> {
+                if (!this.open) {
+                    setOpen(false);
+                }
+            });
+        }
+    }
+
+    private void markOpen(boolean open) {
+        if (open) {
+            if (!cardPane.getStyleClass().contains("student-row-open")) {
+                cardPane.getStyleClass().add("student-row-open");
+            }
+        } else {
+            cardPane.getStyleClass().remove("student-row-open");
         }
     }
 
@@ -221,27 +274,38 @@ public class PersonCard extends UiPart<Region> {
     /**
      * Sizes the row's cells to the table's columns, and wraps text within them.
      * The list asks a row for its height before laying it out, so wrapping has to be set from known widths.
-     * In narrow windows the Guardian column is hidden; the details always show the guardian with their phone.
+     * In narrow windows the Subjects and Guardian columns are hidden; the details always show both.
      */
-    public void bindColumns(DoubleExpression studentWidth, DoubleExpression lessonWidth,
-            DoubleExpression guardianWidth, BooleanExpression wide, DoubleExpression detailsWidth) {
-        size(studentCell, studentWidth);
-        size(nextLessonCell, lessonWidth);
-        size(guardianCell, guardianWidth);
-        guardianCell.visibleProperty().bind(wide);
-        guardianCell.managedProperty().bind(wide);
-
+    public void bindColumns(PersonListPanel.Columns columns) {
+        size(nameCell, columns.name());
+        size(subjectsCell, columns.subjects());
+        size(lessonCell, columns.lesson());
+        size(rateCell, columns.rate());
+        size(guardianCell, columns.guardian());
+        for (HBox optional : List.of(subjectsCell, guardianCell)) {
+            optional.visibleProperty().bind(columns.wide());
+            optional.managedProperty().bind(columns.wide());
+        }
         double levelWidth = schoolingLevel.isManaged()
-                ? textWidth(schoolingLevel.getText(), CHIP_FONT_SIZE) + CHIP_PADDING_AND_GAP : 0;
-        wrapWhenLonger(name, studentWidth.subtract(BADGE_WIDTH + levelWidth), NAME_FONT_SIZE);
-        wrapWhenLonger(guardianName, guardianWidth, BODY_FONT_SIZE);
+                ? textWidth(schoolingLevel.getText(), BODY_FONT_SIZE) + LEVEL_GAP : 0;
+        wrapWhenLonger(name, columns.name().subtract(BADGE_WIDTH + levelWidth), NAME_FONT_SIZE);
+        wrapWhenLonger(subjects, columns.subjects(), BODY_FONT_SIZE);
+        wrapWhenLonger(guardianName, columns.guardian(), BODY_FONT_SIZE);
+        detailsWidth = columns.details();
+    }
 
+    private void bindDetails() {
         details.prefWrapLengthProperty().bind(detailsWidth);
         DoubleExpression locationLimit = Bindings.min(detailsWidth, LESSON_GRID_WIDTH)
                 .subtract(LESSON_COLUMN_WIDTHS[0] + LESSON_COLUMN_GAP + MODE_CHIP_ALLOWANCE);
         lessonLocations.forEach(location -> wrapWhenLonger(location, locationLimit, BODY_FONT_SIZE));
         DoubleExpression contactLimit = Bindings.min(detailsWidth, CONTACT_MAX_WIDTH);
         contactLines.forEach(line -> wrapWhenLonger(line, contactLimit, BODY_FONT_SIZE));
+    }
+
+    /** Returns the style class that colours {@code level} by its school stage. */
+    static String stageStyleClass(String level) {
+        return STAGE_STYLE_CLASSES.get(StudentCardText.stageOf(level));
     }
 
     private static VBox section(String caption, Node content) {

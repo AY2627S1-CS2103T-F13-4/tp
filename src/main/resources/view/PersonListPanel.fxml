@@ -1,26 +1,40 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ListView?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox styleClass="list-section" minHeight="0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
-  <HBox alignment="BASELINE_LEFT" spacing="10">
+<VBox minHeight="0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
+  <!-- Page header with a full-width rule under it -->
+  <HBox styleClass="page-header" alignment="CENTER_LEFT" spacing="10">
     <Label text="Students" styleClass="view-title" />
     <Label fx:id="listSummary" styleClass="view-subtitle" />
+    <Region HBox.hgrow="ALWAYS" />
+    <!-- Fills the add command into the command box; nothing is added until it is completed and entered -->
+    <Button fx:id="addStudentButton" text="+  Add student" styleClass="primary-button" focusTraversable="false"
+            onAction="#handleAddStudent" />
   </HBox>
   <StackPane styleClass="list-card" minHeight="0" VBox.vgrow="ALWAYS">
+    <VBox.margin>
+      <Insets top="20" right="24" bottom="16" left="24" />
+    </VBox.margin>
     <VBox minHeight="0">
       <!-- Column headings; their widths are bound to the same columns as each row -->
-      <HBox fx:id="columnHeader" styleClass="table-header">
+      <HBox styleClass="table-header" alignment="CENTER_LEFT">
         <Label text="#" styleClass="table-heading, heading-index" />
-        <Label fx:id="studentHeading" text="Student" styleClass="table-heading" />
-        <Label fx:id="lessonsHeading" text="Next lesson" styleClass="table-heading" />
+        <Label fx:id="nameHeading" text="Name" styleClass="table-heading" />
+        <Label fx:id="subjectsHeading" text="Subjects" styleClass="table-heading" />
+        <Label fx:id="lessonHeading" text="Next lesson" styleClass="table-heading" />
+        <Label fx:id="rateHeading" text="Rate" styleClass="table-heading, heading-right" />
         <Label fx:id="guardianHeading" text="Guardian" styleClass="table-heading" />
       </HBox>
-      <ListView fx:id="personListView" minHeight="0" VBox.vgrow="ALWAYS" />
+      <!-- Not focusable, so clicking a row leaves the cursor in the command box. -->
+      <ListView fx:id="personListView" minHeight="0" VBox.vgrow="ALWAYS" focusTraversable="false" />
     </VBox>
   </StackPane>
 </VBox>

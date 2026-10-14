@@ -2,6 +2,7 @@ package seedu.address.ui;
 
 import static java.util.Objects.requireNonNull;
 
+import java.util.List;
 import java.util.function.IntConsumer;
 
 import javafx.collections.ObservableList;
@@ -23,7 +24,7 @@ public class CommandBox extends UiPart<Region> {
     public static final String ERROR_STYLE_CLASS = "error";
     private static final String FXML = "CommandBox.fxml";
     /** Below this width the key hints would squeeze the placeholder text. */
-    private static final double MIN_WIDTH_FOR_HINTS = 800;
+    private static final double MIN_WIDTH_FOR_HINTS = 900;
 
     private final CommandExecutor commandExecutor;
     private final CommandHistory history = new CommandHistory();
@@ -67,6 +68,35 @@ public class CommandBox extends UiPart<Region> {
     public void setDetailsControls(IntConsumer detailsMover, Runnable detailsCloser) {
         this.detailsMover = requireNonNull(detailsMover);
         this.detailsCloser = requireNonNull(detailsCloser);
+    }
+
+    /**
+     * Runs {@code commandText} as if it had been typed and entered, so it gets the same feedback and history.
+     * Anything the user had half-typed is put back afterwards, unless the command failed and is left to fix.
+     */
+    public void submit(String commandText) {
+        String draft = commandTextField.getText();
+        commandTextField.setText(commandText);
+        handleCommandEntered();
+        if (commandTextField.getText().isEmpty()) {
+            commandTextField.setText(draft);
+        }
+        focus();
+        commandTextField.end();
+    }
+
+    /**
+     * Puts {@code commandText} in the box for the user to finish, with the cursor at the end.
+     */
+    public void prefill(String commandText) {
+        commandTextField.setText(commandText);
+        focus();
+        commandTextField.end();
+    }
+
+    /** Returns up to {@code count} of the most recent commands, newest last. */
+    public List<String> recent(int count) {
+        return history.recent(count);
     }
 
     /**

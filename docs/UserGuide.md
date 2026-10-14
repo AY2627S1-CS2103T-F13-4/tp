@@ -45,12 +45,14 @@ This development version supports contact details, schooling levels, guardian co
 
 ![StudentBook main window](images/Ui.png)
 
-* **Student list:** The list is a table with one row per student and the columns **#**, **Student**, **Next lesson** and **Guardian**. Each row shows only the name with its initials and level, the lesson that comes next in the week (e.g. `H2 Physics  Sat 10.00am  +2 more`), and the guardian's name. Use the number in the **#** column as `INDEX`. In narrow windows the Guardian column is hidden.
+* **Sidebar:** **Students** runs `list`. Under **Levels**, each schooling level in use runs `find level/LEVEL`, and **All commands** opens help. Each item shows the command it runs. The sidebar is hidden in windows narrower than 1100px.
+* **Header:** The page header shows how many students there are. **+ Add student** puts the `add` format in the command box for you to fill in.
+* **Student list:** The list is a table with one row per student and the columns **#**, **Name**, **Subjects**, **Next lesson**, **Rate** and **Guardian**. **Next lesson** is the lesson that comes next in the week, with `+2 more` when the student has others; **Rate** is that lesson's rate. Use the number in the **#** column as `INDEX`. In narrow windows the Subjects and Guardian columns are hidden.
 * **Student details:** A student's details open under their row: every lesson with its number, subject, day and time, rate, mode and location, then the phone, email, address, guardian and tags. Details open when a search leaves one student (e.g. `find hafiz`), when you press **Alt+Down** or **Alt+Up** to step through students, or when you click a row. Press **Esc** in an empty command box to close them. Use a lesson's number in the details as `LESSON_INDEX`.
-* **Colours:** The level and the initials badge are amber for primary (`P5`, `Primary 5`), blue for secondary (`Sec 3`, `Secondary 4 Express`) and violet for JC (`JC1`). Levels written another way, such as `Poly Y1`, stay grey. In the details, a lesson's mode shows in green for `Physical` and teal for `Virtual`. Tags are grey.
+* **Colours:** The initials badge and the sidebar's level dots are amber for primary (`P5`, `Primary 5`), blue for secondary (`Sec 3`, `Secondary 4 Express`) and violet for JC (`JC1`). Levels written another way, such as `Poly Y1`, stay grey. In a student's details, a lesson's mode shows in green for `Physical` and teal for `Virtual`. Tags are grey.
 * **Count:** The count beside the title shows how many students there are. After `find`, it shows how many match, such as `Showing 1 of 8`.
 * **Empty list:** When the list is empty, the app suggests the next step. With no students, it shows the `add` format. When a search matches no one, it suggests `list`.
-* **Result:** The row above the command box shows the result of your last command. A green tick marks a success. A red `!` on a pink background marks an error, such as an invalid index or format. When you get a command's format wrong, the row shows what the command does, its **Format** and an **Example**, so you can fix the command without opening help. Click a Format or Example line to copy it. Long messages scroll.
+* **Result:** The row above the command box shows the result of your last command. After a one-line success, it also shows your last few commands; click one to put it back in the command box. A green tick marks a success. A red `!` on a pink background marks an error, such as an invalid index or format. When you get a command's format wrong, the row shows what the command does, its **Format** and an **Example**, so you can fix the command without opening help. Click a Format or Example line to copy it. Long messages scroll.
 * **Command box:** It is focused when the app starts, so you can use the whole app from the keyboard. Press Enter to run a command. After a successful command, the box clears. After an error, your text stays, shown in red, so you can fix it.
 
 | Key | Action |
@@ -97,7 +99,7 @@ Records with exactly the same name are duplicates. Name matching is case-sensiti
 | Clear a level | `edit 1 level/` |
 | Include a level when adding a student | Add `level/Primary 5` to the `add` command |
 
-The student's row shows a `Primary 5` tag beside the name when a level is recorded. If none is recorded, the tag is hidden. Leave out `level/` to keep the existing level when editing. Changing a level keeps every other field unchanged, including lessons.
+The student's row shows the level `Primary 5` beside the name when one is recorded. If none is recorded, it is left out. Leave out `level/` to keep the existing level when editing. Changing a level keeps every other field unchanged, including lessons.
 
 Levels must have 1 to 30 characters after the space cleanup below. Start with a letter or digit and include at least one letter. Use English letters `A-Z` or `a-z`, digits `0-9`, spaces and these symbols: `'`, `-`, `.`, `(`, `)`. Leading and trailing spaces or tabs are removed, and repeated spaces or tabs become one space. An empty `level/` clears the level with `edit`, but is invalid with `add`. Repeating `level/` in one command is invalid. Invalid input leaves the record unchanged.
 

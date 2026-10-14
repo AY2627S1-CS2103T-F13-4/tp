@@ -2,6 +2,7 @@ package seedu.address.ui;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
@@ -25,6 +26,8 @@ public class CommandHistoryTest {
         assertEquals(Optional.of("list"), history.previous("find alex"));
         assertEquals(Optional.empty(), history.previous("list"));
         assertEquals(Optional.of("find alex"), history.next());
+        assertEquals(List.of("list", "find alex"), history.recent(3));
+        assertEquals(List.of("find alex"), history.recent(1));
     }
 
     // A tutor who presses Up by accident must get their unsent text back with Down.

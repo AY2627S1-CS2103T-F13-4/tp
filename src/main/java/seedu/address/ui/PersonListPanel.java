@@ -3,8 +3,8 @@ package seedu.address.ui;
 import java.util.logging.Logger;
 
 import javafx.beans.binding.Bindings;
-import javafx.beans.binding.BooleanBinding;
-import javafx.beans.binding.DoubleBinding;
+import javafx.beans.binding.BooleanExpression;
+import javafx.beans.binding.DoubleExpression;
 import javafx.beans.property.ReadOnlyDoubleProperty;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
@@ -13,30 +13,33 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.skin.VirtualFlow;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import seedu.address.commons.core.LogsCenter;
 import seedu.address.model.person.Student;
 
 /**
- * Panel containing the list of persons.
+ * Panel containing the table of students.
  */
 public class PersonListPanel extends UiPart<Region> {
     private static final String FXML = "PersonListPanel.fxml";
-    /** Width of the list taken by the # column, row padding, the gaps between columns and the scroll bar. */
-    private static final double ROW_CHROME_WIDTH = 140;
-    /** Below this list width the Guardian column is hidden; the guardian still shows in a row's details. */
+    /** Below this list width the Subjects and Guardian columns are hidden; the details still show them. */
     private static final double WIDE_TABLE_WIDTH = 900;
-    /** Shares of the free width for the Next lesson and Guardian columns; the Student column takes the rest. */
-    private static final double LESSON_SHARE_WIDE = 0.36;
-    private static final double LESSON_SHARE_NARROW = 0.45;
-    private static final double GUARDIAN_SHARE_WIDE = 0.22;
-    /** The Next lesson column is never narrower than a next-lesson line, e.g. "H2 Chemistry  Sat 1.00pm  +2 more". */
-    private static final double MIN_LESSON_WIDTH = 230;
+    /**
+     * Width of the list not available to the columns: the # column, row padding, gaps between the visible
+     * columns and the scroll bar. Narrow tables have two columns, so two gaps, fewer.
+     */
+    private static final double CHROME_WIDE = 26 + 5 * 20 + 32 + 14;
+    private static final double CHROME_NARROW = 26 + 3 * 20 + 32 + 14;
     /** Width of the list not available to a row's details: row padding, the details' indent and the scroll bar. */
     private static final double DETAILS_CHROME_WIDTH = 100;
     /** Part of the visible height scrolled per page, leaving some overlap for context. */
     private static final double PAGE_FRACTION = 0.85;
+
+    /** Widths of the table's columns, shared by the header and every row. */
+    record Columns(DoubleExpression name, DoubleExpression subjects, DoubleExpression lesson,
+            DoubleExpression rate, DoubleExpression guardian, DoubleExpression details, BooleanExpression wide) {}
 
     private final Logger logger = LogsCenter.getLogger(PersonListPanel.class);
 
@@ -45,20 +48,21 @@ public class PersonListPanel extends UiPart<Region> {
     @FXML
     private Label listSummary;
     @FXML
-    private Label studentHeading;
+    private Label nameHeading;
     @FXML
-    private Label lessonsHeading;
+    private Label subjectsHeading;
+    @FXML
+    private Label lessonHeading;
+    @FXML
+    private Label rateHeading;
     @FXML
     private Label guardianHeading;
 
-    private final BooleanBinding wide;
-    private final DoubleBinding studentWidth;
-    private final DoubleBinding lessonsWidth;
-    private final DoubleBinding guardianWidth;
-    private final DoubleBinding detailsWidth;
+    private Runnable onAddStudent = () -> { };
 
     private final Label emptyTitle = new Label();
     private final Label emptyDetail = new Label();
+    private final Columns columns;
 
     /**
      * Creates a {@code PersonListPanel} that shows {@code personList}, the list that commands' indices refer to.
@@ -67,25 +71,22 @@ public class PersonListPanel extends UiPart<Region> {
     public PersonListPanel(ObservableList<Student> personList, ObservableList<Student> allPersons) {
         super(FXML);
         ReadOnlyDoubleProperty listWidth = personListView.widthProperty();
-        wide = listWidth.greaterThanOrEqualTo(WIDE_TABLE_WIDTH);
-        lessonsWidth = Bindings.createDoubleBinding(() -> Math.max(MIN_LESSON_WIDTH,
-                free(listWidth) * (isWide(listWidth) ? LESSON_SHARE_WIDE : LESSON_SHARE_NARROW)), listWidth);
-        detailsWidth = listWidth.subtract(DETAILS_CHROME_WIDTH);
-        guardianWidth = Bindings.createDoubleBinding(() ->
-                isWide(listWidth) ? free(listWidth) * GUARDIAN_SHARE_WIDE : 0, listWidth);
-        studentWidth = Bindings.createDoubleBinding(() ->
-                Math.max(0, free(listWidth) - lessonsWidth.get() - guardianWidth.get()), listWidth);
-        sizeHeading(studentHeading, studentWidth);
-        sizeHeading(lessonsHeading, lessonsWidth);
-        sizeHeading(guardianHeading, guardianWidth);
-        guardianHeading.visibleProperty().bind(wide);
-        guardianHeading.managedProperty().bind(wide);
+        BooleanExpression wide = listWidth.greaterThanOrEqualTo(WIDE_TABLE_WIDTH);
+        columns = new Columns(column(listWidth, 0.30, 0.50), column(listWidth, 0.22, 0),
+                column(listWidth, 0.20, 0.34), column(listWidth, 0.08, 0.16), column(listWidth, 0.20, 0),
+                listWidth.subtract(DETAILS_CHROME_WIDTH), wide);
+        size(nameHeading, columns.name());
+        size(subjectsHeading, columns.subjects());
+        size(lessonHeading, columns.lesson());
+        size(rateHeading, columns.rate());
+        size(guardianHeading, columns.guardian());
+        for (Label optional : new Label[] {subjectsHeading, guardianHeading}) {
+            optional.visibleProperty().bind(wide);
+            optional.managedProperty().bind(wide);
+        }
 
         personListView.setItems(personList);
         personListView.setCellFactory(listView -> new PersonListViewCell());
-        // A clicked row, or the only row left after a search, expands to show its details.
-        personListView.getSelectionModel().selectedIndexProperty().addListener((unused1, unused2, unused3) ->
-                personListView.refresh());
 
         emptyTitle.getStyleClass().add("empty-title");
         emptyDetail.getStyleClass().add("empty-detail");
@@ -96,11 +97,47 @@ public class PersonListPanel extends UiPart<Region> {
 
         ListChangeListener<Student> refresh = change -> {
             updateStatus(personList.size(), allPersons.size());
-            personListView.refresh();
+            openOnlyRow();
         };
         personList.addListener(refresh);
         allPersons.addListener(refresh);
+        // When the shown rows change (after list, find, add or delete), fade them in to mark it.
+        personList.addListener((ListChangeListener<Student>) change -> Motion.fadeIn(personListView, 0.4));
         updateStatus(personList.size(), allPersons.size());
+        openOnlyRow();
+    }
+
+    /**
+     * Opens the details of the student after (1) or before (-1) the open one, or the first or last if none is open,
+     * scrolling only if that row is out of view. Lets keyboard users browse details from the command box.
+     */
+    public void moveDetails(int direction) {
+        int size = personListView.getItems().size();
+        if (size == 0) {
+            return;
+        }
+        int current = personListView.getSelectionModel().getSelectedIndex();
+        int next = current < 0 ? (direction > 0 ? 0 : size - 1) : Math.max(0, Math.min(size - 1, current + direction));
+        personListView.getSelectionModel().select(next);
+        VirtualFlow<?> flow = (VirtualFlow<?>) personListView.lookup(".virtual-flow");
+        if (flow != null) {
+            flow.scrollTo(next);
+        }
+    }
+
+    /** Sets what the Add student button does. */
+    public void setOnAddStudent(Runnable onAddStudent) {
+        this.onAddStudent = onAddStudent;
+    }
+
+    @FXML
+    private void handleAddStudent() {
+        onAddStudent.run();
+    }
+
+    /** Closes any open student details. */
+    public void closeDetails() {
+        personListView.getSelectionModel().clearSelection();
     }
 
     /**
@@ -114,39 +151,29 @@ public class PersonListPanel extends UiPart<Region> {
         }
     }
 
-    /**
-     * Opens the details of the student after (1) or before (-1) the open one, or the first or last if none is open,
-     * and scrolls to it. Lets keyboard users browse details while focus stays in the command box.
-     */
-    public void moveDetails(int direction) {
+    /** Opens the only row when a search leaves one student, and closes details whose row has gone. */
+    private void openOnlyRow() {
         int size = personListView.getItems().size();
-        if (size == 0) {
-            return;
+        if (size == 1) {
+            personListView.getSelectionModel().select(0);
+        } else if (personListView.getSelectionModel().getSelectedIndex() >= size) {
+            personListView.getSelectionModel().clearSelection();
         }
-        int current = personListView.getSelectionModel().getSelectedIndex();
-        int next = current < 0 ? (direction > 0 ? 0 : size - 1) : Math.max(0, Math.min(size - 1, current + direction));
-        personListView.getSelectionModel().select(next);
-        personListView.scrollTo(next);
     }
 
-    /** Closes any open student details. */
-    public void closeDetails() {
-        personListView.getSelectionModel().clearSelection();
+    /** Returns a column's width: its share of the list's free width, which depends on whether the table is wide. */
+    private static DoubleExpression column(ReadOnlyDoubleProperty listWidth, double wideShare, double narrowShare) {
+        return Bindings.createDoubleBinding(() -> {
+            boolean wide = listWidth.get() >= WIDE_TABLE_WIDTH;
+            double free = Math.max(0, listWidth.get() - (wide ? CHROME_WIDE : CHROME_NARROW));
+            return free * (wide ? wideShare : narrowShare);
+        }, listWidth);
     }
 
-    /** Returns the list width left for the Student, Lessons and Guardian columns. */
-    private static double free(ReadOnlyDoubleProperty listWidth) {
-        return Math.max(0, listWidth.get() - ROW_CHROME_WIDTH);
-    }
-
-    private static boolean isWide(ReadOnlyDoubleProperty listWidth) {
-        return listWidth.get() >= WIDE_TABLE_WIDTH;
-    }
-
-    private static void sizeHeading(Label heading, DoubleBinding width) {
-        heading.minWidthProperty().bind(width);
-        heading.prefWidthProperty().bind(width);
-        heading.maxWidthProperty().bind(width);
+    private static void size(Region cell, DoubleExpression width) {
+        cell.minWidthProperty().bind(width);
+        cell.prefWidthProperty().bind(width);
+        cell.maxWidthProperty().bind(width);
     }
 
     private void updateStatus(int shown, int total) {
@@ -156,21 +183,53 @@ public class PersonListPanel extends UiPart<Region> {
     }
 
     /**
-     * Custom {@code ListCell} that displays the graphics of a {@code Student} using a {@code PersonCard}.
+     * Custom {@code ListCell} that displays a {@code Student} as a {@code PersonCard} row.
+     * A selected row shows its details; selecting another only toggles those two rows.
      */
     class PersonListViewCell extends ListCell<Student> {
+        private PersonCard card;
+        private Student shownPerson;
+        private int shownIndex = -1;
+
+        PersonListViewCell() {
+            // Clicking the open row closes it, the mouse version of Esc.
+            addEventFilter(MouseEvent.MOUSE_PRESSED, event -> {
+                if (!isEmpty() && isSelected()) {
+                    getListView().getSelectionModel().clearSelection();
+                    event.consume();
+                }
+            });
+        }
+
         @Override
         protected void updateItem(Student person, boolean empty) {
             super.updateItem(person, empty);
 
             if (empty || person == null) {
+                card = null;
+                shownPerson = null;
+                shownIndex = -1;
                 setGraphic(null);
                 setText(null);
-            } else {
-                boolean expanded = getListView().getItems().size() == 1 || isSelected();
-                PersonCard card = new PersonCard(person, getIndex() + 1, expanded);
-                card.bindColumns(studentWidth, lessonsWidth, guardianWidth, wide, detailsWidth);
+            } else if (person != shownPerson || getIndex() != shownIndex) {
+                // The list also redraws a row that has not changed, e.g. right after it opens.
+                // Keeping its card then lets an open or close animation finish.
+                card = new PersonCard(person, getIndex() + 1);
+                card.bindColumns(columns);
+                // Read the selection for this index: the cell's own flag may still be for the row it showed before.
+                card.setOpen(getListView().getSelectionModel().isSelected(getIndex()));
+                shownPerson = person;
+                shownIndex = getIndex();
                 setGraphic(card.getRoot());
+            }
+        }
+
+        @Override
+        public void updateSelected(boolean selected) {
+            super.updateSelected(selected);
+            if (card != null) {
+                // A row redrawn while scrolling already shows its state, so only a real change animates.
+                card.animateOpen(selected);
             }
         }
     }

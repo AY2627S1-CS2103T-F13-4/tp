@@ -3,6 +3,7 @@ package seedu.address.ui;
 import static java.util.Objects.requireNonNull;
 
 import java.util.List;
+import java.util.function.Consumer;
 
 import javafx.beans.binding.DoubleExpression;
 import javafx.fxml.FXML;
@@ -15,6 +16,7 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.SVGPath;
@@ -37,6 +39,8 @@ public class ResultDisplay extends UiPart<Region> {
     private static final double CAPTION_WIDTH = 64;
     /** Room for the scroll pane's vertical bar, so wrapped text never sits under it. */
     private static final double SCROLL_BAR_ALLOWANCE = 14;
+    /** Longest success message shown beside the recent commands; longer ones need the row's full width. */
+    private static final int MAX_RECENT_ROW_MESSAGE = 60;
 
     @FXML
     private HBox resultRow;
@@ -46,6 +50,9 @@ public class ResultDisplay extends UiPart<Region> {
     private ScrollPane resultScroll;
     @FXML
     private VBox resultContent;
+
+    private List<String> recent = List.of();
+    private Consumer<String> onRecentPicked = command -> { };
 
     /**
      * Creates a {@code ResultDisplay} showing a short hint on how to start.
@@ -65,6 +72,18 @@ public class ResultDisplay extends UiPart<Region> {
     }
 
     /**
+     * Sets the recent commands shown as chips beside a one-line success, as in "Recent  list  find alex".
+     */
+    public void setRecent(List<String> recent) {
+        this.recent = List.copyOf(recent);
+    }
+
+    /** Sets what clicking a recent command does, e.g. put it back in the command box. */
+    public void setOnRecentPicked(Consumer<String> onRecentPicked) {
+        this.onRecentPicked = onRecentPicked;
+    }
+
+    /**
      * Shows why a command could not run.
      */
     public void setErrorToUser(String errorMessage) {
@@ -76,9 +95,48 @@ public class ResultDisplay extends UiPart<Region> {
         resultRow.getStyleClass().removeAll(SUCCESS_STYLE_CLASS, ERROR_STYLE_CLASS);
         resultRow.getStyleClass().add(styleClass);
         resultIcon.setText(icon);
+        boolean success = icon.isEmpty();
+        Motion.fadeIn(resultContent, 0.2);
+        if (!success) {
+            Motion.shake(resultRow);
+        }
+        if (success && !recent.isEmpty() && message.length() <= MAX_RECENT_ROW_MESSAGE
+                && FeedbackLines.split(message).size() == 1) {
+            // A short one-line success reads like the mockup: recent commands on the left, the result on the right.
+            resultIcon.setVisible(false);
+            resultIcon.setManaged(false);
+            resultContent.getChildren().setAll(recentRow(message));
+            return;
+        }
+        resultIcon.setVisible(true);
+        resultIcon.setManaged(true);
         // Drawn rather than typed, since not every system font has a check mark character.
-        resultIcon.setGraphic(icon.isEmpty() ? checkMark() : null);
+        resultIcon.setGraphic(success ? checkMark() : null);
         render(message);
+    }
+
+    private Node recentRow(String message) {
+        HBox row = new HBox(8);
+        row.setAlignment(Pos.CENTER_LEFT);
+        Label caption = new Label("Recent");
+        caption.getStyleClass().add("result-caption");
+        row.getChildren().add(caption);
+        for (String command : recent) {
+            Label chip = new Label(command);
+            chip.getStyleClass().add("recent-chip");
+            chip.setStyle(MonospaceFont.style());
+            chip.setCursor(Cursor.HAND);
+            chip.setOnMouseClicked(event -> onRecentPicked.accept(command));
+            row.getChildren().add(chip);
+        }
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+        Text result = new Text(message);
+        result.getStyleClass().add("result-text");
+        HBox outcome = new HBox(6, checkMark(), result);
+        outcome.setAlignment(Pos.CENTER_RIGHT);
+        row.getChildren().addAll(spacer, outcome);
+        return row;
     }
 
     private void render(String message) {

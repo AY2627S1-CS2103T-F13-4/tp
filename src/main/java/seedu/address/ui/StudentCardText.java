@@ -133,6 +133,18 @@ final class StudentCardText {
         return initials.toString().toUpperCase(Locale.ROOT);
     }
 
+    /** Returns the student's subjects across their lessons, in lesson order without repeats, e.g. "Math, A-Math". */
+    static Optional<String> subjects(Student student) {
+        List<String> subjects = student.getLessons().stream().map(lesson -> lesson.getSubject().toString())
+                .distinct().toList();
+        return subjects.isEmpty() ? Optional.empty() : Optional.of(String.join(", ", subjects));
+    }
+
+    /** Returns a rate for the table's narrow Rate column, e.g. "$60/h" for "SGD 60/h". */
+    static String tableRate(LessonLine line) {
+        return line.rate().replace("SGD ", "$");
+    }
+
     /** Returns the guardian's name and phone, e.g. "Janet Tan (91234567)", or empty if none is recorded. */
     static Optional<String> guardian(Student student) {
         return student.getGuardian().map(guardian -> guardian.getName() + " (" + guardian.getPhone() + ")");

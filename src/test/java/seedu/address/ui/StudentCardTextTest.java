@@ -40,6 +40,7 @@ public class StudentCardTextTest {
     public void unrecordedDetails_areEmpty() {
         Student student = new PersonBuilder().build();
         assertEquals(List.of(), StudentCardText.lessons(student));
+        assertEquals(Optional.empty(), StudentCardText.subjects(student));
         assertEquals(Optional.empty(), StudentCardText.guardian(student));
     }
 
@@ -53,6 +54,8 @@ public class StudentCardTextTest {
                 new LessonLine(2, "English", "Sat 10.00am-11.00am", "SGD 45.50/h",
                         Optional.of("Tampines Library"), Optional.of(LessonMode.PHYSICAL))),
                 StudentCardText.lessons(student));
+        assertEquals(Optional.of("Math, English"), StudentCardText.subjects(student));
+        assertEquals("$45.50/h", StudentCardText.tableRate(StudentCardText.lessons(student).get(1)));
     }
 
     // Common ways tutors write levels get their school stage's colour.

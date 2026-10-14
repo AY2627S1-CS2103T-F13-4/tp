@@ -24,6 +24,11 @@ final class CommandHistory {
         draft = "";
     }
 
+    /** Returns up to {@code count} of the most recent commands, newest last. */
+    List<String> recent(int count) {
+        return List.copyOf(commands.subList(Math.max(0, commands.size() - count), commands.size()));
+    }
+
     /** Returns the command before the current position, or empty at the oldest one. */
     Optional<String> previous(String currentText) {
         if (position == 0) {
