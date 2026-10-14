@@ -5,7 +5,7 @@ import static java.util.Objects.requireNonNull;
 import java.time.DayOfWeek;
 import java.time.LocalTime;
 import java.time.format.TextStyle;
-import java.time.temporal.ChronoUnit;
+import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.Locale;
 import java.util.Map;
@@ -35,12 +35,15 @@ public class ScheduleGrid extends UiPart<GridPane> {
 
     private static final String FXML = "ScheduleGrid.fxml";
     private static final int INTERVAL_MINUTE = 30;
+    private static final double TIME_ROW_HEIGHT = 60;
+    private static final double PIXELS_PER_MINUTE = TIME_ROW_HEIGHT / INTERVAL_MINUTE;
 
     private final ObservableList<Student> students;
     private final ListChangeListener<Student> studentListListener = change -> refreshSchedule();
     private final Map<DayOfWeek, ObservableList<ScheduleEntry>> entriesByDay = new EnumMap<>(DayOfWeek.class);
     private LocalTime earliestTime;
     private LocalTime latestTime;
+    private int gridStartMinute;
     private boolean disposed;
 
     @FXML
@@ -140,8 +143,11 @@ public class ScheduleGrid extends UiPart<GridPane> {
 
     private void addRow() {
         RowConstraints row = new RowConstraints();
-        row.setMinHeight(60);
-        row.setVgrow(Priority.SOMETIMES);
+        // A fixed time scale keeps per-card minute offsets accurate when the window is resized.
+        row.setMinHeight(TIME_ROW_HEIGHT);
+        row.setPrefHeight(TIME_ROW_HEIGHT);
+        row.setMaxHeight(TIME_ROW_HEIGHT);
+        row.setVgrow(Priority.NEVER);
         scheduleGrid.getRowConstraints().add(row);
     }
 
@@ -165,11 +171,11 @@ public class ScheduleGrid extends UiPart<GridPane> {
         int currColumn = startColumn;
 
         dayEntries.sort(null);
-        PriorityQueue<ScheduleEntry> activeEntries = new PriorityQueue<>();
+        PriorityQueue<ScheduleEntry> activeEntries = new PriorityQueue<>(Comparator.comparing(ScheduleEntry::getEnd));
         PriorityQueue<Integer> availableColumns = new PriorityQueue<>();
 
         for (ScheduleEntry entry : dayEntries) {
-            while (!activeEntries.isEmpty() && activeEntries.peek().getEnd().isBefore(entry.getStart())) {
+            while (!activeEntries.isEmpty() && !activeEntries.peek().getEnd().isAfter(entry.getStart())) {
                 availableColumns.add(activeEntries.remove().getDisplayColumn());
             }
             int column;
@@ -187,12 +193,13 @@ public class ScheduleGrid extends UiPart<GridPane> {
     }
 
     private void generateRowsOfInterval(int minuteInterval) {
-        LocalTime startTime = earliestTime.minusMinutes(earliestTime.getMinute() % minuteInterval);
-        LocalTime endTime = latestTime.plusMinutes((minuteInterval - latestTime.getMinute()) % minuteInterval);
+        gridStartMinute = toMinuteOfDay(earliestTime) / minuteInterval * minuteInterval;
+        // Keep the rounded end as minutes so 1440 represents the next midnight without wrapping to zero.
+        int endMinute = (toMinuteOfDay(latestTime) + minuteInterval - 1) / minuteInterval * minuteInterval;
 
-        int rowCount = (int) ChronoUnit.MINUTES.between(startTime, endTime) / minuteInterval;
+        int rowCount = (endMinute - gridStartMinute) / minuteInterval;
 
-        LocalTime currTime = startTime;
+        LocalTime currTime = LocalTime.MIDNIGHT.plusMinutes(gridStartMinute);
         for (int i = 0; i < rowCount; i++) {
             addRow();
             Label timeLabel = new Label(currTime.toString());
@@ -203,11 +210,21 @@ public class ScheduleGrid extends UiPart<GridPane> {
     }
 
     private void makeLessonCard(ScheduleEntry entry) {
-        int start = (int) ChronoUnit.MINUTES.between(earliestTime, entry.getStart()) / INTERVAL_MINUTE;
-        int end = (int) ChronoUnit.MINUTES.between(earliestTime, entry.getEnd()) / INTERVAL_MINUTE;
+        int startMinute = toMinuteOfDay(entry.getStart()) - gridStartMinute;
+        int endMinute = toMinuteOfDay(entry.getEnd()) - gridStartMinute;
+        int startRow = startMinute / INTERVAL_MINUTE;
+        int endRowExclusive = (endMinute + INTERVAL_MINUTE - 1) / INTERVAL_MINUTE;
+
+        // Span enclosing intervals, then inset to the exact times, even for a one-minute lesson.
+        double topMargin = (startMinute - startRow * INTERVAL_MINUTE) * PIXELS_PER_MINUTE;
+        double bottomMargin = (endRowExclusive * INTERVAL_MINUTE - endMinute) * PIXELS_PER_MINUTE;
 
         LessonCard lessonCard = new LessonCard(entry);
-        GridPane.setMargin(lessonCard.getRoot(), new Insets(3, 5, 5, 3));
-        scheduleGrid.add(lessonCard.getRoot(), entry.getDisplayColumn(), 1 + start, 1, end - start);
+        GridPane.setMargin(lessonCard.getRoot(), new Insets(topMargin, 5, bottomMargin, 3));
+        scheduleGrid.add(lessonCard.getRoot(), entry.getDisplayColumn(), 1 + startRow, 1, endRowExclusive - startRow);
+    }
+
+    private static int toMinuteOfDay(LocalTime time) {
+        return time.getHour() * 60 + time.getMinute();
     }
 }
