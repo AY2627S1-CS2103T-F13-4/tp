@@ -176,12 +176,13 @@ public class MainWindowTest {
     }
 
     // A filter that does not fully fit is hidden, never shown cut short, and returns when the window widens.
+    // The widths stay within 1024px: a window cannot be wider than the screen, and CI screens can be narrow.
     @Test
     public void levelFilters_tooManyToFit_hidesOnlyThoseCutOff() throws Exception {
         runOnFxThread(() -> {
             submitCommand("edit 1 level/P5");
             for (String level : List.of("Secondary 1 Express Stream One", "Secondary 2 Express Stream Two",
-                    "Secondary 3 Express Stream Six")) {
+                    "JC1")) {
                 submitCommand("add name/" + level.substring(level.length() - 3)
                         + " phone/91234567 email/a@b.co address/1 level/" + level);
             }
@@ -194,7 +195,7 @@ public class MainWindowTest {
             assertFalse(filters.get(3).isVisible());
             assertVisibleFiltersFit();
         });
-        resizeWindow(1400);
+        resizeWindow(1000);
         runOnFxThread(() -> {
             assertTrue(levelNav().getChildren().stream().allMatch(Node::isVisible));
             assertVisibleFiltersFit();
