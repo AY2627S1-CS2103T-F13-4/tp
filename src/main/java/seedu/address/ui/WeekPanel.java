@@ -2,6 +2,9 @@ package seedu.address.ui;
 
 import static java.util.Objects.requireNonNull;
 
+import java.util.OptionalDouble;
+
+import javafx.application.Platform;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -24,6 +27,8 @@ public class WeekPanel extends UiPart<Region> {
     private static final String FXML = "WeekPanel.fxml";
     /** Share of the visible height that Page Up and Page Down scroll, as in the student table. */
     private static final double PAGE_FRACTION = 0.85;
+    /** How far down the visible calendar the current time is placed when it opens. */
+    private static final double NOW_POSITION = 0.25;
 
     private final ObservableList<Student> students;
     private final ScheduleGrid scheduleGrid;
@@ -80,6 +85,24 @@ public class WeekPanel extends UiPart<Region> {
         double step = viewportHeight * PAGE_FRACTION / (contentHeight - viewportHeight);
         double next = scheduleScroll.getVvalue() + Math.signum(direction) * step;
         scheduleScroll.setVvalue(Math.max(0, Math.min(1, next)));
+    }
+
+    /**
+     * Scrolls so the current time is near the top, so opening the calendar shows what is on now without
+     * scrolling. Does nothing when the current time is outside the calendar's hours.
+     */
+    public void scrollToCurrentTime() {
+        // Wait for the layout, which places the current-time line.
+        Platform.runLater(() -> {
+            scheduleScroll.layout();
+            double hidden = scheduleGrid.getRoot().getHeight() - scheduleScroll.getViewportBounds().getHeight();
+            OptionalDouble offset = scheduleGrid.currentTimeOffset();
+            if (hidden <= 0 || offset.isEmpty()) {
+                return;
+            }
+            double target = offset.getAsDouble() - scheduleScroll.getViewportBounds().getHeight() * NOW_POSITION;
+            scheduleScroll.setVvalue(Math.max(0, Math.min(1, target / hidden)));
+        });
     }
 
     /** Stops following the student list. Call when the window closes. */

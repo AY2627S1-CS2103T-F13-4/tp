@@ -18,6 +18,8 @@
     -sb-success: #1F8A4C;
     -sb-error: #C8302F;
     -sb-error-tint: #FDF2F2;
+    /* The current-time line on the calendar; softer than the error red */
+    -sb-now: #D35555;
 
     /* Bundled Geist (see AppFonts); each weight is its own family, e.g. "Geist SemiBold" */
     -fx-font-family: "Geist";
@@ -659,12 +661,25 @@
     -fx-padding: 4 8 0 10;
 }
 
-/* The current time across today */
+/* The current time across today: a dot on the day's left edge and a line */
 .schedule-now-line {
+    -fx-max-height: 10;
+}
+
+.schedule-now-dot {
+    -fx-min-width: 10;
+    -fx-min-height: 10;
+    -fx-max-width: 10;
+    -fx-max-height: 10;
+    -fx-background-color: -sb-now;
+    -fx-background-radius: 5;
+}
+
+.schedule-now-bar {
     -fx-min-height: 2;
     -fx-pref-height: 2;
     -fx-max-height: 2;
-    -fx-background-color: -sb-error;
+    -fx-background-color: -sb-now;
 }
 
 /* A lesson block, filled with its school stage's tint; the text uses the stage's ink */
@@ -704,4 +719,9 @@
 .legend-label {
     -fx-font-size: 12px;
     -fx-text-fill: -sb-text-secondary;
+}
+
+/* The command panel while the cursor is in the command box */
+.command-panel.command-panel-focused {
+    -fx-border-color: -sb-accent;
 }

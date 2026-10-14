@@ -59,6 +59,7 @@ public class MainWindow extends UiPart<Stage> {
     /** Number of recent commands shown as chips beside a successful result. */
     private static final int RECENT_COMMANDS = 3;
     private static final String NAV_ACTIVE_STYLE_CLASS = "nav-item-active";
+    private static final String COMMAND_PANEL_FOCUSED_STYLE_CLASS = "command-panel-focused";
     /** Filled into the command box by the Add student button. */
     private static final String ADD_TEMPLATE = AddCommand.COMMAND_WORD + " " + PREFIX_NAME + " " + PREFIX_PHONE
             + " " + PREFIX_EMAIL + " " + PREFIX_ADDRESS;
@@ -98,6 +99,9 @@ public class MainWindow extends UiPart<Stage> {
     private VBox sidebar;
 
     @FXML
+    private VBox commandPanel;
+
+    @FXML
     private Button weekNav;
 
     @FXML
@@ -132,6 +136,13 @@ public class MainWindow extends UiPart<Stage> {
         setAccelerators();
 
         helpWindow = new HelpWindow();
+        helpWindow.showDataFile(dataFilePath);
+        // Closing help returns the cursor to the command box, so the user can keep typing.
+        helpWindow.getRoot().addEventHandler(WindowEvent.WINDOW_HIDDEN, event -> {
+            if (commandBox != null) {
+                commandBox.focus();
+            }
+        });
         primaryStage.addEventHandler(WindowEvent.WINDOW_HIDDEN, event -> disposeWeekPanel());
     }
 
@@ -197,14 +208,25 @@ public class MainWindow extends UiPart<Stage> {
                 personListPanel.scrollPage(direction);
             }
         });
-        // Details belong to the student table, so the keys do nothing while the calendar shows.
+        // Alt+Up/Down step through students' details on the table and scroll the calendar, so neither screen
+        // needs Page Up or Page Down, which many laptops lack. Esc closes details only on the table.
         commandBox.setDetailsControls(direction -> {
-            if (!weekPanel.getRoot().isVisible()) {
+            if (weekPanel.getRoot().isVisible()) {
+                weekPanel.scrollPage(direction);
+            } else {
                 personListPanel.moveDetails(direction);
             }
         }, () -> {
             if (!weekPanel.getRoot().isVisible()) {
                 personListPanel.closeDetails();
+            }
+        });
+        commandBox.setExampleSupplier(resultDisplay::getExample);
+        // The command panel shows an accent outline while the cursor is in the command box.
+        commandBox.focusedProperty().addListener((unused, wasFocused, focused) -> {
+            commandPanel.getStyleClass().remove(COMMAND_PANEL_FOCUSED_STYLE_CLASS);
+            if (focused) {
+                commandPanel.getStyleClass().add(COMMAND_PANEL_FOCUSED_STYLE_CLASS);
             }
         });
         personListPanel.setOnAddStudent(() -> commandBox.prefill(ADD_TEMPLATE));
@@ -296,6 +318,10 @@ public class MainWindow extends UiPart<Stage> {
         personListPanel.getRoot().setVisible(!week);
         setActive(weekNav, week);
         setActive(studentsNav, !week);
+        commandBox.setAltHint(week ? "Scroll" : "Details");
+        if (week) {
+            weekPanel.scrollToCurrentTime();
+        }
     }
 
     private static void setActive(Button navItem, boolean active) {
@@ -381,6 +407,7 @@ public class MainWindow extends UiPart<Stage> {
             resultDisplay.setRecent(commandBox.recent(RECENT_COMMANDS));
             resultDisplay.setFeedbackToUser(commandResult.getFeedbackToUser());
             showScreen(commandResult.getScreen());
+            commandResult.getStudentToOpen().ifPresent(index -> personListPanel.openStudent(index.getZeroBased()));
 
             if (commandResult.isShowHelp()) {
                 handleHelp();

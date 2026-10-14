@@ -47,7 +47,7 @@ This development version supports contact details, schooling levels, guardian co
 
 The app opens on **This week**, a calendar of every student's lessons. `list` and `find` show the **Students** table instead, and `week` brings the calendar back.
 
-* **This week:** The calendar shows Monday to Sunday of the current week, with today's date circled and a red line at the current time. It always shows 9.00am to 8.00pm, and stretches to fit any lesson outside those hours. Each lesson shows the student, the time, and then its number, level and subject, such as `#3.1 · Sec 3 · A-Math`. The number means student `3`, lesson `1`, so `lesson-edit 3 1` changes that lesson. Lessons are coloured by school stage, as shown in the key at the top right. Lessons at the same time sit side by side, and that day widens to fit them. Point at a lesson to see all its details, including ones a short lesson has no room for.
+* **This week:** The calendar shows Monday to Sunday of the current week, with today's date circled and a red line at the current time. It always shows 9.00am to 8.00pm, and stretches to fit any lesson outside those hours. Each lesson shows the student, the time, and then its number, level and subject, such as `#3.1 · Sec 3 · A-Math`. The number means student `3`, lesson `1`, so `lesson-edit 3 1` changes that lesson. Lessons are coloured by school stage, as shown in the key at the top right. Lessons at the same time sit side by side, and that day widens to fit them. To see a lesson's rate, mode and location, type `view` with its student's number (e.g. `view 3` for `#3.1`), or point at the lesson. The calendar opens scrolled to the current time.
 * **Sidebar:** **This week** runs `week` and **Students** runs `list`. Under **Levels**, each schooling level in use runs `find level/LEVEL`, and **All commands** opens help. Each item shows the command it runs. The sidebar is hidden in windows narrower than 1100px.
 * **Header:** The page header shows how many students there are. **+ Add student** puts the `add` format in the command box for you to fill in.
 * **Student list:** The list is a table with one row per student and the columns **#**, **Name**, **Subjects**, **Next lesson**, **Rate** and **Guardian**. **Next lesson** is the lesson that comes next in the week, with `+2 more` when the student has others; **Rate** is that lesson's rate. Use the number in the **#** column as `INDEX`. In narrow windows the Subjects and Guardian columns are hidden.
@@ -55,17 +55,20 @@ The app opens on **This week**, a calendar of every student's lessons. `list` an
 * **Colours:** The initials badge and the sidebar's level dots are amber for primary (`P5`, `Primary 5`), blue for secondary (`Sec 3`, `Secondary 4 Express`) and violet for JC (`JC1`). Levels written another way, such as `Poly Y1`, stay grey. In a student's details, a lesson's mode shows in green for `Physical` and teal for `Virtual`. Tags are grey.
 * **Count:** The count beside the title shows how many students there are. After `find`, it shows how many match, such as `Showing 1 of 8`.
 * **Empty list:** When the list is empty, the app suggests the next step. With no students, it shows the `add` format. When a search matches no one, it suggests `list`.
-* **Result:** The row above the command box shows the result of your last command. After a one-line success, it also shows your last few commands; click one to put it back in the command box. A green tick marks a success. A red `!` on a pink background marks an error, such as an invalid index or format. When you get a command's format wrong, the row shows what the command does, its **Format** and an **Example**, so you can fix the command without opening help. Click a Format or Example line to copy it. Long messages scroll.
-* **Command box:** It is focused when the app starts, so you can use the whole app from the keyboard. Press Enter to run a command. After a successful command, the box clears. After an error, your text stays, shown in red, so you can fix it.
+* **Result:** The row above the command box shows the result of your last command. After a one-line success, it also shows your last few commands; click one to put it back in the command box, or press Up to step through all your earlier commands. A green tick marks a success. A red `!` on a pink background marks an error, such as an invalid index or format. When you get a command's format wrong, the row shows what the command does, its **Format** and an **Example**, so you can fix the command without opening help. Press **Tab** to put the Example in the command box, then edit it; you can also click a Format or Example line to copy it. Long messages take up to 40% of the window, so they can be read without scrolling.
+* **Command box:** It is focused when the app starts and stays focused, so you can use the whole app from the keyboard: clicking elsewhere and closing the help window leave the cursor in the box, which is outlined in blue. Press Enter to run a command. After a successful command, the box clears. After an error, your text stays, shown in red, so you can fix it.
 
 | Key | Action |
 |---|---|
 | Enter | Run the command |
 | Up / Down | Show earlier commands from this session. Down past the newest brings back what you were typing. |
 | Esc | Clear the command box. In an empty box, close a student's details. Also closes the help window. |
-| Alt+Down / Alt+Up | On the **Students** table, open the next or previous student's details while you keep typing |
-| Page Up / Page Down | Scroll the calendar or the student list while you keep typing |
-| F1 | Open help |
+| Alt+Down / Alt+Up | On **This week**, scroll the calendar. On **Students**, open the next or previous student's details. (On a Mac, Alt is the Option key.) |
+| Tab | When the result shows an Example (e.g. after a format error), put that Example in the command box |
+| Page Up / Page Down | Also scroll, if your keyboard has these keys (on a Mac laptop: Fn+Up / Fn+Down) |
+| F1 | Open help, as the `help` command does (on a Mac laptop you may need Fn+F1) |
+
+Every shortcut is optional: each one has a command that does the same, such as `week`, `list`, `view INDEX` and `help`.
 
 ## Features
 
@@ -112,13 +115,24 @@ Format: `list`
 
 Shows every student in the **Students** table and clears any active search filter.
 
+Students are grouped under **Primary**, **Secondary**, **JC** and **Other** headings, in the order you added them within each group. A level counts as Primary for forms like `P5` or `Primary 5`, Secondary for `Sec 3` or `S4`, and JC for `JC1` or `J2`. Any other level, or no level, goes under Other. The number beside each student is the `INDEX` that commands use, so changing a student's level with `edit` can change their number.
+
 ### See this week's lessons: `week`
 
 Format: `week`
 
 Shows the **This week** calendar with every student's lessons. It also clears any search, so the numbers on the lessons match the indices that commands use. The app opens on this screen.
 
-Students are grouped under **Primary**, **Secondary**, **JC** and **Other** headings, in the order you added them within each group. A level counts as Primary for forms like `P5` or `Primary 5`, Secondary for `Sec 3` or `S4`, and JC for `JC1` or `J2`. Any other level, or no level, goes under Other. The number beside each student is the `INDEX` that commands use, so changing a student's level with `edit` can change their number.
+### See a student's details: `view`
+
+Format: `view INDEX`
+
+Shows the **Students** table with the student at `INDEX` opened: every lesson with its number, day and time, rate, mode and location, then the phone, email, address, guardian and tags. On the calendar, a lesson labelled `#3.1` belongs to student `3`, so `view 3` shows its details.
+
+Examples:
+
+* `view 3` shows the third student's details.
+* `find alex` then `view 1` shows the details of the first student found.
 
 ### Edit a student: `edit`
 
@@ -237,7 +251,7 @@ Deletes every student record. There is no confirmation or undo.
 
 Format: `help`
 
-Opens a window with a help-page link. That link currently points to the original AddressBook guide; use this guide for lesson and schooling-level commands.
+Opens a window with a link to this guide and the location of your data file. Press **Enter** to copy the link, and **Esc** to close the window and return to the command box. **F1** opens it too.
 
 ![Help window](images/helpMessage.png)
 
@@ -280,6 +294,7 @@ If the file is invalid, the app starts with an empty list. The invalid file rema
 | Find | `find KEYWORD [MORE_KEYWORDS]` or `find level/TEXT` |
 | List | `list` |
 | This week's lessons | `week` |
+| A student's details | `view INDEX` |
 | Add lesson | `lesson-add STUDENT_INDEX subject/SUBJECT slot/LESSON_SLOT rate/HOURLY_RATE [mode/MODE] [location/LOCATION]` |
 | Edit lesson | `lesson-edit STUDENT_INDEX LESSON_INDEX [subject/SUBJECT] [slot/LESSON_SLOT] [rate/HOURLY_RATE] [mode/MODE] [location/LOCATION]` |
 | Delete lesson | `lesson-delete STUDENT_INDEX LESSON_INDEX` |

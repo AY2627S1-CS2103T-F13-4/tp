@@ -15,6 +15,7 @@ import java.util.EnumMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.OptionalDouble;
 import java.util.PriorityQueue;
 
 import javafx.animation.Animation;
@@ -35,6 +36,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.RowConstraints;
+import javafx.scene.layout.StackPane;
 import javafx.util.Duration;
 import seedu.address.model.person.Lesson;
 import seedu.address.model.person.Student;
@@ -63,6 +65,8 @@ public class ScheduleGrid extends UiPart<GridPane> {
     private static final double CARD_SIDE_GAP = 4;
     private static final Duration NOW_LINE_REFRESH = Duration.minutes(1);
     private static final int SECONDS_PER_MINUTE = 60;
+    /** Diameter of the dot on the current-time line; keep equal to .schedule-now-dot in LightTheme.css. */
+    private static final double NOW_DOT_SIZE = 10;
 
     private final ObservableList<Student> students;
     private final Clock clock;
@@ -72,7 +76,8 @@ public class ScheduleGrid extends UiPart<GridPane> {
     private final List<Integer> dayColumnCounts = new ArrayList<>();
     /** The first grid column of each day, used to draw today's shading and the current-time line. */
     private final Map<DayOfWeek, Integer> dayStartColumns = new EnumMap<>(DayOfWeek.class);
-    private final Region nowLine = new Region();
+    /** The current-time marker: a dot on today's left edge and a line across the day. */
+    private final StackPane nowLine = new StackPane();
     /** The day headings and the corner above the times; they stay at the top while the hours scroll. */
     private final List<Region> headings = new ArrayList<>();
     private double headingOffset;
@@ -109,8 +114,20 @@ public class ScheduleGrid extends UiPart<GridPane> {
         for (DayOfWeek day : DayOfWeek.values()) {
             entriesByDay.put(day, FXCollections.observableArrayList());
         }
+        Region nowDot = new Region();
+        nowDot.getStyleClass().add("schedule-now-dot");
+        // Centre the dot on the day's left edge, as in the mockup.
+        nowDot.setTranslateX(-NOW_DOT_SIZE / 2);
+        Region nowBar = new Region();
+        nowBar.getStyleClass().add("schedule-now-bar");
+        nowBar.setMaxWidth(Double.MAX_VALUE);
+        // The dot sits on top of the line's start, so the two join.
+        nowLine.getChildren().addAll(nowBar, nowDot);
+        StackPane.setAlignment(nowDot, Pos.CENTER_LEFT);
         nowLine.getStyleClass().add("schedule-now-line");
         nowLine.setMouseTransparent(true);
+        // The marker's middle, not its top, sits on the current time.
+        nowLine.setTranslateY(-NOW_DOT_SIZE / 2);
 
         refreshSchedule();
         students.addListener(studentListListener);
@@ -315,6 +332,14 @@ public class ScheduleGrid extends UiPart<GridPane> {
         GridPane.setMargin(nowLine, new Insets((minute - row * INTERVAL_MINUTE) * PIXELS_PER_MINUTE, 0, 0, 0));
         int dayColumns = dayColumnCounts.get(now.getDayOfWeek().ordinal());
         scheduleGrid.add(nowLine, startColumn, 1 + row, dayColumns, 1);
+    }
+
+    /** Returns how far down the grid the current-time line is, or nothing if it is not shown. */
+    public OptionalDouble currentTimeOffset() {
+        if (!scheduleGrid.getChildren().contains(nowLine)) {
+            return OptionalDouble.empty();
+        }
+        return OptionalDouble.of(nowLine.getBoundsInParent().getMinY());
     }
 
     /** Returns the number of unique column values assigned */

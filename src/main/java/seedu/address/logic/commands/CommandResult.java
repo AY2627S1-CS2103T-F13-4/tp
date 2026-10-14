@@ -3,7 +3,9 @@ package seedu.address.logic.commands;
 import static java.util.Objects.requireNonNull;
 
 import java.util.Objects;
+import java.util.Optional;
 
+import seedu.address.commons.core.index.Index;
 import seedu.address.commons.util.ToStringBuilder;
 
 /**
@@ -24,25 +26,38 @@ public class CommandResult {
 
     private final Screen screen;
 
+    /** The student whose details the student table should open, if any. */
+    private final Optional<Index> studentToOpen;
+
     /**
      * Constructs a {@code CommandResult} with the specified fields.
      */
     public CommandResult(String feedbackToUser, boolean showHelp, boolean exit) {
-        this(feedbackToUser, showHelp, exit, Screen.UNCHANGED);
+        this(feedbackToUser, showHelp, exit, Screen.UNCHANGED, Optional.empty());
     }
 
     /**
      * Constructs a {@code CommandResult} that also switches the main window to {@code screen}.
      */
     public CommandResult(String feedbackToUser, Screen screen) {
-        this(feedbackToUser, false, false, screen);
+        this(feedbackToUser, false, false, screen, Optional.empty());
     }
 
-    private CommandResult(String feedbackToUser, boolean showHelp, boolean exit, Screen screen) {
+    /**
+     * Constructs a {@code CommandResult} that shows the student table with the details of the student at
+     * {@code studentToOpen} open.
+     */
+    public CommandResult(String feedbackToUser, Index studentToOpen) {
+        this(feedbackToUser, false, false, Screen.STUDENTS, Optional.of(studentToOpen));
+    }
+
+    private CommandResult(String feedbackToUser, boolean showHelp, boolean exit, Screen screen,
+            Optional<Index> studentToOpen) {
         this.feedbackToUser = requireNonNull(feedbackToUser);
         this.showHelp = showHelp;
         this.exit = exit;
         this.screen = requireNonNull(screen);
+        this.studentToOpen = requireNonNull(studentToOpen);
     }
 
     /**
@@ -69,6 +84,10 @@ public class CommandResult {
         return screen;
     }
 
+    public Optional<Index> getStudentToOpen() {
+        return studentToOpen;
+    }
+
     @Override
     public boolean equals(Object other) {
         if (other == this) {
@@ -83,12 +102,13 @@ public class CommandResult {
         return feedbackToUser.equals(otherCommandResult.feedbackToUser)
                 && showHelp == otherCommandResult.showHelp
                 && exit == otherCommandResult.exit
-                && screen == otherCommandResult.screen;
+                && screen == otherCommandResult.screen
+                && studentToOpen.equals(otherCommandResult.studentToOpen);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(feedbackToUser, showHelp, exit, screen);
+        return Objects.hash(feedbackToUser, showHelp, exit, screen, studentToOpen);
     }
 
     @Override
@@ -98,6 +118,7 @@ public class CommandResult {
                 .add("showHelp", showHelp)
                 .add("exit", exit)
                 .add("screen", screen)
+                .add("studentToOpen", studentToOpen)
                 .toString();
     }
 

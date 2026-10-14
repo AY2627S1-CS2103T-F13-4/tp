@@ -135,6 +135,17 @@ public class PersonListPanel extends UiPart<Region> {
         }
     }
 
+    /**
+     * Opens the details of the student at {@code zeroBasedIndex} in the list, scrolling to it, for {@code view}.
+     */
+    public void openStudent(int zeroBasedIndex) {
+        personListView.getSelectionModel().select(zeroBasedIndex);
+        VirtualFlow<?> flow = (VirtualFlow<?>) personListView.lookup(".virtual-flow");
+        if (flow != null) {
+            flow.scrollTo(zeroBasedIndex);
+        }
+    }
+
     /** Sets what the Add student button does. */
     public void setOnAddStudent(Runnable onAddStudent) {
         this.onAddStudent = onAddStudent;

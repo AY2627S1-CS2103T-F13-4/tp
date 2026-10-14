@@ -3,10 +3,14 @@ package seedu.address.ui;
 import static java.util.Objects.requireNonNull;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.function.IntConsumer;
+import java.util.function.Supplier;
 
+import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
@@ -31,11 +35,16 @@ public class CommandBox extends UiPart<Region> {
     private IntConsumer pageScroller = direction -> { };
     private IntConsumer detailsMover = direction -> { };
     private Runnable detailsCloser = () -> { };
+    private Supplier<Optional<String>> exampleSupplier = Optional::empty;
+    /** True after Alt+Up or Alt+Down, so releasing Alt does not also open the window's menu bar. */
+    private boolean altShortcutUsed;
 
     @FXML
     private TextField commandTextField;
     @FXML
     private HBox keyHints;
+    @FXML
+    private Label altHint;
 
     /**
      * Creates a {@code CommandBox} with the given {@code CommandExecutor}.
@@ -47,6 +56,12 @@ public class CommandBox extends UiPart<Region> {
         commandTextField.textProperty().addListener((unused1, unused2, unused3) -> setStyleToDefault());
         commandTextField.setStyle(MonospaceFont.style());
         commandTextField.addEventFilter(KeyEvent.KEY_PRESSED, this::handleKey);
+        // The menu bar watches Alt on the whole window, so the guard has to see the release before it does.
+        getRoot().sceneProperty().addListener((unused, oldScene, scene) -> {
+            if (scene != null) {
+                scene.addEventFilter(KeyEvent.KEY_RELEASED, this::handleAltRelease);
+            }
+        });
         // The hints only take space while the box is empty, so long commands keep the full width,
         // and are left out of narrow windows, where they would crowd the placeholder text.
         keyHints.visibleProperty().bind(commandTextField.textProperty().isEmpty()
@@ -68,6 +83,20 @@ public class CommandBox extends UiPart<Region> {
     public void setDetailsControls(IntConsumer detailsMover, Runnable detailsCloser) {
         this.detailsMover = requireNonNull(detailsMover);
         this.detailsCloser = requireNonNull(detailsCloser);
+    }
+
+    /**
+     * Sets where Tab finds an example command to put in the box, e.g. the Example of the last usage error.
+     */
+    public void setExampleSupplier(Supplier<Optional<String>> exampleSupplier) {
+        this.exampleSupplier = requireNonNull(exampleSupplier);
+    }
+
+    /**
+     * Sets what the Alt+Up/Down hint says the keys do on the current screen, e.g. "Details" or "Scroll".
+     */
+    public void setAltHint(String action) {
+        altHint.setText(action);
     }
 
     /**
@@ -99,6 +128,11 @@ public class CommandBox extends UiPart<Region> {
         return history.recent(count);
     }
 
+    /** Returns whether the cursor is in the command input. */
+    public ReadOnlyBooleanProperty focusedProperty() {
+        return commandTextField.focusedProperty();
+    }
+
     /**
      * Moves keyboard focus to the command input.
      */
@@ -127,13 +161,22 @@ public class CommandBox extends UiPart<Region> {
 
     /**
      * Handles the keyboard shortcuts of the command box: Up and Down for history, Esc to clear (or, in an empty
-     * box, to close a student's details), Alt+Up and Alt+Down to open the previous or next student's details,
-     * and Page Up and Page Down to scroll the student list.
+     * box, to close a student's details), Alt+Up and Alt+Down to step through students' details (or scroll the
+     * calendar), Tab to put the last usage error's example in the box, and Page Up and Page Down to scroll.
+     * Every shortcut uses keys that laptop keyboards have; Page Up and Page Down are only an extra.
      */
     private void handleKey(KeyEvent event) {
         KeyCode code = event.getCode();
+        if (code == KeyCode.ALT) {
+            altShortcutUsed = false;
+            return;
+        }
         if (event.isAltDown() && (code == KeyCode.UP || code == KeyCode.DOWN)) {
+            altShortcutUsed = true;
             detailsMover.accept(code == KeyCode.UP ? -1 : 1);
+        } else if (code == KeyCode.TAB && !event.isShiftDown()) {
+            // Tab never moves focus away: the command box is the only place to type.
+            exampleSupplier.get().ifPresent(this::replaceText);
         } else if (code == KeyCode.ESCAPE && commandTextField.getText().isEmpty()) {
             detailsCloser.run();
         } else if (code == KeyCode.UP) {
@@ -150,6 +193,17 @@ public class CommandBox extends UiPart<Region> {
             return;
         }
         event.consume();
+    }
+
+    /**
+     * On Windows and Linux, releasing Alt on its own focuses the menu bar. After Alt+Up or Alt+Down the user is
+     * still typing, so that release is kept from the menu bar.
+     */
+    private void handleAltRelease(KeyEvent event) {
+        if (event.getCode() == KeyCode.ALT && altShortcutUsed) {
+            altShortcutUsed = false;
+            event.consume();
+        }
     }
 
     private void replaceText(String text) {

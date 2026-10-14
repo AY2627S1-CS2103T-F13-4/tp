@@ -149,11 +149,82 @@ public class MainWindowTest {
     @Test
     public void altDown_onCalendar_leavesStudentTableUnselected() throws Exception {
         runOnFxThread(() -> {
-            commandField().fireEvent(new KeyEvent(KeyEvent.KEY_PRESSED, "", "", KeyCode.DOWN,
-                    false, false, true, false));
+            pressKey(KeyCode.DOWN, true);
             submitCommand("list");
             ListView<?> table = assertInstanceOf(ListView.class, studentTable());
             assertEquals(-1, table.getSelectionModel().getSelectedIndex());
+        });
+    }
+
+    // view INDEX is the keyboard way to see a student's full details, e.g. from a calendar lesson's "#2".
+    @Test
+    public void view_index_opensThatStudentInTable() throws Exception {
+        runOnFxThread(() -> {
+            submitCommand("view 2");
+            assertTrue(isShown(studentTable()));
+            ListView<?> table = assertInstanceOf(ListView.class, studentTable());
+            assertEquals(1, table.getSelectionModel().getSelectedIndex());
+        });
+    }
+
+    // After a usage error, Tab puts the shown example in the box, so the user edits it instead of retyping.
+    @Test
+    public void tab_afterUsageError_putsExampleInCommandBox() throws Exception {
+        runOnFxThread(() -> {
+            TextField commandField = commandField();
+            commandField.setText("view");
+            commandField.fireEvent(new ActionEvent());
+            pressKey(KeyCode.TAB, false);
+            assertEquals("view 3", commandField.getText());
+            assertTrue(commandField.isFocused());
+        });
+    }
+
+    // Tab only uses the example shown now: after a later success, an old error's example must not come back.
+    @Test
+    public void tab_afterLaterSuccess_doesNothing() throws Exception {
+        runOnFxThread(() -> {
+            TextField commandField = commandField();
+            commandField.setText("view");
+            commandField.fireEvent(new ActionEvent());
+            submitCommand("list");
+            pressKey(KeyCode.TAB, false);
+            assertEquals("", commandField.getText());
+            assertTrue(commandField.isFocused());
+        });
+    }
+
+    // On Windows and Linux, releasing Alt focuses the menu bar; after Alt+Down the user is still typing.
+    @Test
+    public void altRelease_afterAltDown_isKeptFromWindow() throws Exception {
+        runOnFxThread(() -> {
+            boolean[] reachedWindow = {false};
+            stage.getScene().addEventHandler(KeyEvent.KEY_RELEASED, event -> reachedWindow[0] = true);
+
+            pressKey(KeyCode.DOWN, true);
+            commandField().fireEvent(new KeyEvent(KeyEvent.KEY_RELEASED, "", "", KeyCode.ALT,
+                    false, false, false, false));
+            assertFalse(reachedWindow[0]);
+
+            // A release without a shortcut before it is left alone.
+            commandField().fireEvent(new KeyEvent(KeyEvent.KEY_RELEASED, "", "", KeyCode.ALT,
+                    false, false, false, false));
+            assertTrue(reachedWindow[0]);
+        });
+    }
+
+    // On the calendar, Alt+Down scrolls, so laptops without Page Down keys can see later hours.
+    @Test
+    public void altDown_onCalendar_scrollsCalendar() throws Exception {
+        runOnFxThread(() -> {
+            stage.setWidth(1000);
+            stage.setHeight(500);
+            stage.getScene().getRoot().applyCss();
+            stage.getScene().getRoot().layout();
+            ScrollPane calendar = schedulePlaceholder();
+            calendar.setVvalue(0);
+            pressKey(KeyCode.DOWN, true);
+            assertTrue(calendar.getVvalue() > 0);
         });
     }
 
@@ -246,6 +317,10 @@ public class MainWindowTest {
 
     private TextField commandField() {
         return assertInstanceOf(TextField.class, stage.getScene().lookup("#commandTextField"));
+    }
+
+    private void pressKey(KeyCode code, boolean alt) {
+        commandField().fireEvent(new KeyEvent(KeyEvent.KEY_PRESSED, "", "", code, false, false, alt, false));
     }
 
     private void assertActiveNav(String activeId) {
