@@ -51,17 +51,17 @@
             <StackPane fx:id="statusbarPlaceholder" />
           </VBox>
           <VBox HBox.hgrow="ALWAYS" minWidth="0">
-            <!-- Holds both screens, the week's lessons and the student table; one shows at a time -->
-            <StackPane fx:id="personListPanelPlaceholder" VBox.vgrow="ALWAYS" minHeight="0" />
-            <!-- Command panel: the latest result above the input, docked at the bottom.
-                 minHeight -Infinity (USE_PREF_SIZE) keeps it whole; the list shrinks instead. -->
+            <!-- Command bar at the top, as the app is used by typing: the input, then the latest result.
+                 minHeight -Infinity (USE_PREF_SIZE) keeps it whole; the screen below shrinks instead. -->
             <VBox fx:id="commandPanel" styleClass="command-panel" VBox.vgrow="NEVER" minHeight="-Infinity">
               <VBox.margin>
-                <Insets right="24" bottom="12" left="24" />
+                <Insets top="16" right="24" left="24" />
               </VBox.margin>
-              <StackPane fx:id="resultDisplayPlaceholder" />
               <StackPane fx:id="commandBoxPlaceholder" />
+              <StackPane fx:id="resultDisplayPlaceholder" />
             </VBox>
+            <!-- Holds both screens, the week's lessons and the student table; one shows at a time -->
+            <StackPane fx:id="personListPanelPlaceholder" VBox.vgrow="ALWAYS" minHeight="0" />
           </VBox>
         </HBox>
       </VBox>

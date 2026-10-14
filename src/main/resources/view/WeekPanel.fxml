@@ -32,7 +32,7 @@
   </HBox>
   <StackPane styleClass="list-card" minHeight="0" VBox.vgrow="ALWAYS">
     <VBox.margin>
-      <Insets top="20" right="24" bottom="16" left="24" />
+      <Insets top="6" right="24" bottom="16" left="24" />
     </VBox.margin>
     <!-- Fits the width, so all seven days show at once; long days scroll down -->
     <ScrollPane fx:id="scheduleScroll" fitToWidth="true" hbarPolicy="NEVER" styleClass="schedule-scroll"

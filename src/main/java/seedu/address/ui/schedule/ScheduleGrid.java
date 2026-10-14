@@ -66,7 +66,7 @@ public class ScheduleGrid extends UiPart<GridPane> {
     private static final Duration NOW_LINE_REFRESH = Duration.minutes(1);
     private static final int SECONDS_PER_MINUTE = 60;
     /** Diameter of the dot on the current-time line; keep equal to .schedule-now-dot in LightTheme.css. */
-    private static final double NOW_DOT_SIZE = 10;
+    private static final double NOW_DOT_SIZE = 8;
 
     private final ObservableList<Student> students;
     private final Clock clock;
@@ -303,6 +303,8 @@ public class ScheduleGrid extends UiPart<GridPane> {
     private void addDayBackground(DayOfWeek day, int currDisplayColumn, int dayColumnWidth, int rowCount) {
         Region background = new Region();
         background.getStyleClass().add("schedule-day-column");
+        // Behind the hour lines, so today's shading never hides them.
+        background.setViewOrder(1);
         if (dateOf(day).equals(renderedDate)) {
             background.getStyleClass().add("schedule-today-column");
         }
