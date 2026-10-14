@@ -148,7 +148,7 @@ All arguments, including each `Optional` and each lesson, must be non-null. The 
 
 #### JSON storage
 
-Storage uses the configured file path, default `data/addressbook.json`, and the top-level `persons` array. `JsonAdaptedPerson` writes these properties in addition to the contact fields:
+Storage uses the configured file path, default `data/studentbook.json`, and the top-level `persons` array. `JsonAdaptedPerson` writes these properties in addition to the contact fields:
 
 | Property | JSON value |
 |---|---|
@@ -168,7 +168,7 @@ Each lesson object, written by `JsonAdaptedLesson`, has:
 
 Missing or null `schoolingLevel`, `guardianContact` and `lessons` load as absent or empty. Supplied values must have the correct JSON type and pass the model validation; a lesson missing `subject`, `weeklyLessonSlot` or `hourlyRate` is rejected.
 
-**Older data files:** files saved before lessons existed stored `subjects`, `weeklyLessonSlot` and `hourlyRate` directly on each student. There is no migration: Jackson ignores those unknown properties on load, and the next save removes them. This is acceptable while there are no real users. Delete or convert an old `data/addressbook.json` if you need to keep its tuition details.
+**Older data files:** files saved before lessons existed stored `subjects`, `weeklyLessonSlot` and `hourlyRate` directly on each student. There is no migration: Jackson ignores those unknown properties on load, and the next save removes them. This is acceptable while there are no real users. Delete or convert an old `data/studentbook.json` if you need to keep its tuition details.
 
 Tests cover loading, save/reload and invalid values (`TuitionStorageTest`). A failed save reports an error but does not undo the in-memory change. A failed load does not block commands. These inherited failure behaviors differ from the earlier specification; see [decisions to confirm](#decisions-to-confirm).
 
@@ -519,7 +519,7 @@ Use an empty test folder and sample data. These checks are a starting point; als
 
 ### Launch and shutdown
 
-1. Build the JAR using the [Quick start](UserGuide.md#quick-start), copy it into the test folder and run `java -jar addressbook.jar` there.
+1. Build the JAR using the [Quick start](UserGuide.md#quick-start), copy it into the test folder and run `java -jar studentbook.jar` there.
 2. Check that the window opens with sample contacts.
 3. Resize and move the window, then close and reopen the app. Check that it keeps the new size and position.
 
@@ -556,7 +556,7 @@ Use an empty test folder and sample data. These checks are a starting point; als
 
 Close the app and back up the test data before each case.
 
-* **Missing file:** Move `data/addressbook.json` out of the test folder, then restart. Sample records should appear.
+* **Missing file:** Move `data/studentbook.json` out of the test folder, then restart. Sample records should appear.
 * **Invalid file:** Replace the test file with invalid JSON, then restart. An empty list should appear and the log should record the load failure. Do not run commands before restoring the backup; a successful command saves over the file.
 * **Old valid file:** Load AB3 data without tuition properties. The contact details should remain and the card should show `Lessons: Not recorded`.
 * **Pre-lesson file:** Load a file whose students have `subjects`, `weeklyLessonSlot` and `hourlyRate`. The contact details load, but those properties are ignored and removed on the next save.
