@@ -176,7 +176,8 @@ public class MainWindowTest {
     }
 
     // A filter that does not fully fit is hidden, never shown cut short, and returns when the window widens.
-    // The widths stay within 1024px: a window cannot be wider than the screen, and CI screens can be narrow.
+    // Text widths differ between systems, and a window cannot be wider than the screen, which can be narrow on
+    // CI machines; so the window widens only by what the hidden filter needs, measured on this system.
     @Test
     public void levelFilters_tooManyToFit_hidesOnlyThoseCutOff() throws Exception {
         runOnFxThread(() -> {
@@ -195,9 +196,15 @@ public class MainWindowTest {
             assertFalse(filters.get(3).isVisible());
             assertVisibleFiltersFit();
         });
-        resizeWindow(1000);
+        double widthNeeded = FxTestUtil.callOnFxThread(() -> {
+            List<Node> children = levelNav().getChildren();
+            double overflow = children.get(children.size() - 1).getBoundsInParent().getMaxX() - levelNav().getWidth();
+            return stage.getWidth() + overflow + 10;
+        });
+        resizeWindow(widthNeeded);
         runOnFxThread(() -> {
-            assertTrue(levelNav().getChildren().stream().allMatch(Node::isVisible));
+            String sizes = "window " + stage.getWidth() + " of " + widthNeeded + ", filters " + levelNav().getWidth();
+            assertTrue(levelNav().getChildren().stream().allMatch(Node::isVisible), sizes);
             assertVisibleFiltersFit();
         });
     }
