@@ -21,8 +21,9 @@ import seedu.address.ui.schedule.ScheduleGrid;
  */
 public class WeekPanel extends UiPart<Region> {
 
-    static final String EMPTY_DETAIL = "Add one with: lesson-add STUDENT_INDEX subject/SUBJECT slot/LESSON_SLOT "
-            + "rate/HOURLY_RATE";
+    static final String EMPTY_DETAIL = "Add a lesson to a student, for example:";
+    /** Typed as shown, it adds a lesson to the first student in the list. */
+    static final String EMPTY_COMMAND = "lesson-add 1 subject/Math slot/Wed 1.00pm 5.00pm rate/45.50";
 
     private static final String FXML = "WeekPanel.fxml";
     /** Share of the visible height that Page Up and Page Down scroll, as in the student table. */
@@ -42,6 +43,8 @@ public class WeekPanel extends UiPart<Region> {
     private VBox emptyState;
     @FXML
     private Label emptyDetail;
+    @FXML
+    private Label emptyCommand;
 
     /**
      * Creates the screen for the lessons of {@code students}, the list that commands use.
@@ -56,6 +59,8 @@ public class WeekPanel extends UiPart<Region> {
         scheduleScroll.viewportBoundsProperty().addListener((unused, oldValue, newValue) -> pinHeadings());
         scheduleGrid.getRoot().heightProperty().addListener((unused, oldValue, newValue) -> pinHeadings());
         emptyDetail.setText(EMPTY_DETAIL);
+        emptyCommand.setText(EMPTY_COMMAND);
+        emptyCommand.setStyle(MonospaceFont.style());
         students.addListener(summaryUpdater);
         updateSummary();
     }

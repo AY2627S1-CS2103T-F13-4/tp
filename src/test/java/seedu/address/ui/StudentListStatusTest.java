@@ -2,9 +2,12 @@ package seedu.address.ui;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
+
+import seedu.address.logic.parser.AddressBookParser;
+import seedu.address.model.Model;
+import seedu.address.model.ModelManager;
 
 public class StudentListStatusTest {
 
@@ -26,9 +29,23 @@ public class StudentListStatusTest {
     @Test
     public void emptyState_distinguishesEmptyBookFromNoMatches() {
         assertNotEquals(StudentListStatus.emptyTitle(0), StudentListStatus.emptyTitle(3));
-        assertEquals("Add one with: add name/NAME phone/PHONE email/EMAIL address/ADDRESS",
-                StudentListStatus.emptyDetail(0));
-        assertEquals("Type list to show all 3 students.", StudentListStatus.emptyDetail(3));
-        assertTrue(StudentListStatus.emptyDetail(1).endsWith("1 student."));
+        assertEquals("Add your first student, for example:", StudentListStatus.emptyDetail(0));
+        assertEquals("Show all 3 students with:", StudentListStatus.emptyDetail(3));
+        assertEquals("Show all 1 student with:", StudentListStatus.emptyDetail(1));
+        assertEquals("list", StudentListStatus.emptyCommand(3));
+    }
+
+    // The empty states show commands to type as they are, so each must work in the state it is shown in:
+    // the add on an empty book, then the week screen's lesson-add on the student it just added.
+    @Test
+    public void emptyCommands_runAsShown() throws Exception {
+        Model model = new ModelManager();
+        AddressBookParser parser = new AddressBookParser();
+
+        parser.parseCommand(StudentListStatus.emptyCommand(0)).execute(model);
+        assertEquals(1, model.getFilteredPersonList().size());
+
+        parser.parseCommand(WeekPanel.EMPTY_COMMAND).execute(model);
+        assertEquals(1, model.getFilteredPersonList().get(0).getLessons().size());
     }
 }

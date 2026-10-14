@@ -32,12 +32,20 @@ final class StudentListStatus {
         return total == 0 ? "No students yet" : "No students match";
     }
 
-    /** Returns the next step shown when the list has no rows. */
+    /** Returns the next step shown when the list has no rows. Its command is {@link #emptyCommand}. */
     static String emptyDetail(int total) {
         if (total == 0) {
-            return "Add one with: " + AddCommand.COMMAND_WORD + " " + PREFIX_NAME + "NAME " + PREFIX_PHONE + "PHONE "
-                    + PREFIX_EMAIL + "EMAIL " + PREFIX_ADDRESS + "ADDRESS";
+            return "Add your first student, for example:";
         }
-        return "Type " + ListCommand.COMMAND_WORD + " to show all " + total + (total == 1 ? " student." : " students.");
+        return "Show all " + total + (total == 1 ? " student" : " students") + " with:";
+    }
+
+    /** Returns a command that can be typed as shown to take the next step, e.g. "list". */
+    static String emptyCommand(int total) {
+        if (total == 0) {
+            return AddCommand.COMMAND_WORD + " " + PREFIX_NAME + "Alex Tan " + PREFIX_PHONE + "91234567 "
+                    + PREFIX_EMAIL + "alex@example.com " + PREFIX_ADDRESS + "Blk 12 Clementi Ave 3";
+        }
+        return ListCommand.COMMAND_WORD;
     }
 }

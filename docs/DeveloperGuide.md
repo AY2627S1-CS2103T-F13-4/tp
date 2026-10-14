@@ -542,7 +542,7 @@ Use an empty test folder and sample data. These checks are a starting point; als
 
 1. Launch with sample data. The command box should have keyboard focus, so you can type `list` straight away.
 2. Run `find` with a name that matches one student. The header should read `Showing 1 of N`. Run `find zzz`; the list should say `No students match` and suggest `list`.
-3. Run `clear` in a test folder. The list should say `No students yet` and show the `add` format.
+3. Run `clear` in a test folder. The list should say `No students yet` and show an example `add` command; running it as shown should add a student.
 4. Run `delete 0`. The result row should turn pink with a red `!`, and `delete 0` should stay in the box in red. Fix it to a valid index and press Enter; the box should clear.
 5. Run `add name/Ryan`. The result row should show the description, a **Format** line and an **Example** line in a monospace font.
 6. Run two commands, then press Up twice and Down twice. The box should show the earlier commands, then what you had typed. Press Esc; the box should clear.

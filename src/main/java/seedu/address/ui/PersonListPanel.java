@@ -62,6 +62,7 @@ public class PersonListPanel extends UiPart<Region> {
 
     private final Label emptyTitle = new Label();
     private final Label emptyDetail = new Label();
+    private final Label emptyCommand = new Label();
     private final Columns columns;
 
     /**
@@ -91,7 +92,10 @@ public class PersonListPanel extends UiPart<Region> {
         emptyTitle.getStyleClass().add("empty-title");
         emptyDetail.getStyleClass().add("empty-detail");
         emptyDetail.setWrapText(true);
-        VBox emptyState = new VBox(emptyTitle, emptyDetail);
+        emptyCommand.getStyleClass().add("empty-command");
+        emptyCommand.setStyle(MonospaceFont.style());
+        emptyCommand.setWrapText(true);
+        VBox emptyState = new VBox(emptyTitle, emptyDetail, emptyCommand);
         emptyState.getStyleClass().add("empty-state");
         personListView.setPlaceholder(emptyState);
 
@@ -191,6 +195,7 @@ public class PersonListPanel extends UiPart<Region> {
         listSummary.setText(StudentListStatus.summary(shown, total));
         emptyTitle.setText(StudentListStatus.emptyTitle(total));
         emptyDetail.setText(StudentListStatus.emptyDetail(total));
+        emptyCommand.setText(StudentListStatus.emptyCommand(total));
     }
 
     /**

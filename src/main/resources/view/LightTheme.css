@@ -241,6 +241,15 @@
     -fx-text-alignment: center;
 }
 
+/* A command in the empty state, shown as it would be typed */
+.empty-command {
+    -fx-font-size: 12.5px;
+    -fx-text-alignment: center;
+    -fx-background-color: #F4F4F6;
+    -fx-background-radius: 6;
+    -fx-padding: 5 10 5 10;
+}
+
 /* ---------- Student table ---------- */
 
 /* Each row and the header use the same padding and gaps, so their columns line up */
