@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox minHeight="0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
+  <!-- Page header, as on the Students screen -->
+  <HBox styleClass="page-header" alignment="CENTER_LEFT" spacing="10">
+    <Label text="This week" styleClass="view-title" />
+    <Label fx:id="weekSummary" styleClass="view-subtitle" />
+    <Region HBox.hgrow="ALWAYS" />
+    <!-- Key to the block colours, which follow the level colours in the student table -->
+    <HBox alignment="CENTER_LEFT" spacing="16">
+      <HBox alignment="CENTER_LEFT" spacing="6">
+        <Region styleClass="nav-dot, level-primary" />
+        <Label text="Primary" styleClass="legend-label" />
+      </HBox>
+      <HBox alignment="CENTER_LEFT" spacing="6">
+        <Region styleClass="nav-dot, level-secondary" />
+        <Label text="Secondary" styleClass="legend-label" />
+      </HBox>
+      <HBox alignment="CENTER_LEFT" spacing="6">
+        <Region styleClass="nav-dot, level-jc" />
+        <Label text="JC" styleClass="legend-label" />
+      </HBox>
+    </HBox>
+  </HBox>
+  <StackPane styleClass="list-card" minHeight="0" VBox.vgrow="ALWAYS">
+    <VBox.margin>
+      <Insets top="20" right="24" bottom="16" left="24" />
+    </VBox.margin>
+    <!-- Fits the width, so all seven days show at once; long days scroll down -->
+    <ScrollPane fx:id="scheduleScroll" fitToWidth="true" hbarPolicy="NEVER" styleClass="schedule-scroll"
+                focusTraversable="false" />
+    <VBox fx:id="emptyState" styleClass="empty-state">
+      <Label text="No lessons yet" styleClass="empty-title" />
+      <Label fx:id="emptyDetail" styleClass="empty-detail" wrapText="true" />
+    </VBox>
+  </StackPane>
+</VBox>

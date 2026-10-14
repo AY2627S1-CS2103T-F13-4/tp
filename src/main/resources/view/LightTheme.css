@@ -592,3 +592,115 @@
 .dialog-pane > *.label.content {
     -fx-text-fill: -sb-text;
 }
+
+/* ---------- Week calendar ---------- */
+
+.schedule-scroll,
+.schedule-scroll > .viewport {
+    -fx-background-color: transparent;
+    -fx-background-radius: 14;
+}
+
+.schedule-scroll {
+    -fx-padding: 0;
+}
+
+.schedule-grid {
+    -fx-padding: 0 0 8 0;
+}
+
+/* Day headings: "Mon 12", with today's date in a dark circle */
+.schedule-day {
+    -fx-background-color: -sb-surface;
+    -fx-border-color: transparent transparent -sb-border transparent;
+}
+
+.schedule-day-name {
+    -fx-font-size: 12px;
+    -fx-text-fill: -sb-text-muted;
+}
+
+.schedule-day-number {
+    -fx-font-family: "Geist SemiBold";
+    -fx-font-size: 14px;
+    -fx-text-fill: -sb-text;
+    -fx-alignment: center;
+    -fx-min-width: 26;
+    -fx-min-height: 26;
+}
+
+.schedule-today .schedule-day-name {
+    -fx-font-family: "Geist Medium";
+    -fx-text-fill: -sb-text;
+}
+
+.schedule-today .schedule-day-number {
+    -fx-background-color: -sb-text;
+    -fx-background-radius: 13;
+    -fx-text-fill: -sb-surface;
+}
+
+/* The line on the left of each day; today is lightly shaded */
+.schedule-day-column {
+    -fx-border-color: transparent transparent transparent -sb-divider;
+}
+
+.schedule-today-column {
+    -fx-background-color: #FAFAFB;
+}
+
+.schedule-hour-line {
+    -fx-border-color: -sb-divider transparent transparent transparent;
+}
+
+.schedule-time {
+    -fx-font-size: 11px;
+    -fx-text-fill: -sb-text-muted;
+    -fx-padding: 4 8 0 10;
+}
+
+/* The current time across today */
+.schedule-now-line {
+    -fx-min-height: 2;
+    -fx-pref-height: 2;
+    -fx-max-height: 2;
+    -fx-background-color: -sb-error;
+}
+
+/* A lesson block, filled with its school stage's tint; the text uses the stage's ink */
+.lesson-card {
+    -fx-background-radius: 8;
+    -fx-padding: 8 10 8 10;
+    -fx-spacing: 2;
+}
+
+.lesson-card .label {
+    -fx-font-size: 12px;
+}
+
+.lesson-card .lesson-card-name {
+    -fx-font-family: "Geist SemiBold";
+    -fx-font-size: 13px;
+}
+
+.lesson-card.level-primary .label {
+    -fx-text-fill: #8A4300;
+}
+
+.lesson-card.level-secondary .label {
+    -fx-text-fill: -sb-accent-ink;
+}
+
+.lesson-card.level-jc .label {
+    -fx-text-fill: #5B3CC4;
+}
+
+.lesson-card.level-other .label {
+    -fx-text-fill: -sb-text-secondary;
+}
+
+/* The key to the stage colours, at the right of the page header */
+.legend-label {
+    -fx-font-size: 12px;
+    -fx-text-fill: -sb-text-secondary;
+}

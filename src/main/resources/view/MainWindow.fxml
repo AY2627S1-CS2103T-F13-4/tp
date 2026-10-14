@@ -41,8 +41,8 @@
               <Label text="SB" styleClass="brand-mark" />
               <Label text="StudentBook" styleClass="brand-name" />
             </HBox>
-            <Button fx:id="studentsNav" styleClass="nav-item, nav-item-active" maxWidth="Infinity"
-                    onAction="#handleListStudents" />
+            <Button fx:id="weekNav" styleClass="nav-item" maxWidth="Infinity" onAction="#handleShowWeek" />
+            <Button fx:id="studentsNav" styleClass="nav-item" maxWidth="Infinity" onAction="#handleListStudents" />
             <Label fx:id="levelCaption" text="Levels" styleClass="nav-caption" />
             <!-- One item per schooling level in use, each running find level/LEVEL (filled by MainWindow) -->
             <VBox fx:id="levelNav" spacing="2" />
@@ -51,6 +51,7 @@
             <StackPane fx:id="statusbarPlaceholder" />
           </VBox>
           <VBox HBox.hgrow="ALWAYS" minWidth="0">
+            <!-- Holds both screens, the week's lessons and the student table; one shows at a time -->
             <StackPane fx:id="personListPanelPlaceholder" VBox.vgrow="ALWAYS" minHeight="0" />
             <!-- Command panel: the latest result above the input, docked at the bottom.
                  minHeight -Infinity (USE_PREF_SIZE) keeps it whole; the list shrinks instead. -->

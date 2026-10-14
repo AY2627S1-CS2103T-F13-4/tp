@@ -2,6 +2,8 @@ package seedu.address.model.person;
 
 import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 
+import java.time.DayOfWeek;
+import java.time.LocalTime;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -51,6 +53,18 @@ public final class Lesson {
 
     public Optional<LessonMode> getMode() {
         return mode;
+    }
+
+    public DayOfWeek getDay() {
+        return weeklyLessonSlot.getDay();
+    }
+
+    public LocalTime getStart() {
+        return weeklyLessonSlot.getStart();
+    }
+
+    public LocalTime getEnd() {
+        return weeklyLessonSlot.getEnd();
     }
 
     @Override

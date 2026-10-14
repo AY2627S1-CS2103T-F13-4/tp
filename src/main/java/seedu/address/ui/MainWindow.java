@@ -32,6 +32,7 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
+import javafx.stage.WindowEvent;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.commons.core.LogsCenter;
 import seedu.address.logic.Logic;
@@ -40,6 +41,7 @@ import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.FindCommand;
 import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.ListCommand;
+import seedu.address.logic.commands.WeekCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.person.SchoolingLevel;
@@ -56,6 +58,7 @@ public class MainWindow extends UiPart<Stage> {
     private static final double SIDEBAR_MIN_WINDOW_WIDTH = 1100;
     /** Number of recent commands shown as chips beside a successful result. */
     private static final int RECENT_COMMANDS = 3;
+    private static final String NAV_ACTIVE_STYLE_CLASS = "nav-item-active";
     /** Filled into the command box by the Add student button. */
     private static final String ADD_TEMPLATE = AddCommand.COMMAND_WORD + " " + PREFIX_NAME + " " + PREFIX_PHONE
             + " " + PREFIX_EMAIL + " " + PREFIX_ADDRESS;
@@ -68,6 +71,7 @@ public class MainWindow extends UiPart<Stage> {
 
     // Independent Ui parts residing in this Ui container
     private PersonListPanel personListPanel;
+    private WeekPanel weekPanel;
     private ResultDisplay resultDisplay;
     private CommandBox commandBox;
     private HelpWindow helpWindow;
@@ -92,6 +96,9 @@ public class MainWindow extends UiPart<Stage> {
 
     @FXML
     private VBox sidebar;
+
+    @FXML
+    private Button weekNav;
 
     @FXML
     private Button studentsNav;
@@ -125,6 +132,7 @@ public class MainWindow extends UiPart<Stage> {
         setAccelerators();
 
         helpWindow = new HelpWindow();
+        primaryStage.addEventHandler(WindowEvent.WINDOW_HIDDEN, event -> disposeWeekPanel());
     }
 
     public Stage getPrimaryStage() {
@@ -169,20 +177,41 @@ public class MainWindow extends UiPart<Stage> {
      */
     void fillInnerParts() {
         personListPanel = new PersonListPanel(logic.getFilteredPersonList(), logic.getAddressBook().getPersonList());
-        personListPanelPlaceholder.getChildren().add(personListPanel.getRoot());
+        personListPanelPlaceholder.getChildren().setAll(personListPanel.getRoot());
 
         resultDisplay = new ResultDisplay();
         resultDisplayPlaceholder.getChildren().add(resultDisplay.getRoot());
+
+        disposeWeekPanel();
+        weekPanel = new WeekPanel(logic.getFilteredPersonList());
+        personListPanelPlaceholder.getChildren().add(weekPanel.getRoot());
 
         StatusBarFooter statusBarFooter = new StatusBarFooter(dataFilePath);
         statusbarPlaceholder.getChildren().add(statusBarFooter.getRoot());
 
         commandBox = new CommandBox(this::executeCommand);
-        commandBox.setPageScroller(personListPanel::scrollPage);
-        commandBox.setDetailsControls(personListPanel::moveDetails, personListPanel::closeDetails);
+        commandBox.setPageScroller(direction -> {
+            if (weekPanel.getRoot().isVisible()) {
+                weekPanel.scrollPage(direction);
+            } else {
+                personListPanel.scrollPage(direction);
+            }
+        });
+        // Details belong to the student table, so the keys do nothing while the calendar shows.
+        commandBox.setDetailsControls(direction -> {
+            if (!weekPanel.getRoot().isVisible()) {
+                personListPanel.moveDetails(direction);
+            }
+        }, () -> {
+            if (!weekPanel.getRoot().isVisible()) {
+                personListPanel.closeDetails();
+            }
+        });
         personListPanel.setOnAddStudent(() -> commandBox.prefill(ADD_TEMPLATE));
         resultDisplay.setOnRecentPicked(commandBox::prefill);
         fillSidebar();
+        // The app opens on the week's lessons; list and find bring up the student table.
+        showScreen(CommandResult.Screen.WEEK);
         commandBoxPlaceholder.getChildren().add(commandBox.getRoot());
         // The list now comes before the command box, so focus the command box explicitly for typing.
         commandBox.focus();
@@ -193,6 +222,7 @@ public class MainWindow extends UiPart<Stage> {
      * The level items list the schooling levels in use and are rebuilt whenever the students change.
      */
     private void fillSidebar() {
+        navItem(weekNav, null, "This week", WeekCommand.COMMAND_WORD);
         navItem(studentsNav, null, "Students", ListCommand.COMMAND_WORD);
         navItem(helpNav, null, "All commands", HelpCommand.COMMAND_WORD);
         ObservableList<Student> students = logic.getAddressBook().getPersonList();
@@ -249,6 +279,36 @@ public class MainWindow extends UiPart<Stage> {
     @FXML
     private void handleListStudents() {
         commandBox.submit(ListCommand.COMMAND_WORD);
+    }
+
+    @FXML
+    private void handleShowWeek() {
+        commandBox.submit(WeekCommand.COMMAND_WORD);
+    }
+
+    /** Shows the week's lessons or the student table, and marks the matching sidebar item. */
+    private void showScreen(CommandResult.Screen screen) {
+        if (screen == CommandResult.Screen.UNCHANGED) {
+            return;
+        }
+        boolean week = screen == CommandResult.Screen.WEEK;
+        weekPanel.getRoot().setVisible(week);
+        personListPanel.getRoot().setVisible(!week);
+        setActive(weekNav, week);
+        setActive(studentsNav, !week);
+    }
+
+    private static void setActive(Button navItem, boolean active) {
+        navItem.getStyleClass().remove(NAV_ACTIVE_STYLE_CLASS);
+        if (active) {
+            navItem.getStyleClass().add(NAV_ACTIVE_STYLE_CLASS);
+        }
+    }
+
+    private void disposeWeekPanel() {
+        if (weekPanel != null) {
+            weekPanel.dispose();
+        }
     }
 
     /**
@@ -320,6 +380,7 @@ public class MainWindow extends UiPart<Stage> {
             logger.info("Result: " + commandResult.getFeedbackToUser());
             resultDisplay.setRecent(commandBox.recent(RECENT_COMMANDS));
             resultDisplay.setFeedbackToUser(commandResult.getFeedbackToUser());
+            showScreen(commandResult.getScreen());
 
             if (commandResult.isShowHelp()) {
                 handleHelp();
