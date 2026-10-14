@@ -1,5 +1,6 @@
 package seedu.address.logic.parser;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_LEVEL;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_SUBJECT;
@@ -12,8 +13,12 @@ import org.junit.jupiter.api.Test;
 
 import seedu.address.logic.Messages;
 import seedu.address.logic.commands.FindCommand;
+import seedu.address.model.Model;
+import seedu.address.model.ModelManager;
 import seedu.address.model.person.NameContainsKeywordsPredicate;
+import seedu.address.model.person.SchoolingLevel;
 import seedu.address.model.person.SchoolingLevelContainsKeywordPredicate;
+import seedu.address.testutil.PersonBuilder;
 
 public class FindCommandParserTest {
 
@@ -41,6 +46,16 @@ public class FindCommandParserTest {
         assertParseSuccess(parser, " level/Primary 5", expected);
         assertParseSuccess(parser, "   level/  Primary   5  ", new FindCommand(
                 new SchoolingLevelContainsKeywordPredicate("Primary   5")));
+    }
+
+    @Test
+    public void parse_levelOnly_keepsStudentWithoutLessons() throws Exception {
+        Model model = new ModelManager();
+        model.addPerson(new PersonBuilder().withSchoolingLevel(new SchoolingLevel("Primary 5")).build());
+
+        parser.parse(" level/primary").execute(model);
+
+        assertEquals(1, model.getFilteredPersonList().size());
     }
 
     @Test
