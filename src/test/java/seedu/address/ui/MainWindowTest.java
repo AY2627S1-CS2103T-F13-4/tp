@@ -238,6 +238,23 @@ public class MainWindowTest {
         });
     }
 
+    // An edit keeps the student's details open, and deleting them closes the details instead of opening the
+    // details of whoever takes their row.
+    @Test
+    public void openStudent_editedOrDeleted_detailsFollowThem() throws Exception {
+        runOnFxThread(() -> {
+            submitCommand("add name/Carol phone/91234567 email/carol@example.com address/1");
+            submitCommand("view 1");
+            ListView<?> table = assertInstanceOf(ListView.class, studentTable());
+
+            submitCommand("edit 1 name/Alicia");
+            assertEquals(0, table.getSelectionModel().getSelectedIndex());
+
+            submitCommand("delete 1");
+            assertEquals(-1, table.getSelectionModel().getSelectedIndex());
+        });
+    }
+
     // After a usage error, Tab puts the shown example in the box, so the user edits it instead of retyping.
     @Test
     public void tab_afterUsageError_putsExampleInCommandBox() throws Exception {
