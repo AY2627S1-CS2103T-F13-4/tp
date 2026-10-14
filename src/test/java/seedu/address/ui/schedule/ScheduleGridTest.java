@@ -134,10 +134,10 @@ public class ScheduleGridTest {
             assertCardPosition("Left", 1, 1, 2);
             assertCardPosition("Right", 2, 1, 2);
             assertCardPosition("Next", 1, 3, 1);
-            // Left shares the day with Right; Next has the day to itself, so it fills both columns.
-            assertEquals(Integer.valueOf(1), GridPane.getColumnSpan(card("Left")));
-            assertEquals(Integer.valueOf(1), GridPane.getColumnSpan(card("Right")));
-            assertEquals(Integer.valueOf(2), GridPane.getColumnSpan(card("Next")));
+            // Every block is one lesson column wide, even Next, which overlaps nothing.
+            for (String name : List.of("Left", "Right", "Next")) {
+                assertEquals(Integer.valueOf(1), GridPane.getColumnSpan(card(name)), name);
+            }
             assertGridCounts(3, 9, WORKING_HOURS);
         });
     }
