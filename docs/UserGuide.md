@@ -22,15 +22,13 @@ This development version supports contact details, schooling levels, guardian co
    ./gradlew shadowJar
    ```
 
-   On Windows, use `gradlew.bat shadowJar` for the last command. The JAR is `build/libs/addressbook.jar`.
+   On Windows, use `gradlew.bat shadowJar` for the last command. The JAR is `build/libs/studentbook.jar`.
 
 1. Copy the JAR into the folder where you want to keep your records. Open a terminal in that folder and run:
 
    ```text
-   java -jar addressbook.jar
+   java -jar studentbook.jar
    ```
-
-   On first launch, the app shows sample contacts. Some windows and messages still use the original AddressBook name.
 
 1. Type `list` in the command box and press Enter. Then try:
 
@@ -54,7 +52,7 @@ The command box sits at the top of the window, under the StudentBook name, since
 * **Student details:** On the **Students** table, a student's details open under their row: every lesson with its number, subject, day and time, rate, mode and location, then the phone, email, address, guardian and tags. Details open when a search leaves one student (e.g. `find hafiz`), when you press **Alt+Down** or **Alt+Up** to step through students, or when you click a row. Press **Esc** in an empty command box to close them. Use a lesson's number in the details as `LESSON_INDEX`.
 * **Colours:** The initials badge and the level dots under the command box are amber for primary (`P5`, `Primary 5`), blue for secondary (`Sec 3`, `Secondary 4 Express`) and violet for JC (`JC1`). Levels written another way, such as `Poly Y1`, stay grey. In a student's details, a lesson's mode shows in green for `Physical` and teal for `Virtual`. Tags are grey.
 * **Count:** The count beside the title shows how many students there are. After `find`, it shows how many match, such as `Showing 1 of 8`.
-* **Empty list:** When the list is empty, the app suggests the next step. With no students, it shows the `add` format. When a search matches no one, it suggests `list`.
+* **Empty list:** When the list is empty, the app suggests the next step. With no students, it shows an example `add` command you can type as shown. When a search matches no one, it suggests `list`. The This week screen does the same for `lesson-add` when there are no lessons.
 * **Result:** The row under the command box shows the result of your last command. After a one-line success, it also shows your last few commands; click one to put it back in the command box, or press Up to step through all your earlier commands. A green tick marks a success. A red `!` on a pink background marks an error, such as an invalid index or format. When you get a command's format wrong, the row shows what the command does, its **Format** and an **Example**, so you can fix the command without opening help. Press **Tab** to put the Example in the command box, then edit it; you can also click a Format or Example line to copy it. Long messages take up to 40% of the window, so they can be read without scrolling.
 * **Command box:** It is focused when the app starts and stays focused, so you can use the whole app from the keyboard: clicking elsewhere and closing the help window leave the cursor in the box, which is outlined in blue. Press Enter to run a command. After a successful command, the box clears. After an error, your text stays, shown in red, so you can fix it.
 
@@ -269,7 +267,7 @@ Older files that stored a student's `subject`, `subjects`, `weeklyLessonSlot` or
 
 If saving fails, the app reports an error. The change may still appear on screen without being saved to disk.
 
-Records are stored in `data/addressbook.json` under the folder where you start the app.
+Records are stored in `data/studentbook.json` under the folder where you start the app.
 
 To transfer records, close the app on both computers. Copy the data file to the corresponding location on the new computer, then start the app there.
 
