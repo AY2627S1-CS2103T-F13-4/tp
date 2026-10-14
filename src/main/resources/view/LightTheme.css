@@ -67,30 +67,23 @@
     -fx-text-fill: -sb-accent-ink;
 }
 
-/* ---------- Sidebar ---------- */
-
-.sidebar {
-    -fx-background-color: #E6E6EA;
-    -fx-border-color: transparent;
-    -fx-padding: 18 12 14 12;
-    -fx-spacing: 4;
-}
+/* ---------- Brand and navigation ---------- */
 
 .brand {
-    -fx-padding: 0 8 18 8;
+    -fx-padding: 0 24 12 26;
 }
 
 .brand-mark {
-    -fx-min-width: 28;
-    -fx-min-height: 28;
-    -fx-max-width: 28;
-    -fx-max-height: 28;
+    -fx-min-width: 26;
+    -fx-min-height: 26;
+    -fx-max-width: 26;
+    -fx-max-height: 26;
     -fx-alignment: center;
     -fx-background-color: #111113;
     -fx-background-radius: 7;
     -fx-text-fill: #FFFFFF;
     -fx-font-family: "Geist SemiBold";
-    -fx-font-size: 10.5px;
+    -fx-font-size: 10px;
 }
 
 .brand-name {
@@ -98,37 +91,53 @@
     -fx-font-size: 15px;
 }
 
+/* A row of tabs under the command bar; the active tab is underlined */
+.nav-bar {
+    -fx-padding: 10 24 0 20;
+}
+
 .nav-item {
     -fx-background-color: transparent;
     -fx-background-radius: 8;
-    -fx-padding: 7 10 7 10;
+    -fx-padding: 6 10 6 10;
     -fx-cursor: hand;
-    -fx-alignment: center-left;
 }
 
 .nav-item:hover {
-    -fx-background-color: #EAEAEE;
+    -fx-background-color: #E4E4E8;
+}
+
+.nav-item-active .nav-label {
+    -fx-text-fill: -sb-text;
+    -fx-font-family: "Geist Medium";
 }
 
 .nav-item-active, .nav-item-active:hover {
-    -fx-background-color: #F6F6F8;
-    -fx-effect: dropshadow(gaussian, rgba(17, 17, 19, 0.04), 4, 0, 0, 1);
+    -fx-background-color: -sb-surface;
+    -fx-effect: dropshadow(gaussian, rgba(17, 17, 19, 0.06), 4, 0, 0, 1);
 }
 
 .nav-label {
-    -fx-font-size: 13.5px;
-    -fx-text-fill: -sb-text;
+    -fx-font-size: 13px;
+    -fx-text-fill: -sb-text-muted;
 }
 
 .nav-hint {
     -fx-font-size: 11px;
-    -fx-text-fill: -sb-text-muted;
+    -fx-text-fill: -sb-text-faint;
 }
 
-.nav-caption {
-    -fx-font-size: 12px;
-    -fx-text-fill: -sb-text-muted;
-    -fx-padding: 18 10 6 10;
+/* Level filters sit after the tabs, set apart by a hairline */
+.nav-divider {
+    -fx-min-width: 1;
+    -fx-max-width: 1;
+    -fx-min-height: 16;
+    -fx-max-height: 16;
+    -fx-background-color: #D4D4DA;
+}
+
+.level-chip {
+    -fx-padding: 5 9 5 9;
 }
 
 .nav-dot {
@@ -532,7 +541,7 @@
 /* ---------- Status bar ---------- */
 
 .status-bar {
-    -fx-padding: 8 10 0 10;
+    -fx-padding: 0 26 8 26;
 }
 
 .status-bar .label {

@@ -34,36 +34,42 @@
             <MenuItem fx:id="helpMenuItem" mnemonicParsing="false" onAction="#handleHelp" text="Help" />
           </Menu>
         </MenuBar>
-        <HBox VBox.vgrow="ALWAYS">
-          <!-- Sidebar: every item runs the command shown beside it. Hidden in narrow windows. -->
-          <VBox fx:id="sidebar" styleClass="sidebar" minWidth="244" prefWidth="244" maxWidth="244">
-            <HBox styleClass="brand" alignment="CENTER_LEFT" spacing="10">
-              <Label text="SB" styleClass="brand-mark" />
-              <Label text="StudentBook" styleClass="brand-name" />
+        <VBox VBox.vgrow="ALWAYS" minWidth="0">
+          <padding>
+            <Insets top="14" />
+          </padding>
+          <HBox fx:id="brand" styleClass="brand" alignment="CENTER_LEFT" spacing="10">
+            <Label text="SB" styleClass="brand-mark" />
+            <Label text="StudentBook" styleClass="brand-name" />
+          </HBox>
+          <!-- Command bar at the top, as the app is used by typing: the input, then the latest result.
+               minHeight -Infinity (USE_PREF_SIZE) keeps it whole; the screen below shrinks instead. -->
+          <VBox fx:id="commandPanel" styleClass="command-panel" VBox.vgrow="NEVER" minHeight="-Infinity">
+            <VBox.margin>
+              <Insets right="24" left="24" />
+            </VBox.margin>
+            <StackPane fx:id="commandBoxPlaceholder" />
+            <StackPane fx:id="resultDisplayPlaceholder" />
+          </VBox>
+          <!-- Navigation under the command bar: every item runs the command it shows -->
+          <HBox fx:id="navBar" styleClass="nav-bar" alignment="CENTER_LEFT" spacing="4" minHeight="-Infinity">
+            <Button fx:id="weekNav" styleClass="nav-item" onAction="#handleShowWeek" />
+            <Button fx:id="studentsNav" styleClass="nav-item" onAction="#handleListStudents" />
+            <!-- One chip per schooling level in use, each running find level/LEVEL (filled by MainWindow) -->
+            <HBox fx:id="levelNav" alignment="CENTER_LEFT" spacing="4" minWidth="0">
+              <Region styleClass="nav-divider">
+                <HBox.margin>
+                  <Insets left="6" right="6" />
+                </HBox.margin>
+              </Region>
             </HBox>
-            <Button fx:id="weekNav" styleClass="nav-item" maxWidth="Infinity" onAction="#handleShowWeek" />
-            <Button fx:id="studentsNav" styleClass="nav-item" maxWidth="Infinity" onAction="#handleListStudents" />
-            <Label fx:id="levelCaption" text="Levels" styleClass="nav-caption" />
-            <!-- One item per schooling level in use, each running find level/LEVEL (filled by MainWindow) -->
-            <VBox fx:id="levelNav" spacing="2" />
-            <Region VBox.vgrow="ALWAYS" />
-            <Button fx:id="helpNav" styleClass="nav-item" maxWidth="Infinity" onAction="#handleHelp" />
-            <StackPane fx:id="statusbarPlaceholder" />
-          </VBox>
-          <VBox HBox.hgrow="ALWAYS" minWidth="0">
-            <!-- Command bar at the top, as the app is used by typing: the input, then the latest result.
-                 minHeight -Infinity (USE_PREF_SIZE) keeps it whole; the screen below shrinks instead. -->
-            <VBox fx:id="commandPanel" styleClass="command-panel" VBox.vgrow="NEVER" minHeight="-Infinity">
-              <VBox.margin>
-                <Insets top="16" right="24" left="24" />
-              </VBox.margin>
-              <StackPane fx:id="commandBoxPlaceholder" />
-              <StackPane fx:id="resultDisplayPlaceholder" />
-            </VBox>
-            <!-- Holds both screens, the week's lessons and the student table; one shows at a time -->
-            <StackPane fx:id="personListPanelPlaceholder" VBox.vgrow="ALWAYS" minHeight="0" />
-          </VBox>
-        </HBox>
+            <Region HBox.hgrow="ALWAYS" />
+            <Button fx:id="helpNav" styleClass="nav-item" onAction="#handleHelp" minWidth="-Infinity" />
+          </HBox>
+          <!-- Holds both screens, the week's lessons and the student table; one shows at a time -->
+          <StackPane fx:id="personListPanelPlaceholder" VBox.vgrow="ALWAYS" minHeight="0" />
+          <StackPane fx:id="statusbarPlaceholder" />
+        </VBox>
       </VBox>
     </Scene>
   </scene>
