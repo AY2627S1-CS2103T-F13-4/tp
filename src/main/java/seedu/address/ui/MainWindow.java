@@ -420,7 +420,11 @@ public class MainWindow extends UiPart<Stage> {
             CommandResult commandResult = logic.execute(commandText);
             logger.info("Result: " + commandResult.getFeedbackToUser());
             resultDisplay.setRecent(commandBox.recent(RECENT_COMMANDS));
-            resultDisplay.setFeedbackToUser(commandResult.getFeedbackToUser());
+            if (commandResult.isWarning()) {
+                resultDisplay.setWarningToUser(commandResult.getFeedbackToUser());
+            } else {
+                resultDisplay.setFeedbackToUser(commandResult.getFeedbackToUser());
+            }
             showScreen(commandResult.getScreen());
             commandResult.getStudentToOpen().ifPresent(index -> personListPanel.openStudent(index.getZeroBased()));
 

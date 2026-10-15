@@ -37,6 +37,7 @@ public class ResultDisplay extends UiPart<Region> {
     private static final String FXML = "ResultDisplay.fxml";
     private static final String SUCCESS_STYLE_CLASS = "result-success";
     private static final String ERROR_STYLE_CLASS = "result-error";
+    private static final String WARNING_STYLE_CLASS = "result-warning";
     /** Width of the "Format" and "Example" captions, plus the gap after them. */
     private static final double CAPTION_WIDTH = 64;
     /** Room for the scroll pane's vertical bar, so wrapped text never sits under it. */
@@ -109,6 +110,12 @@ public class ResultDisplay extends UiPart<Region> {
         show(errorMessage, ERROR_STYLE_CLASS, "!");
     }
 
+    /** Shows a successful change that needs attention, until the next result arrives. */
+    public void setWarningToUser(String warningMessage) {
+        requireNonNull(warningMessage);
+        show(warningMessage, WARNING_STYLE_CLASS, "!");
+    }
+
     /**
      * Returns the example command shown with the last usage error, if any, for Tab to put in the command box.
      */
@@ -118,12 +125,12 @@ public class ResultDisplay extends UiPart<Region> {
 
     private void show(String message, String styleClass, String icon) {
         example = Optional.empty();
-        resultRow.getStyleClass().removeAll(SUCCESS_STYLE_CLASS, ERROR_STYLE_CLASS);
+        resultRow.getStyleClass().removeAll(SUCCESS_STYLE_CLASS, ERROR_STYLE_CLASS, WARNING_STYLE_CLASS);
         resultRow.getStyleClass().add(styleClass);
         resultIcon.setText(icon);
         boolean success = icon.isEmpty();
         Motion.fadeIn(resultContent, 0.2);
-        if (!success) {
+        if (ERROR_STYLE_CLASS.equals(styleClass)) {
             Motion.shake(resultRow);
         }
         if (success && !recent.isEmpty() && message.length() <= MAX_RECENT_ROW_MESSAGE

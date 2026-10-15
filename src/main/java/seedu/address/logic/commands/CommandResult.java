@@ -17,6 +17,7 @@ public class CommandResult {
     public enum Screen { UNCHANGED, STUDENTS, WEEK }
 
     private final String feedbackToUser;
+    private final boolean warning;
 
     /** Help information should be shown to the user. */
     private final boolean showHelp;
@@ -53,11 +54,17 @@ public class CommandResult {
 
     private CommandResult(String feedbackToUser, boolean showHelp, boolean exit, Screen screen,
             Optional<Index> studentToOpen) {
+        this(feedbackToUser, showHelp, exit, screen, studentToOpen, false);
+    }
+
+    private CommandResult(String feedbackToUser, boolean showHelp, boolean exit, Screen screen,
+            Optional<Index> studentToOpen, boolean warning) {
         this.feedbackToUser = requireNonNull(feedbackToUser);
         this.showHelp = showHelp;
         this.exit = exit;
         this.screen = requireNonNull(screen);
         this.studentToOpen = requireNonNull(studentToOpen);
+        this.warning = warning;
     }
 
     /**
@@ -66,6 +73,15 @@ public class CommandResult {
      */
     public CommandResult(String feedbackToUser) {
         this(feedbackToUser, false, false);
+    }
+
+    /** Creates successful feedback requiring the user's attention. */
+    public static CommandResult warning(String feedback) {
+        return new CommandResult(feedback, false, false, Screen.UNCHANGED, Optional.empty(), true);
+    }
+
+    public boolean isWarning() {
+        return warning;
     }
 
     public String getFeedbackToUser() {
@@ -100,6 +116,7 @@ public class CommandResult {
         }
 
         return feedbackToUser.equals(otherCommandResult.feedbackToUser)
+                && warning == otherCommandResult.warning
                 && showHelp == otherCommandResult.showHelp
                 && exit == otherCommandResult.exit
                 && screen == otherCommandResult.screen
@@ -108,7 +125,7 @@ public class CommandResult {
 
     @Override
     public int hashCode() {
-        return Objects.hash(feedbackToUser, showHelp, exit, screen, studentToOpen);
+        return Objects.hash(feedbackToUser, showHelp, exit, screen, studentToOpen, warning);
     }
 
     @Override
