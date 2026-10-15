@@ -14,7 +14,10 @@ import org.junit.jupiter.api.Test;
 
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.model.person.NameContainsKeywordsPredicate;
+import seedu.address.model.person.SchoolingLevel;
+import seedu.address.model.person.Student;
 import seedu.address.testutil.AddressBookBuilder;
+import seedu.address.testutil.PersonBuilder;
 
 public class ModelManagerTest {
 
@@ -71,6 +74,32 @@ public class ModelManagerTest {
     @Test
     public void getFilteredPersonList_modifyList_throwsUnsupportedOperationException() {
         assertThrows(UnsupportedOperationException.class, () -> modelManager.getFilteredPersonList().remove(0));
+    }
+
+    // Students are listed by school stage so the table can show Primary, Secondary and JC groups, and the numbers on
+    // screen must stay the command indices: an edit must never move a student to another place in its group.
+    @Test
+    public void getFilteredPersonList_groupedByStageInAddedOrder() {
+        Student jc = new PersonBuilder().withName("Jay").withSchoolingLevel(new SchoolingLevel("JC1")).build();
+        Student pri1 = new PersonBuilder().withName("Pat").withSchoolingLevel(new SchoolingLevel("P5")).build();
+        Student noLevel = new PersonBuilder().withName("Nia").build();
+        Student pri2 = new PersonBuilder().withName("Pia").withSchoolingLevel(new SchoolingLevel("P6")).build();
+        Student pri3 = new PersonBuilder().withName("Poh").withSchoolingLevel(new SchoolingLevel("P4")).build();
+        modelManager = new ModelManager(new AddressBookBuilder().withPerson(jc).withPerson(pri1).withPerson(noLevel)
+                .withPerson(pri2).withPerson(pri3).build(), new UserPrefs());
+        assertEquals(List.of(pri1, pri2, pri3, jc, noLevel), modelManager.getFilteredPersonList());
+
+        // Editing the first of a group keeps it first.
+        Student editedPri1 = new PersonBuilder(pri1).withPhone("99999999").build();
+        modelManager.setPerson(pri1, editedPri1);
+        assertEquals(List.of(editedPri1, pri2, pri3, jc, noLevel), modelManager.getFilteredPersonList());
+
+        // Moving a student to another group and back returns it to its old place.
+        Student secPri2 = new PersonBuilder(pri2).withSchoolingLevel(new SchoolingLevel("Sec 1")).build();
+        modelManager.setPerson(pri2, secPri2);
+        assertEquals(List.of(editedPri1, pri3, secPri2, jc, noLevel), modelManager.getFilteredPersonList());
+        modelManager.setPerson(secPri2, pri2);
+        assertEquals(List.of(editedPri1, pri2, pri3, jc, noLevel), modelManager.getFilteredPersonList());
     }
 
     @Test

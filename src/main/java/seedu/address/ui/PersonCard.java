@@ -23,6 +23,7 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
+import seedu.address.model.person.SchoolingLevel;
 import seedu.address.model.person.Student;
 
 /**
@@ -55,11 +56,11 @@ public class PersonCard extends UiPart<Region> {
     /** Contact details wrap at this width in the details. */
     private static final double CONTACT_MAX_WIDTH = 320;
     /** Colours the level chip and initials badge by school stage; unrecognised levels stay neutral. */
-    private static final Map<StudentCardText.Stage, String> STAGE_STYLE_CLASSES = Map.of(
-            StudentCardText.Stage.PRIMARY, "level-primary",
-            StudentCardText.Stage.SECONDARY, "level-secondary",
-            StudentCardText.Stage.JC, "level-jc",
-            StudentCardText.Stage.OTHER, PersonCard.NO_STAGE_STYLE_CLASS);
+    private static final Map<SchoolingLevel.Stage, String> STAGE_STYLE_CLASSES = Map.of(
+            SchoolingLevel.Stage.PRIMARY, "level-primary",
+            SchoolingLevel.Stage.SECONDARY, "level-secondary",
+            SchoolingLevel.Stage.JC, "level-jc",
+            SchoolingLevel.Stage.OTHER, PersonCard.NO_STAGE_STYLE_CLASS);
 
     /**
      * Note: Certain keywords such as "location" and "resources" are reserved keywords in JavaFX.
@@ -123,7 +124,7 @@ public class PersonCard extends UiPart<Region> {
         initials.setText(StudentCardText.initials(person.getName().fullName));
 
         String stageClass = person.getSchoolingLevel()
-                .map(level -> STAGE_STYLE_CLASSES.get(StudentCardText.stageOf(level.toString())))
+                .map(level -> STAGE_STYLE_CLASSES.get(SchoolingLevel.stageOf(level.toString())))
                 .orElse(NO_STAGE_STYLE_CLASS);
         initials.getStyleClass().add(stageClass);
         if (person.getSchoolingLevel().isPresent()) {
@@ -308,7 +309,12 @@ public class PersonCard extends UiPart<Region> {
 
     /** Returns the style class that colours {@code level} by its school stage. */
     public static String stageStyleClass(String level) {
-        return STAGE_STYLE_CLASSES.get(StudentCardText.stageOf(level));
+        return stageStyleClass(SchoolingLevel.stageOf(level));
+    }
+
+    /** Returns the style class that colours a school stage, e.g. "level-primary". */
+    static String stageStyleClass(SchoolingLevel.Stage stage) {
+        return STAGE_STYLE_CLASSES.get(stage);
     }
 
     private static VBox section(String caption, Node content) {
