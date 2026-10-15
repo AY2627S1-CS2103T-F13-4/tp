@@ -3,6 +3,7 @@ package seedu.address.model;
 import static java.util.Objects.requireNonNull;
 import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 
+import java.util.Comparator;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
 
@@ -10,6 +11,7 @@ import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
+import javafx.collections.transformation.SortedList;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.commons.core.LogsCenter;
 import seedu.address.model.person.Lesson;
@@ -24,6 +26,7 @@ public class ModelManager implements Model {
     private final AddressBook addressBook;
     private final UserPrefs userPrefs;
     private final FilteredList<Student> filteredPersons;
+    private final SortedList<Student> shownPersons;
     private final ReadOnlyObjectWrapper<Predicate<Lesson>> lessonPredicate =
             new ReadOnlyObjectWrapper<>(PREDICATE_SHOW_ALL_LESSONS);
 
@@ -38,6 +41,12 @@ public class ModelManager implements Model {
         this.addressBook = new AddressBook(addressBook);
         this.userPrefs = new UserPrefs(userPrefs);
         filteredPersons = new FilteredList<>(this.addressBook.getPersonList());
+        // Shown grouped by school stage (Primary, Secondary, JC, then others), keeping the order added within each.
+        // Commands use this list too, so the numbers on screen always match command indices. The tie-break on the
+        // stored order matters: without it an edited student can move within its group and change its number.
+        ObservableList<Student> stored = this.addressBook.getPersonList();
+        shownPersons = new SortedList<>(filteredPersons,
+                Comparator.comparing(Student::getStage).thenComparingInt(stored::indexOf));
     }
 
     public ModelManager() {
@@ -102,11 +111,11 @@ public class ModelManager implements Model {
 
     /**
      * Returns an unmodifiable view of the list of {@code Student} backed by the internal list of
-     * {@code addressBook}
+     * {@code addressBook}, filtered and grouped by school stage
      */
     @Override
     public ObservableList<Student> getFilteredPersonList() {
-        return filteredPersons;
+        return shownPersons;
     }
 
     @Override

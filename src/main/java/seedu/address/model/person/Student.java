@@ -68,6 +68,11 @@ public class Student extends Person {
         return schoolingLevel;
     }
 
+    /** Returns the school stage this student is listed under; a student with no level is {@code OTHER}. */
+    public SchoolingLevel.Stage getStage() {
+        return schoolingLevel.map(SchoolingLevel::stage).orElse(SchoolingLevel.Stage.OTHER);
+    }
+
     public Optional<Guardian> getGuardian() {
         return guardian;
     }

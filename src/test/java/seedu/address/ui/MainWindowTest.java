@@ -286,6 +286,23 @@ public class MainWindowTest {
         });
     }
 
+    // Editing an open student's level moves them to another group. Their details must stay open, not jump to
+    // whoever takes their old row.
+    @Test
+    public void openStudent_movedByEdit_staysOpen() throws Exception {
+        runOnFxThread(() -> {
+            submitCommand("edit 1 level/P5");
+            submitCommand("edit 2 level/P6");
+            submitCommand("view 1");
+            ListView<?> table = assertInstanceOf(ListView.class, studentTable());
+
+            submitCommand("edit 1 level/JC1");
+            assertEquals(List.of("Bob", "Alice"), model.getFilteredPersonList().stream()
+                    .map(student -> student.getName().fullName).toList());
+            assertEquals(1, table.getSelectionModel().getSelectedIndex());
+        });
+    }
+
     // After a usage error, Tab puts the shown example in the box, so the user edits it instead of retyping.
     @Test
     public void tab_afterUsageError_putsExampleInCommandBox() throws Exception {

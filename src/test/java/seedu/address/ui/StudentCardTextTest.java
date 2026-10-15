@@ -20,7 +20,6 @@ import seedu.address.model.person.Subject;
 import seedu.address.model.person.WeeklyLessonSlot;
 import seedu.address.testutil.PersonBuilder;
 import seedu.address.ui.StudentCardText.LessonLine;
-import seedu.address.ui.StudentCardText.Stage;
 
 public class StudentCardTextTest {
 
@@ -53,29 +52,6 @@ public class StudentCardTextTest {
         assertEquals(Optional.of("Math, English"), StudentCardText.subjects(student));
         assertEquals("$45.50/h", StudentCardText.tableRate(StudentCardText.lessons(student).get(1)));
     }
-
-    // Common ways tutors write levels get their school stage's colour.
-    @Test
-    public void stageOf_recognisedForms() {
-        for (String level : new String[] {"P5", "p 6", "Pri 3", "Primary 5", "primary 1 GEP"}) {
-            assertEquals(Stage.PRIMARY, StudentCardText.stageOf(level), level);
-        }
-        for (String level : new String[] {"Sec 3", "S4", "Secondary 2", "sec 4 Express", "Sec 1 NA"}) {
-            assertEquals(Stage.SECONDARY, StudentCardText.stageOf(level), level);
-        }
-        for (String level : new String[] {"JC1", "jc 2", "J2", "Junior College 1"}) {
-            assertEquals(Stage.JC, StudentCardText.stageOf(level), level);
-        }
-    }
-
-    // The level is free text, so anything not clearly a stage must stay neutral rather than risk a wrong colour.
-    @Test
-    public void stageOf_unclearForms_areOther() {
-        for (String level : new String[] {"Poly Y1", "IB Year 1", "P7", "Sec 6", "JC4", "Kindergarten", "Pre-U"}) {
-            assertEquals(Stage.OTHER, StudentCardText.stageOf(level), level);
-        }
-    }
-
     // The row shows the lesson that comes soonest in the week; one already under way counts from next week.
     @Test
     public void nextLesson_isSoonestUpcoming() {

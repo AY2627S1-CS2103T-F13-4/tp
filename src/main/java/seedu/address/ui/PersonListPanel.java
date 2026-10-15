@@ -2,6 +2,7 @@ package seedu.address.ui;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
 
@@ -12,13 +13,17 @@ import javafx.beans.property.ReadOnlyDoubleProperty;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.skin.VirtualFlow;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
+import javafx.scene.layout.VBox;
 import seedu.address.commons.core.LogsCenter;
+import seedu.address.model.person.SchoolingLevel.Stage;
 import seedu.address.model.person.Student;
 
 /**
@@ -39,6 +44,8 @@ public class PersonListPanel extends UiPart<Region> {
     private static final double CHROME_NARROW = 26 + 3 * 20 + 32 + 14;
     /** Width of the list not available to a row's details: row padding, the details' indent and the scroll bar. */
     private static final double DETAILS_CHROME_WIDTH = 100;
+    private static final Map<Stage, String> STAGE_NAMES = Map.of(
+            Stage.PRIMARY, "Primary", Stage.SECONDARY, "Secondary", Stage.JC, "JC", Stage.OTHER, "Other");
 
     /** Widths of the table's columns, shared by the header and every row. */
     record Columns(DoubleExpression name, DoubleExpression subjects, DoubleExpression lesson,
@@ -106,6 +113,9 @@ public class PersonListPanel extends UiPart<Region> {
         ListChangeListener<Student> refresh = change -> {
             updateStatus(personList.size(), allPersons.size());
             openOnlyRow();
+            // Group headings count their students, so a change in one row can change another row's heading.
+            // Rows whose student, number and heading are unchanged keep their card (see PersonListViewCell).
+            personListView.refresh();
         };
         personList.addListener(refresh);
         allPersons.addListener(refresh);
@@ -215,6 +225,20 @@ public class PersonListPanel extends UiPart<Region> {
         emptyCommand.setText(StudentListStatus.emptyCommand(total));
     }
 
+    /** Returns a group heading such as "Primary 2": a dot in the stage's colour, its name and how many it has. */
+    private static HBox groupHeading(Stage stage, long size) {
+        Region dot = new Region();
+        dot.getStyleClass().addAll("nav-dot", PersonCard.stageStyleClass(stage));
+        Label name = new Label(STAGE_NAMES.get(stage));
+        name.getStyleClass().add("group-name");
+        Label count = new Label(String.valueOf(size));
+        count.getStyleClass().add("group-count");
+        HBox heading = new HBox(10, dot, name, count);
+        heading.setAlignment(Pos.CENTER_LEFT);
+        heading.getStyleClass().add("group-heading");
+        return heading;
+    }
+
     /**
      * Custom {@code ListCell} that displays a {@code Student} as a {@code PersonCard} row.
      * A selected row shows its details; selecting another only toggles those two rows.
@@ -223,6 +247,7 @@ public class PersonListPanel extends UiPart<Region> {
         private PersonCard card;
         private Student shownPerson;
         private int shownIndex = -1;
+        private String shownHeading = "";
 
         PersonListViewCell() {
             // Clicking the open row closes it, the mouse version of Esc.
@@ -242,18 +267,31 @@ public class PersonListPanel extends UiPart<Region> {
                 card = null;
                 shownPerson = null;
                 shownIndex = -1;
+                shownHeading = "";
                 setGraphic(null);
                 setText(null);
-            } else if (person != shownPerson || getIndex() != shownIndex) {
-                // The list also redraws a row that has not changed, e.g. right after it opens.
-                // Keeping its card then lets an open or close animation finish.
+            } else {
+                // The first student of each school stage gets a heading, e.g. "Primary 2". The model lists students
+                // by stage, so each stage is one run of rows.
+                List<Student> shown = getListView().getItems();
+                Stage stage = person.getStage();
+                boolean startsGroup = getIndex() == 0 || shown.get(getIndex() - 1).getStage() != stage;
+                long groupSize = startsGroup
+                        ? shown.stream().filter(student -> student.getStage() == stage).count() : 0;
+                String heading = startsGroup ? STAGE_NAMES.get(stage) + " " + groupSize : "";
+                if (person == shownPerson && getIndex() == shownIndex && heading.equals(shownHeading)) {
+                    // The list also redraws a row that has not changed, e.g. right after it opens.
+                    // Keeping its card then lets an open or close animation finish.
+                    return;
+                }
                 card = new PersonCard(person, getIndex() + 1);
                 card.bindColumns(columns);
                 // Read the selection for this index: the cell's own flag may still be for the row it showed before.
                 card.setOpen(getListView().getSelectionModel().isSelected(getIndex()));
                 shownPerson = person;
                 shownIndex = getIndex();
-                setGraphic(card.getRoot());
+                shownHeading = heading;
+                setGraphic(startsGroup ? new VBox(groupHeading(stage, groupSize), card.getRoot()) : card.getRoot());
             }
         }
 
