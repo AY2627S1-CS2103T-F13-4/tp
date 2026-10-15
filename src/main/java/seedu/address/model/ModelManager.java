@@ -7,11 +7,14 @@ import java.util.Comparator;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
 
+import javafx.beans.property.ReadOnlyObjectWrapper;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.collections.transformation.SortedList;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.commons.core.LogsCenter;
+import seedu.address.model.person.Lesson;
 import seedu.address.model.person.Student;
 
 /**
@@ -24,6 +27,8 @@ public class ModelManager implements Model {
     private final UserPrefs userPrefs;
     private final FilteredList<Student> filteredPersons;
     private final SortedList<Student> shownPersons;
+    private final ReadOnlyObjectWrapper<Predicate<Lesson>> lessonPredicate =
+            new ReadOnlyObjectWrapper<>(PREDICATE_SHOW_ALL_LESSONS);
 
     /**
      * Initializes a ModelManager with the given addressBook and userPrefs.
@@ -115,8 +120,20 @@ public class ModelManager implements Model {
 
     @Override
     public void updateFilteredPersonList(Predicate<Student> predicate) {
+        updateFilteredPersonList(predicate, PREDICATE_SHOW_ALL_LESSONS);
+    }
+
+    @Override
+    public void updateFilteredPersonList(Predicate<Student> predicate, Predicate<Lesson> lessonPredicate) {
         requireNonNull(predicate);
+        requireNonNull(lessonPredicate);
         filteredPersons.setPredicate(predicate);
+        this.lessonPredicate.set(lessonPredicate);
+    }
+
+    @Override
+    public ObservableValue<Predicate<Lesson>> getLessonPredicate() {
+        return lessonPredicate.getReadOnlyProperty();
     }
 
     @Override
@@ -132,7 +149,8 @@ public class ModelManager implements Model {
 
         return addressBook.equals(otherModelManager.addressBook)
                 && userPrefs.equals(otherModelManager.userPrefs)
-                && filteredPersons.equals(otherModelManager.filteredPersons);
+                && filteredPersons.equals(otherModelManager.filteredPersons)
+                && lessonPredicate.get().equals(otherModelManager.lessonPredicate.get());
     }
 
 }

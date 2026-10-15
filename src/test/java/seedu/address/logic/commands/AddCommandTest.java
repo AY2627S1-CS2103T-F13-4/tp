@@ -141,6 +141,17 @@ public class AddCommandTest {
         public void updateFilteredPersonList(Predicate<Student> predicate) {
             throw new AssertionError("This method should not be called.");
         }
+
+        @Override
+        public void updateFilteredPersonList(Predicate<Student> predicate,
+                Predicate<seedu.address.model.person.Lesson> lessonPredicate) {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
+        public javafx.beans.value.ObservableValue<Predicate<seedu.address.model.person.Lesson>> getLessonPredicate() {
+            throw new AssertionError("This method should not be called.");
+        }
     }
 
     /**

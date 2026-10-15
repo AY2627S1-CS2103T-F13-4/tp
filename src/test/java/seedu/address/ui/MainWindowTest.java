@@ -128,16 +128,18 @@ public class MainWindowTest {
             assertTrue(isShown(studentTable()));
             assertFalse(isShown(schedulePlaceholder()));
 
-            // Every student is listed again, so the numbers on the calendar match command indices.
+            // The week keeps the search; its numbers still match the shown student list.
             submitCommand("week");
             assertTrue(isShown(schedulePlaceholder()));
             assertFalse(isShown(studentTable()));
-            assertEquals(2, model.getFilteredPersonList().size());
-            assertEquals(List.of("Alice", "Bob"), cardNames(scheduleGrid()));
+            assertEquals(1, model.getFilteredPersonList().size());
+            assertEquals(List.of("Bob"), cardNames(scheduleGrid()));
 
             submitCommand("list");
             assertTrue(isShown(studentTable()));
             assertActiveNav("#studentsNav");
+            assertEquals(List.of("Alice", "Bob"), model.getFilteredPersonList().stream()
+                    .map(student -> student.getName().fullName).toList());
 
             // A rejected command leaves the screen where it was.
             TextField commandField = commandField();
@@ -148,6 +150,31 @@ public class MainWindowTest {
 
             submitCommand("week");
             assertActiveNav("#weekNav");
+        });
+    }
+
+    // A search that hides every lesson must not suggest adding one: the way back is list, and the count says so.
+    @Test
+    public void week_searchHidesLessons_countsThemAndSuggestsList() throws Exception {
+        runOnFxThread(() -> {
+            submitCommand("find day/sun");
+            submitCommand("week");
+            assertTrue(stage.getScene().lookup("#emptyState").isVisible());
+            assertEquals(WeekPanel.NO_MATCH_TITLE, weekEmptyLabel(".empty-title").getText());
+            assertEquals(ListCommand.COMMAND_WORD, weekEmptyLabel(".empty-command").getText());
+            assertEquals("Showing 0 of 2 lessons", weekSummary());
+
+            submitCommand("find day/mon");
+            assertEquals("Showing 1 of 2 lessons", weekSummary());
+
+            submitCommand("list");
+            assertEquals("2 lessons", weekSummary());
+
+            // With no lessons at all, the next step is adding one.
+            submitCommand("lesson-delete 1 1");
+            submitCommand("lesson-delete 2 1");
+            assertEquals(WeekPanel.EMPTY_TITLE, weekEmptyLabel(".empty-title").getText());
+            assertEquals(WeekPanel.EMPTY_COMMAND, weekEmptyLabel(".empty-command").getText());
         });
     }
 
@@ -481,6 +508,15 @@ public class MainWindowTest {
                 .map(filter -> ((HBox) ((Button) filter).getGraphic()).getChildren().stream()
                         .filter(Label.class::isInstance).map(label -> ((Label) label).getText()).findFirst().get())
                 .toList();
+    }
+
+    private String weekSummary() {
+        return assertInstanceOf(Label.class, stage.getScene().lookup("#weekSummary")).getText();
+    }
+
+    /** Returns a label of the week's empty state; the student table has its own, with the same style classes. */
+    private Label weekEmptyLabel(String selector) {
+        return assertInstanceOf(Label.class, stage.getScene().lookup("#emptyState").lookup(selector));
     }
 
     private Node studentTable() {

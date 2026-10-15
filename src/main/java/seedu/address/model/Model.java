@@ -2,8 +2,10 @@ package seedu.address.model;
 
 import java.util.function.Predicate;
 
+import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
 import seedu.address.commons.core.GuiSettings;
+import seedu.address.model.person.Lesson;
 import seedu.address.model.person.Student;
 
 /**
@@ -12,6 +14,7 @@ import seedu.address.model.person.Student;
 public interface Model {
     /** {@code Predicate} that always evaluates to true */
     Predicate<Student> PREDICATE_SHOW_ALL_PERSONS = unused -> true;
+    Predicate<Lesson> PREDICATE_SHOW_ALL_LESSONS = unused -> true;
 
     /**
      * Returns the user prefs.
@@ -68,4 +71,10 @@ public interface Model {
      * @throws NullPointerException if {@code predicate} is null.
      */
     void updateFilteredPersonList(Predicate<Student> predicate);
+
+    /** Updates the students shown and the lessons shown for those students in the calendar. */
+    void updateFilteredPersonList(Predicate<Student> predicate, Predicate<Lesson> lessonPredicate);
+
+    /** The calendar observes this even when the same students match two different lesson searches. */
+    ObservableValue<Predicate<Lesson>> getLessonPredicate();
 }
