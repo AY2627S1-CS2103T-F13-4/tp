@@ -457,6 +457,26 @@
     -fx-background-color: -sb-error-tint;
 }
 
+.result-row.result-warning {
+    -fx-background-color: #FFF6DF;
+    -fx-border-color: #E9D39F transparent transparent #D68B00;
+    -fx-border-width: 1 0 0 4;
+}
+
+.result-warning .result-icon {
+    -fx-background-color: #F6D78B;
+    -fx-text-fill: #714500;
+}
+
+.result-warning .result-heading {
+    -fx-fill: #714500;
+    -fx-font-weight: bold;
+}
+
+.result-warning .result-text {
+    -fx-fill: #75551F;
+}
+
 .result-icon {
     -fx-min-width: 20;
     -fx-min-height: 20;

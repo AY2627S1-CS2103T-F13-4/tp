@@ -288,6 +288,19 @@ If the file is invalid, the app starts with an empty list. The invalid file rema
 * **Window opens off-screen:** Close the app and delete `preferences.json`, then restart it. This resets the saved window position.
 * **Help window stays minimized:** Restore the existing help window manually. Running `help` again does not restore it.
 
+### Lesson clash warnings
+
+Adding or editing a lesson warns when it overlaps another lesson on the same weekday. The change is still applied
+and saved normally. Warnings identify each conflicting student by name and their lesson number, subject and time.
+Checks include all students, even those hidden by a filter, and other lessons of the same student.
+Warnings show the number of conflicting lessons and list each on a separate line.
+Clashes appear in an amber feedback panel with an exclamation icon and a bold
+"Lesson saved - scheduling clash detected" heading. The warning stays until the next command result.
+Every successful lesson edit
+checks for clashes, including a rate-only or subject-only edit; an existing clash will therefore warn again.
+Back-to-back lessons do not clash. Deleting a lesson does not produce a warning.
+Lesson numbers in warnings belong to the named student's lesson list; find that student before editing their lesson.
+
 ## Command summary
 
 | Task | Format |

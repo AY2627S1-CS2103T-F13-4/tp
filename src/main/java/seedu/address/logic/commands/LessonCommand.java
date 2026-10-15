@@ -118,6 +118,12 @@ public class LessonCommand extends Command {
             case EDIT -> "updated";
             case DELETE -> "removed";
         };
+        String warning = operation == Operation.DELETE ? "" : LessonClashes.warning(
+                model.getAddressBook().getPersonList(), replacement,
+                operation == Operation.ADD ? lessons.size() - 1 : lessonIndex.orElseThrow().getZeroBased());
+        if (!warning.isEmpty()) {
+            return CommandResult.warning("Lesson saved - scheduling clash detected" + warning);
+        }
         return new CommandResult("Lesson " + action + " for " + student.getName() + ".");
     }
 

@@ -117,6 +117,17 @@ Shared helpers live in `seedu.address.commons`.
 
 ## Implementation
 
+### Lesson clash detection
+
+After a valid lesson addition or edit, `LessonCommand` calls `LessonClashes.warning` with the complete student list
+and the changed lesson's position. The helper excludes that lesson itself and checks every other lesson.
+Intervals clash when their weekdays match and each starts strictly before the other ends. Thus touching endpoints
+are allowed. The warning is appended to normal success feedback; existing validation and persistence still apply.
+Deleting a lesson requires no clash warning. No clash state is stored, so each warning reflects current records.
+Clashing changes return `CommandResult.warning`. `MainWindow` routes these successful results to
+`ResultDisplay#setWarningToUser`, which applies an amber warning style and an exclamation icon.
+The next success, error or warning result replaces the previous feedback and clears its styling.
+
 ### Shared tuition model
 
 `Person` is an abstract base class holding a `Name` and `Phone`. `Student` and `Guardian` extend it. `isSamePerson` and `equals` compare the runtime class as well as the fields, so a student never equals a guardian. `UniquePersonList` only stores students, and two students are duplicates when their `Name` is exactly equal (case-sensitive).
