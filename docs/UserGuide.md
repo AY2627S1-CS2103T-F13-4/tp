@@ -86,8 +86,6 @@ Format: `add name/NAME phone/PHONE_NUMBER email/EMAIL address/ADDRESS [tag/TAG].
 
 Name, phone, email and address are required. Tags and schooling level are optional. A new student has no lessons; add them with [`lesson-add`](#manage-a-students-lessons).
 
-The agreed next change is to require a schooling level. Min Wenn owns that change; it is not enforced in this build.
-
 ```text
 add name/Alex Tan phone/91234567 email/alex@example.com address/123 Clementi Road tag/weekday level/Primary 5
 add name/Mei Lim phone/92345678 email/mei@example.com address/45 Dover Road
