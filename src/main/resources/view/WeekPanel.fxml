@@ -38,7 +38,7 @@
     <ScrollPane fx:id="scheduleScroll" fitToWidth="true" hbarPolicy="NEVER" styleClass="schedule-scroll"
                 focusTraversable="false" />
     <VBox fx:id="emptyState" styleClass="empty-state">
-      <Label text="No lessons yet" styleClass="empty-title" />
+      <Label fx:id="emptyTitle" styleClass="empty-title" />
       <Label fx:id="emptyDetail" styleClass="empty-detail" wrapText="true" />
       <Label fx:id="emptyCommand" styleClass="empty-command" wrapText="true" />
     </VBox>

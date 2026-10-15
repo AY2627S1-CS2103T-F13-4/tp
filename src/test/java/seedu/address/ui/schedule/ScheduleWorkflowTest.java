@@ -236,8 +236,9 @@ public class ScheduleWorkflowTest {
             logic.execute("find subject/english");
             assertEquals(2, model.getFilteredPersonList().size());
             assertEquals(2, cards().size());
-            card("Alice", "English");
-            card("Bob", "English");
+            // Numbers keep each lesson's place in its student's full list: lesson-edit 2 2 still means Bob's English.
+            assertEquals("#1.2 \u00b7 Primary 5 \u00b7 English", labelText(card("Alice", "English")).get(2));
+            assertEquals("#2.2 \u00b7 Secondary 3 \u00b7 English", labelText(card("Bob", "English")).get(2));
             logic.execute("find subject/math");
             assertEquals(2, model.getFilteredPersonList().size());
             assertEquals(2, cards().size());

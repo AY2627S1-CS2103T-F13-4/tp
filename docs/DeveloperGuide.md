@@ -55,7 +55,9 @@ Diagram sources are in `docs/diagrams`. See the [PlantUML tutorial](https://se-e
 The UI sends commands to `Logic` and observes two lists:
 
 * **Filtered list** (`Logic#getFilteredPersonList()`): the rows on screen. `ModelManager` sorts the filtered list by school stage (Primary, Secondary, JC, then others), then by stored order, so editing a student never moves it within its group. `PersonListPanel` shows them in the same order as the model, so the number on each card is the `INDEX` that commands use. The UI never sorts or groups its own copy.
-* **Full list** (`Logic#getAddressBook()`): used only to count students. `StudentListStatus` uses both counts to choose the header text, such as `Showing 1 of 8`. It also chooses the empty-state message: `add` when there are no students, `list` when a search matches no one.
+* **Full list** (`Logic#getAddressBook()`): used only to count students and lessons. `StudentListStatus` uses both counts to choose the header text, such as `Showing 1 of 8`. It also chooses the empty-state message: `add` when there are no students, `list` when a search matches no one. `WeekPanel` does the same for lessons: `Showing 3 of 12 lessons`, and `list` instead of `lesson-add` when a search hides every lesson.
+
+The UI also observes the lesson filter (`Logic#getLessonPredicate()`), set by `find subject/` and `day/`. `ScheduleGrid` places only the lessons it accepts, keeping each lesson's position in the student's full list as its number.
 
 When either list changes, the `ListView` rebuilds the affected `PersonCard`s, so cards never show stale data after an edit.
 
@@ -88,7 +90,7 @@ The `DeleteCommandParser` lifeline should end at the X marker; PlantUML draws it
 
 <img src="images/ModelClassDiagram.png" width="450" />
 
-`ModelManager` holds the address book, user preferences and the current filtered list.
+`ModelManager` holds the address book, user preferences, the current filtered list and the lesson filter. `updateFilteredPersonList(Predicate<Student>, Predicate<Lesson>)` sets both; the one-argument form, used by `list` and `edit`, shows all lessons again. `StudentLessonMatchesPredicate` keeps a student with at least one lesson that passes a `LessonMatchesPredicate`, so subject and day must match the same lesson.
 
 * `UniquePersonList` stores the `Student` records.
 * The UI observes an unmodifiable `ObservableList<Student>` of matching records.
@@ -202,7 +204,7 @@ Tests cover loading, save/reload and invalid values (`TuitionStorageTest`). A fa
 | Parse | `LessonCommandParser` rejects unknown and repeated prefixes, then validates each value with `ParserUtil` (`parseSubject`, `parseWeeklyLessonSlot`, `parseHourlyRate`, `parseLessonMode`, `parseLessonLocation`). Add requires subject, slot and rate; edit requires at least one field; delete takes none. An empty `mode/` or `location/` is valid only in `lesson-edit`, where it clears that field. |
 | Execute | `LessonCommand` resolves the student from the current filtered list, copies the lesson list, then adds, replaces or removes one entry. Edit keeps any lesson field that was not supplied. |
 | Validate | A result containing duplicate lessons fails with `MESSAGE_DUPLICATE_LESSON`. A bad student or lesson index fails with `MESSAGE_INVALID_PERSON_DISPLAYED_INDEX` or `MESSAGE_INVALID_LESSON_DISPLAYED_INDEX`. Failures leave the model unchanged. |
-| Update | The command builds a replacement `Student` with the new lesson list and every other field copied, then calls `Model#setPerson`. The active filter stays. |
+| Update | The command builds a replacement `Student` with the new lesson list and every other field copied, then calls `Model#setPerson`. The active filter stays, so after `find subject/` or `day/` a lesson that no longer matches is hidden, and a student with no matching lesson leaves the list. |
 | Display | A row shows the student's next lesson; its details list every lesson from `StudentCardText#lessons`: number, subject, short day and time, and short rate in fixed-width columns, with the mode chip and location underneath when recorded. The number is the lesson's `LESSON_INDEX`. |
 | Save | `LogicManager` saves through the existing storage workflow; `JsonAdaptedLesson` persists each lesson. |
 
