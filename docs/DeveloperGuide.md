@@ -287,7 +287,7 @@ The shared types and storage are implemented. The app supports add, display, edi
 
 ### Agreed field rules
 
-A student has any number of lessons. Each lesson groups a required subject, weekly slot and hourly rate with an optional location and mode. Schooling level is mandatory by agreement, with enforcement left to Min Wenn.
+A student has any number of lessons. Each lesson groups a required subject, weekly slot and hourly rate with an optional location and mode. Schooling level is optional; students can be added without one, and `edit level/` can clear an existing level.
 
 ### Decisions to confirm
 
