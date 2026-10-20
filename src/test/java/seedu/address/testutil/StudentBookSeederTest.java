@@ -30,6 +30,7 @@ import seedu.address.storage.JsonAddressBookStorage;
 public class StudentBookSeederTest {
 
     private static final List<Student> STUDENTS = new StudentBookSeeder(StudentBookSeeder.DEFAULT_SEED).generate(200);
+    private static final List<Student> EDGE_CASES = new StudentBookSeeder(1).generate(0, true);
 
     @TempDir
     public Path tempDir;
@@ -96,6 +97,79 @@ public class StudentBookSeederTest {
         StudentBookSeeder.save(STUDENTS, out);
 
         assertEquals(STUDENTS, new JsonAddressBookStorage(out).readAddressBook().orElseThrow().getPersonList());
+    }
+
+    @Test
+    public void generateWithEdgeCases_keepsRandomStudentsAndAppendsEdgeCases() {
+        List<Student> withEdgeCases = new StudentBookSeeder(StudentBookSeeder.DEFAULT_SEED).generate(40, true);
+
+        assertEquals(new StudentBookSeeder(StudentBookSeeder.DEFAULT_SEED).generate(40),
+                withEdgeCases.subList(0, 40));
+        assertEquals(EDGE_CASES.stream().map(Student::getName).toList(),
+                withEdgeCases.subList(40, withEdgeCases.size()).stream().map(Student::getName).toList());
+    }
+
+    @Test
+    public void generateWithEdgeCases_namesDifferOnlyInCase() {
+        Student upper = edgeCase("Alex Tan");
+        Student lower = edgeCase("alex tan");
+
+        assertTrue(upper.getName().fullName.equalsIgnoreCase(lower.getName().fullName));
+        assertFalse(upper.isSamePerson(lower));
+    }
+
+    @Test
+    public void generateWithEdgeCases_cappedFieldsAtTheirLimits() {
+        Student longest = edgeCase("Muhammad Nur Iskandar Hakim bin Abdul Rahman Shah Zulkarnain Al Habshi");
+        Lesson lesson = longest.getLessons().get(0);
+
+        assertEquals(30, longest.getSchoolingLevel().orElseThrow().value.length());
+        assertEquals(SchoolingLevel.Stage.SECONDARY, longest.getStage());
+        assertEquals(40, lesson.getSubject().value.length());
+        assertEquals(100, lesson.getLocation().orElseThrow().value.length());
+    }
+
+    @Test
+    public void generateWithEdgeCases_hasZoomLink() {
+        assertTrue(edgeCase("Bryan Koh").getLessons().get(0).getLocation().orElseThrow().value
+                .startsWith("https://nus-sg.zoom.us/j/"));
+    }
+
+    @Test
+    public void generateWithEdgeCases_backToBackLessonsDoNotClash() {
+        assertEquals(0, StudentBookSeeder.countClashes(List.of(edgeCase("Alex Tan"), edgeCase("alex tan"))));
+        assertEquals(0, StudentBookSeeder.countClashes(List.of(edgeCase("Brandon Lim"))));
+    }
+
+    @Test
+    public void generateWithEdgeCases_overlappingLessonsClash() {
+        // Kavitha overlaps Haikal (partly) and Gwendolyn (fully); Haikal and Gwendolyn just touch at 8pm.
+        assertEquals(2, StudentBookSeeder.countClashes(List.of(edgeCase("Kavitha Nair"), edgeCase("Haikal bin Osman"),
+                edgeCase("Gwendolyn Teo"))));
+        assertEquals(1, StudentBookSeeder.countClashes(List.of(edgeCase("Bryan Koh"), edgeCase("Clement Chua"))));
+    }
+
+    @Test
+    public void generateWithEdgeCases_hasStudentsWithoutLessonsOrGuardian() {
+        assertTrue(edgeCase("Siti Aminah binte Yusof").getLessons().isEmpty());
+        assertTrue(edgeCase("Clement Chua").getGuardian().isEmpty());
+        Student bare = edgeCase("Theresa Pereira");
+        assertTrue(bare.getLessons().isEmpty() && bare.getGuardian().isEmpty()
+                && bare.getSchoolingLevel().isEmpty());
+    }
+
+    @Test
+    public void saveWithEdgeCases_writesFileTheAppLoads() throws Exception {
+        List<Student> students = new StudentBookSeeder(3).generate(40, true);
+        Path out = tempDir.resolve("edge.json");
+        StudentBookSeeder.save(students, out);
+
+        assertEquals(students, new JsonAddressBookStorage(out).readAddressBook().orElseThrow().getPersonList());
+    }
+
+    private static Student edgeCase(String name) {
+        return EDGE_CASES.stream().filter(student -> student.getName().fullName.equals(name)).findFirst()
+                .orElseThrow();
     }
 
     @Test

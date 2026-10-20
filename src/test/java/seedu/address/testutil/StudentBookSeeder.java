@@ -33,6 +33,7 @@ import seedu.address.model.person.Student;
 import seedu.address.model.person.Subject;
 import seedu.address.model.person.WeeklyLessonSlot;
 import seedu.address.model.tag.Tag;
+import seedu.address.model.util.SampleDataUtil;
 import seedu.address.storage.JsonAddressBookStorage;
 
 /**
@@ -47,11 +48,13 @@ public class StudentBookSeeder {
     public static final Path DEFAULT_OUT = Path.of("data", "studentbook.json");
 
     private static final String USAGE = String.join("\n",
-            "Usage: ./gradlew seed --args=\"[--students N] [--seed S] [--out FILE] [--force]\"",
+            "Usage: ./gradlew seed --args=\"[--students N] [--seed S] [--out FILE] [--force] [--edge-cases]\"",
             "  --students N  number of students (default " + DEFAULT_STUDENTS + "; try 500 for stress testing)",
             "  --seed S      random seed; the same seed gives the same file (default " + DEFAULT_SEED + ")",
             "  --out FILE    file to write (default " + DEFAULT_OUT + ")",
-            "  --force       overwrite FILE if it already exists");
+            "  --force       overwrite FILE if it already exists",
+            "  --edge-cases  also add fixed students with max-length fields, a Zoom link, back-to-back and",
+            "                overlapping lessons, 'Alex Tan' and 'alex tan', and no lessons or guardian");
 
     private static final List<String> CHINESE_SURNAMES = List.of("Tan", "Lim", "Lee", "Ng", "Ong", "Wong", "Goh",
             "Chua", "Chan", "Koh", "Teo", "Ang", "Yeo", "Tay", "Ho", "Low", "Toh", "Sim", "Chong", "Chia");
@@ -144,6 +147,18 @@ public class StudentBookSeeder {
     private record Family(Supplier<String> childName, String guardianName) {}
 
     /**
+     * Returns {@code count} random students followed, if {@code withEdgeCases}, by the fixed students from
+     * {@link #makeEdgeCases()}. The random students are the same either way.
+     */
+    public List<Student> generate(int count, boolean withEdgeCases) {
+        List<Student> students = new ArrayList<>(generate(count));
+        if (withEdgeCases) {
+            students.addAll(makeEdgeCases());
+        }
+        return students;
+    }
+
+    /**
      * Returns {@code count} students with unique names. Some pairs are siblings who share a guardian and address.
      */
     public List<Student> generate(int count) {
@@ -177,6 +192,79 @@ public class StudentBookSeeder {
             }
         }
         return students;
+    }
+
+    /**
+     * Returns fixed students for boundary testing. Their names never come from the random generator.
+     * Lessons on Monday and Friday are back to back (not clashes); Wednesday has a partial and a contained
+     * overlap, and Thursday has two lessons in the same slot.
+     */
+    private List<Student> makeEdgeCases() {
+        return List.of(
+                // Same name apart from letter case; both load because names are compared exactly.
+                edgeStudent("Alex Tan", "P4", "Tan Boon Huat", List.of(
+                        lesson("Mathematics", DayOfWeek.MONDAY, "16:00", "17:30", "36", "Student's home",
+                                LessonMode.PHYSICAL))),
+                edgeStudent("alex tan", "Sec 2", "Tan Mei Hua", List.of(
+                        lesson("English", DayOfWeek.MONDAY, "17:30", "19:00", "46", "Zoom", LessonMode.VIRTUAL))),
+                // Every capped field at its limit: level 30, subject 40 and location 100 characters.
+                new Student(new Name("Muhammad Nur Iskandar Hakim bin Abdul Rahman Shah Zulkarnain Al Habshi"),
+                        new Phone(makePhone()),
+                        new Email(makeEmail("Muhammad Nur Iskandar Hakim bin Abdul Rahman Shah Zulkarnain Al Habshi")),
+                        new Address("Blk 999B Upper Bukit Timah Road, Hillview Heights Residences Tower 2, "
+                                + "#25-1234, Singapore 678999"),
+                        SampleDataUtil.getTagSet("examyear", "newstudent", "siblingdiscount", "scholarshipapplicant"),
+                        Optional.of(new SchoolingLevel("Sec 4 Express Integrated Prog.")),
+                        Optional.of(new Guardian(new Name("Abdul Rahman Shah Zulkarnain bin Ismail Al Habshi"),
+                                new Phone(makePhone()))),
+                        List.of(lesson("Combined Science (Physics and Chemistry)", DayOfWeek.SATURDAY, "09:00",
+                                "11:00", "58.50", "Blk 999B Upper Bukit Timah Road, Hillview Heights Clubhouse, "
+                                        + "Function Room 2, level 3, near the pool", LessonMode.PHYSICAL))),
+                // Two lessons of one student, back to back.
+                edgeStudent("Brandon Lim", "P6", "Lim Kok Leong", List.of(
+                        lesson("Mathematics", DayOfWeek.FRIDAY, "16:00", "17:00", "42", "Tutor's home",
+                                LessonMode.PHYSICAL),
+                        lesson("Science", DayOfWeek.FRIDAY, "17:00", "18:30", "42", "Tutor's home",
+                                LessonMode.PHYSICAL))),
+                // Wednesday: Haikal overlaps the end of Kavitha's lesson; Gwendolyn's lies inside it
+                // and ends as Haikal's starts.
+                edgeStudent("Kavitha Nair", "JC1", "Nair Suresh", List.of(
+                        lesson("H2 Physics", DayOfWeek.WEDNESDAY, "19:00", "21:00", "78", "Student's home",
+                                LessonMode.PHYSICAL))),
+                edgeStudent("Haikal bin Osman", "Sec 3", "Osman bin Salleh", List.of(
+                        lesson("Physics", DayOfWeek.WEDNESDAY, "20:00", "21:30", "52", "Google Meet",
+                                LessonMode.VIRTUAL))),
+                edgeStudent("Gwendolyn Teo", "Sec 4", "Teo Ai Ling", List.of(
+                        lesson("Chemistry", DayOfWeek.WEDNESDAY, "19:15", "20:00", "55", "Microsoft Teams",
+                                LessonMode.VIRTUAL))),
+                // Thursday: two lessons in exactly the same slot; Bryan's location is a full Zoom link.
+                edgeStudent("Bryan Koh", "JC2", "Koh Swee Lan", List.of(
+                        lesson("H2 Chemistry", DayOfWeek.THURSDAY, "18:00", "19:30", "82",
+                                "https://nus-sg.zoom.us/j/81234567890?pwd=Q2hlbUx1c3NvbnNXZWVrbHk1",
+                                LessonMode.VIRTUAL))),
+                edgeStudent("Clement Chua", "Sec 4", null, List.of(
+                        lesson("Additional Mathematics", DayOfWeek.THURSDAY, "18:00", "19:30", "56",
+                                "Student's home", LessonMode.PHYSICAL))),
+                // No lessons; then no lessons, no guardian and no level.
+                edgeStudent("Siti Aminah binte Yusof", "P6", "Yusof bin Hamzah", List.of()),
+                edgeStudent("Theresa Pereira", null, null, List.of()));
+    }
+
+    /** Returns a student with a random phone, email and address; {@code level} and {@code guardianName} may be null. */
+    private Student edgeStudent(String name, String level, String guardianName, List<Lesson> lessons) {
+        if (!names.add(name)) {
+            throw new IllegalStateException("Edge-case name is also a generated name: " + name);
+        }
+        Optional<Guardian> guardian = Optional.ofNullable(guardianName)
+                .map(guardianNameValue -> new Guardian(new Name(guardianNameValue), new Phone(makePhone())));
+        return new Student(new Name(name), new Phone(makePhone()), new Email(makeEmail(name)), makeAddress(),
+                Set.of(), Optional.ofNullable(level).map(SchoolingLevel::new), guardian, lessons);
+    }
+
+    private static Lesson lesson(String subject, DayOfWeek day, String start, String end, String rate,
+            String location, LessonMode mode) {
+        return new Lesson(new Subject(subject), new WeeklyLessonSlot(day, LocalTime.parse(start), LocalTime.parse(end)),
+                new HourlyRate(new BigDecimal(rate)), Optional.of(new LessonLocation(location)), Optional.of(mode));
     }
 
     private Student makeStudent(String name, Address address, LevelInfo info, Optional<Guardian> guardian,
@@ -358,6 +446,7 @@ public class StudentBookSeeder {
         long seed = DEFAULT_SEED;
         Path out = DEFAULT_OUT;
         boolean force = false;
+        boolean withEdgeCases = false;
         try {
             for (int i = 0; i < args.length; i++) {
                 String option = args[i];
@@ -369,6 +458,8 @@ public class StudentBookSeeder {
                     out = Path.of(args[++i]);
                 } else if (option.equals("--force")) {
                     force = true;
+                } else if (option.equals("--edge-cases")) {
+                    withEdgeCases = true;
                 } else {
                     throw new IllegalArgumentException("Unknown option: " + option);
                 }
@@ -386,7 +477,7 @@ public class StudentBookSeeder {
             System.exit(2);
         }
 
-        List<Student> students = new StudentBookSeeder(seed).generate(count);
+        List<Student> students = new StudentBookSeeder(seed).generate(count, withEdgeCases);
         save(students, out);
         int lessonCount = students.stream().mapToInt(student -> student.getLessons().size()).sum();
         System.out.printf("Wrote %d students, %d lessons (%d overlapping pairs) to %s with seed %d%n",
