@@ -172,7 +172,7 @@ All arguments, including each `Optional` and each lesson, must be non-null. The 
 
 * Every edit keeps fields it does not change. `edit` cannot change lessons or the guardian; the `lesson-` and `guardian-` commands build a replacement `Student` and call `Model#setPerson`.
 * Full equality and hashing include all tuition fields.
-* Existing sample records may leave tuition fields absent.
+* Tuition fields may be absent: records from older files, and some built-in sample students (e.g. an adult learner with no level or guardian), leave them empty.
 
 #### JSON storage
 
@@ -545,10 +545,12 @@ These are acceptance targets. They have not all been verified in the current app
 
 Use an empty test folder and sample data. These checks are a starting point; also try variations and boundary values.
 
+For larger or boundary-value data sets, generate a data file with `./gradlew seed`, e.g. `./gradlew seed --args="--students 500 --edge-cases --out test/studentbook.json"`, and copy it into the test folder as `data/studentbook.json`. See [Generating test data](Testing.md#generating-test-data).
+
 ### Launch and shutdown
 
 1. Build the JAR using the [Quick start](UserGuide.md#quick-start), copy it into the test folder and run `java -jar studentbook.jar` there.
-2. Check that the window opens with sample contacts.
+2. Check that the window opens with eight sample students, starting with Chloe Lim and Ethan Lim, who share a guardian.
 3. Resize and move the window, then close and reopen the app. Check that it keeps the new size and position.
 
 ### Main window
@@ -568,7 +570,7 @@ Use an empty test folder and sample data. These checks are a starting point; als
 
 1. Run `list` with several records present, then `delete 1`. The first record should disappear and the result should describe it.
 2. Try `delete 0`, `delete`, `delete x` and an index larger than the list. Each should report an error and leave all records unchanged.
-3. Run `find Alex`, then delete a valid result index. Check that it deletes that search result, not the record at the same position in the full list.
+3. Run `find Priya`, then `delete 1`. Check that it deletes that search result, not the record at the same position in the full list.
 
 ### Lessons and saved data
 

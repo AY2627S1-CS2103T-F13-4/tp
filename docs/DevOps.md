@@ -32,6 +32,9 @@ The following commands perform common Gradle tasks.
   * `./gradlew test`: Runs all tests.
   * `./gradlew clean test`: Cleans the project before running all tests
 
+* **`seed`**: Writes a data file of realistic, randomly generated students for manual and stress testing. See [Generating test data](Testing.md#generating-test-data).<br>
+  For example: `./gradlew seed` writes 40 students to `data/studentbook.json`.
+
 --------------------------------------------------------------------------------------------------------------------
 
 ## Continuous integration (CI)
