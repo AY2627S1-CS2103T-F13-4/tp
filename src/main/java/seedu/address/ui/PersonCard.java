@@ -28,7 +28,7 @@ import seedu.address.model.person.Student;
 
 /**
  * A table row that displays a {@code Student}: name and level, subjects, next lesson, rate and guardian.
- * An open row also shows its details: every lesson, the contact details, guardian, tags and school.
+ * An open row groups school and contact details, followed by the guardian, lessons and tags.
  */
 public class PersonCard extends UiPart<Region> {
 
@@ -203,10 +203,14 @@ public class PersonCard extends UiPart<Region> {
         }
     }
 
-    /** Fills the details: every lesson, the contact details, the guardian, any tags and school. */
+    /** Fills the details: school and contact details together, then the guardian, lessons and any tags. */
     private void fillDetails(List<StudentCardText.LessonLine> lines) {
-        Node lessonContent = lines.isEmpty() ? muted(StudentCardText.NO_LESSONS) : lessonTable(lines);
-        details.getChildren().add(section("Lessons", lessonContent));
+        VBox contactDetails = new VBox(16);
+        person.getSchool().ifPresent(school -> {
+            Text text = text(school.toString(), "row-value");
+            detailLines.add(text);
+            contactDetails.getChildren().add(section("School", text));
+        });
 
         VBox contact = new VBox(3);
         for (String line : List.of(person.getPhone().value, person.getEmail().value, person.getAddress().value)) {
@@ -214,7 +218,8 @@ public class PersonCard extends UiPart<Region> {
             detailLines.add(text);
             contact.getChildren().add(text);
         }
-        details.getChildren().add(section("Contact", contact));
+        contactDetails.getChildren().add(section("Contact", contact));
+        details.getChildren().add(contactDetails);
 
         VBox guardian = new VBox(3);
         if (person.getGuardian().isPresent()) {
@@ -224,6 +229,9 @@ public class PersonCard extends UiPart<Region> {
             guardian.getChildren().add(muted(StudentCardText.NOT_SET));
         }
         details.getChildren().add(section("Guardian", guardian));
+
+        Node lessonContent = lines.isEmpty() ? muted(StudentCardText.NO_LESSONS) : lessonTable(lines);
+        details.getChildren().add(section("Lessons", lessonContent));
 
         if (!person.getTags().isEmpty()) {
             FlowPane tags = new FlowPane(6, 6);
@@ -237,11 +245,6 @@ public class PersonCard extends UiPart<Region> {
             tags.setPrefWrapLength(CONTACT_MAX_WIDTH);
             details.getChildren().add(section("Tags", tags));
         }
-        person.getSchool().ifPresent(school -> {
-            Text text = text(school.toString(), "row-value");
-            detailLines.add(text);
-            details.getChildren().add(section("School", text));
-        });
     }
 
     /**

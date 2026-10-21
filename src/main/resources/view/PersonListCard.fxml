@@ -42,6 +42,6 @@
     </HBox>
   </HBox>
 
-  <!-- Open details: every lesson, contact details, guardian, tags and school -->
+  <!-- Open details: school and contact details together, then guardian, lessons and tags -->
   <FlowPane fx:id="details" styleClass="row-details" hgap="48" vgap="16" />
 </VBox>
