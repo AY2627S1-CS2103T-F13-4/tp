@@ -2,7 +2,6 @@ package seedu.address.testutil;
 
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.DayOfWeek;
 import java.time.LocalTime;
@@ -40,7 +39,7 @@ import seedu.address.storage.JsonAddressBookStorage;
  * Writes a StudentBook data file filled with realistic Singapore tuition students.
  * Students are built from the real model classes and saved with the app's own storage, so every generated file
  * is one the app can load. Run it with, for example:
- * {@code ./gradlew seed --args="--students 500 --seed 7 --out data/studentbook.json --force"}.
+ * {@code ./gradlew seed --args="--students 500 --seed 7 --out data/studentbook.json"}.
  */
 public class StudentBookSeeder {
     public static final int DEFAULT_STUDENTS = 40;
@@ -48,11 +47,10 @@ public class StudentBookSeeder {
     public static final Path DEFAULT_OUT = Path.of("data", "studentbook.json");
 
     private static final String USAGE = String.join("\n",
-            "Usage: ./gradlew seed --args=\"[--students N] [--seed S] [--out FILE] [--force] [--edge-cases]\"",
+            "Usage: ./gradlew seed --args=\"[--students N] [--seed S] [--out FILE] [--edge-cases]\"",
             "  --students N  number of students (default " + DEFAULT_STUDENTS + "; try 500 for stress testing)",
             "  --seed S      random seed; the same seed gives the same file (default " + DEFAULT_SEED + ")",
-            "  --out FILE    file to write (default " + DEFAULT_OUT + ")",
-            "  --force       overwrite FILE if it already exists",
+            "  --out FILE    file to write, replacing any existing file (default " + DEFAULT_OUT + ")",
             "  --edge-cases  also add fixed students with max-length fields, a Zoom link, back-to-back and",
             "                overlapping lessons, 'Alex Tan' and 'alex tan', and no lessons or guardian");
 
@@ -445,7 +443,6 @@ public class StudentBookSeeder {
         int count = DEFAULT_STUDENTS;
         long seed = DEFAULT_SEED;
         Path out = DEFAULT_OUT;
-        boolean force = false;
         boolean withEdgeCases = false;
         try {
             for (int i = 0; i < args.length; i++) {
@@ -456,8 +453,6 @@ public class StudentBookSeeder {
                     seed = Long.parseLong(args[++i]);
                 } else if (option.equals("--out")) {
                     out = Path.of(args[++i]);
-                } else if (option.equals("--force")) {
-                    force = true;
                 } else if (option.equals("--edge-cases")) {
                     withEdgeCases = true;
                 } else {
@@ -470,10 +465,6 @@ public class StudentBookSeeder {
         } catch (IllegalArgumentException | ArrayIndexOutOfBoundsException e) {
             System.err.println((e instanceof ArrayIndexOutOfBoundsException ? "Missing option value" : e.getMessage())
                     + "\n" + USAGE);
-            System.exit(2);
-        }
-        if (Files.exists(out) && !force) {
-            System.err.println(out + " already exists; pass --force to overwrite it.");
             System.exit(2);
         }
 

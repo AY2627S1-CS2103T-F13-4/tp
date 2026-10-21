@@ -41,24 +41,23 @@ This project has three types of tests:
 
 The `seed` Gradle task writes a StudentBook data file filled with realistic Singapore tuition students: local names, HDB addresses, primary to JC levels and adult learners, guardians, siblings who share a guardian and address, and weekly lessons with typical subjects, slots, rates, locations and modes. It builds students from the real model classes and saves them through `JsonAddressBookStorage`, so every generated file is one the app can load. The generator is `seedu.address.testutil.StudentBookSeeder`.
 
-Run it with no arguments to write 40 students to `data/studentbook.json`:
+Run it with no arguments to write 40 students to `data/studentbook.json`, replacing whatever data is there:
 
 ```text
 ./gradlew seed
 ```
 
-To change the defaults, pass options through `--args`, e.g. `./gradlew seed --args="--students 500 --force"`:
+To change the defaults, pass options through `--args`, e.g. `./gradlew seed --args="--students 500"`:
 
 ```text
-./gradlew seed --args="[--students N] [--seed S] [--out FILE] [--force] [--edge-cases]"
+./gradlew seed --args="[--students N] [--seed S] [--out FILE] [--edge-cases]"
 ```
 
 Option | Meaning | Default
 -------|---------|--------
 `--students N` | Number of random students. Try 500 for stress testing. | `40`
 `--seed S` | Random seed. The same seed always gives the same file. | `2103`
-`--out FILE` | File to write, relative to the repository root. | `data/studentbook.json`
-`--force` | Overwrite `FILE` if it already exists. Without it, the task refuses to overwrite. |
+`--out FILE` | File to write, relative to the repository root. Any existing file is replaced. | `data/studentbook.json`
 `--edge-cases` | Also add fixed students for boundary testing (see below). The random students are unchanged. |
 
 The task prints the number of students, lessons and overlapping lesson pairs it wrote. Since the default output is the file the app loads, `./gradlew run` then opens the generated data.
