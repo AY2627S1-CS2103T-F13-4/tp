@@ -18,6 +18,7 @@ import seedu.address.model.person.LessonLocation;
 import seedu.address.model.person.LessonMode;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Phone;
+import seedu.address.model.person.School;
 import seedu.address.model.person.SchoolingLevel;
 import seedu.address.model.person.Subject;
 import seedu.address.model.person.WeeklyLessonSlot;
@@ -75,6 +76,21 @@ public class ParserUtil {
             subjects.add(parseSubject(value));
         }
         return subjects;
+    }
+
+    /**
+     * Parses a {@code String school} into a {@code School}.
+     * Leading and trailing whitespaces will be trimmed.
+     *
+     * @throws ParseException if the given {@code school} is invalid.
+     */
+    public static School parseSchool(String school) throws ParseException {
+        requireNonNull(school);
+        String trimmedSchool = school.trim();
+        if (!School.isValidSchool(trimmedSchool)) {
+            throw new ParseException(School.MESSAGE_CONSTRAINTS);
+        }
+        return new School(trimmedSchool);
     }
 
     /**

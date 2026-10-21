@@ -3,7 +3,7 @@ layout: page
 title: Developer Guide
 ---
 
-StudentBook builds on AddressBook Level 3, or AB3. The architecture below describes the inherited application. The shared tuition model, schooling-level, guardian and lesson workflows are implemented; other tuition commands are planned.
+StudentBook builds on AddressBook Level 3, or AB3. The architecture below describes the inherited application. The shared tuition model, school, schooling-level, guardian and lesson workflows are implemented; other tuition commands are planned.
 
 Start with [setup](SettingUp.md), then the [shared tuition model](#shared-tuition-model) and [product scope](#product-scope).
 
@@ -64,7 +64,7 @@ When either list changes, the `ListView` rebuilds the affected `PersonCard`s, so
 * **Window:** `MainWindow` stacks the brand, the command panel (`CommandBox`, then `ResultDisplay`), a row of tabs and the screen below it. `LightTheme.css` keeps the command panel white and the rest of the window a shade darker, so the command panel stands out. Tabs run commands through `CommandBox#submit`, so they get the same feedback and history as typed commands. The level filters after the tabs are rebuilt from the schooling levels in use and run `find level/LEVEL`; they are hidden below 900px, and `MainWindow#hideCutOffFilters` hides any that do not fully fit, so a long level is never shown cut short. Below 560px of height, the brand and the status bar footer are hidden, so the screen keeps a few rows on a 1280x720 screen at 150% scaling (a window of about 853x410). The menu bar moves into the macOS system menu bar. The page header's **+ Add student** button calls `CommandBox#prefill` with the `add` format.
 * **Screens:** The main area holds two screens, `WeekPanel` (the week's lessons, shown at startup) and `PersonListPanel` (the student table); one is visible at a time. A command chooses the screen through `CommandResult#getScreen`: `week` returns `WEEK`, `list` and `find` return `STUDENTS`, and every other command returns `UNCHANGED`. `MainWindow#showScreen` swaps the screens and marks the matching tab. `week` keeps the current filter; the calendar labels lessons using each student's index in the filtered list.
 * **Week calendar:** `WeekPanel` shows a page header with the lesson count and a colour key, then `ScheduleGrid` in a scroll pane. `ScheduleGrid` lays out the filtered list's lessons on a `GridPane`: column 0 holds the times, and every lesson column gets an equal share of the remaining width, so a day with overlapping lessons is wider than the others. Rows are one hour, from 9am to 8pm, extended to the whole hours around any earlier or later lesson. Each lesson is a `LessonCard` placed by minute, using margins inside the hours it spans. Within a day, overlapping lessons get separate columns (a greedy interval partition); every block is one column wide, so a day with overlaps is wider rather than its lessons narrower. `ScheduleEntry` carries the student and lesson numbers that the card shows, such as `#3.1`. The grid takes a `Clock` so tests can fix the dates in the day headings, today's shading and the current-time line; a `Timeline` moves that line at the start of every minute and redraws the week when the date changes. The day headings are pinned to the top: `WeekPanel` passes the scroll offset to `ScheduleGrid#setHeadingOffset`.
-* **Rows:** The student list is a table. `PersonListPanel` computes the column widths (Name, Subjects, Next lesson, Rate, Guardian) from the list's width and binds the header and each `PersonCard` to them; below 900px the Subjects and Guardian columns are hidden. A row shows the initials badge, name and level, the subjects across lessons, the next lesson (`StudentCardText#nextLesson`, the soonest start in the weekly cycle) and its rate, and the guardian's name. Its details (every lesson, contact details, guardian with phone, tags) are built the first time the row opens and then shown or hidden by `PersonCard#setOpen`. A row is open while it is selected: the list selects the only row after a search, a click selects a row, and Alt+Up/Alt+Down in the command box call `PersonListPanel#moveDetails`, which selects the next row and scrolls only if it is out of view. Esc in an empty box calls `closeDetails`. Only the two rows whose selection changes are updated, so browsing details does not rebuild the list. `StudentCardText` formats lessons with short days and rates and numbers them from 1 in stored order, matching `LESSON_INDEX`. `SchoolingLevel#stageOf` gives each level its school stage, matching only clear forms such as `P5`, `Sec 3 Express` and `JC1`; the stage colours the initials badge, level filter dots and group headings. Each stage's first row shows a heading with the stage name and count. JavaFX asks a row for its height before laying it out, so wrapping text (`Text`) has its wrapping width bound to its column.
+* **Rows:** The student list is a table. `PersonListPanel` computes the column widths (Name, Subjects, Next lesson, Rate, Guardian) from the list's width and binds the header and each `PersonCard` to them; below 900px the Subjects and Guardian columns are hidden. A row shows the initials badge, name and level, the subjects across lessons, the next lesson (`StudentCardText#nextLesson`, the soonest start in the weekly cycle) and its rate, and the guardian's name. Its details (every lesson, contact details, guardian with phone, tags and school) are built the first time the row opens and then shown or hidden by `PersonCard#setOpen`. A row is open while it is selected: the list selects the only row after a search, a click selects a row, and Alt+Up/Alt+Down in the command box call `PersonListPanel#moveDetails`, which selects the next row and scrolls only if it is out of view. Esc in an empty box calls `closeDetails`. Only the two rows whose selection changes are updated, so browsing details does not rebuild the list. `StudentCardText` formats lessons with short days and rates and numbers them from 1 in stored order, matching `LESSON_INDEX`. `SchoolingLevel#stageOf` gives each level its school stage, matching only clear forms such as `P5`, `Sec 3 Express` and `JC1`; the stage colours the initials badge, level filter dots and group headings. Each stage's first row shows a heading with the stage name and count. JavaFX asks a row for its height before laying it out, so wrapping text (`Text`) has its wrapping width bound to its column.
 * **Results:** `MainWindow#executeCommand` sends successes to `ResultDisplay#setFeedbackToUser` (with the last three commands from `CommandHistory#recent`, shown as chips beside a one-line result) and failures to `ResultDisplay#setErrorToUser`. The row shows a matching mark. `FeedbackLines` splits a message into a title, text, formats and examples; it recognises the shapes the commands' `MESSAGE_USAGE` strings use. `ResultDisplay` shows formats and examples with captions in a monospace font chosen by `MonospaceFont`; clicking one copies it, since `Text` nodes cannot be selected. The row sizes to the message and scrolls past its maximum height. `FeedbackLinesTest` runs every command's real usage error, so rewording a usage message into an unrecognised shape fails a test.
 * **Keyboard:** `CommandBox` keeps the AB3 behaviour: it clears the input after a success, and keeps it with an error style after a failure. Every feature has a command, and the command box keeps focus (the list, calendar, tabs and buttons are not focus-traversable, and closing `HelpWindow` refocuses it), so shortcuts are only speed-ups. They use keys every laptop has: Up and Down for `CommandHistory` (this session only, with the unsent text kept), Esc to clear (or, in an empty box, close a student's details), Alt+Up and Alt+Down to step through students' details on the table or scroll the calendar (`MainWindow` routes them by screen and sets the matching hint), and Tab to put the example of the last usage error (`ResultDisplay#getExample`) in the box. Page Up and Page Down also scroll, as an extra. After Alt+Up/Down, `CommandBox` keeps the Alt release from focusing the menu bar on Windows and Linux. Key hints show while the box is empty and the command panel is at least 900px wide. `view INDEX` returns a `CommandResult` carrying the student to open, which `PersonListPanel#openStudent` selects.
 * **Window size:** The window's minimum size is 760×400, so a row's Student and Next lesson columns always fit side by side. A saved window size larger than the screen it opens on is reduced to fit, so the app stays usable on a 1280×720 screen at 150% scaling. The saved position is used as before.
@@ -136,6 +136,7 @@ A `Student` adds an `Email`, an `Address`, a set of `Tag`s and the tuition field
 
 | Field | Java type | Rules |
 |---|---|---|
+| School | `Optional<School>` | Zero or one school, 1 to 60 characters after trimming leading and trailing whitespace; cannot be blank |
 | Schooling level | `Optional<SchoolingLevel>` | One text label, 1 to 30 ASCII characters after the space cleanup below |
 | Guardian | `Optional<Guardian>` | Both `Name` and `Phone`, using AB3 validation |
 | Lessons | `List<Lesson>` | Zero or more lessons in insertion order; identical lessons are rejected |
@@ -161,16 +162,17 @@ Lesson equality includes every field, including location and mode. Overlapping t
 
 #### Constructors and editing
 
-`Student` has two constructors. The five-argument form (`name, phone, email, address, tags`) leaves the level and guardian absent and the lesson list empty. The full form is:
+The five-argument `Student` constructor (`name, phone, email, address, tags`) leaves the school, level and guardian absent and the lesson list empty. The full nine-argument form is:
 
 ```text
 name, phone, email, address, tags,
-schoolingLevel, guardian, lessons
+school, schoolingLevel, guardian, lessons
 ```
 
 All arguments, including each `Optional` and each lesson, must be non-null. The constructor throws `IllegalArgumentException` (`Student.MESSAGE_DUPLICATE_LESSONS`) if `lessons` contains duplicates, and `getLessons()` returns an unmodifiable list.
 
 * Every edit keeps fields it does not change. `edit` cannot change lessons or the guardian; the `lesson-` and `guardian-` commands build a replacement `Student` and call `Model#setPerson`.
+* The optional `sch/SCHOOL` argument follows tags and precedes schooling level in the `add` and `edit` formats. Omitting it preserves the school on edit; an empty `sch/` clears it on edit and is rejected on add. Repeated `sch/` prefixes are rejected.
 * Full equality and hashing include all tuition fields.
 * Existing sample records may leave tuition fields absent.
 
@@ -180,6 +182,7 @@ Storage uses the configured file path, default `data/studentbook.json`, and the 
 
 | Property | JSON value |
 |---|---|
+| `school` | Text string |
 | `schoolingLevel` | Text string |
 | `guardianContact` | Object with `name` and `phone` (the key keeps its original name so existing files still load) |
 | `lessons` | Array of lesson objects; empty means no lessons |
@@ -194,7 +197,7 @@ Each lesson object, written by `JsonAdaptedLesson`, has:
 | `location` | Text string; omitted when not recorded |
 | `mode` | `PHYSICAL` or `VIRTUAL`; omitted when not recorded |
 
-Missing or null `schoolingLevel`, `guardianContact` and `lessons` load as absent or empty. Supplied values must have the correct JSON type and pass the model validation; a lesson missing `subject`, `weeklyLessonSlot` or `hourlyRate` is rejected.
+Missing or null `school`, `schoolingLevel`, `guardianContact` and `lessons` load as absent or empty. Supplied values must have the correct JSON type and pass the model validation; a lesson missing `subject`, `weeklyLessonSlot` or `hourlyRate` is rejected.
 
 **Older data files:** files saved before lessons existed stored `subjects`, `weeklyLessonSlot` and `hourlyRate` directly on each student. There is no migration: Jackson ignores those unknown properties on load, and the next save removes them. This is acceptable while there are no real users. Delete or convert an old `data/studentbook.json` if you need to keep its tuition details.
 
@@ -273,7 +276,7 @@ Independent private tutors who:
 
 **Value proposition**: StudentBook keeps student contacts, tuition details, weekly lesson slots and hourly rates in one place, so private tutors can find and update them quickly.
 
-The MVP includes student records and all five tuition features below. Keep the existing AB3 contact fields and commands. Payment processing and sending messages are out of scope. Group classes, progress notes, follow-ups and other brainstormed ideas remain backlog candidates, not delivery commitments.
+The planned MVP includes student records and all five tuition features below. Keep the existing AB3 contact fields and commands. Payment processing and sending messages are out of scope. Group classes, progress notes, follow-ups and other brainstormed ideas remain backlog candidates, not delivery commitments.
 
 | Owner | MVP feature | Story IDs |
 |---|---|---|
@@ -283,11 +286,11 @@ The MVP includes student records and all five tuition features below. Keep the e
 | Dylan | Hourly rate | 53, 54 |
 | Mervin | Guardian contact | 7, 8, 22, 23 |
 
-The shared types and storage are implemented. The app supports add, display, edit and clear for schooling levels, finding students by level, guardian add, edit and delete, and lesson add, edit and delete. Week 8 needs a small working increment per person; the full MVP is the v1.3 target.
+The shared types and storage are implemented. The app supports add, display, edit and clear for schools and schooling levels, finding students by level, guardian add, edit and delete, and lesson add, edit and delete. Week 8 needs a small working increment per person; the full MVP is the v1.3 target.
 
 ### Agreed field rules
 
-A student has any number of lessons. Each lesson groups a required subject, weekly slot and hourly rate with an optional location and mode. Schooling level is optional; students can be added without one, and `edit INDEX level/` can clear an existing level.
+A student has any number of lessons. Each lesson groups a required subject, weekly slot and hourly rate with an optional location and mode. School and schooling level are optional; students can be added without either, and `edit INDEX sch/` or `edit INDEX level/` can clear the corresponding field. Each student has at most one school, with 1 to 60 characters after trimming leading and trailing whitespace.
 
 ### Decisions to confirm
 
@@ -307,7 +310,9 @@ The pre-chat Git and Google documents also differed on registration and guardian
 
 Priorities from the planning Sheet are retained: `***` = high, `**` = medium, `*` = low. Priority does not determine whether a story is in the MVP or already implemented.
 
-The MVP covers stories 1–9, subject/level updates in 12, guardian name/phone updates in 22 and removal in 23, slots in 25/28/29/48, and rates in 53/54. The table also preserves existing AB3 capabilities and other ideas for future reference. Unselected ideas are backlog candidates, not commitments, including school in story 12 and guardian email in story 22.
+The planned MVP covers stories 1–9, subject/level updates in 12, guardian name/phone updates in 22 and removal in 23, slots in 25/28/29/48, and rates in 53/54. School recording in story 11 and school updates in story 12 are also implemented, in addition to the five tuition features in the MVP ownership table.
+
+The table also preserves existing AB3 capabilities and other ideas for future reference. Unselected ideas are backlog candidates, not commitments, including school filtering in story 15 and guardian email in story 22.
 
 | ID | Priority | As a... | I want to... | So that I can... |
 |---|---|---|---|---|
@@ -527,7 +532,7 @@ These are acceptance targets. They have not all been verified in the current app
 
 * **StudentBook**: The desktop app for managing student records.
 * **Independent private tutor**: A tutor who manages students and lessons without administrative staff.
-* **Student record**: One student's contact details, schooling level, guardian contact and lessons. Notes remain a backlog candidate.
+* **Student record**: One student's contact details, school, schooling level, guardian contact and lessons. Notes remain a backlog candidate.
 * **Guardian contact**: The name and phone number of the adult responsible for a student. The first version allows one optional guardian per student. A recorded guardian needs both fields.
 * **Schooling level**: The student's stage of primary or secondary education, such as Primary 5 or Secondary 3.
 * **Subject**: An academic subject taught by the tutor to a student, such as Mathematics or English.

@@ -28,7 +28,7 @@ import seedu.address.model.person.Student;
 
 /**
  * A table row that displays a {@code Student}: name and level, subjects, next lesson, rate and guardian.
- * An open row also shows its details: every lesson, the contact details, guardian and tags.
+ * An open row also shows its details: every lesson, the contact details, guardian, tags and school.
  */
 public class PersonCard extends UiPart<Region> {
 
@@ -53,7 +53,7 @@ public class PersonCard extends UiPart<Region> {
     private static final double MODE_CHIP_GAP = 8;
     /** Room for the widest mode chip ("Physical") and its gap, in front of a location line. */
     private static final double MODE_CHIP_ALLOWANCE = 76;
-    /** Contact details wrap at this width in the details. */
+    /** Contact details and school wrap at this width in the details. */
     private static final double CONTACT_MAX_WIDTH = 320;
     /** Colours the level chip and initials badge by school stage; unrecognised levels stay neutral. */
     private static final Map<SchoolingLevel.Stage, String> STAGE_STYLE_CLASSES = Map.of(
@@ -105,9 +105,9 @@ public class PersonCard extends UiPart<Region> {
     @FXML
     private FlowPane details;
 
-    /** Text in the details that wraps: lesson locations and contact lines. */
+    /** Text in the details that wraps: lesson locations, contact lines and school. */
     private final List<Text> lessonLocations = new ArrayList<>();
-    private final List<Text> contactLines = new ArrayList<>();
+    private final List<Text> detailLines = new ArrayList<>();
     private final List<StudentCardText.LessonLine> lines;
     private boolean detailsBuilt;
     private boolean open;
@@ -203,7 +203,7 @@ public class PersonCard extends UiPart<Region> {
         }
     }
 
-    /** Fills the details: every lesson, the contact details, the guardian and any tags. */
+    /** Fills the details: every lesson, the contact details, the guardian, any tags and school. */
     private void fillDetails(List<StudentCardText.LessonLine> lines) {
         Node lessonContent = lines.isEmpty() ? muted(StudentCardText.NO_LESSONS) : lessonTable(lines);
         details.getChildren().add(section("Lessons", lessonContent));
@@ -211,7 +211,7 @@ public class PersonCard extends UiPart<Region> {
         VBox contact = new VBox(3);
         for (String line : List.of(person.getPhone().value, person.getEmail().value, person.getAddress().value)) {
             Text text = text(line, "row-value");
-            contactLines.add(text);
+            detailLines.add(text);
             contact.getChildren().add(text);
         }
         details.getChildren().add(section("Contact", contact));
@@ -237,6 +237,11 @@ public class PersonCard extends UiPart<Region> {
             tags.setPrefWrapLength(CONTACT_MAX_WIDTH);
             details.getChildren().add(section("Tags", tags));
         }
+        person.getSchool().ifPresent(school -> {
+            Text text = text(school.toString(), "row-value");
+            detailLines.add(text);
+            details.getChildren().add(section("School", text));
+        });
     }
 
     /**
@@ -304,7 +309,7 @@ public class PersonCard extends UiPart<Region> {
                 .subtract(LESSON_COLUMN_WIDTHS[0] + LESSON_COLUMN_GAP + MODE_CHIP_ALLOWANCE);
         lessonLocations.forEach(location -> wrapWhenLonger(location, locationLimit, BODY_FONT_SIZE));
         DoubleExpression contactLimit = Bindings.min(detailsWidth, CONTACT_MAX_WIDTH);
-        contactLines.forEach(line -> wrapWhenLonger(line, contactLimit, BODY_FONT_SIZE));
+        detailLines.forEach(line -> wrapWhenLonger(line, contactLimit, BODY_FONT_SIZE));
     }
 
     /** Returns the style class that colours {@code level} by its school stage. */
