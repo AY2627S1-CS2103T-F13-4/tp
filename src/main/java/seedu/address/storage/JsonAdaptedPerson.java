@@ -18,6 +18,7 @@ import seedu.address.model.person.Guardian;
 import seedu.address.model.person.Lesson;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Phone;
+import seedu.address.model.person.ProgressNote;
 import seedu.address.model.person.SchoolingLevel;
 import seedu.address.model.person.Student;
 import seedu.address.model.tag.Tag;
@@ -39,14 +40,22 @@ class JsonAdaptedPerson {
     private final String schoolingLevel;
     private final JsonAdaptedGuardian guardianContact;
     private final List<JsonAdaptedLesson> lessons = new ArrayList<>();
+    private final List<JsonAdaptedProgressNote> notes = new ArrayList<>();
 
     /** Retains compatibility with existing adapter callers. */
     public JsonAdaptedPerson(String name, String phone, String email, String address, List<JsonAdaptedTag> tags) {
         this(name, phone, email, address, tags, null, null, null);
     }
 
+    /** Constructs a {@code JsonAdaptedPerson} with the given person details and no notes. */
+    public JsonAdaptedPerson(String name, String phone, String email, String address, List<JsonAdaptedTag> tags,
+            String schoolingLevel, JsonAdaptedGuardian guardianContact, List<JsonAdaptedLesson> lessons) {
+        this(name, phone, email, address, tags, schoolingLevel, guardianContact, lessons, null);
+    }
+
     /**
      * Constructs a {@code JsonAdaptedPerson} with the given person details.
+     * Files saved before notes existed have no {@code notes}, which loads as no notes.
      */
     @JsonCreator
     public JsonAdaptedPerson(@JsonProperty("name") String name, @JsonProperty("phone") String phone,
@@ -54,7 +63,8 @@ class JsonAdaptedPerson {
             @JsonProperty("tags") List<JsonAdaptedTag> tags,
             @JsonProperty("schoolingLevel") String schoolingLevel,
             @JsonProperty("guardianContact") JsonAdaptedGuardian guardianContact,
-            @JsonProperty("lessons") List<JsonAdaptedLesson> lessons) {
+            @JsonProperty("lessons") List<JsonAdaptedLesson> lessons,
+            @JsonProperty("notes") List<JsonAdaptedProgressNote> notes) {
         this.name = name;
         this.phone = phone;
         this.email = email;
@@ -66,6 +76,9 @@ class JsonAdaptedPerson {
         }
         if (lessons != null) {
             this.lessons.addAll(lessons);
+        }
+        if (notes != null) {
+            this.notes.addAll(notes);
         }
     }
 
@@ -81,6 +94,9 @@ class JsonAdaptedPerson {
         guardianContact = source.getGuardian().map(JsonAdaptedGuardian::new).orElse(null);
         lessons.addAll(source.getLessons().stream()
                 .map(JsonAdaptedLesson::new)
+                .collect(Collectors.toList()));
+        notes.addAll(source.getNotes().stream()
+                .map(JsonAdaptedProgressNote::new)
                 .collect(Collectors.toList()));
         tags.addAll(source.getTags().stream()
                 .map(JsonAdaptedTag::new)
@@ -139,8 +155,15 @@ class JsonAdaptedPerson {
             for (JsonAdaptedLesson lesson : lessons) {
                 modelLessons.add(lesson.toModelType());
             }
+            final List<ProgressNote> modelNotes = new ArrayList<>();
+            for (JsonAdaptedProgressNote note : notes) {
+                if (note == null) {
+                    throw new IllegalValueException(String.format(MISSING_FIELD_MESSAGE_FORMAT, "note"));
+                }
+                modelNotes.add(note.toModelType());
+            }
             return new Student(modelName, modelPhone, modelEmail, modelAddress, modelTags,
-                    modelLevel, modelGuardian, modelLessons);
+                    modelLevel, modelGuardian, modelLessons, modelNotes);
         } catch (IllegalArgumentException e) {
             throw new IllegalValueException(e.getMessage());
         }

@@ -111,7 +111,7 @@ public class LessonCommand extends Command {
         }
         Student replacement = new Student(student.getName(), student.getPhone(), student.getEmail(),
                 student.getAddress(), student.getTags(), student.getSchoolingLevel(),
-                student.getGuardian(), lessons);
+                student.getGuardian(), lessons, student.getNotes());
         model.setPerson(student, replacement);
         String action = switch (operation) {
             case ADD -> "added";
