@@ -18,6 +18,7 @@ import seedu.address.model.person.Guardian;
 import seedu.address.model.person.Lesson;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Phone;
+import seedu.address.model.person.School;
 import seedu.address.model.person.SchoolingLevel;
 import seedu.address.model.person.Student;
 import seedu.address.model.tag.Tag;
@@ -36,6 +37,8 @@ class JsonAdaptedPerson {
     private final List<JsonAdaptedTag> tags = new ArrayList<>();
 
     @JsonDeserialize(using = StrictStringDeserializer.class)
+    private final String school;
+    @JsonDeserialize(using = StrictStringDeserializer.class)
     private final String schoolingLevel;
     private final JsonAdaptedGuardian guardianContact;
     private final List<JsonAdaptedLesson> lessons = new ArrayList<>();
@@ -43,7 +46,7 @@ class JsonAdaptedPerson {
 
     /** Retains compatibility with existing adapter callers. */
     public JsonAdaptedPerson(String name, String phone, String email, String address, List<JsonAdaptedTag> tags) {
-        this(name, phone, email, address, tags, null, null, null, false);
+        this(name, phone, email, address, tags, null, null, null, null, false);
     }
 
     /**
@@ -54,6 +57,7 @@ class JsonAdaptedPerson {
     public JsonAdaptedPerson(@JsonProperty("name") String name, @JsonProperty("phone") String phone,
             @JsonProperty("email") String email, @JsonProperty("address") String address,
             @JsonProperty("tags") List<JsonAdaptedTag> tags,
+            @JsonProperty("school") String school,
             @JsonProperty("schoolingLevel") String schoolingLevel,
             @JsonProperty("guardianContact") JsonAdaptedGuardian guardianContact,
             @JsonProperty("lessons") List<JsonAdaptedLesson> lessons,
@@ -62,6 +66,7 @@ class JsonAdaptedPerson {
         this.phone = phone;
         this.email = email;
         this.address = address;
+        this.school = school;
         this.schoolingLevel = schoolingLevel;
         this.guardianContact = guardianContact;
         this.isArchived = isArchived;
@@ -81,6 +86,7 @@ class JsonAdaptedPerson {
         phone = source.getPhone().value;
         email = source.getEmail().value;
         address = source.getAddress().value;
+        school = source.getSchool().map(School::toString).orElse(null);
         schoolingLevel = source.getSchoolingLevel().map(SchoolingLevel::toString).orElse(null);
         guardianContact = source.getGuardian().map(JsonAdaptedGuardian::new).orElse(null);
         isArchived = source.isArchived();
@@ -137,6 +143,7 @@ class JsonAdaptedPerson {
 
         final Set<Tag> modelTags = new HashSet<>(personTags);
         try {
+            Optional<School> modelSchool = Optional.ofNullable(school).map(School::new);
             Optional<SchoolingLevel> modelLevel = Optional.ofNullable(schoolingLevel).map(SchoolingLevel::new);
             Optional<Guardian> modelGuardian = guardianContact == null ? Optional.empty()
                     : Optional.of(guardianContact.toModelType());
@@ -145,7 +152,7 @@ class JsonAdaptedPerson {
                 modelLessons.add(lesson.toModelType());
             }
             return new Student(modelName, modelPhone, modelEmail, modelAddress, modelTags,
-                    modelLevel, modelGuardian, modelLessons, isArchived);
+                    modelSchool, modelLevel, modelGuardian, modelLessons, isArchived);
         } catch (IllegalArgumentException e) {
             throw new IllegalValueException(e.getMessage());
         }

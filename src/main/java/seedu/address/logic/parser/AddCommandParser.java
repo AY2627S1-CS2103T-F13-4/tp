@@ -6,6 +6,7 @@ import static seedu.address.logic.parser.CliSyntax.PREFIX_EMAIL;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_LEVEL;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_NAME;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_SCHOOL;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_TAG;
 
 import java.util.List;
@@ -19,6 +20,7 @@ import seedu.address.model.person.Address;
 import seedu.address.model.person.Email;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Phone;
+import seedu.address.model.person.School;
 import seedu.address.model.person.SchoolingLevel;
 import seedu.address.model.person.Student;
 import seedu.address.model.tag.Tag;
@@ -36,7 +38,7 @@ public class AddCommandParser implements Parser<AddCommand> {
     public AddCommand parse(String args) throws ParseException {
         ArgumentMultimap argMultimap =
                 ArgumentTokenizer.tokenize(args, PREFIX_NAME, PREFIX_PHONE, PREFIX_EMAIL, PREFIX_ADDRESS,
-                        PREFIX_TAG, PREFIX_LEVEL);
+                        PREFIX_TAG, PREFIX_SCHOOL, PREFIX_LEVEL);
 
         if (!arePrefixesPresent(argMultimap, PREFIX_NAME, PREFIX_ADDRESS, PREFIX_PHONE, PREFIX_EMAIL)
                 || !argMultimap.getPreamble().isEmpty()) {
@@ -44,20 +46,25 @@ public class AddCommandParser implements Parser<AddCommand> {
         }
 
         argMultimap.verifyNoDuplicatePrefixesFor(PREFIX_NAME, PREFIX_PHONE, PREFIX_EMAIL, PREFIX_ADDRESS,
-                PREFIX_LEVEL);
+                PREFIX_SCHOOL, PREFIX_LEVEL);
         Name name = ParserUtil.parseName(argMultimap.getValue(PREFIX_NAME).get());
         Phone phone = ParserUtil.parsePhone(argMultimap.getValue(PREFIX_PHONE).get());
         Email email = ParserUtil.parseEmail(argMultimap.getValue(PREFIX_EMAIL).get());
         Address address = ParserUtil.parseAddress(argMultimap.getValue(PREFIX_ADDRESS).get());
         Set<Tag> tagList = ParserUtil.parseTags(argMultimap.getAllValues(PREFIX_TAG));
 
+        Optional<School> school = Optional.empty();
+        if (argMultimap.getValue(PREFIX_SCHOOL).isPresent()) {
+            school = Optional.of(ParserUtil.parseSchool(argMultimap.getValue(PREFIX_SCHOOL).get()));
+        }
+
         Optional<SchoolingLevel> schoolingLevel = Optional.empty();
         if (argMultimap.getValue(PREFIX_LEVEL).isPresent()) {
             schoolingLevel = Optional.of(ParserUtil.parseSchoolingLevel(argMultimap.getValue(PREFIX_LEVEL).get()));
         }
 
-        Student person = new Student(name, phone, email, address, tagList, schoolingLevel,
-                Optional.empty(), List.of());
+        Student person = new Student(name, phone, email, address, tagList, school, schoolingLevel,
+                Optional.empty(), List.of(), false);
 
         return new AddCommand(person);
     }

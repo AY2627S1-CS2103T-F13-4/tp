@@ -117,6 +117,34 @@ public class StudentTest {
     }
 
     @Test
+    public void equals_school_comparesSchool() {
+        School school = new School("Nanyang Primary School");
+        Student withSchool = new PersonBuilder(ALICE).withSchool(school).build();
+        Student sameSchool = new PersonBuilder(ALICE).withSchool(new School("Nanyang Primary School")).build();
+
+        assertEquals(Optional.of(school), withSchool.getSchool());
+        assertEquals(withSchool, sameSchool);
+        assertEquals(withSchool.hashCode(), sameSchool.hashCode());
+        assertNotEquals(ALICE, withSchool);
+        assertNotEquals(withSchool,
+                new PersonBuilder(ALICE).withSchool(new School("Clementi Primary School")).build());
+        assertTrue(ALICE.isSamePerson(withSchool));
+        assertEquals(withSchool, new PersonBuilder(withSchool).build());
+        assertEquals(ALICE, new PersonBuilder(withSchool).withSchool(null).build());
+    }
+
+    @Test
+    public void constructor_schoolAbsent_isEmpty() {
+        assertTrue(ALICE.getSchool().isEmpty());
+    }
+
+    @Test
+    public void constructor_nullSchool_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> new Student(ALICE.getName(), ALICE.getPhone(), ALICE.getEmail(),
+                ALICE.getAddress(), ALICE.getTags(), null, Optional.empty(), Optional.empty(), List.of(), false));
+    }
+
+    @Test
     public void equals_lessons_comparesContentAndOrder() {
         Student withMonday = new PersonBuilder(ALICE).withLessons(MONDAY_MATH).build();
         Student withSameLesson = new PersonBuilder(ALICE).withLessons(new Lesson(new Subject("math"),
@@ -211,7 +239,7 @@ public class StudentTest {
     public void constructor_defensivelyCopiesLessons() {
         List<Lesson> input = new java.util.ArrayList<>(List.of(MONDAY_MATH));
         Student person = new Student(ALICE.getName(), ALICE.getPhone(), ALICE.getEmail(), ALICE.getAddress(),
-                ALICE.getTags(), Optional.empty(), Optional.empty(), input);
+                ALICE.getTags(), Optional.empty(), Optional.empty(), Optional.empty(), input, false);
         input.clear();
         assertEquals(List.of(MONDAY_MATH), person.getLessons());
     }
@@ -226,7 +254,8 @@ public class StudentTest {
     public void toStringMethod() {
         String expected = Student.class.getCanonicalName() + "{name=" + ALICE.getName() + ", phone=" + ALICE.getPhone()
                 + ", email=" + ALICE.getEmail() + ", address=" + ALICE.getAddress() + ", tags=" + ALICE.getTags()
-                + ", schoolingLevel=Optional.empty, guardian=Optional.empty, lessons=[], isArchived=false}";
+                + ", school=Optional.empty, schoolingLevel=Optional.empty, guardian=Optional.empty, lessons=[]"
+                + ", isArchived=false}";
         assertEquals(expected, ALICE.toString());
     }
 }

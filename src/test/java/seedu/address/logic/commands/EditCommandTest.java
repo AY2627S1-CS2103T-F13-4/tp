@@ -7,6 +7,8 @@ import static seedu.address.logic.commands.CommandTestUtil.DESC_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.DESC_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_NAME_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_PHONE_BOB;
+import static seedu.address.logic.commands.CommandTestUtil.VALID_SCHOOL_AMY;
+import static seedu.address.logic.commands.CommandTestUtil.VALID_SCHOOL_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_TAG_HUSBAND;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandFailure;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandSuccess;
@@ -34,6 +36,7 @@ import seedu.address.model.person.HourlyRate;
 import seedu.address.model.person.Lesson;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Phone;
+import seedu.address.model.person.School;
 import seedu.address.model.person.SchoolingLevel;
 import seedu.address.model.person.Student;
 import seedu.address.model.person.Subject;
@@ -57,7 +60,8 @@ public class EditCommandTest {
 
     @Test
     public void execute_allFieldsSpecifiedUnfilteredList_success() {
-        Student editedPerson = new PersonBuilder().withSchoolingLevel(new SchoolingLevel("Primary 5")).build();
+        Student editedPerson = new PersonBuilder().withSchool(new School(VALID_SCHOOL_AMY))
+                .withSchoolingLevel(new SchoolingLevel("Primary 5")).build();
         EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder(editedPerson).build();
         EditCommand editCommand = new EditCommand(INDEX_FIRST_PERSON, descriptor);
 
@@ -232,6 +236,33 @@ public class EditCommandTest {
     }
 
     @Test
+    public void execute_setSchool_success() {
+        Student original = personWithTuitionDetails().withSchool(null).build();
+        Student editedPerson = new PersonBuilder(original).withSchool(new School(VALID_SCHOOL_AMY)).build();
+        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withSchool(VALID_SCHOOL_AMY).build();
+
+        assertSuccessfulEdit(original, descriptor, editedPerson);
+    }
+
+    @Test
+    public void execute_replaceSchool_success() {
+        Student original = personWithTuitionDetails().build();
+        Student editedPerson = new PersonBuilder(original).withSchool(new School(VALID_SCHOOL_BOB)).build();
+        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withSchool(VALID_SCHOOL_BOB).build();
+
+        assertSuccessfulEdit(original, descriptor, editedPerson);
+    }
+
+    @Test
+    public void execute_clearSchool_success() {
+        Student original = personWithTuitionDetails().build();
+        Student editedPerson = new PersonBuilder(original).withSchool(null).build();
+        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withSchool(null).build();
+
+        assertSuccessfulEdit(original, descriptor, editedPerson);
+    }
+
+    @Test
     public void execute_editPhone_preservesLessonsAndOtherTuitionFields() {
         Student original = personWithTuitionDetails().build();
         Student editedPerson = new PersonBuilder(original).withPhone(VALID_PHONE_BOB).build();
@@ -261,6 +292,7 @@ public class EditCommandTest {
     private PersonBuilder personWithTuitionDetails() {
         return new PersonBuilder(model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased()))
                 .withLessons(MATH_LESSON, ENGLISH_LESSON)
+                .withSchool(new School(VALID_SCHOOL_AMY))
                 .withSchoolingLevel(new SchoolingLevel("Primary 5"))
                 .withGuardian(new Guardian(new Name("Janet Tan"), new Phone("91234567")));
     }

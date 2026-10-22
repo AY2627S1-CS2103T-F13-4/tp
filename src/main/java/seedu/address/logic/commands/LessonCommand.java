@@ -110,7 +110,7 @@ public class LessonCommand extends Command {
             throw new CommandException(MESSAGE_DUPLICATE_LESSON);
         }
         Student replacement = new Student(student.getName(), student.getPhone(), student.getEmail(),
-                student.getAddress(), student.getTags(), student.getSchoolingLevel(),
+                student.getAddress(), student.getTags(), student.getSchool(), student.getSchoolingLevel(),
                 student.getGuardian(), lessons, student.isArchived());
         model.setPerson(student, replacement);
         String action = switch (operation) {

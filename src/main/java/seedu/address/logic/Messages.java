@@ -45,6 +45,7 @@ public class Messages {
                 .append(person.getAddress())
                 .append("; Tags: ");
         person.getTags().forEach(builder::append);
+        person.getSchool().ifPresent(school -> builder.append("; School: ").append(school));
         person.getSchoolingLevel().ifPresent(level -> builder.append("; Level: ").append(level));
         if (!person.getLessons().isEmpty()) {
             builder.append("; Lessons: ").append(person.getLessons().stream()

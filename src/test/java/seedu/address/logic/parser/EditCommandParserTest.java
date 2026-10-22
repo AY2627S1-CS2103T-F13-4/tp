@@ -9,10 +9,13 @@ import static seedu.address.logic.commands.CommandTestUtil.INVALID_ADDRESS_DESC;
 import static seedu.address.logic.commands.CommandTestUtil.INVALID_EMAIL_DESC;
 import static seedu.address.logic.commands.CommandTestUtil.INVALID_NAME_DESC;
 import static seedu.address.logic.commands.CommandTestUtil.INVALID_PHONE_DESC;
+import static seedu.address.logic.commands.CommandTestUtil.INVALID_SCHOOL_DESC;
 import static seedu.address.logic.commands.CommandTestUtil.INVALID_TAG_DESC;
 import static seedu.address.logic.commands.CommandTestUtil.NAME_DESC_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.PHONE_DESC_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.PHONE_DESC_BOB;
+import static seedu.address.logic.commands.CommandTestUtil.SCHOOL_DESC_AMY;
+import static seedu.address.logic.commands.CommandTestUtil.SCHOOL_DESC_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.TAG_DESC_FRIEND;
 import static seedu.address.logic.commands.CommandTestUtil.TAG_DESC_HUSBAND;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_ADDRESS_AMY;
@@ -20,12 +23,14 @@ import static seedu.address.logic.commands.CommandTestUtil.VALID_EMAIL_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_NAME_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_PHONE_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_PHONE_BOB;
+import static seedu.address.logic.commands.CommandTestUtil.VALID_SCHOOL_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_TAG_FRIEND;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_TAG_HUSBAND;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_ADDRESS;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_EMAIL;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_LEVEL;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_SCHOOL;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_TAG;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseFailure;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseSuccess;
@@ -43,6 +48,7 @@ import seedu.address.model.person.Address;
 import seedu.address.model.person.Email;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Phone;
+import seedu.address.model.person.School;
 import seedu.address.model.person.SchoolingLevel;
 import seedu.address.model.tag.Tag;
 import seedu.address.testutil.EditPersonDescriptorBuilder;
@@ -90,6 +96,7 @@ public class EditCommandParserTest {
         assertParseFailure(parser, "1" + INVALID_EMAIL_DESC, Email.MESSAGE_CONSTRAINTS); // invalid email
         assertParseFailure(parser, "1" + INVALID_ADDRESS_DESC, Address.MESSAGE_CONSTRAINTS); // invalid address
         assertParseFailure(parser, "1" + INVALID_TAG_DESC, Tag.MESSAGE_CONSTRAINTS); // invalid tag
+        assertParseFailure(parser, "1" + INVALID_SCHOOL_DESC, School.MESSAGE_CONSTRAINTS); // invalid school
 
         // invalid phone followed by valid email
         assertParseFailure(parser, "1" + INVALID_PHONE_DESC + EMAIL_DESC_AMY, Phone.MESSAGE_CONSTRAINTS);
@@ -109,11 +116,13 @@ public class EditCommandParserTest {
     public void parse_allFieldsSpecified_success() {
         Index targetIndex = INDEX_SECOND_PERSON;
         String userInput = targetIndex.getOneBased() + PHONE_DESC_BOB + TAG_DESC_HUSBAND
-                + EMAIL_DESC_AMY + ADDRESS_DESC_AMY + NAME_DESC_AMY + TAG_DESC_FRIEND;
+                + EMAIL_DESC_AMY + ADDRESS_DESC_AMY + NAME_DESC_AMY + TAG_DESC_FRIEND
+                + SCHOOL_DESC_AMY + " level/Primary 5";
 
         EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withName(VALID_NAME_AMY)
                 .withPhone(VALID_PHONE_BOB).withEmail(VALID_EMAIL_AMY).withAddress(VALID_ADDRESS_AMY)
-                .withTags(VALID_TAG_HUSBAND, VALID_TAG_FRIEND).build();
+                .withTags(VALID_TAG_HUSBAND, VALID_TAG_FRIEND).withSchool(VALID_SCHOOL_AMY)
+                .withSchoolingLevel("Primary 5").build();
         EditCommand expectedCommand = new EditCommand(targetIndex, descriptor);
 
         assertParseSuccess(parser, userInput, expectedCommand);
@@ -206,6 +215,44 @@ public class EditCommandParserTest {
         EditCommand expectedCommand = new EditCommand(targetIndex, descriptor);
 
         assertParseSuccess(parser, userInput, expectedCommand);
+    }
+
+    @Test
+    public void parse_school_success() {
+        assertParseSuccess(parser, "1 sch/  " + VALID_SCHOOL_AMY + "  ", new EditCommand(INDEX_FIRST_PERSON,
+                new EditPersonDescriptorBuilder().withSchool(VALID_SCHOOL_AMY).build()));
+    }
+
+    @Test
+    public void parse_careOfAddress_success() {
+        String address = "123 Main Street c/o John Tan";
+        String userInput = "1 address/" + address;
+        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withAddress(address).build();
+
+        assertParseSuccess(parser, userInput, new EditCommand(INDEX_FIRST_PERSON, descriptor));
+
+        EditPersonDescriptor descriptorWithSchool = new EditPersonDescriptorBuilder(descriptor)
+                .withSchool(VALID_SCHOOL_AMY).build();
+        assertParseSuccess(parser, userInput + SCHOOL_DESC_AMY,
+                new EditCommand(INDEX_FIRST_PERSON, descriptorWithSchool));
+    }
+
+    @Test
+    public void parse_emptySchool_clearsSchool() {
+        EditPersonDescriptor clear = new EditPersonDescriptorBuilder().withSchool(null).build();
+        assertParseSuccess(parser, "1 sch/", new EditCommand(INDEX_FIRST_PERSON, clear));
+        assertParseSuccess(parser, "1 sch/   ", new EditCommand(INDEX_FIRST_PERSON, clear));
+    }
+
+    @Test
+    public void parse_duplicateSchool_failure() {
+        String expectedMessage = Messages.getErrorMessageForDuplicatePrefixes(PREFIX_SCHOOL);
+        assertParseFailure(parser, "1" + SCHOOL_DESC_AMY + SCHOOL_DESC_BOB, expectedMessage);
+        assertParseFailure(parser, "1" + SCHOOL_DESC_AMY + SCHOOL_DESC_AMY, expectedMessage);
+        assertParseFailure(parser, "1" + INVALID_SCHOOL_DESC + SCHOOL_DESC_AMY, expectedMessage);
+        assertParseFailure(parser, "1" + SCHOOL_DESC_AMY + INVALID_SCHOOL_DESC, expectedMessage);
+        assertParseFailure(parser, "1 sch/" + SCHOOL_DESC_AMY, expectedMessage);
+        assertParseFailure(parser, "1" + SCHOOL_DESC_AMY + " sch/", expectedMessage);
     }
 
     @Test

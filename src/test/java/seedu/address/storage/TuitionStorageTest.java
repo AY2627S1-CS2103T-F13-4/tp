@@ -30,6 +30,7 @@ import seedu.address.model.person.LessonLocation;
 import seedu.address.model.person.LessonMode;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Phone;
+import seedu.address.model.person.School;
 import seedu.address.model.person.SchoolingLevel;
 import seedu.address.model.person.Student;
 import seedu.address.model.person.Subject;
@@ -56,6 +57,7 @@ public class TuitionStorageTest {
         return new PersonBuilder()
                 .withLessons(lesson("Combined Science", DayOfWeek.MONDAY, "45.50"),
                         lesson("Math", DayOfWeek.WEDNESDAY, "50"))
+                .withSchool(new School("Nanyang Primary School"))
                 .withSchoolingLevel(new SchoolingLevel("Primary 5"))
                 .withGuardian(new Guardian(new Name("Janet Tan"), new Phone("91234567"))).build();
     }
@@ -77,6 +79,7 @@ public class TuitionStorageTest {
         assertEquals(2, loaded.getPersonList().size());
         Student first = loaded.getPersonList().get(0);
         assertTrue(first.getLessons().isEmpty());
+        assertTrue(first.getSchool().isEmpty());
         assertTrue(first.getSchoolingLevel().isEmpty());
         assertTrue(first.getGuardian().isEmpty());
     }

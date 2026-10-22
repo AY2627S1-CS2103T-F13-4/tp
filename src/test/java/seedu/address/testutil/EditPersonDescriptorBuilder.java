@@ -10,6 +10,7 @@ import seedu.address.model.person.Address;
 import seedu.address.model.person.Email;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Phone;
+import seedu.address.model.person.School;
 import seedu.address.model.person.SchoolingLevel;
 import seedu.address.model.person.Student;
 import seedu.address.model.tag.Tag;
@@ -39,7 +40,8 @@ public class EditPersonDescriptorBuilder {
         descriptor.setEmail(person.getEmail());
         descriptor.setAddress(person.getAddress());
         descriptor.setTags(person.getTags());
-        person.getSchoolingLevel().ifPresent(level -> descriptor.setSchoolingLevel(Optional.of(level)));
+        descriptor.setSchool(person.getSchool());
+        descriptor.setSchoolingLevel(person.getSchoolingLevel());
     }
 
     /**
@@ -81,6 +83,14 @@ public class EditPersonDescriptorBuilder {
     public EditPersonDescriptorBuilder withTags(String... tags) {
         Set<Tag> tagSet = Stream.of(tags).map(Tag::new).collect(Collectors.toSet());
         descriptor.setTags(tagSet);
+        return this;
+    }
+
+    /**
+     * Sets the school of the {@code EditPersonDescriptor} that we are building; null clears it.
+     */
+    public EditPersonDescriptorBuilder withSchool(String school) {
+        descriptor.setSchool(Optional.ofNullable(school).map(School::new));
         return this;
     }
 
