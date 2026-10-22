@@ -80,3 +80,11 @@ shadowJar {
 }
 
 defaultTasks 'clean', 'test'
+
+tasks.register('seed', JavaExec) {
+    group = 'application'
+    description = 'Writes realistic StudentBook data, e.g. ./gradlew seed --args="--students 500 --force"'
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'seedu.address.testutil.StudentBookSeeder'
+    workingDir = rootDir
+}
