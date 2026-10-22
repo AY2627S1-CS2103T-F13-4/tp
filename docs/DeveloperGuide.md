@@ -248,7 +248,7 @@ Validation remains the current AB3 validation; broader name and phone rules rema
 
 A `ProgressNote` holds a `LocalDate` and 1–500 characters of single-line text. `Student` keeps its notes in an
 unmodifiable list sorted oldest first; the sort is stable, so notes on the same date keep the order they were added.
-A note's position in that list is the `NOTE_INDEX` shown in the details. The 8-argument `Student` constructor still
+A note's position in that list is the `NOTE_INDEX` shown in the details. The 9-argument `Student` constructor still
 creates a student with no notes, for new students and older callers.
 
 `note-add` and `note-delete` are routed by `AddressBookParser` to `NoteCommandParser`, parameterized by the
@@ -261,7 +261,7 @@ wrong.
 date; deleting rejects a note number past the end. Either way, it replaces the student with a copy whose notes
 have changed. It returns a `CommandResult` that opens that student's
 details, where `PersonCard` lists the notes. Every command that rebuilds a `Student` (`edit`, the guardian commands
-and the lesson commands) passes the existing notes to the 9-argument constructor; `NoteCommandTest` checks each of
+and the lesson commands) passes the existing notes to the 10-argument constructor; `NoteCommandTest` checks each of
 them so a later field change cannot silently drop notes.
 
 `JsonAdaptedProgressNote` stores each note as `{"date": "YYYY-MM-DD", "text": "..."}` in the person's `notes`
