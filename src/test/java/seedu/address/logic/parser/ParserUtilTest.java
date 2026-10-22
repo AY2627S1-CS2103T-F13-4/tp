@@ -21,6 +21,7 @@ import seedu.address.model.person.Address;
 import seedu.address.model.person.Email;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Phone;
+import seedu.address.model.person.School;
 import seedu.address.model.person.WeeklyLessonSlot;
 import seedu.address.model.tag.Tag;
 
@@ -176,6 +177,34 @@ public class ParserUtilTest {
             assertThrows(ParseException.class, WeeklyLessonSlot.MESSAGE_CONSTRAINTS, () ->
                     ParserUtil.parseWeeklyLessonSlot(input));
         }
+    }
+
+    @Test
+    public void parseSchool_null_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> ParserUtil.parseSchool(null));
+    }
+
+    @Test
+    public void parseSchool_invalidValue_throwsParseException() {
+        assertThrows(ParseException.class, School.MESSAGE_CONSTRAINTS, () -> ParserUtil.parseSchool(""));
+        assertThrows(ParseException.class, School.MESSAGE_CONSTRAINTS, () -> ParserUtil.parseSchool(WHITESPACE));
+        assertThrows(ParseException.class, School.MESSAGE_CONSTRAINTS, () -> ParserUtil.parseSchool("A".repeat(61)));
+    }
+
+    @Test
+    public void parseSchool_validValue_returnsSchool() throws Exception {
+        assertEquals(new School("A"), ParserUtil.parseSchool("A"));
+        assertEquals(new School("A".repeat(60)), ParserUtil.parseSchool("A".repeat(60)));
+        String school = "St. Joseph's Institution (Junior)";
+        assertEquals(new School(school), ParserUtil.parseSchool(school));
+    }
+
+    @Test
+    public void parseSchool_validValueWithWhitespace_returnsTrimmedSchool() throws Exception {
+        String school = "Nanyang  Primary School";
+        assertEquals(new School(school), ParserUtil.parseSchool(WHITESPACE + school + WHITESPACE));
+        String longestSchool = "A".repeat(60);
+        assertEquals(new School(longestSchool), ParserUtil.parseSchool(WHITESPACE + longestSchool + WHITESPACE));
     }
 
     @Test
