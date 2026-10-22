@@ -142,7 +142,8 @@ public class StudentTest {
     @Test
     public void constructor_nullSchool_throwsNullPointerException() {
         assertThrows(NullPointerException.class, () -> new Student(ALICE.getName(), ALICE.getPhone(), ALICE.getEmail(),
-                ALICE.getAddress(), ALICE.getTags(), null, Optional.empty(), Optional.empty(), List.of(), false));
+                ALICE.getAddress(), ALICE.getTags(), null, Optional.empty(), Optional.empty(),
+                List.of(), false, List.of()));
     }
 
     @Test
@@ -240,7 +241,7 @@ public class StudentTest {
     public void constructor_defensivelyCopiesLessons() {
         List<Lesson> input = new java.util.ArrayList<>(List.of(MONDAY_MATH));
         Student person = new Student(ALICE.getName(), ALICE.getPhone(), ALICE.getEmail(), ALICE.getAddress(),
-                ALICE.getTags(), Optional.empty(), Optional.empty(), Optional.empty(), input, false);
+                ALICE.getTags(), Optional.empty(), Optional.empty(), Optional.empty(), input, false, List.of());
         input.clear();
         assertEquals(List.of(MONDAY_MATH), person.getLessons());
     }

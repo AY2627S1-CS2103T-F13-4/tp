@@ -37,7 +37,8 @@ public class Student extends Person {
      * Every field must be present and not null.
      */
     public Student(Name name, Phone phone, Email email, Address address, Set<Tag> tags) {
-        this(name, phone, email, address, tags, Optional.empty(), Optional.empty(), Optional.empty(), List.of(), false);
+        this(name, phone, email, address, tags, Optional.empty(), Optional.empty(),
+                Optional.empty(), List.of(), false, List.of());
     }
 
     /**
@@ -47,7 +48,7 @@ public class Student extends Person {
      */
     public Student(Name name, Phone phone, Email email, Address address, Set<Tag> tags,
             Optional<School> school, Optional<SchoolingLevel> schoolingLevel, Optional<Guardian> guardian,
-            List<Lesson> lessons, boolean isArchived) {
+            List<Lesson> lessons, boolean isArchived, List<ProgressNote> notes) {
         super(name, phone);
         requireAllNonNull(email, address, tags, school, schoolingLevel, guardian, lessons, notes);
         lessons.forEach(Objects::requireNonNull);
@@ -116,7 +117,7 @@ public class Student extends Person {
     /** Returns a copy of this student with the given archive status and all other details unchanged. */
     public Student withArchived(boolean isArchived) {
         return new Student(getName(), getPhone(), email, address, tags, school, schoolingLevel, guardian, lessons,
-                isArchived);
+                isArchived, List.of());
     }
 
     /**
@@ -142,7 +143,7 @@ public class Student extends Person {
                 && schoolingLevel.equals(otherStudent.schoolingLevel)
                 && guardian.equals(otherStudent.guardian)
                 && lessons.equals(otherStudent.lessons)
-                && isArchived == otherStudent.isArchived;
+                && isArchived == otherStudent.isArchived
                 && notes.equals(otherStudent.notes);
     }
 

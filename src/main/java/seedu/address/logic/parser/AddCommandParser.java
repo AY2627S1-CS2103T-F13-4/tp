@@ -64,7 +64,7 @@ public class AddCommandParser implements Parser<AddCommand> {
         }
 
         Student person = new Student(name, phone, email, address, tagList, school, schoolingLevel,
-                Optional.empty(), List.of(), false);
+                Optional.empty(), List.of(), false, List.of());
 
         return new AddCommand(person);
     }
