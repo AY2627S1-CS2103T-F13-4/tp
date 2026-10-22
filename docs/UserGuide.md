@@ -2,31 +2,27 @@
 layout: page
 title: User Guide
 ---
-
+# StudentBook
 StudentBook is a desktop contact book for private tutors. Type commands to manage student records.
 
 This development version supports contact details, schools, schooling levels, guardian contacts and lessons. Each student can have any number of lessons, and each lesson has a subject, a weekly time slot and an hourly rate. See the [Developer Guide](DeveloperGuide.md#product-scope) for the plan and open decisions.
 
-* Table of Contents
+## Table of Contents
 {:toc}
 
-## Quick start
-
+## Quick Start
 1. Install Java `25`. Mac users should follow the [course Java installation guide](https://se-education.org/guides/tutorials/javaInstallationMac.html).
-
 1. Build the development version from the [team repository](https://github.com/AY2627S1-CS2103T-F13-4/tp).
-
-   ```text
+   ```shell
    git clone https://github.com/AY2627S1-CS2103T-F13-4/tp.git studentbook
    cd studentbook
    ./gradlew shadowJar
    ```
-
+   
    On Windows, use `gradlew.bat shadowJar` for the last command. The JAR is `build/libs/studentbook.jar`.
 
 1. Copy the JAR into the folder where you want to keep your records. Open a terminal in that folder and run:
-
-   ```text
+   ```shell
    java -jar studentbook.jar
    ```
 
@@ -39,7 +35,7 @@ This development version supports contact details, schools, schooling levels, gu
 
    The first command adds Alex, who appears at the bottom of the list. Replace `1` in the second command with Alex's number in the list. It gives that student a Math lesson on Wednesdays from 1pm to 5pm at SGD 45.50 per hour. Type `exit` to close the app.
 
-## The main window
+## Main Window
 
 ![StudentBook main window](images/Ui.png)
 
@@ -70,309 +66,237 @@ Every shortcut is optional: each one has a command that does the same, such as `
 
 ## Features
 
-### Reading command formats
+### Reading Command Formats
+<div markdown="block" class="alert alert-info">
 
-* Replace uppercase words with your values. For example, `name/NAME` becomes `name/Alex Tan`.
-* Square brackets mark optional fields. Do not type the brackets.
-* `...` means a field can be repeated. For example, `[tag/TAG]...` allows zero or more tags.
-* Fields may appear in any order. Prefixes such as `name/` and `subject/` are case-sensitive.
-* `INDEX` is the number beside a student in the current list. It must be 1 or greater.
-* `help`, `list`, `clear` and `exit` ignore extra arguments.
-* When copying commands from a PDF, check that spaces around line breaks are preserved.
+**:information_source: Notes about the command format:**<br>
+
+* `UPPER_CASE` words are user-defined parameters.<br>
+  E.g. `name/NAME` &rarr; `name/John Doe`.
+
+* `[square brackets]` mark optional fields.<br>
+  E.g. `name/NAME [tag/TAG]` &rarr; `name/John Doe tag/friend` or `name/John Doe`.
+
+* `…`​ means a field can be repeated.<br>
+  E.g. `[t/TAG]…​` &rarr; ` ` or `t/friend` or `t/friend t/family`. 
+
+* Parameters can be in any order.<br>
+  E.g. `name/NAME p/PHONE_NUMBER` &rarr; `name/John Doe phone/87654321` or `phone/87654321 name/John Doe`
+
+* `INDEX` is the number beside a student in the current list display.
+
+* Commands with no parameters (`help`, `list`, `clear`, `exit`, etc.) ignore extra arguments.
+  E.g. `help 123` &rarr; `help`
+</div>
+
+<div markdown="span" class="alert alert-warning">
+
+**:warning: When copying commands from the PDF version of this document, spaces around line breaks may be omitted.**
+
+</div>
 
 ### Add a student: `add`
 
+Adds a student to StudentBook
+
 Format: `add name/NAME phone/PHONE_NUMBER email/EMAIL address/ADDRESS [tag/TAG]... [sch/SCHOOL] [level/SCHOOLING_LEVEL]`
 
-Name, phone, email and address are required. Tags, school and schooling level are optional. A new student has no lessons; add them with [`lesson-add`](#manage-a-students-lessons).
+Examples:
+* `add name/Alex Tan phone/91234567 email/alex@example.com address/123 Clementi Road tag/weekday sch/Clementi Primary School level/Primary 5`
+* `add name/Mei Lim phone/92345678 email/mei@example.com address/45 Dover Road`
 
-```text
-add name/Alex Tan phone/91234567 email/alex@example.com address/123 Clementi Road tag/weekday sch/Clementi Primary School level/Primary 5
-add name/Mei Lim phone/92345678 email/mei@example.com address/45 Dover Road
-```
+<div markdown="block" class="alert alert-primary">
 
-Records with exactly the same name are duplicates. Name matching is case-sensitive: `Alex Tan` and `alex tan` are treated as different names. School, schooling level and lessons do not change this rule.
+:bulb: **Tips:**<br>
+* A new student has no lessons or guardians. Add them with [`lesson-add`](#manage-a-students-lessons) and [`guardian-add`](#manage-a-students-guardian-contact) respectively.
+* The added student cannot share a name with an existing one (case-sensitive).
 
-### Record or clear a school
+</div>
 
-Each student can have zero or one school, supplied with `sch/`.
-
-| Task | Command |
-|---|---|
-| Set or replace a school | `edit 1 sch/Clementi Primary School` |
-| Clear a school | `edit 1 sch/` |
-| Include a school when adding a student | Add `sch/Clementi Primary School` to the `add` command |
-
-The school appears in the student's expanded details when recorded. Leave out `sch/` to keep the existing school when editing. Changing the school keeps the student's schooling level and all other fields unchanged.
-
-Schools must have 1 to 60 characters after leading and trailing spaces are removed, and cannot be blank. An empty `sch/` clears the school with `edit`, but is invalid with `add`. Repeating `sch/` in one command is invalid. Invalid input leaves the record unchanged.
-
-### Record or clear a schooling level
-
-| Task | Command |
-|---|---|
-| Set or replace a level | `edit 1 level/Secondary 1` |
-| Clear a level | `edit 1 level/` |
-| Include a level when adding a student | Add `level/Primary 5` to the `add` command |
-
-The student's row shows the level `Primary 5` beside the name when one is recorded. If none is recorded, it is left out. Leave out `level/` to keep the existing level when editing. Changing a level keeps every other field unchanged, including lessons.
-
-Levels must have 1 to 30 characters after the space cleanup below. Start with a letter or digit and include at least one letter. Use English letters `A-Z` or `a-z`, digits `0-9`, spaces and these symbols: `'`, `-`, `.`, `(`, `)`. Leading and trailing spaces or tabs are removed, and repeated spaces or tabs become one space. An empty `level/` clears the level with `edit`, but is invalid with `add`. Repeating `level/` in one command is invalid. Invalid input leaves the record unchanged.
 
 ### List all students: `list`
 
+Shows a list of all students in StudentBook, grouped by schooling level.
+
 Format: `list`
-
-Shows every student in the **Students** table and clears any active search filter.
-
-Students are grouped under **Primary**, **Secondary**, **JC** and **Other** headings, in the order you added them within each group. A level counts as Primary for forms like `P5` or `Primary 5`, Secondary for `Sec 3` or `S4`, and JC for `JC1` or `J2`. Any other level, or no level, goes under Other. The number beside each student is the `INDEX` that commands use, so changing a student's level with `edit` can change their number.
-
-### See this week's lessons: `week`
-
-Format: `week`
-
-Shows the **This week** calendar. After `find`, it keeps the search and shows only matching lessons; otherwise it shows every student's lessons. Use `list` to clear the search. The app opens on this screen.
-
-### See a student's details: `view`
-
-Format: `view INDEX`
-
-Shows the **Students** table with the student at `INDEX` opened: school, phone, email and address together, followed by guardian information, lessons, tags and progress notes. Each lesson shows its number, subject, day and time, rate, mode and location. On the calendar, a lesson labelled `#3.1` belongs to student `3`, so `view 3` shows its details.
-
-Examples:
-
-* `view 3` shows the third student's details.
-* `find alex` then `view 1` shows the details of the first student found.
 
 ### Edit a student: `edit`
 
+Edits an existing student in StudentBook
+
 Format: `edit INDEX [name/NAME] [phone/PHONE_NUMBER] [email/EMAIL] [address/ADDRESS] [tag/TAG]... [sch/SCHOOL] [level/SCHOOLING_LEVEL]`
 
-Include at least one field to change. Fields you leave out stay unchanged.
-
-* Tags replace the entire existing set. Use an empty `tag/` to clear all tags.
-* An empty `sch/` clears the school.
-* A successful edit clears the active search and shows all students, including when changing or clearing a school.
-* An empty `level/` clears the schooling level.
-* Editing a student never changes their lessons or guardian. Use the `lesson-` and `guardian-` commands for those.
+* Edits the student at the specified [`INDEX`](#reading-command-formats).
+* At least one of the optional fields must be provided.
+* Existing values will be updated to the input values.
+* Empty parameters for optional fields (e.g. `tag/`) will clear the field
 
 Examples:
-
 * `edit 1 phone/91234567 email/alex.tan@example.com` changes the first displayed student's phone and email.
 * `edit 2 name/Mei Ling tag/` changes the second displayed student's name and clears their tags.
 * `edit 1 sch/Clementi Primary School` changes the first displayed student's school.
 * `edit 1 level/Primary 6` changes the first displayed student's schooling level.
 
-### Find students by name, guardian, school, schooling level or lesson: `find`
+<div markdown="block" class="alert alert-primary">
 
-Format: `find KEYWORD [MORE_KEYWORDS]` or `find [name/TEXT] [guardian/TEXT] [sch/TEXT] [level/TEXT] [subject/TEXT] [day/DAY]`
+:bulb: **Tips:**<br>
+* To edit a student's lessons or guardians, use [`lesson-edit`](#manage-a-students-lessons) and [`guardian-edit`](#manage-a-students-guardian-contact) respectively.
 
-The matching students show in the **Students** table.
+</div>
 
-Without prefixes, searches names for whole words, ignoring letter case. A student appears if any keyword matches; keyword order does not matter.
+### Show weekly lessons: `week`
 
+Displays all lessons for students in the current list display.
+
+Format: `week`
+
+### View a student's details: `view`
+
+Displays the student at `INDEX` and their details.
+
+Format: `view INDEX`
+
+### Find students by name: `find`
+
+Find students whose names contain any of the given keywords
+
+Format: `find KEYWORD [MORE_KEYWORDS]`
+* The search is case-insensitive.
+* Only full words match.
+
+Examples:
 * `find John` matches `John Doe`, but not `Johnny`.
 * `find alex david` matches names containing `Alex` or `David`.
 
-Use `name/TEXT` to match part of a student's name, ignoring case. For example, `find name/alex` matches both
-`Alex Tan` and `Alexander Tan`. Multiple words form a single substring: `find name/alex tan` searches for
-that phrase together.
+### Find students by filter criteria: `find`
 
-Use `guardian/TEXT` to match part of the guardian's name or phone number, ignoring case. For example,
-`find guardian/janet` matches a guardian named `Janet Lee`, and `find guardian/9123` matches a guardian whose
-phone contains `9123`. Students without a guardian are excluded. `find name/alex guardian/janet sch/raffles`
-requires all three criteria to match and does not require students to have lessons.
+Find students by name, guardian, school, level, lesson subject and/or lesson day.
 
-Use `find sch/TEXT` to search schools, ignoring letter case. Partial matches are allowed: `find sch/raffles` matches `Raffles Institution`. Multiple words form a single substring: `find sch/raffles institution` searches for that phrase together. Students without a recorded school are excluded. School searches do not require students to have lessons.
+Format: `find [name/TEXT] [guardian/TEXT] [sch/TEXT] [level/TEXT] [subject/TEXT] [day/DAY]`
 
-Use `find level/TEXT` to search schooling levels, ignoring letter case. Partial matches are allowed: `find level/prim` matches `Primary 5`. Students without a level are excluded.
+* The search is case-insensitive.
+* At least one of the optional fields must be provided.
+* Partial matches are allowed.
+* Students without a level are excluded from the level filter
+* When multiple lesson-related criteria are specified, the same lesson must match all criteria
+* Day may be specified with three-letter or full names
 
-Use `subject/` to match part of a lesson's subject, ignoring case, and `day/` with a three-letter or full weekday name (`Mon` or `Monday`). Supply at least one prefix. Combine prefixes in any order; every supplied criterion must match, and subject and day must match the **same lesson**. For example, `find name/alex guardian/janet sch/raffles level/Secondary subject/math day/wed` finds secondary students whose names contain `alex`, whose guardian's name or phone contains `janet`, and whose school contains `raffles`, with a Wednesday Math lesson. Bare name keywords cannot be combined with prefixes. Empty or repeated prefixes and invalid days are rejected.
-
-`find` opens the Students table. `week` then shows only the matching lessons on the calendar, and its header reads e.g. `Showing 3 of 12 lessons`; lesson numbers still refer to their positions in each student's full lesson list. `list` clears the search.
-
-The search stays while you change lessons. A lesson you add or edit that no longer matches `subject/` or `day/` is hidden, and a student left with no matching lesson leaves the list, so the students after them move up a number. Use `list` to see everything again.
-
-The student's own phone, email and address are not searched.
+Examples:
+* `find level/prim` matches `Primary 5`.
+* `find day/Mon` matches students with a lesson on Monday.
+* `find level/Secondary subject/math day/wednesday` matches secondary students with a Math lesson on Wednesday.
 
 ![Name search results](images/findAlexDavidResult.png)
 
-### Manage a student's lessons
-
-Each student can have zero or more lessons. A lesson has a subject, a weekly time slot and an hourly rate, which are always present, and an optional mode (physical or virtual) and location. A student cannot have two identical lessons, but lessons with overlapping time slots are allowed. Lesson commands use the student's positive `STUDENT_INDEX` in the currently displayed list, including search results. They preserve all other student fields.
-
-* **Create:** `lesson-add STUDENT_INDEX subject/SUBJECT slot/LESSON_SLOT rate/HOURLY_RATE [mode/MODE] [location/LOCATION]`
-  Subject, slot and rate are required; mode and location are optional. The new lesson is added to the end of the student's lessons.
-* **Read:** The **This week** calendar shows every lesson of the listed students (after a `find`, only the matching lessons) with its `#STUDENT_INDEX.LESSON_INDEX` number. In the **Students** table, the row shows the student's next lesson. Open the student's details (e.g. `find` their name, or **Alt+Down** on the table) to see every lesson: its number, subject, day and time (e.g. `Tue 4.00pm-5.30pm`) and rate (e.g. `SGD 60/h`), with the mode (`Physical` or `Virtual`) and location underneath when recorded. Use the lesson number as `LESSON_INDEX`.
-* **Update:** `lesson-edit STUDENT_INDEX LESSON_INDEX [subject/SUBJECT] [slot/LESSON_SLOT] [rate/HOURLY_RATE] [mode/MODE] [location/LOCATION]`
-  Supply at least one field. Omitted fields stay unchanged. To remove a recorded mode or location, give its prefix with nothing after it: `mode/` clears the mode and `location/` clears the location (see the examples below).
-* **Delete:** `lesson-delete STUDENT_INDEX LESSON_INDEX`
-  Removes only that lesson. Later lessons move up by one position.
-
-Field rules:
-
-* **Subject** (`subject/`): 1 to 40 characters after space cleanup. Start with a letter or digit and include at least one letter. Use English letters, digits, spaces and these symbols: `'`, `-`, `.`, `(`, `)`. Leading and trailing spaces are removed and repeated spaces become one. Subjects are compared ignoring letter case, so `Math` and `math` are the same subject.
-* **Lesson slot** (`slot/`): `DAY START END` on a single day, such as `Wed 1.00pm 5.00pm`. Use a three-letter day (`Mon` to `Sun`), and times like `1.00pm` or `10.30am` with minute precision. Days and `am`/`pm` are not case-sensitive, so `wed 1.00PM 5.00PM` also works. The end must be later than the start on the same day; overnight lessons are not supported. The details show a short day, for example `Wed 1.00pm-5.00pm`.
-* **Hourly rate** (`rate/`): an amount in SGD per hour. It must be non-negative and have at most two decimal places; `45`, `45.5` and `45.50` are valid. Currency symbols, negative amounts and scientific notation are invalid.
-* **Mode** (`mode/`, optional): `physical` or `virtual`, not case-sensitive. The lesson shows `Physical` or `Virtual`.
-* **Location** (`location/`, optional): 1 to 100 characters, such as an address, room or meeting link. Repeated spaces become one, and locations are compared ignoring letter case. It must not contain a word of letters followed by `/` (such as `rate/`), which is read as a prefix; `Blk 123/4` and `https://zoom.us/j/1` are fine.
-* **Clearing mode and location:** only `lesson-edit` can clear them, by leaving the value empty, for example `lesson-edit 1 2 location/` or `lesson-edit 1 2 mode/ location/`. `lesson-add` rejects an empty `mode/` or `location/`, and `lesson-delete` accepts neither.
-
-Errors:
-
-* Adding a lesson, or editing one so that it becomes identical to another of the same student's lessons, is rejected as a duplicate. Mode and location are part of a lesson's identity, so the same subject, slot and rate at a different location or mode is not a duplicate.
-* A student index or lesson index that does not exist is rejected.
-* Empty values (except an empty `mode/` or `location/` in `lesson-edit`, which clears the field), repeated prefixes, unknown prefixes and invalid values, such as a mode other than `physical` or `virtual`, are rejected. Any error leaves the record unchanged.
-
-For example, after `list`:
-
-1. `lesson-add 1 subject/Math slot/Wed 1.00pm 5.00pm rate/45.50`
-2. `lesson-add 1 subject/English slot/Mon 4.00pm 5.00pm rate/40 mode/virtual location/https://zoom.us/j/123` adds an online lesson with a meeting link.
-3. `lesson-edit 1 2 rate/50` changes the English lesson's rate.
-4. `lesson-edit 1 2 mode/physical location/Clementi Library` changes it to an in-person lesson at a new place.
-5. `lesson-edit 1 2 location/` removes the location but keeps the mode. `lesson-edit 1 2 mode/ location/` removes both.
-6. `lesson-delete 1 1` removes the Math lesson. English is now lesson 1.
-
-Lesson commands keep an active search filter. Lessons are saved automatically.
-
-### Manage a student's guardian contact
-
-Each student can have zero or one guardian, with a name and phone number. Guardian commands use the student's
-positive `INDEX` in the currently displayed list, including search results. They preserve all other student fields.
-
-* **Create:** `guardian-add INDEX name/NAME phone/PHONE`
-  Both fields are required. If a guardian already exists, use `guardian-edit` instead.
-* **Read:** The Guardian column shows the guardian's name, or a grey `Not set` when none exists.
-  The student's details show the guardian's phone too.
-* **Update:** `guardian-edit INDEX [name/NAME] [phone/PHONE]`
-  Supply at least one field. Omitted fields stay unchanged. Empty values and repeated prefixes are rejected.
-* **Delete:** `guardian-delete INDEX`
-  Removes only the guardian. Editing or deleting a missing guardian reports an error.
-
-Names must contain only alphanumeric characters and spaces and must not be blank. Phone numbers must contain
-at least three digits and no other characters, following the existing contact validation rules. Leading and trailing
-spaces are trimmed. Guardians may share the same details across different students.
-
-For example, after `list`:
-
-1. `guardian-add 1 name/Janet Tan phone/91234567`
-2. `guardian-edit 1 phone/87654321`
-3. `guardian-delete 1`
-
-Guardian commands keep an active search filter. Errors leave existing records unchanged. Guardian details are
-saved automatically. Older data files without a guardian still load with no guardian recorded.
-
-### Keep progress notes on a student
-
-Each student can have zero or more dated progress notes, such as what you covered in a lesson or what to revise
-next. Note commands use the student's positive `STUDENT_INDEX` in the currently displayed list, including search
-results. They preserve all other student fields.
-
-* **Create:** `note-add STUDENT_INDEX date/DATE text/TEXT`
-  Both fields are required. After adding, the **Students** table opens that student's details so you can see the note.
-* **Read:** Open the student's details (`view STUDENT_INDEX`, or **Alt+Down** on the table). The **Notes** section
-  lists every note oldest first, with its number, date and text, or a grey `No notes yet` when there are none.
-  Use the note's number as `NOTE_INDEX`.
-* **Delete:** `note-delete STUDENT_INDEX NOTE_INDEX`
-  Removes only that note and shows its date and text in the message, so you can check it was the right one. Later
-  notes move up by one position. The student's details open afterwards.
-
-Field rules:
-
-* **Date** (`date/`): a real date in `YYYY-MM-DD` format, such as `2026-10-15`. It cannot be later than today, because a
-  note records something that already happened.
-* **Text** (`text/`): 1 to 500 characters. Leading and trailing spaces are removed. Words such as `and/or` or `w/o`
-  are kept as part of the text. Avoid using slashes that may interfere with keyword detection, e.g. `date/` or `text/`.
-* Notes are kept oldest first. A note dated earlier than existing notes is placed before them, and the message says
-  its number. Notes on the same date stay in the order you added them.
-
-Errors:
-
-* Adding a note with the same date and text as one of the student's existing notes is rejected as a duplicate.
-* A student index or note index that does not exist, a missing or repeated prefix, a date that is not real or is in the future, and
-  empty or overlong text are rejected. Any error leaves the record unchanged.
-
-For example, after `list`:
-
-1. `note-add 1 date/2026-10-15 text/Finished the fractions worksheet; revise decimals next`
-2. `note-add 1 date/2026-10-08 text/Struggled with word problems` adds an earlier note, which becomes note 1.
-3. `note-delete 1 1` removes the word-problems note. The fractions note is now note 1.
-
-Notes are saved automatically. Older data files without notes still load, with no notes recorded.
-
-### Track guardian follow-ups
-
-A follow-up is something you still need to do for a student's guardian, such as sending a progress report or
-confirming a make-up lesson. Each student can have zero or more outstanding follow-ups. Follow-up commands use the
-student's positive `STUDENT_INDEX` in the currently displayed list, including search results. They preserve all
-other student fields.
-
-* **Create:** `followup-add STUDENT_INDEX text/TEXT`
-  Adds the item at the end of the student's list. The **Students** table then opens that student's details.
-* **Read:** Open the student's details (`view STUDENT_INDEX`, or **Alt+Down** on the table). The **Follow-ups**
-  section, under the guardian, lists the outstanding items with their numbers, or a grey `No outstanding follow-ups`.
-  Use the item's number as `FOLLOW_UP_INDEX`.
-* **List outstanding:** `followups`
-  Shows only the students who have at least one outstanding follow-up. Archived students are left out, as in `list`,
-  and keep their follow-ups for when you unarchive them. Use `list` to see every student again.
-* **Update:** `followup-edit STUDENT_INDEX FOLLOW_UP_INDEX text/TEXT`
-  Replaces the text of that item. Its number stays the same.
-* **Complete:** `followup-done STUDENT_INDEX FOLLOW_UP_INDEX`
-  Marking an item as done **removes** it, and the message shows its text so you can check it was the right one.
-  Later items move up by one position.
-
-Field rules:
-
-* **Text** (`text/`): 1 to 200 characters on one line. Leading and trailing spaces are removed. Words such as
-  `and/or` are kept as part of the text.
-* A follow-up does not need a guardian to be recorded, and `guardian-delete` keeps the student's follow-ups.
-
-Errors:
-
-* Adding an item, or editing one, so that it reads the same as another item of that student (ignoring letter case)
-  is rejected as a duplicate.
-* A student index or follow-up index that does not exist, a missing or repeated `text/`, and empty or overlong text
-  are rejected. Any error leaves the record unchanged.
-
-For example, after `list`:
-
-1. `followup-add 1 text/Send the term 4 progress report`
-2. `followup-add 1 text/Confirm the make-up lesson`
-3. `followup-edit 1 2 text/Confirm the make-up lesson on Saturday`
-4. `followups` shows only the students with outstanding items.
-5. `followup-done 1 1` removes the progress-report item. The make-up lesson item is now item 1.
-
-After `followups`, a student whose last item you complete leaves the list, so the students after them move up a
-number. Follow-ups are saved automatically. Older data files without follow-ups still load, with none recorded.
-
 ### Delete a student: `delete`
+
+Deletes a student from StudentBook.
 
 Format: `delete INDEX`
 
-Deletes the student at that position in the current list, including their attached details. There is no confirmation or undo.
-
-* `list` then `delete 2` deletes the second student in the full list.
-* `find Alex` then `delete 1` deletes the first search result.
-
 ### Delete all students: `clear`
+
+Deletes all students from StudentBook.
 
 Format: `clear`
 
-Deletes every student record. There is no confirmation or undo.
-
 ### View help: `help`
+
+Displays link to this guide and location of data file.
 
 Format: `help`
 
-Opens a window with a link to this guide and the location of your data file. Press **Enter** to copy the link, and **Esc** to close the window and return to the command box. **F1** opens it too.
+* Alternate hotkey: **F1**
+* Press **Enter** to copy the link
+* Press **Esc** to close the window and return to the command box
 
 ![Help window](images/helpMessage.png)
 
 ### Exit: `exit`
 
+Closes the app.
+
 Format: `exit`
 
-Closes the app.
+### Add a lesson: `lesson-add`
+
+Add a lesson for a given student.
+
+Format: `lesson-add INDEX subject/SUBJECT slot/LESSON_SLOT rate/HOURLY_RATE [mode/MODE] [location/LOCATION]`
+
+Examples:
+* `lesson-add 3 subject/English slot/Mon 10.00am 12.00pm rate/40`
+* `lesson-add 1 subject/Math slot/Fri 4.00pm 6.00pm rate/40 mode/physical location/Home`
+* `lesson-add 1 subject/Math slot/Fri 4.00pm 6.00pm rate/40 mode/virtual location/Zoom`
+
+
+### Edit a lesson: `lesson-edit`
+
+Edit a lesson for a given student.
+
+Format: `lesson-edit STUDENT_INDEX LESSON_INDEX [subject/SUBJECT] [slot/LESSON_SLOT] [rate/HOURLY_RATE] [mode/MODE] [location/LOCATION]`
+
+* Targets the student at the specified [`STUDENT_INDEX`](#reading-command-formats).
+* Edits the lesson at the specified [`LESSON_INDEX`](#reading-command-formats)
+* Existing values will be updated to the input values
+* Empty parameters for optional fields (e.g. `mode/`) will clear the field
+
+Examples:
+* `lesson-edit 1 3 subject/Mathematics`
+* `lesson-edit 2 1 mode/physical location/Home`
+* `lesson-edit 3 1 mode/ location/`
+
+### Delete a lesson: `lesson-delete`
+
+Deletes a lesson for a given student
+
+Format: `lesson-delete STUDENT_INDEX LESSON_INDEX`
+
+Field rules:
+* **Subject** (`subject/`)
+  * 1-40 characters
+  * Start with a letter/digit, include at least 1 letter
+* **Lesson Slot** (`slot/`)
+  * Format: `DAY START END`
+  * `DAY`: Three-letter day, e.g. `Mon`, `Sun`
+  * `START`/`END`: Minute-precise time, e.g. `10.30am`, `1.00pm`
+  * `START` must be before `END`
+* **Hourly Rate** (`rate/`)
+  * Numeric value in SGD per hour
+  * Non-negative, to nearest cent, e.g. `45.50`
+* **Mode** (`mode/`)
+  * `physical` or `virtual` only (case insensitive)
+* **Location** (`location/`)
+  * 1-100 characters
+
+### Add a guardian: `guardian-add`
+
+Add a guardian for a given student.
+
+Format: `guardian-add INDEX name/NAME phone/PHONE`
+
+Examples:
+* `guardian-add 1 name/Jane Doe phone/81234567`
+
+### Edit a guardian: `guardian-edit`
+
+Edit a guardian for a given student.
+
+Format: `guardian-edit INDEX [name/NAME] [phone/PHONE]`
+
+* Edits the guardian of the student at the specified [`INDEX`](#reading-command-formats).
+* At least one of the optional fields must be provided.
+* Existing values will be updated to the input values.
+
+Examples:
+* `edit 1 name/Jane Doe`
+* `edit 1 name/81234567`
+
+### Delete a guardian: `guardian-delete`
+
+Delete a guardian for a given student.
+
+Format: `guardian-delete INDEX`
 
 ## Saving and transferring records
 
