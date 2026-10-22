@@ -11,6 +11,7 @@ import static seedu.address.testutil.TypicalPersons.getTypicalAddressBook;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
 
@@ -23,6 +24,7 @@ import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
 import seedu.address.model.person.ProgressNote;
+import seedu.address.model.person.School;
 import seedu.address.model.person.Student;
 import seedu.address.testutil.PersonBuilder;
 
@@ -50,6 +52,16 @@ public class NoteCommandTest {
                 String.format(NoteCommand.MESSAGE_ADDED, 1, first.getName()), INDEX_FIRST_PERSON);
         assertCommandSuccess(add(INDEX_FIRST_PERSON, OCTOBER), model, expectedResult,
                 expectedModelWith(first, expectedStudent));
+    }
+
+    @Test
+    public void execute_add_keepsSchool() throws Exception {
+        Student first = model.getFilteredPersonList().get(0);
+        model.setPerson(first, new PersonBuilder(first).withSchool(new School("Raffles Institution")).build());
+        add(INDEX_FIRST_PERSON, OCTOBER).execute(model);
+
+        assertEquals(Optional.of(new School("Raffles Institution")),
+                model.getFilteredPersonList().get(0).getSchool());
     }
 
     @Test

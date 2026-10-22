@@ -29,6 +29,7 @@ import seedu.address.model.person.HourlyRate;
 import seedu.address.model.person.Lesson;
 import seedu.address.model.person.LessonLocation;
 import seedu.address.model.person.LessonMode;
+import seedu.address.model.person.School;
 import seedu.address.model.person.Student;
 import seedu.address.model.person.Subject;
 import seedu.address.model.person.WeeklyLessonSlot;
@@ -108,6 +109,30 @@ public class LessonCommandTest {
                 Optional.empty(), Optional.of(MATH), Optional.of(MONDAY), Optional.of(RATE), Optional.empty(),
                 Optional.empty()));
         assertThrows(NullPointerException.class, () -> add(INDEX_FIRST_PERSON, MATH, MONDAY).execute(null));
+    }
+
+    @Test
+    public void execute_lessonChanges_preserveSchool() {
+        Student student = new PersonBuilder(firstStudent()).withSchool(new School("Nanyang Primary School")).build();
+        model.setPerson(firstStudent(), student);
+        Model expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs());
+        Student withLesson = withLessons(student, new Lesson(MATH, MONDAY, RATE));
+        expectedModel.setPerson(student, withLesson);
+        assertCommandSuccess(add(INDEX_FIRST_PERSON, MATH, MONDAY), model,
+                "Lesson added for " + student.getName() + ".", expectedModel);
+
+        Student withEditedLesson = withLessons(student, new Lesson(ENGLISH, MONDAY, RATE));
+        expectedModel.setPerson(withLesson, withEditedLesson);
+        LessonCommand edit = new LessonCommand(INDEX_FIRST_PERSON, Operation.EDIT,
+                Optional.of(INDEX_FIRST_LESSON), Optional.of(ENGLISH), Optional.empty(), Optional.empty(),
+                Optional.empty(), Optional.empty());
+        assertCommandSuccess(edit, model, "Lesson updated for " + student.getName() + ".", expectedModel);
+
+        expectedModel.setPerson(withEditedLesson, student);
+        LessonCommand delete = new LessonCommand(INDEX_FIRST_PERSON, Operation.DELETE,
+                Optional.of(INDEX_FIRST_LESSON), Optional.empty(), Optional.empty(), Optional.empty(),
+                Optional.empty(), Optional.empty());
+        assertCommandSuccess(delete, model, "Lesson removed for " + student.getName() + ".", expectedModel);
     }
 
     @Test

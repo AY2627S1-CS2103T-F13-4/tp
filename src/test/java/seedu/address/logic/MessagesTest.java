@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 
 import seedu.address.model.person.HourlyRate;
 import seedu.address.model.person.Lesson;
+import seedu.address.model.person.School;
 import seedu.address.model.person.SchoolingLevel;
 import seedu.address.model.person.Student;
 import seedu.address.model.person.Subject;
@@ -29,6 +30,31 @@ public class MessagesTest {
             new HourlyRate(new BigDecimal("40")));
     private static final String PERSON_DETAILS = "Alice Tan; Phone: 91234567; Email: alice@example.com; "
             + "Address: Clementi; Tags: [student]; Level: Primary 5";
+
+    @Test
+    public void format_schoolPresent_includesSchoolBeforeLevel() {
+        Student person = new PersonBuilder(PERSON).withSchool(new School("Clementi Primary School")).build();
+
+        assertEquals("Alice Tan; Phone: 91234567; Email: alice@example.com; Address: Clementi; "
+                + "Tags: [student]; School: Clementi Primary School; Level: Primary 5", Messages.format(person));
+    }
+
+    @Test
+    public void format_schoolWithoutLevel_includesSchool() {
+        Student person = new PersonBuilder(PERSON).withSchool(new School("Clementi Primary School"))
+                .withSchoolingLevel(null).build();
+
+        assertEquals("Alice Tan; Phone: 91234567; Email: alice@example.com; Address: Clementi; "
+                + "Tags: [student]; School: Clementi Primary School", Messages.format(person));
+    }
+
+    @Test
+    public void format_schoolCleared_omitsSchool() {
+        Student person = new PersonBuilder(PERSON).withSchool(new School("Clementi Primary School")).build();
+        Student cleared = new PersonBuilder(person).withSchool(null).build();
+
+        assertEquals(PERSON_DETAILS, Messages.format(cleared));
+    }
 
     @Test
     public void format_lessonsPresent_includesEveryLessonInOrder() {
