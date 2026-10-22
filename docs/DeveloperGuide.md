@@ -226,6 +226,18 @@ Tests: `LessonCommandParserTest`, `LessonWorkflowTest` (add, edit, clear, delete
 
 ### Student search
 
+The following class diagram shows the search predicates used by `FindCommand`. Prefixed searches use
+`StudentSearchPredicate`; bare name keywords use `NameContainsKeywordsPredicate`. The command holds
+both a student predicate and a lesson predicate.
+
+![Student search predicate structure](images/StudentSearchClassDiagram.png)
+
+The following sequence illustrates a successful `find sch/nanyang subject/math day/mon` search.
+The same lesson predicate is used to select students and to filter lessons in the calendar.
+The model is shown through its interface; validation, logging, UI observation and storage details are omitted.
+
+![Combined student search sequence](images/FindSequenceDiagram.png)
+
 `FindCommandParser` accepts `name/`, `guardian/`, `sch/`, `level/`, `subject/` and `day/`, rejecting empty
 values, duplicate prefixes and bare name keywords mixed with prefixes. It builds one `StudentSearchPredicate`
 for every prefixed search. The predicate requires every supplied criterion to match: student name, guardian
