@@ -114,7 +114,8 @@ public class EditCommand extends Command {
                 .orElse(personToEdit.getSchoolingLevel());
 
         return new Student(updatedName, updatedPhone, updatedEmail, updatedAddress, updatedTags,
-                updatedSchool, updatedSchoolingLevel, personToEdit.getGuardian(), personToEdit.getLessons());
+                updatedSchool, updatedSchoolingLevel, personToEdit.getGuardian(), personToEdit.getLessons(),
+                personToEdit.getNotes());
     }
 
     @Override

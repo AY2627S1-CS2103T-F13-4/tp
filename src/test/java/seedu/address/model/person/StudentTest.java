@@ -15,6 +15,7 @@ import static seedu.address.testutil.TypicalPersons.BOB;
 
 import java.math.BigDecimal;
 import java.time.DayOfWeek;
+import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
@@ -213,7 +214,29 @@ public class StudentTest {
     public void toStringMethod() {
         String expected = Student.class.getCanonicalName() + "{name=" + ALICE.getName() + ", phone=" + ALICE.getPhone()
                 + ", email=" + ALICE.getEmail() + ", address=" + ALICE.getAddress() + ", tags=" + ALICE.getTags()
-                + ", school=Optional.empty, schoolingLevel=Optional.empty, guardian=Optional.empty, lessons=[]}";
+                + ", school=Optional.empty, schoolingLevel=Optional.empty, guardian=Optional.empty, lessons=[]"
+                + ", notes=[]}";
         assertEquals(expected, ALICE.toString());
+    }
+
+    @Test
+    public void constructor_notes_keptOldestFirstAndStableWithinADay() {
+        ProgressNote october = new ProgressNote(LocalDate.of(2026, 10, 15), "Fractions");
+        // Added in reverse alphabetical order, so sorting same-date notes by text would fail this test.
+        ProgressNote septemberFirst = new ProgressNote(LocalDate.of(2026, 9, 1), "Set homework");
+        ProgressNote septemberSecond = new ProgressNote(LocalDate.of(2026, 9, 1), "Placement test");
+        Student student = new PersonBuilder(ALICE).withNotes(october, septemberFirst, septemberSecond).build();
+        assertEquals(List.of(septemberFirst, septemberSecond, october), student.getNotes());
+        assertThrows(UnsupportedOperationException.class, () -> student.getNotes().clear());
+    }
+
+    @Test
+    public void equals_notes_compared() {
+        ProgressNote note = new ProgressNote(LocalDate.of(2026, 10, 15), "Fractions");
+        Student withNote = new PersonBuilder(ALICE).withNotes(note).build();
+        assertEquals(withNote, new PersonBuilder(ALICE).withNotes(note).build());
+        assertNotEquals(withNote, ALICE);
+        assertTrue(withNote.isSamePerson(ALICE));
+        assertTrue(ALICE.getNotes().isEmpty());
     }
 }

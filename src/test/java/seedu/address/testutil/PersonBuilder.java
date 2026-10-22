@@ -13,6 +13,7 @@ import seedu.address.model.person.Guardian;
 import seedu.address.model.person.Lesson;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Phone;
+import seedu.address.model.person.ProgressNote;
 import seedu.address.model.person.School;
 import seedu.address.model.person.SchoolingLevel;
 import seedu.address.model.person.Student;
@@ -38,6 +39,7 @@ public class PersonBuilder {
     private Optional<SchoolingLevel> schoolingLevel = Optional.empty();
     private Optional<Guardian> guardianContact = Optional.empty();
     private List<Lesson> lessons = new ArrayList<>();
+    private List<ProgressNote> notes = new ArrayList<>();
 
     /**
      * Creates a {@code PersonBuilder} with the default details.
@@ -63,6 +65,7 @@ public class PersonBuilder {
         schoolingLevel = personToCopy.getSchoolingLevel();
         guardianContact = personToCopy.getGuardian();
         lessons = new ArrayList<>(personToCopy.getLessons());
+        notes = new ArrayList<>(personToCopy.getNotes());
     }
 
     /**
@@ -105,6 +108,12 @@ public class PersonBuilder {
         return this;
     }
 
+    /** Sets the progress notes of the {@code Student} that we are building. */
+    public PersonBuilder withNotes(ProgressNote... values) {
+        notes = new ArrayList<>(Arrays.asList(values));
+        return this;
+    }
+
     /** Sets the lessons of the {@code Student} that we are building, in the given order. */
     public PersonBuilder withLessons(Lesson... values) {
         lessons = new ArrayList<>(Arrays.asList(values));
@@ -131,7 +140,8 @@ public class PersonBuilder {
 
     /** Builds an immutable student record. */
     public Student build() {
-        return new Student(name, phone, email, address, tags, school, schoolingLevel, guardianContact, lessons);
+        return new Student(name, phone, email, address, tags, school, schoolingLevel, guardianContact, lessons,
+                notes);
     }
 
 }

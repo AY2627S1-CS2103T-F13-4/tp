@@ -29,6 +29,7 @@ public class Student extends Person {
     private final Optional<SchoolingLevel> schoolingLevel;
     private final Optional<Guardian> guardian;
     private final List<Lesson> lessons;
+    private final List<ProgressNote> notes;
 
     /**
      * Creates a student with the given contact fields, no tuition details and no lessons.
@@ -39,16 +40,29 @@ public class Student extends Person {
     }
 
     /**
-     * Creates a student with all contact fields, an optional school, optional tuition details and lessons.
+     * Creates a student with all contact fields, an optional school, optional tuition details, lessons and no notes.
      *
      * @throws IllegalArgumentException if {@code lessons} contains duplicates.
      */
     public Student(Name name, Phone phone, Email email, Address address, Set<Tag> tags,
             Optional<School> school, Optional<SchoolingLevel> schoolingLevel, Optional<Guardian> guardian,
             List<Lesson> lessons) {
+        this(name, phone, email, address, tags, school, schoolingLevel, guardian, lessons, List.of());
+    }
+
+    /**
+     * Creates a student with all contact fields, an optional school, optional tuition details, lessons and progress
+     * notes. The notes are kept oldest first.
+     *
+     * @throws IllegalArgumentException if {@code lessons} contains duplicates.
+     */
+    public Student(Name name, Phone phone, Email email, Address address, Set<Tag> tags,
+            Optional<School> school, Optional<SchoolingLevel> schoolingLevel, Optional<Guardian> guardian,
+            List<Lesson> lessons, List<ProgressNote> notes) {
         super(name, phone);
-        requireAllNonNull(email, address, tags, school, schoolingLevel, guardian, lessons);
+        requireAllNonNull(email, address, tags, school, schoolingLevel, guardian, lessons, notes);
         lessons.forEach(Objects::requireNonNull);
+        notes.forEach(Objects::requireNonNull);
         if (new HashSet<>(lessons).size() != lessons.size()) {
             throw new IllegalArgumentException(MESSAGE_DUPLICATE_LESSONS);
         }
@@ -59,11 +73,17 @@ public class Student extends Person {
         this.schoolingLevel = schoolingLevel;
         this.guardian = guardian;
         this.lessons = Collections.unmodifiableList(new ArrayList<>(lessons));
+        this.notes = notes.stream().sorted(ProgressNote.OLDEST_FIRST).toList();
     }
 
     /** Returns an unmodifiable list of this student's lessons, which may be empty. */
     public List<Lesson> getLessons() {
         return lessons;
+    }
+
+    /** Returns an unmodifiable list of this student's progress notes, oldest first, which may be empty. */
+    public List<ProgressNote> getNotes() {
+        return notes;
     }
 
     public Optional<School> getSchool() {
@@ -121,14 +141,15 @@ public class Student extends Person {
                 && school.equals(otherStudent.school)
                 && schoolingLevel.equals(otherStudent.schoolingLevel)
                 && guardian.equals(otherStudent.guardian)
-                && lessons.equals(otherStudent.lessons);
+                && lessons.equals(otherStudent.lessons)
+                && notes.equals(otherStudent.notes);
     }
 
     @Override
     public int hashCode() {
         // use this method for custom fields hashing instead of implementing your own
         return Objects.hash(super.hashCode(), email, address, tags, school, schoolingLevel, guardian,
-                lessons);
+                lessons, notes);
     }
 
     @Override
@@ -143,6 +164,7 @@ public class Student extends Person {
                 .add("schoolingLevel", schoolingLevel)
                 .add("guardian", guardian)
                 .add("lessons", lessons)
+                .add("notes", notes)
                 .toString();
     }
 
