@@ -80,7 +80,7 @@ public class NoteCommand extends Command {
         }
 
         Student replacement = new Student(student.getName(), student.getPhone(), student.getEmail(),
-                student.getAddress(), student.getTags(), student.getSchoolingLevel(),
+                student.getAddress(), student.getTags(), student.getSchool(), student.getSchoolingLevel(),
                 student.getGuardian(), student.getLessons(), notes);
         model.setPerson(student, replacement);
         if (operation == Operation.DELETE) {

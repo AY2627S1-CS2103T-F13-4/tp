@@ -25,6 +25,7 @@ public class Student extends Person {
     private final Address address;
     private final Set<Tag> tags = new HashSet<>();
 
+    private final Optional<School> school;
     private final Optional<SchoolingLevel> schoolingLevel;
     private final Optional<Guardian> guardian;
     private final List<Lesson> lessons;
@@ -35,31 +36,31 @@ public class Student extends Person {
      * Every field must be present and not null.
      */
     public Student(Name name, Phone phone, Email email, Address address, Set<Tag> tags) {
-        this(name, phone, email, address, tags, Optional.empty(), Optional.empty(), List.of());
+        this(name, phone, email, address, tags, Optional.empty(), Optional.empty(), Optional.empty(), List.of());
     }
 
     /**
-     * Creates a student with all contact fields, optional tuition details, zero or more lessons and no notes.
+     * Creates a student with all contact fields, an optional school, optional tuition details, lessons and no notes.
      *
      * @throws IllegalArgumentException if {@code lessons} contains duplicates.
      */
     public Student(Name name, Phone phone, Email email, Address address, Set<Tag> tags,
-            Optional<SchoolingLevel> schoolingLevel, Optional<Guardian> guardian,
+            Optional<School> school, Optional<SchoolingLevel> schoolingLevel, Optional<Guardian> guardian,
             List<Lesson> lessons) {
-        this(name, phone, email, address, tags, schoolingLevel, guardian, lessons, List.of());
+        this(name, phone, email, address, tags, school, schoolingLevel, guardian, lessons, List.of());
     }
 
     /**
-     * Creates a student with all contact fields, optional tuition details, zero or more lessons and progress notes.
-     * The notes are kept oldest first.
+     * Creates a student with all contact fields, an optional school, optional tuition details, lessons and progress
+     * notes. The notes are kept oldest first.
      *
      * @throws IllegalArgumentException if {@code lessons} contains duplicates.
      */
     public Student(Name name, Phone phone, Email email, Address address, Set<Tag> tags,
-            Optional<SchoolingLevel> schoolingLevel, Optional<Guardian> guardian,
+            Optional<School> school, Optional<SchoolingLevel> schoolingLevel, Optional<Guardian> guardian,
             List<Lesson> lessons, List<ProgressNote> notes) {
         super(name, phone);
-        requireAllNonNull(email, address, tags, schoolingLevel, guardian, lessons, notes);
+        requireAllNonNull(email, address, tags, school, schoolingLevel, guardian, lessons, notes);
         lessons.forEach(Objects::requireNonNull);
         notes.forEach(Objects::requireNonNull);
         if (new HashSet<>(lessons).size() != lessons.size()) {
@@ -68,6 +69,7 @@ public class Student extends Person {
         this.email = email;
         this.address = address;
         this.tags.addAll(tags);
+        this.school = school;
         this.schoolingLevel = schoolingLevel;
         this.guardian = guardian;
         this.lessons = Collections.unmodifiableList(new ArrayList<>(lessons));
@@ -82,6 +84,10 @@ public class Student extends Person {
     /** Returns an unmodifiable list of this student's progress notes, oldest first, which may be empty. */
     public List<ProgressNote> getNotes() {
         return notes;
+    }
+
+    public Optional<School> getSchool() {
+        return school;
     }
 
     public Optional<SchoolingLevel> getSchoolingLevel() {
@@ -132,6 +138,7 @@ public class Student extends Person {
                 && email.equals(otherStudent.email)
                 && address.equals(otherStudent.address)
                 && tags.equals(otherStudent.tags)
+                && school.equals(otherStudent.school)
                 && schoolingLevel.equals(otherStudent.schoolingLevel)
                 && guardian.equals(otherStudent.guardian)
                 && lessons.equals(otherStudent.lessons)
@@ -141,7 +148,7 @@ public class Student extends Person {
     @Override
     public int hashCode() {
         // use this method for custom fields hashing instead of implementing your own
-        return Objects.hash(super.hashCode(), email, address, tags, schoolingLevel, guardian,
+        return Objects.hash(super.hashCode(), email, address, tags, school, schoolingLevel, guardian,
                 lessons, notes);
     }
 
@@ -153,6 +160,7 @@ public class Student extends Person {
                 .add("email", email)
                 .add("address", address)
                 .add("tags", tags)
+                .add("school", school)
                 .add("schoolingLevel", schoolingLevel)
                 .add("guardian", guardian)
                 .add("lessons", lessons)
