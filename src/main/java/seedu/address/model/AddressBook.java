@@ -91,6 +91,14 @@ public class AddressBook implements ReadOnlyAddressBook {
         persons.archive(key);
     }
 
+    /**
+     * Unarchives {@code key} from this {@code AddressBook}.
+     * {@code key} must exist in the address book.
+     */
+    public void unarchivePerson(Student key) {
+        persons.unarchive(key);
+    }
+
     //// util methods
 
     @Override

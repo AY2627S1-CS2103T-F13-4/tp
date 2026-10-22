@@ -88,6 +88,15 @@ public class UniquePersonList implements Iterable<Student> {
         setPerson(toArchive, toArchive.withArchived(true));
     }
 
+    /**
+     * Unarchives the equivalent person from the list.
+     * The person must exist in the list.
+     */
+    public void unarchive(Student toUnarchive) {
+        requireNonNull(toUnarchive);
+        setPerson(toUnarchive, toUnarchive.withArchived(false));
+    }
+
     public void setPersons(UniquePersonList replacement) {
         requireNonNull(replacement);
         internalList.setAll(replacement.internalList);
