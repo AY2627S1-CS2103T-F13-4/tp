@@ -273,6 +273,21 @@ public class StudentTest {
     }
 
     @Test
+    public void followUps_comparedKeptInOrderAndUnmodifiable() {
+        Student withItems = new PersonBuilder(ALICE).withFollowUps("Send report", "Call about Saturday").build();
+        assertEquals(withItems, new PersonBuilder(ALICE).withFollowUps("Send report", "Call about Saturday").build());
+        Student reordered = new PersonBuilder(ALICE).withFollowUps("Call about Saturday", "Send report").build();
+        assertNotEquals(withItems, reordered);
+        assertNotEquals(withItems, ALICE);
+        assertTrue(withItems.isSamePerson(ALICE));
+        assertTrue(withItems.hasFollowUps());
+        assertFalse(ALICE.hasFollowUps());
+        assertEquals(List.of(new FollowUp("Send report"), new FollowUp("Call about Saturday")),
+                withItems.getFollowUps());
+        assertThrows(UnsupportedOperationException.class, () -> withItems.getFollowUps().clear());
+    }
+
+    @Test
     public void equals_notes_compared() {
         ProgressNote note = new ProgressNote(LocalDate.of(2026, 10, 15), "Fractions");
         Student withNote = new PersonBuilder(ALICE).withNotes(note).build();
