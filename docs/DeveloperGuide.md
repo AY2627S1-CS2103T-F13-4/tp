@@ -248,6 +248,8 @@ unmodifiable list sorted oldest first; the sort is stable, so notes on the same 
 A note's position in that list is the `NOTE_INDEX` shown in the details. The 8-argument `Student` constructor still
 creates a student with no notes, for new students and older callers.
 
+<img src="images/ProgressNoteClassDiagram.png" width="450" />
+
 `note-add` is routed by `AddressBookParser` to `NoteCommandParser`, parameterized by the operation like the lesson
 and guardian parsers. The parser reads only `date/` and `text/`, so a word such as `and/or` stays in the note text.
 `ParserUtil#parseProgressNote` rejects dates that are not real `YYYY-MM-DD` dates or are later than today. The
@@ -259,6 +261,11 @@ replaces the student with a copy that has the extra note. It returns a `CommandR
 details, where `PersonCard` lists the notes. Every command that rebuilds a `Student` (`edit`, the guardian commands
 and the lesson commands) passes the existing notes to the 9-argument constructor; `NoteCommandTest` checks each of
 them so a later field change cannot silently drop notes.
+
+The sequence diagram below shows how `note-add 1 date/2026-10-15 text/Fractions` adds a note. Storage then saves the
+updated address book, as for any other command.
+
+![note-add command sequence](images/NoteAddSequenceDiagram.png)
 
 `JsonAdaptedProgressNote` stores each note as `{"date": "YYYY-MM-DD", "text": "..."}` in the person's `notes`
 array. A missing or `null` `notes` key loads as no notes, so older data files still load.
