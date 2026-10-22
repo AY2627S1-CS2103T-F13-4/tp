@@ -279,6 +279,8 @@ every stored item is outstanding. Follow-ups belong to the student rather than t
 The 11-argument `Student` constructor (ending `isArchived, notes`) still creates a student with no follow-ups; the
 12-argument form appends `followUps` after `notes`.
 
+<img src="images/FollowUpClassDiagram.png" width="550" />
+
 `followup-add`, `followup-edit` and `followup-done` are routed by `AddressBookParser` to `FollowUpCommandParser`,
 parameterized by `FollowUpCommand.Operation` like the lesson, guardian and note parsers. The parser reads only
 `text/`, so a word such as `and/or` stays in the text, and requires exactly one index for adding and two for editing
@@ -295,6 +297,11 @@ Because the filtered list re-applies its predicate after `Model#setPerson`, comp
 this filter is active removes the student from the list and renumbers the students after them. `FollowUpCommand`
 therefore opens the student's details at the student's new position, and opens none if the student is no longer shown,
 so the details never show the wrong student.
+
+The sequence diagram below shows how `followup-done 1 2` completes a student's second follow-up. Storage then saves
+the updated address book, as for any other command.
+
+![followup-done command sequence](images/FollowUpDoneSequenceDiagram.png)
 
 Every command that rebuilds a `Student` (`edit`, the guardian, lesson and note commands, and `Student#withArchived`
 for `archive` and `unarchive`) passes the existing follow-ups on. `FollowUpCommandTest` checks each of them, so a later
