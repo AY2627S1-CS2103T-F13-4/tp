@@ -29,6 +29,7 @@ public class Student extends Person {
     private final Optional<Guardian> guardian;
     private final List<Lesson> lessons;
     private final List<ProgressNote> notes;
+    private final List<FollowUp> followUps;
 
     private final boolean isArchived;
 
@@ -42,17 +43,33 @@ public class Student extends Person {
     }
 
     /**
-     * Creates a student with all contact fields, an optional school, optional tuition details, lessons and no notes.
+     * Creates a student with all contact fields, an optional school, optional tuition details, lessons, archive status
+     * and progress notes, and no follow-ups. The notes are kept oldest first.
      *
      * @throws IllegalArgumentException if {@code lessons} contains duplicates.
      */
     public Student(Name name, Phone phone, Email email, Address address, Set<Tag> tags,
             Optional<School> school, Optional<SchoolingLevel> schoolingLevel, Optional<Guardian> guardian,
             List<Lesson> lessons, boolean isArchived, List<ProgressNote> notes) {
+        this(name, phone, email, address, tags, school, schoolingLevel, guardian, lessons, isArchived, notes,
+                List.of());
+    }
+
+    /**
+     * Creates a student with all contact fields, an optional school, optional tuition details, lessons, archive status,
+     * progress notes and outstanding guardian follow-ups. The notes are kept oldest first; follow-ups keep the given
+     * order.
+     *
+     * @throws IllegalArgumentException if {@code lessons} contains duplicates.
+     */
+    public Student(Name name, Phone phone, Email email, Address address, Set<Tag> tags,
+            Optional<School> school, Optional<SchoolingLevel> schoolingLevel, Optional<Guardian> guardian,
+            List<Lesson> lessons, boolean isArchived, List<ProgressNote> notes, List<FollowUp> followUps) {
         super(name, phone);
-        requireAllNonNull(email, address, tags, school, schoolingLevel, guardian, lessons, notes);
+        requireAllNonNull(email, address, tags, school, schoolingLevel, guardian, lessons, notes, followUps);
         lessons.forEach(Objects::requireNonNull);
         notes.forEach(Objects::requireNonNull);
+        followUps.forEach(Objects::requireNonNull);
         if (new HashSet<>(lessons).size() != lessons.size()) {
             throw new IllegalArgumentException(MESSAGE_DUPLICATE_LESSONS);
         }
@@ -65,6 +82,7 @@ public class Student extends Person {
         this.lessons = List.copyOf(lessons);
         this.isArchived = isArchived;
         this.notes = notes.stream().sorted(ProgressNote.OLDEST_FIRST).toList();
+        this.followUps = List.copyOf(followUps);
     }
 
     /** Returns an unmodifiable list of this student's lessons, which may be empty. */
@@ -75,6 +93,16 @@ public class Student extends Person {
     /** Returns an unmodifiable list of this student's progress notes, oldest first, which may be empty. */
     public List<ProgressNote> getNotes() {
         return notes;
+    }
+
+    /** Returns an unmodifiable list of this student's outstanding guardian follow-ups, which may be empty. */
+    public List<FollowUp> getFollowUps() {
+        return followUps;
+    }
+
+    /** Returns true if this student has at least one outstanding guardian follow-up. */
+    public boolean hasFollowUps() {
+        return !followUps.isEmpty();
     }
 
     public Optional<School> getSchool() {
@@ -117,7 +145,7 @@ public class Student extends Person {
     /** Returns a copy of this student with the given archive status and all other details unchanged. */
     public Student withArchived(boolean isArchived) {
         return new Student(getName(), getPhone(), email, address, tags, school, schoolingLevel, guardian, lessons,
-                isArchived, List.of());
+                isArchived, notes, followUps);
     }
 
     /**
@@ -144,14 +172,15 @@ public class Student extends Person {
                 && guardian.equals(otherStudent.guardian)
                 && lessons.equals(otherStudent.lessons)
                 && isArchived == otherStudent.isArchived
-                && notes.equals(otherStudent.notes);
+                && notes.equals(otherStudent.notes)
+                && followUps.equals(otherStudent.followUps);
     }
 
     @Override
     public int hashCode() {
         // use this method for custom fields hashing instead of implementing your own
         return Objects.hash(super.hashCode(), email, address, tags, school, schoolingLevel, guardian,
-                lessons, isArchived, notes);
+                lessons, isArchived, notes, followUps);
     }
 
     @Override
@@ -168,6 +197,7 @@ public class Student extends Person {
                 .add("lessons", lessons)
                 .add("isArchived", isArchived)
                 .add("notes", notes)
+                .add("followUps", followUps)
                 .toString();
     }
 
