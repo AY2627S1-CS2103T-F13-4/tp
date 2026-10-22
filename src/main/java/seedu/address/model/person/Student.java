@@ -2,7 +2,6 @@ package seedu.address.model.person;
 
 import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -29,6 +28,8 @@ public class Student extends Person {
     private final Optional<Guardian> guardian;
     private final List<Lesson> lessons;
 
+    private final boolean isArchived;
+
     /**
      * Creates a student with the given contact fields, no tuition details and no lessons.
      * Every field must be present and not null.
@@ -45,6 +46,17 @@ public class Student extends Person {
     public Student(Name name, Phone phone, Email email, Address address, Set<Tag> tags,
             Optional<SchoolingLevel> schoolingLevel, Optional<Guardian> guardian,
             List<Lesson> lessons) {
+        this(name, phone, email, address, tags, schoolingLevel, guardian, lessons, false);
+    }
+
+    /**
+     * Creates a student with all contact fields, tuition details, lessons and archive status.
+     *
+     * @throws IllegalArgumentException if {@code lessons} contains duplicates.
+     */
+    public Student(Name name, Phone phone, Email email, Address address, Set<Tag> tags,
+            Optional<SchoolingLevel> schoolingLevel, Optional<Guardian> guardian,
+            List<Lesson> lessons, boolean isArchived) {
         super(name, phone);
         requireAllNonNull(email, address, tags, schoolingLevel, guardian, lessons);
         lessons.forEach(Objects::requireNonNull);
@@ -56,7 +68,8 @@ public class Student extends Person {
         this.tags.addAll(tags);
         this.schoolingLevel = schoolingLevel;
         this.guardian = guardian;
-        this.lessons = Collections.unmodifiableList(new ArrayList<>(lessons));
+        this.lessons = List.copyOf(lessons);
+        this.isArchived = isArchived;
     }
 
     /** Returns an unmodifiable list of this student's lessons, which may be empty. */
@@ -93,6 +106,15 @@ public class Student extends Person {
         return Collections.unmodifiableSet(tags);
     }
 
+    public boolean isArchived() {
+        return this.isArchived;
+    }
+
+    /** Returns a copy of this student with the given archive status and all other details unchanged. */
+    public Student withArchived(boolean isArchived) {
+        return new Student(getName(), getPhone(), email, address, tags, schoolingLevel, guardian, lessons, isArchived);
+    }
+
     /**
      * Returns true if both students have the same name, phone and data fields.
      * This defines a stronger notion of equality between two students.
@@ -114,14 +136,15 @@ public class Student extends Person {
                 && tags.equals(otherStudent.tags)
                 && schoolingLevel.equals(otherStudent.schoolingLevel)
                 && guardian.equals(otherStudent.guardian)
-                && lessons.equals(otherStudent.lessons);
+                && lessons.equals(otherStudent.lessons)
+                && isArchived == otherStudent.isArchived;
     }
 
     @Override
     public int hashCode() {
         // use this method for custom fields hashing instead of implementing your own
         return Objects.hash(super.hashCode(), email, address, tags, schoolingLevel, guardian,
-                lessons);
+                lessons, isArchived);
     }
 
     @Override
@@ -135,6 +158,7 @@ public class Student extends Person {
                 .add("schoolingLevel", schoolingLevel)
                 .add("guardian", guardian)
                 .add("lessons", lessons)
+                .add("isArchived", isArchived)
                 .toString();
     }
 

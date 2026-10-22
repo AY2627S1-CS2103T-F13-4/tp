@@ -22,6 +22,7 @@ import org.junit.jupiter.api.Test;
 import seedu.address.commons.core.index.Index;
 import seedu.address.logic.Messages;
 import seedu.address.logic.commands.LessonCommand.Operation;
+import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
@@ -136,6 +137,23 @@ public class LessonCommandTest {
                 new Lesson(ENGLISH, MONDAY, RATE, Optional.of(LIBRARY), Optional.of(LessonMode.PHYSICAL))));
 
         assertCommandSuccess(command, model, "Lesson updated for " + student.getName() + ".", expectedModel);
+    }
+
+    @Test
+    public void execute_editArchivedStudentLesson_preservesArchiveStatus() throws CommandException {
+        Student archived = withLessons(firstStudent(), FULL_LESSON).withArchived(true);
+        model.setPerson(firstStudent(), archived);
+        model.updateFilteredPersonList(archived::isSamePerson);
+        LessonCommand command = new LessonCommand(INDEX_FIRST_PERSON, Operation.EDIT,
+                Optional.of(INDEX_FIRST_LESSON), Optional.of(ENGLISH), Optional.empty(), Optional.empty(),
+                Optional.empty(), Optional.empty());
+
+        command.execute(model);
+
+        Student edited = firstStudent();
+        assertEquals(withLessons(archived,
+                new Lesson(ENGLISH, MONDAY, RATE, Optional.of(LIBRARY), Optional.of(LessonMode.PHYSICAL))), edited);
+        assertTrue(edited.isArchived());
     }
 
     @Test

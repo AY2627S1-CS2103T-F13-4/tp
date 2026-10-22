@@ -24,6 +24,7 @@ import org.junit.jupiter.api.Test;
 import seedu.address.commons.core.index.Index;
 import seedu.address.logic.Messages;
 import seedu.address.logic.commands.EditCommand.EditPersonDescriptor;
+import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
@@ -238,6 +239,23 @@ public class EditCommandTest {
 
         assertSuccessfulEdit(original, descriptor, editedPerson);
         assertEquals(original.getLessons(), editedPerson.getLessons());
+    }
+
+    @Test
+    public void execute_editArchivedStudent_preservesArchiveStatus() throws CommandException {
+        Student original = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
+        Student archived = original.withArchived(true);
+        model.setPerson(original, archived);
+        model.updateFilteredPersonList(archived::isSamePerson);
+
+        new EditCommand(INDEX_FIRST_PERSON,
+                new EditPersonDescriptorBuilder().withPhone(VALID_PHONE_BOB).build()).execute(model);
+
+        Student edited = model.getAddressBook().getPersonList().stream()
+                .filter(archived::isSamePerson).findFirst().orElseThrow();
+        assertEquals(new PersonBuilder(archived).withPhone(VALID_PHONE_BOB).build(), edited);
+        assertTrue(edited.isArchived());
+        assertFalse(model.getFilteredPersonList().contains(edited));
     }
 
     private PersonBuilder personWithTuitionDetails() {

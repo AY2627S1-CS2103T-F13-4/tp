@@ -83,6 +83,14 @@ public class AddressBook implements ReadOnlyAddressBook {
         persons.remove(key);
     }
 
+    /**
+     * Archives {@code key} from this {@code AddressBook}.
+     * {@code key} must exist in the address book.
+     */
+    public void archivePerson(Student key) {
+        persons.archive(key);
+    }
+
     //// util methods
 
     @Override

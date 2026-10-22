@@ -126,6 +126,27 @@ public class UniquePersonListTest {
     }
 
     @Test
+    public void archive_nullPerson_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> uniquePersonList.archive(null));
+    }
+
+    @Test
+    public void archive_personDoesNotExist_throwsPersonNotFoundException() {
+        assertThrows(PersonNotFoundException.class, () -> uniquePersonList.archive(ALICE));
+    }
+
+    @Test
+    public void archive_existingPerson_replacesPersonInPlaceWithoutChangingOriginal() {
+        uniquePersonList.setPersons(List.of(ALICE, BOB));
+
+        uniquePersonList.archive(new PersonBuilder(ALICE).build());
+
+        assertEquals(List.of(ALICE.withArchived(true), BOB), uniquePersonList.asUnmodifiableObservableList());
+        assertFalse(ALICE.isArchived());
+        assertTrue(uniquePersonList.contains(ALICE));
+    }
+
+    @Test
     public void setPersons_nullUniquePersonList_throwsNullPointerException() {
         assertThrows(NullPointerException.class, () -> uniquePersonList.setPersons((UniquePersonList) null));
     }

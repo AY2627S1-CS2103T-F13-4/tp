@@ -2,16 +2,20 @@ package seedu.address.model;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.model.Model.PREDICATE_SHOW_ALL_PERSONS;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalPersons.ALICE;
 import static seedu.address.testutil.TypicalPersons.BENSON;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
+import javafx.collections.ListChangeListener;
+import javafx.collections.ObservableList;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.model.person.NameContainsKeywordsPredicate;
 import seedu.address.model.person.SchoolingLevel;
@@ -74,6 +78,30 @@ public class ModelManagerTest {
     @Test
     public void getFilteredPersonList_modifyList_throwsUnsupportedOperationException() {
         assertThrows(UnsupportedOperationException.class, () -> modelManager.getFilteredPersonList().remove(0));
+    }
+
+    @Test
+    public void archivePerson_showAllPredicateInstalled_notifiesDisplayedListAndRetainsArchivedPerson() {
+        modelManager.addPerson(ALICE);
+        modelManager.addPerson(BENSON);
+        ObservableList<Student> displayedPersons = modelManager.getFilteredPersonList();
+        List<Student> removedPersons = new ArrayList<>();
+        displayedPersons.addListener((ListChangeListener<Student>) change -> {
+            while (change.next()) {
+                removedPersons.addAll(change.getRemoved());
+            }
+        });
+
+        modelManager.archivePerson(ALICE);
+
+        assertEquals(List.of(BENSON), displayedPersons);
+        assertEquals(List.of(ALICE), removedPersons);
+        assertEquals(2, modelManager.getAddressBook().getPersonList().size());
+        Student archivedPerson = modelManager.getAddressBook().getPersonList().get(0);
+        assertNotSame(ALICE, archivedPerson);
+        assertTrue(archivedPerson.isSamePerson(ALICE));
+        assertTrue(archivedPerson.isArchived());
+        assertFalse(ALICE.isArchived());
     }
 
     // Students are listed by school stage so the table can show Primary, Secondary and JC groups, and the numbers on
