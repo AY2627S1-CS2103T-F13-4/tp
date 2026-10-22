@@ -1,5 +1,7 @@
 package seedu.address.logic.commands;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandSuccess;
 import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
 import static seedu.address.testutil.TypicalPersons.ALICE;
@@ -9,6 +11,7 @@ import java.util.Optional;
 import org.junit.jupiter.api.Test;
 
 import seedu.address.logic.commands.GuardianCommand.Operation;
+import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
@@ -48,5 +51,25 @@ public class GuardianCommandTest {
         GuardianCommand delete = new GuardianCommand(INDEX_FIRST_PERSON, Operation.DELETE,
                 Optional.empty(), Optional.empty());
         assertCommandSuccess(delete, model, "Guardian removed for " + student.getName() + ".", expectedModel);
+    }
+
+    @Test
+    public void execute_editArchivedStudentGuardian_preservesArchiveStatus() throws CommandException {
+        Guardian originalGuardian = new Guardian(new Name("Janet Tan"), new Phone("91234567"));
+        Student archived = new PersonBuilder().withGuardian(originalGuardian).build().withArchived(true);
+        Model model = new ModelManager();
+        model.addPerson(archived);
+        model.updateFilteredPersonList(archived::isSamePerson);
+        Phone updatedPhone = new Phone("98765432");
+        GuardianCommand command = new GuardianCommand(INDEX_FIRST_PERSON, Operation.EDIT,
+                Optional.empty(), Optional.of(updatedPhone));
+
+        command.execute(model);
+
+        Student edited = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
+        Student expected = new PersonBuilder(archived)
+                .withGuardian(new Guardian(originalGuardian.getName(), updatedPhone)).build();
+        assertEquals(expected, edited);
+        assertTrue(edited.isArchived());
     }
 }

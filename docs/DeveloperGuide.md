@@ -90,7 +90,7 @@ The `DeleteCommandParser` lifeline should end at the X marker; PlantUML draws it
 
 <img src="images/ModelClassDiagram.png" width="450" />
 
-`ModelManager` holds the address book, user preferences, the current filtered list and the lesson filter. `updateFilteredPersonList(Predicate<Student>, Predicate<Lesson>)` sets both; the one-argument form, used by `list` and `edit`, shows all lessons again. `StudentLessonMatchesPredicate` keeps a student with at least one lesson that passes a `LessonMatchesPredicate`, so subject and day must match the same lesson.
+`ModelManager` holds the address book, user preferences, the current filtered list and the lesson filter. `updateFilteredPersonList(Predicate<Student>, Predicate<Lesson>)` sets both; the one-argument form, used by `list` and `edit`, shows all lessons again. `StudentSearchPredicate` combines the supplied student criteria and, when lesson criteria are present, requires at least one lesson that passes a `LessonMatchesPredicate`, so subject and day must match the same lesson.
 
 * `UniquePersonList` stores the `Student` records.
 * The UI observes an unmodifiable `ObservableList<Student>` of matching records.
@@ -226,24 +226,28 @@ Tests: `LessonCommandParserTest`, `LessonWorkflowTest` (add, edit, clear, delete
 
 ### Student search
 
-`FindCommandParser` keeps bare keywords as whole-word, case-insensitive name searches using
-`NameContainsKeywordsPredicate`. Prefixed searches accept `name/`, `guardian/`, `level/`, `subject/` and `day/`;
-the parser rejects empty values, repeated prefixes, invalid weekdays and bare keywords before prefixes.
+`FindCommandParser` accepts `name/`, `guardian/`, `sch/`, `level/`, `subject/` and `day/`, rejecting empty
+values, duplicate prefixes and bare name keywords mixed with prefixes. It builds one `StudentSearchPredicate`
+for every prefixed search. The predicate requires every supplied criterion to match: student name, guardian
+name or phone, school and schooling level use case-insensitive substrings. Missing optional fields fail only
+when their criteria are supplied. Searches without lesson criteria do not require students to have lessons.
+Bare name keywords retain whole-word, case-insensitive OR matching through `NameContainsKeywordsPredicate`.
 
-`StudentContactMatchesPredicate` requires the optional student-name substring and guardian substring to match,
-ignoring case. The guardian criterion matches either the guardian's name or phone; an absent guardian fails that
-criterion. It also requires the existing level or lesson predicate to match. Contact and level searches do not
-require students to have lessons. `StudentLessonMatchesPredicate` requires subject and day to match the same lesson,
-and `FindCommand` passes that lesson predicate to the model so the calendar shows only qualifying lessons.
+`LessonMatchesPredicate` stays separate: subject and day must match the same lesson. The student predicate
+requires at least one such lesson, and `FindCommand` passes that same lesson filter to the model for `week`.
+A later search without lesson criteria
+resets the lesson filter; `list` clears the entire search. `EditCommand`, including school changes and
+clearing a school, clears both student and lesson filters and displays all students after a successful edit.
 
-`FindCommandParserTest` covers contact substrings, guardian phone matching, absent guardians, combined criteria,
-whole-word name compatibility, whitespace between prefixes, invalid input and calendar filtering.
+Search logging uses the existing `LogsCenter` framework. The parser logs selected prefix names and rejection
+reasons at `FINE`; the command logs the result count at `INFO`. These search-specific diagnostics omit search
+values. Existing command-level logging in `LogicManager` still records raw commands. Logs go to the console
+and rotating `studentbook.log.*` files; set `LOG_LEVEL` in `LogsCenter` to `Level.FINE` for parser diagnostics.
 
-Search logging uses the existing `LogsCenter` framework. `FindCommand` logs successful searches and their matching
-student count at `INFO`. `FindCommandParser` logs selected prefix types (or `bare-name`) and validation rejection
-reasons at `FINE`. These search-specific entries omit search values and contact details. Existing command-level
-logging in `LogicManager` still records raw commands. Logs go to the console and rotating `studentbook.log.*` files;
-set `LOG_LEVEL` in `LogsCenter` to `Level.FINE` to enable the parser diagnostics during debugging.
+Tests: `StudentSearchPredicateTest`, `LessonFilterPredicateTest`, `FindCommandParserTest` and `FindLoggingTest`
+cover contact and school substrings, absent fields, searches without lessons, all criteria combined, same-lesson
+and calendar filtering, bare-name compatibility, filter resets, school edits through `EditCommand`, invalid
+input, prefix ordering, equality, defensive checks and logging.
 
 ### Guardian contact CRUD
 
@@ -274,14 +278,15 @@ creates a student with no notes, for new students and older callers.
 
 <img src="images/ProgressNoteClassDiagram.png" width="450" />
 
-`note-add` is routed by `AddressBookParser` to `NoteCommandParser`, parameterized by the operation like the lesson
-and guardian parsers. The parser reads only `date/` and `text/`, so a word such as `and/or` stays in the note text.
+`note-add` and `note-delete` are routed by `AddressBookParser` to `NoteCommandParser`, parameterized by the
+operation like the lesson and guardian parsers. Deleting takes only the student index and the note's number. The parser reads only `date/` and `text/`, so a word such as `and/or` stays in the note text.
 `ParserUtil#parseProgressNote` rejects dates that are not real `YYYY-MM-DD` dates or are later than today. The
 future-date check is in the parser rather than the model, so a saved file still loads if the computer's clock is
 wrong.
 
-`NoteCommand` resolves the student from the current filtered list, rejects an identical note on the same date, and
-replaces the student with a copy that has the extra note. It returns a `CommandResult` that opens that student's
+`NoteCommand` resolves the student from the current filtered list. Adding rejects an identical note on the same
+date; deleting rejects a note number past the end. Either way, it replaces the student with a copy whose notes
+have changed. It returns a `CommandResult` that opens that student's
 details, where `PersonCard` lists the notes. Every command that rebuilds a `Student` (`edit`, the guardian commands
 and the lesson commands) passes the existing notes to the 10-argument constructor; `NoteCommandTest` checks each of
 them so a later field change cannot silently drop notes.
@@ -667,7 +672,9 @@ Use an empty test folder and sample data. These checks are a starting point; als
    The student's details should open with note `1.`, dated `15 Oct 2026`, with the text unchanged.
 2. Run `note-add INDEX date/2026-10-08 text/Placement test`. It should become note 1, and the earlier note 2.
 3. Edit the student's phone, add a guardian and add a lesson. Both notes should remain. Restart and check again.
-4. Try a duplicate note, tomorrow's date, `date/2026-02-30`, `date/15-10-2026`, empty text, 501 characters of text,
+4. Run `note-delete INDEX 1`. Only the `Placement test` note should go, and the other note becomes note 1.
+   Restart and check again. `note-delete INDEX 2` should then report an invalid note index.
+5. Try a duplicate note, tomorrow's date, `date/2026-02-30`, `date/15-10-2026`, empty text, 501 characters of text,
    a repeated prefix and an out-of-range index. Each should report an error and leave every record unchanged.
 
 ### Missing or invalid data files

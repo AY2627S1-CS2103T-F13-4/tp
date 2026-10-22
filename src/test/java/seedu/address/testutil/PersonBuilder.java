@@ -39,6 +39,7 @@ public class PersonBuilder {
     private Optional<SchoolingLevel> schoolingLevel = Optional.empty();
     private Optional<Guardian> guardianContact = Optional.empty();
     private List<Lesson> lessons = new ArrayList<>();
+    private boolean isArchived;
     private List<ProgressNote> notes = new ArrayList<>();
 
     /**
@@ -65,6 +66,7 @@ public class PersonBuilder {
         schoolingLevel = personToCopy.getSchoolingLevel();
         guardianContact = personToCopy.getGuardian();
         lessons = new ArrayList<>(personToCopy.getLessons());
+        isArchived = personToCopy.isArchived();
         notes = new ArrayList<>(personToCopy.getNotes());
     }
 
@@ -141,7 +143,7 @@ public class PersonBuilder {
     /** Builds an immutable student record. */
     public Student build() {
         return new Student(name, phone, email, address, tags, school, schoolingLevel, guardianContact, lessons,
-                notes);
+                isArchived, notes);
     }
 
 }

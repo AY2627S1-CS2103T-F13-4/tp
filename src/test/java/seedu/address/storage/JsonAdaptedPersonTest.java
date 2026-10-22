@@ -61,7 +61,7 @@ public class JsonAdaptedPersonTest {
     public void toModelType_invalidSchool_throwsIllegalValueException() {
         for (String school : new String[] {"", " ", "A".repeat(61)}) {
             JsonAdaptedPerson person = new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL, VALID_ADDRESS,
-                    VALID_TAGS, school, null, null, null);
+                    VALID_TAGS, school, null, null, null, false);
             assertThrows(IllegalValueException.class, School.MESSAGE_CONSTRAINTS, person::toModelType);
         }
     }
