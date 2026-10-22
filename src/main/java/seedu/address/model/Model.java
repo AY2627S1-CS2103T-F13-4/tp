@@ -13,7 +13,7 @@ import seedu.address.model.person.Student;
  */
 public interface Model {
     /** {@code Predicate} that always evaluates to true */
-    Predicate<Student> PREDICATE_SHOW_ALL_PERSONS = unused -> true;
+    Predicate<Student> PREDICATE_SHOW_ALL_PERSONS = student -> !student.isArchived();
     Predicate<Lesson> PREDICATE_SHOW_ALL_LESSONS = unused -> true;
 
     /**
@@ -49,6 +49,18 @@ public interface Model {
      * The person must exist in the address book.
      */
     void deletePerson(Student target);
+
+    /**
+     * Archives the given person.
+     * The person must exist in the address book.
+     */
+    void archivePerson(Student target);
+
+    /**
+     * Unarchives the given person.
+     * The person must exist in the address book.
+     */
+    void unarchivePerson(Student target);
 
     /**
      * Adds the given person.

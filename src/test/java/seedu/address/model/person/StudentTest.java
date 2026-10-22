@@ -142,7 +142,8 @@ public class StudentTest {
     @Test
     public void constructor_nullSchool_throwsNullPointerException() {
         assertThrows(NullPointerException.class, () -> new Student(ALICE.getName(), ALICE.getPhone(), ALICE.getEmail(),
-                ALICE.getAddress(), ALICE.getTags(), null, Optional.empty(), Optional.empty(), List.of()));
+                ALICE.getAddress(), ALICE.getTags(), null, Optional.empty(), Optional.empty(),
+                List.of(), false, List.of()));
     }
 
     @Test
@@ -185,6 +186,47 @@ public class StudentTest {
     }
 
     @Test
+    public void withArchived_preservesDetailsWithoutChangingOriginal() {
+        Student original = new PersonBuilder(ALICE).withSchoolingLevel(new SchoolingLevel("P5"))
+                .withGuardian(new Guardian(BOB.getName(), BOB.getPhone()))
+                .withLessons(MONDAY_MATH, TUESDAY_MATH).build();
+
+        Student archived = original.withArchived(true);
+
+        assertFalse(original.isArchived());
+        assertTrue(archived.isArchived());
+        assertEquals(original.getName(), archived.getName());
+        assertEquals(original.getPhone(), archived.getPhone());
+        assertEquals(original.getEmail(), archived.getEmail());
+        assertEquals(original.getAddress(), archived.getAddress());
+        assertEquals(original.getTags(), archived.getTags());
+        assertEquals(original.getSchoolingLevel(), archived.getSchoolingLevel());
+        assertEquals(original.getGuardian(), archived.getGuardian());
+        assertEquals(original.getLessons(), archived.getLessons());
+        assertEquals(original, archived.withArchived(false));
+    }
+
+    @Test
+    public void equals_archiveStatus_comparesStatusWithoutChangingIdentity() {
+        Student archivedAlice = ALICE.withArchived(true);
+        Student archivedAliceCopy = ALICE.withArchived(true);
+
+        assertNotEquals(ALICE, archivedAlice);
+        assertTrue(ALICE.isSamePerson(archivedAlice));
+        assertEquals(archivedAlice, archivedAliceCopy);
+        assertEquals(archivedAlice.hashCode(), archivedAliceCopy.hashCode());
+    }
+
+    @Test
+    public void personBuilder_copy_preservesArchiveStatus() {
+        Student original = ALICE.withArchived(true);
+        Student copy = new PersonBuilder(original).build();
+
+        assertTrue(copy.isArchived());
+        assertEquals(original, copy);
+    }
+
+    @Test
     public void constructor_noLessons_isEmpty() {
         assertTrue(ALICE.getLessons().isEmpty());
     }
@@ -199,7 +241,7 @@ public class StudentTest {
     public void constructor_defensivelyCopiesLessons() {
         List<Lesson> input = new java.util.ArrayList<>(List.of(MONDAY_MATH));
         Student person = new Student(ALICE.getName(), ALICE.getPhone(), ALICE.getEmail(), ALICE.getAddress(),
-                ALICE.getTags(), Optional.empty(), Optional.empty(), Optional.empty(), input);
+                ALICE.getTags(), Optional.empty(), Optional.empty(), Optional.empty(), input, false, List.of());
         input.clear();
         assertEquals(List.of(MONDAY_MATH), person.getLessons());
     }
@@ -215,7 +257,7 @@ public class StudentTest {
         String expected = Student.class.getCanonicalName() + "{name=" + ALICE.getName() + ", phone=" + ALICE.getPhone()
                 + ", email=" + ALICE.getEmail() + ", address=" + ALICE.getAddress() + ", tags=" + ALICE.getTags()
                 + ", school=Optional.empty, schoolingLevel=Optional.empty, guardian=Optional.empty, lessons=[]"
-                + ", notes=[]}";
+                + ", isArchived=false, notes=[]}";
         assertEquals(expected, ALICE.toString());
     }
 

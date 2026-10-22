@@ -43,18 +43,19 @@ class JsonAdaptedPerson {
     private final String schoolingLevel;
     private final JsonAdaptedGuardian guardianContact;
     private final List<JsonAdaptedLesson> lessons = new ArrayList<>();
+    private final boolean isArchived;
     private final List<JsonAdaptedProgressNote> notes = new ArrayList<>();
 
     /** Retains compatibility with existing adapter callers. */
     public JsonAdaptedPerson(String name, String phone, String email, String address, List<JsonAdaptedTag> tags) {
-        this(name, phone, email, address, tags, null, null, null, null);
+        this(name, phone, email, address, tags, null, null, null, null, false);
     }
 
     /** Constructs a {@code JsonAdaptedPerson} with the given person details and no notes. */
     public JsonAdaptedPerson(String name, String phone, String email, String address, List<JsonAdaptedTag> tags,
             String school, String schoolingLevel, JsonAdaptedGuardian guardianContact,
-            List<JsonAdaptedLesson> lessons) {
-        this(name, phone, email, address, tags, school, schoolingLevel, guardianContact, lessons, null);
+            List<JsonAdaptedLesson> lessons, boolean isArchived) {
+        this(name, phone, email, address, tags, school, schoolingLevel, guardianContact, lessons, false, null);
     }
 
     /**
@@ -69,6 +70,7 @@ class JsonAdaptedPerson {
             @JsonProperty("schoolingLevel") String schoolingLevel,
             @JsonProperty("guardianContact") JsonAdaptedGuardian guardianContact,
             @JsonProperty("lessons") List<JsonAdaptedLesson> lessons,
+            @JsonProperty("isArchived") boolean isArchived,
             @JsonProperty("notes") List<JsonAdaptedProgressNote> notes) {
         this.name = name;
         this.phone = phone;
@@ -77,6 +79,7 @@ class JsonAdaptedPerson {
         this.school = school;
         this.schoolingLevel = schoolingLevel;
         this.guardianContact = guardianContact;
+        this.isArchived = isArchived;
         if (tags != null) {
             this.tags.addAll(tags);
         }
@@ -99,6 +102,7 @@ class JsonAdaptedPerson {
         school = source.getSchool().map(School::toString).orElse(null);
         schoolingLevel = source.getSchoolingLevel().map(SchoolingLevel::toString).orElse(null);
         guardianContact = source.getGuardian().map(JsonAdaptedGuardian::new).orElse(null);
+        isArchived = source.isArchived();
         lessons.addAll(source.getLessons().stream()
                 .map(JsonAdaptedLesson::new)
                 .collect(Collectors.toList()));
@@ -171,7 +175,7 @@ class JsonAdaptedPerson {
                 modelNotes.add(note.toModelType());
             }
             return new Student(modelName, modelPhone, modelEmail, modelAddress, modelTags,
-                    modelSchool, modelLevel, modelGuardian, modelLessons, modelNotes);
+                    modelSchool, modelLevel, modelGuardian, modelLessons, isArchived, modelNotes);
         } catch (IllegalArgumentException e) {
             throw new IllegalValueException(e.getMessage());
         }

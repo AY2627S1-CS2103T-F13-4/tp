@@ -82,7 +82,7 @@ public class NoteCommand extends Command {
 
         Student replacement = new Student(student.getName(), student.getPhone(), student.getEmail(),
                 student.getAddress(), student.getTags(), student.getSchool(), student.getSchoolingLevel(),
-                student.getGuardian(), student.getLessons(), notes);
+                student.getGuardian(), student.getLessons(), student.isArchived(), notes);
         model.setPerson(student, replacement);
         if (operation == Operation.DELETE) {
             // Show the removed note, since a wrong NOTE_INDEX cannot be undone.

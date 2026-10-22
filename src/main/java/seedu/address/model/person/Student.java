@@ -2,7 +2,6 @@ package seedu.address.model.person;
 
 import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -31,12 +30,15 @@ public class Student extends Person {
     private final List<Lesson> lessons;
     private final List<ProgressNote> notes;
 
+    private final boolean isArchived;
+
     /**
      * Creates a student with the given contact fields, no tuition details and no lessons.
      * Every field must be present and not null.
      */
     public Student(Name name, Phone phone, Email email, Address address, Set<Tag> tags) {
-        this(name, phone, email, address, tags, Optional.empty(), Optional.empty(), Optional.empty(), List.of());
+        this(name, phone, email, address, tags, Optional.empty(), Optional.empty(),
+                Optional.empty(), List.of(), false, List.of());
     }
 
     /**
@@ -46,19 +48,7 @@ public class Student extends Person {
      */
     public Student(Name name, Phone phone, Email email, Address address, Set<Tag> tags,
             Optional<School> school, Optional<SchoolingLevel> schoolingLevel, Optional<Guardian> guardian,
-            List<Lesson> lessons) {
-        this(name, phone, email, address, tags, school, schoolingLevel, guardian, lessons, List.of());
-    }
-
-    /**
-     * Creates a student with all contact fields, an optional school, optional tuition details, lessons and progress
-     * notes. The notes are kept oldest first.
-     *
-     * @throws IllegalArgumentException if {@code lessons} contains duplicates.
-     */
-    public Student(Name name, Phone phone, Email email, Address address, Set<Tag> tags,
-            Optional<School> school, Optional<SchoolingLevel> schoolingLevel, Optional<Guardian> guardian,
-            List<Lesson> lessons, List<ProgressNote> notes) {
+            List<Lesson> lessons, boolean isArchived, List<ProgressNote> notes) {
         super(name, phone);
         requireAllNonNull(email, address, tags, school, schoolingLevel, guardian, lessons, notes);
         lessons.forEach(Objects::requireNonNull);
@@ -72,7 +62,8 @@ public class Student extends Person {
         this.school = school;
         this.schoolingLevel = schoolingLevel;
         this.guardian = guardian;
-        this.lessons = Collections.unmodifiableList(new ArrayList<>(lessons));
+        this.lessons = List.copyOf(lessons);
+        this.isArchived = isArchived;
         this.notes = notes.stream().sorted(ProgressNote.OLDEST_FIRST).toList();
     }
 
@@ -119,6 +110,16 @@ public class Student extends Person {
         return Collections.unmodifiableSet(tags);
     }
 
+    public boolean isArchived() {
+        return this.isArchived;
+    }
+
+    /** Returns a copy of this student with the given archive status and all other details unchanged. */
+    public Student withArchived(boolean isArchived) {
+        return new Student(getName(), getPhone(), email, address, tags, school, schoolingLevel, guardian, lessons,
+                isArchived, List.of());
+    }
+
     /**
      * Returns true if both students have the same name, phone and data fields.
      * This defines a stronger notion of equality between two students.
@@ -142,6 +143,7 @@ public class Student extends Person {
                 && schoolingLevel.equals(otherStudent.schoolingLevel)
                 && guardian.equals(otherStudent.guardian)
                 && lessons.equals(otherStudent.lessons)
+                && isArchived == otherStudent.isArchived
                 && notes.equals(otherStudent.notes);
     }
 
@@ -149,7 +151,7 @@ public class Student extends Person {
     public int hashCode() {
         // use this method for custom fields hashing instead of implementing your own
         return Objects.hash(super.hashCode(), email, address, tags, school, schoolingLevel, guardian,
-                lessons, notes);
+                lessons, isArchived, notes);
     }
 
     @Override
@@ -164,6 +166,7 @@ public class Student extends Person {
                 .add("schoolingLevel", schoolingLevel)
                 .add("guardian", guardian)
                 .add("lessons", lessons)
+                .add("isArchived", isArchived)
                 .add("notes", notes)
                 .toString();
     }
