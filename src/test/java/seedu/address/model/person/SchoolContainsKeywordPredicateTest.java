@@ -11,6 +11,16 @@ import seedu.address.testutil.PersonBuilder;
 
 public class SchoolContainsKeywordPredicateTest {
     @Test
+    public void toString_includesNormalizedSchoolAndAdditionalCriteria() {
+        SchoolingLevelContainsKeywordPredicate level = new SchoolingLevelContainsKeywordPredicate("Secondary");
+        SchoolContainsKeywordPredicate predicate = new SchoolContainsKeywordPredicate("RAFFLES", level);
+        String expected = SchoolContainsKeywordPredicate.class.getCanonicalName()
+                + "{keyword=raffles, additionalCriteria=" + level + "}";
+
+        assertEquals(expected, predicate.toString());
+    }
+
+    @Test
     public void test_matchesSchoolSubstringIgnoringCaseAndExcludesAbsentSchools() {
         Student student = new PersonBuilder().withSchool(new School("Raffles Institution")).build();
         assertTrue(new SchoolContainsKeywordPredicate("fFlEs Ins").test(student));
