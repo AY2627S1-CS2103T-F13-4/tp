@@ -224,6 +224,27 @@ Tests cover loading, save/reload and invalid values (`TuitionStorageTest`). A fa
 
 Tests: `LessonCommandParserTest`, `LessonWorkflowTest` (add, edit, clear, delete, filtered indices, invalid input, duplicates and save/reload), `LessonTest`, `StudentTest` and `WeeklyLessonSlotTest`.
 
+### Student search
+
+`FindCommandParser` keeps bare keywords as whole-word, case-insensitive name searches using
+`NameContainsKeywordsPredicate`. Prefixed searches accept `name/`, `guardian/`, `level/`, `subject/` and `day/`;
+the parser rejects empty values, repeated prefixes, invalid weekdays and bare keywords before prefixes.
+
+`StudentContactMatchesPredicate` requires the optional student-name substring and guardian substring to match,
+ignoring case. The guardian criterion matches either the guardian's name or phone; an absent guardian fails that
+criterion. It also requires the existing level or lesson predicate to match. Contact and level searches do not
+require students to have lessons. `StudentLessonMatchesPredicate` requires subject and day to match the same lesson,
+and `FindCommand` passes that lesson predicate to the model so the calendar shows only qualifying lessons.
+
+`FindCommandParserTest` covers contact substrings, guardian phone matching, absent guardians, combined criteria,
+whole-word name compatibility, whitespace between prefixes, invalid input and calendar filtering.
+
+Search logging uses the existing `LogsCenter` framework. `FindCommand` logs successful searches and their matching
+student count at `INFO`. `FindCommandParser` logs selected prefix types (or `bare-name`) and validation rejection
+reasons at `FINE`. These search-specific entries omit search values and contact details. Existing command-level
+logging in `LogicManager` still records raw commands. Logs go to the console and rotating `studentbook.log.*` files;
+set `LOG_LEVEL` in `LogsCenter` to `Level.FINE` to enable the parser diagnostics during debugging.
+
 ### Guardian contact CRUD
 
 `guardian-add`, `guardian-edit` and `guardian-delete` are routed by `AddressBookParser` to
@@ -243,6 +264,28 @@ Reading uses the existing list/find workflow: `PersonCard` displays the name and
 and automatic save/reload after each mutation. It verifies preservation of contact details, schooling
 level and lessons, as well as preservation of guardians during student edits.
 Validation remains the current AB3 validation; broader name and phone rules remain a product decision.
+
+### Progress notes
+
+A `ProgressNote` holds a `LocalDate` and 1–500 characters of single-line text. `Student` keeps its notes in an
+unmodifiable list sorted oldest first; the sort is stable, so notes on the same date keep the order they were added.
+A note's position in that list is the `NOTE_INDEX` shown in the details. The 9-argument `Student` constructor still
+creates a student with no notes, for new students and older callers.
+
+`note-add` is routed by `AddressBookParser` to `NoteCommandParser`, parameterized by the operation like the lesson
+and guardian parsers. The parser reads only `date/` and `text/`, so a word such as `and/or` stays in the note text.
+`ParserUtil#parseProgressNote` rejects dates that are not real `YYYY-MM-DD` dates or are later than today. The
+future-date check is in the parser rather than the model, so a saved file still loads if the computer's clock is
+wrong.
+
+`NoteCommand` resolves the student from the current filtered list, rejects an identical note on the same date, and
+replaces the student with a copy that has the extra note. It returns a `CommandResult` that opens that student's
+details, where `PersonCard` lists the notes. Every command that rebuilds a `Student` (`edit`, the guardian commands
+and the lesson commands) passes the existing notes to the 10-argument constructor; `NoteCommandTest` checks each of
+them so a later field change cannot silently drop notes.
+
+`JsonAdaptedProgressNote` stores each note as `{"date": "YYYY-MM-DD", "text": "..."}` in the person's `notes`
+array. A missing or `null` `notes` key loads as no notes, so older data files still load.
 
 ### Inherited undo/redo proposal
 
@@ -276,7 +319,7 @@ Independent private tutors who:
 
 **Value proposition**: StudentBook keeps student contacts, tuition details, weekly lesson slots and hourly rates in one place, so private tutors can find and update them quickly.
 
-The planned MVP includes student records and all five tuition features below. Keep the existing AB3 contact fields and commands. Payment processing and sending messages are out of scope. Group classes, progress notes, follow-ups and other brainstormed ideas remain backlog candidates, not delivery commitments.
+The planned MVP includes student records and all five tuition features below. Keep the existing AB3 contact fields and commands. Payment processing and sending messages are out of scope. Group classes, follow-ups and other brainstormed ideas remain backlog candidates, not delivery commitments.
 
 | Owner | MVP feature | Story IDs |
 |---|---|---|
@@ -532,7 +575,7 @@ These are acceptance targets. They have not all been verified in the current app
 
 * **StudentBook**: The desktop app for managing student records.
 * **Independent private tutor**: A tutor who manages students and lessons without administrative staff.
-* **Student record**: One student's contact details, school, schooling level, guardian contact and lessons. Notes remain a backlog candidate.
+* **Student record**: One student's contact details, school, schooling level, guardian contact, lessons and dated progress notes.
 * **Guardian contact**: The name and phone number of the adult responsible for a student. The first version allows one optional guardian per student. A recorded guardian needs both fields.
 * **Schooling level**: The student's stage of primary or secondary education, such as Primary 5 or Secondary 3.
 * **Subject**: An academic subject taught by the tutor to a student, such as Mathematics or English.
@@ -585,6 +628,19 @@ Use an empty test folder and sample data. These checks are a starting point; als
 6. Run `lesson-delete INDEX 1`. English becomes lesson 1. Delete it too and the card should show `No lessons yet`.
 7. Try a duplicate `lesson-add`, a lesson index larger than the list, a missing required field, `mode/hybrid`, a repeated prefix, an unknown prefix such as `x/`, and an empty `mode/` on `lesson-add`. Each should report an error and leave every record unchanged.
 
+### Name and guardian searches
+
+1. Create students named `Alex Tan` and `Alexander Tan`. Run `find alex`; only `Alex Tan` should match.
+   Run `find name/aLeX`; both should match, including students without lessons.
+2. Give Alex a guardian named `Janet Lee` with phone `91234567`, leaving Alexander without a guardian.
+   Run `find guardian/ANET`, then `find guardian/1234`; each should show only Alex.
+3. Run `find name/alex guardian/janet`; Alex should match. Replace `janet` with `missing`; nobody should match.
+4. Give Alex a Tuesday Math lesson and a Monday English lesson. Run `find name/alex subject/math day/mon`;
+   Alex should not match. Add a Monday Math lesson and repeat; Alex should now match. Run `week` and check that
+   only the Monday Math lesson appears. Run `list` to clear the search.
+5. Try `find name/`, `find guardian/`, `find name/alex name/bob`, `find guardian/janet guardian/john`,
+   `find alex guardian/janet` and `find name/alex day/Funday`. Each should report an error.
+
 ### Guardian contacts
 
 1. List students and choose an index without a guardian. Run `guardian-add INDEX name/Janet Tan phone/91234567`.
@@ -597,6 +653,15 @@ Use an empty test folder and sample data. These checks are a starting point; als
    an invalid phone and repeated prefixes. Expect an error with existing records unchanged.
 6. Filter to one student with `find`, then use `guardian-add 1 name/Janet Tan phone/91234567`.
    Check that only the displayed student changes, the filter remains active, and other students are untouched.
+
+### Progress notes
+
+1. List students and choose an index. Run `note-add INDEX date/2026-10-15 text/Fractions, and/or decimals next`.
+   The student's details should open with note `1.`, dated `15 Oct 2026`, with the text unchanged.
+2. Run `note-add INDEX date/2026-10-08 text/Placement test`. It should become note 1, and the earlier note 2.
+3. Edit the student's phone, add a guardian and add a lesson. Both notes should remain. Restart and check again.
+4. Try a duplicate note, tomorrow's date, `date/2026-02-30`, `date/15-10-2026`, empty text, 501 characters of text,
+   a repeated prefix and an out-of-range index. Each should report an error and leave every record unchanged.
 
 ### Missing or invalid data files
 

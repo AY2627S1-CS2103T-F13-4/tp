@@ -28,6 +28,7 @@ public class Student extends Person {
     private final Optional<SchoolingLevel> schoolingLevel;
     private final Optional<Guardian> guardian;
     private final List<Lesson> lessons;
+    private final List<ProgressNote> notes;
 
     private final boolean isArchived;
 
@@ -40,7 +41,7 @@ public class Student extends Person {
     }
 
     /**
-     * Creates a student with all contact fields, tuition details, lessons and archive status.
+     * Creates a student with all contact fields, an optional school, optional tuition details, lessons and no notes.
      *
      * @throws IllegalArgumentException if {@code lessons} contains duplicates.
      */
@@ -48,8 +49,9 @@ public class Student extends Person {
             Optional<School> school, Optional<SchoolingLevel> schoolingLevel, Optional<Guardian> guardian,
             List<Lesson> lessons, boolean isArchived) {
         super(name, phone);
-        requireAllNonNull(email, address, tags, school, schoolingLevel, guardian, lessons);
+        requireAllNonNull(email, address, tags, school, schoolingLevel, guardian, lessons, notes);
         lessons.forEach(Objects::requireNonNull);
+        notes.forEach(Objects::requireNonNull);
         if (new HashSet<>(lessons).size() != lessons.size()) {
             throw new IllegalArgumentException(MESSAGE_DUPLICATE_LESSONS);
         }
@@ -61,11 +63,17 @@ public class Student extends Person {
         this.guardian = guardian;
         this.lessons = List.copyOf(lessons);
         this.isArchived = isArchived;
+        this.notes = notes.stream().sorted(ProgressNote.OLDEST_FIRST).toList();
     }
 
     /** Returns an unmodifiable list of this student's lessons, which may be empty. */
     public List<Lesson> getLessons() {
         return lessons;
+    }
+
+    /** Returns an unmodifiable list of this student's progress notes, oldest first, which may be empty. */
+    public List<ProgressNote> getNotes() {
+        return notes;
     }
 
     public Optional<School> getSchool() {
@@ -135,13 +143,14 @@ public class Student extends Person {
                 && guardian.equals(otherStudent.guardian)
                 && lessons.equals(otherStudent.lessons)
                 && isArchived == otherStudent.isArchived;
+                && notes.equals(otherStudent.notes);
     }
 
     @Override
     public int hashCode() {
         // use this method for custom fields hashing instead of implementing your own
         return Objects.hash(super.hashCode(), email, address, tags, school, schoolingLevel, guardian,
-                lessons, isArchived);
+                lessons, isArchived, notes);
     }
 
     @Override
@@ -157,6 +166,7 @@ public class Student extends Person {
                 .add("guardian", guardian)
                 .add("lessons", lessons)
                 .add("isArchived", isArchived)
+                .add("notes", notes)
                 .toString();
     }
 
