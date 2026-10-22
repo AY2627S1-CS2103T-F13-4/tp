@@ -1,6 +1,7 @@
 package seedu.address.ui;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -13,6 +14,7 @@ import javafx.beans.binding.Bindings;
 import javafx.beans.binding.DoubleExpression;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
+import javafx.geometry.VPos;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.layout.ColumnConstraints;
@@ -23,12 +25,14 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
+import seedu.address.model.person.FollowUp;
+import seedu.address.model.person.ProgressNote;
 import seedu.address.model.person.SchoolingLevel;
 import seedu.address.model.person.Student;
 
 /**
  * A table row that displays a {@code Student}: name and level, subjects, next lesson, rate and guardian.
- * An open row also shows its details: every lesson, the contact details, guardian and tags.
+ * An open row groups school and contact details, followed by the guardian, lessons, tags and progress notes.
  */
 public class PersonCard extends UiPart<Region> {
 
@@ -53,8 +57,14 @@ public class PersonCard extends UiPart<Region> {
     private static final double MODE_CHIP_GAP = 8;
     /** Room for the widest mode chip ("Physical") and its gap, in front of a location line. */
     private static final double MODE_CHIP_ALLOWANCE = 76;
-    /** Contact details wrap at this width in the details. */
+    /** Contact details and school wrap at this width in the details. */
     private static final double CONTACT_MAX_WIDTH = 320;
+    /** Fixed widths of the note number and date columns; the note's text takes the rest, up to its own limit. */
+    private static final double[] NOTE_COLUMN_WIDTHS = {20, 84};
+    private static final double NOTE_COLUMN_GAP = 14;
+    /** A note's number, date and text wrap within this width, so long notes stay readable. */
+    private static final double NOTES_MAX_WIDTH = 560;
+    private static final DateTimeFormatter NOTE_DATE_FORMAT = DateTimeFormatter.ofPattern("d MMM uuuu", Locale.ENGLISH);
     /** Colours the level chip and initials badge by school stage; unrecognised levels stay neutral. */
     private static final Map<SchoolingLevel.Stage, String> STAGE_STYLE_CLASSES = Map.of(
             SchoolingLevel.Stage.PRIMARY, "level-primary",
@@ -105,9 +115,11 @@ public class PersonCard extends UiPart<Region> {
     @FXML
     private FlowPane details;
 
-    /** Text in the details that wraps: lesson locations and contact lines. */
+    /** Text in the details that wraps: lesson locations, contact lines, school and note text. */
     private final List<Text> lessonLocations = new ArrayList<>();
-    private final List<Text> contactLines = new ArrayList<>();
+    private final List<Text> detailLines = new ArrayList<>();
+    private final List<Text> noteTexts = new ArrayList<>();
+    private final List<Text> followUpTexts = new ArrayList<>();
     private final List<StudentCardText.LessonLine> lines;
     private boolean detailsBuilt;
     private boolean open;
@@ -203,18 +215,26 @@ public class PersonCard extends UiPart<Region> {
         }
     }
 
-    /** Fills the details: every lesson, the contact details, the guardian and any tags. */
+    /**
+     * Fills the details: school and contact details together, then the guardian and their follow-ups, lessons,
+     * any tags and notes.
+     */
     private void fillDetails(List<StudentCardText.LessonLine> lines) {
-        Node lessonContent = lines.isEmpty() ? muted(StudentCardText.NO_LESSONS) : lessonTable(lines);
-        details.getChildren().add(section("Lessons", lessonContent));
+        VBox contactDetails = new VBox(16);
+        person.getSchool().ifPresent(school -> {
+            Text text = text(school.toString(), "row-value");
+            detailLines.add(text);
+            contactDetails.getChildren().add(section("School", text));
+        });
 
         VBox contact = new VBox(3);
         for (String line : List.of(person.getPhone().value, person.getEmail().value, person.getAddress().value)) {
             Text text = text(line, "row-value");
-            contactLines.add(text);
+            detailLines.add(text);
             contact.getChildren().add(text);
         }
-        details.getChildren().add(section("Contact", contact));
+        contactDetails.getChildren().add(section("Contact", contact));
+        details.getChildren().add(contactDetails);
 
         VBox guardian = new VBox(3);
         if (person.getGuardian().isPresent()) {
@@ -224,6 +244,13 @@ public class PersonCard extends UiPart<Region> {
             guardian.getChildren().add(muted(StudentCardText.NOT_SET));
         }
         details.getChildren().add(section("Guardian", guardian));
+
+        List<FollowUp> followUps = person.getFollowUps();
+        Node followUpContent = followUps.isEmpty() ? muted(StudentCardText.NO_FOLLOW_UPS) : followUpTable(followUps);
+        details.getChildren().add(section("Follow-ups", followUpContent));
+
+        Node lessonContent = lines.isEmpty() ? muted(StudentCardText.NO_LESSONS) : lessonTable(lines);
+        details.getChildren().add(section("Lessons", lessonContent));
 
         if (!person.getTags().isEmpty()) {
             FlowPane tags = new FlowPane(6, 6);
@@ -237,6 +264,51 @@ public class PersonCard extends UiPart<Region> {
             tags.setPrefWrapLength(CONTACT_MAX_WIDTH);
             details.getChildren().add(section("Tags", tags));
         }
+
+        List<ProgressNote> notes = person.getNotes();
+        Node noteContent = notes.isEmpty() ? muted(StudentCardText.NO_NOTES) : noteTable(notes);
+        details.getChildren().add(section("Notes", noteContent));
+    }
+
+    /** Lays out the outstanding follow-ups in the order recorded: number and text. Numbers match the index. */
+    private GridPane followUpTable(List<FollowUp> followUps) {
+        GridPane table = new GridPane();
+        table.getColumnConstraints().add(new ColumnConstraints(NOTE_COLUMN_WIDTHS[0]));
+        table.setHgap(NOTE_COLUMN_GAP);
+        table.setVgap(4);
+        for (int i = 0; i < followUps.size(); i++) {
+            Text number = text((i + 1) + ".", "lesson-number");
+            Text followUpText = text(followUps.get(i).getText(), "row-value");
+            followUpTexts.add(followUpText);
+            // A long item wraps; its number stays level with its first line.
+            GridPane.setValignment(number, VPos.TOP);
+            table.addRow(i, number, followUpText);
+        }
+        return table;
+    }
+
+    /**
+     * Lays out the progress notes oldest first: number, date and text in columns. Numbers match {@code NOTE_INDEX}.
+     */
+    private GridPane noteTable(List<ProgressNote> notes) {
+        GridPane table = new GridPane();
+        for (double width : NOTE_COLUMN_WIDTHS) {
+            table.getColumnConstraints().add(new ColumnConstraints(width));
+        }
+        table.setHgap(NOTE_COLUMN_GAP);
+        table.setVgap(4);
+        for (int i = 0; i < notes.size(); i++) {
+            ProgressNote note = notes.get(i);
+            Text number = text((i + 1) + ".", "lesson-number");
+            Text date = text(NOTE_DATE_FORMAT.format(note.getDate()), "row-secondary");
+            Text noteText = text(note.getText(), "row-value");
+            noteTexts.add(noteText);
+            // A long note wraps; its number and date stay level with its first line.
+            GridPane.setValignment(number, VPos.TOP);
+            GridPane.setValignment(date, VPos.TOP);
+            table.addRow(i, number, date, noteText);
+        }
+        return table;
     }
 
     /**
@@ -304,7 +376,13 @@ public class PersonCard extends UiPart<Region> {
                 .subtract(LESSON_COLUMN_WIDTHS[0] + LESSON_COLUMN_GAP + MODE_CHIP_ALLOWANCE);
         lessonLocations.forEach(location -> wrapWhenLonger(location, locationLimit, BODY_FONT_SIZE));
         DoubleExpression contactLimit = Bindings.min(detailsWidth, CONTACT_MAX_WIDTH);
-        contactLines.forEach(line -> wrapWhenLonger(line, contactLimit, BODY_FONT_SIZE));
+        detailLines.forEach(line -> wrapWhenLonger(line, contactLimit, BODY_FONT_SIZE));
+        DoubleExpression noteLimit = Bindings.min(detailsWidth, NOTES_MAX_WIDTH)
+                .subtract(Arrays.stream(NOTE_COLUMN_WIDTHS).sum() + NOTE_COLUMN_WIDTHS.length * NOTE_COLUMN_GAP);
+        noteTexts.forEach(note -> wrapWhenLonger(note, noteLimit, BODY_FONT_SIZE));
+        DoubleExpression followUpLimit = Bindings.min(detailsWidth, NOTES_MAX_WIDTH)
+                .subtract(NOTE_COLUMN_WIDTHS[0] + NOTE_COLUMN_GAP);
+        followUpTexts.forEach(followUp -> wrapWhenLonger(followUp, followUpLimit, BODY_FONT_SIZE));
     }
 
     /** Returns the style class that colours {@code level} by its school stage. */

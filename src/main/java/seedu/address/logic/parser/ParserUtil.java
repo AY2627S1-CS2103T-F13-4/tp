@@ -1,8 +1,10 @@
 package seedu.address.logic.parser;
 
 import static java.util.Objects.requireNonNull;
+import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -13,11 +15,14 @@ import seedu.address.commons.util.StringUtil;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.person.Address;
 import seedu.address.model.person.Email;
+import seedu.address.model.person.FollowUp;
 import seedu.address.model.person.HourlyRate;
 import seedu.address.model.person.LessonLocation;
 import seedu.address.model.person.LessonMode;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Phone;
+import seedu.address.model.person.ProgressNote;
+import seedu.address.model.person.School;
 import seedu.address.model.person.SchoolingLevel;
 import seedu.address.model.person.Subject;
 import seedu.address.model.person.WeeklyLessonSlot;
@@ -29,6 +34,7 @@ import seedu.address.model.tag.Tag;
 public class ParserUtil {
 
     public static final String MESSAGE_INVALID_INDEX = "Index must be a positive integer.";
+    public static final String MESSAGE_FUTURE_NOTE_DATE = "Note dates cannot be later than today.";
 
     /**
      * Parses {@code oneBasedIndex} into an {@code Index} and returns it. Leading and trailing whitespaces will be
@@ -75,6 +81,21 @@ public class ParserUtil {
             subjects.add(parseSubject(value));
         }
         return subjects;
+    }
+
+    /**
+     * Parses a {@code String school} into a {@code School}.
+     * Leading and trailing whitespaces will be trimmed.
+     *
+     * @throws ParseException if the given {@code school} is invalid.
+     */
+    public static School parseSchool(String school) throws ParseException {
+        requireNonNull(school);
+        String trimmedSchool = school.trim();
+        if (!School.isValidSchool(trimmedSchool)) {
+            throw new ParseException(School.MESSAGE_CONSTRAINTS);
+        }
+        return new School(trimmedSchool);
     }
 
     /**
@@ -208,5 +229,41 @@ public class ParserUtil {
             throw new ParseException(LessonLocation.MESSAGE_CONSTRAINTS);
         }
         return new LessonLocation(location);
+    }
+
+    /**
+     * Parses a progress note from its date in YYYY-MM-DD format and its text.
+     * A note records something that already happened, so a date after {@code today} is rejected.
+     *
+     * @throws ParseException if the date or text is invalid.
+     */
+    public static ProgressNote parseProgressNote(String date, String text, LocalDate today) throws ParseException {
+        requireAllNonNull(date, text, today);
+        LocalDate noteDate;
+        try {
+            noteDate = ProgressNote.parseDate(date);
+        } catch (IllegalArgumentException e) {
+            throw new ParseException(ProgressNote.MESSAGE_DATE_CONSTRAINTS);
+        }
+        if (noteDate.isAfter(today)) {
+            throw new ParseException(MESSAGE_FUTURE_NOTE_DATE);
+        }
+        if (!ProgressNote.isValidText(text)) {
+            throw new ParseException(ProgressNote.MESSAGE_TEXT_CONSTRAINTS);
+        }
+        return new ProgressNote(noteDate, text);
+    }
+
+    /**
+     * Parses the text of a guardian follow-up, trimming spaces around it.
+     *
+     * @throws ParseException if the text is blank, longer than 200 characters or spans several lines.
+     */
+    public static FollowUp parseFollowUp(String text) throws ParseException {
+        requireNonNull(text);
+        if (!FollowUp.isValidText(text)) {
+            throw new ParseException(FollowUp.MESSAGE_TEXT_CONSTRAINTS);
+        }
+        return new FollowUp(text);
     }
 }

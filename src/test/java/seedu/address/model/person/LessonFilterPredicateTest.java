@@ -38,7 +38,7 @@ public class LessonFilterPredicateTest {
     public void studentMatch_requiresOneQualifyingLessonAndMatchingLevel() {
         LessonMatchesPredicate mathOnWednesday = new LessonMatchesPredicate(
                 Optional.of("math"), Optional.of(DayOfWeek.WEDNESDAY));
-        StudentLessonMatchesPredicate secondaryWednesdayMath = new StudentLessonMatchesPredicate(
+        StudentSearchPredicate secondaryWednesdayMath = studentSearch(
                 Optional.of("secondary"), mathOnWednesday);
         Student secondaryWithoutLessons = new PersonBuilder()
                 .withSchoolingLevel(new SchoolingLevel("Secondary 3")).build();
@@ -56,7 +56,7 @@ public class LessonFilterPredicateTest {
         assertFalse(secondaryWednesdayMath.test(secondaryWithSeparateMatches));
         assertTrue(secondaryWednesdayMath.test(secondaryWithWednesdayMath));
         assertFalse(secondaryWednesdayMath.test(primaryWithWednesdayMath));
-        assertTrue(new StudentLessonMatchesPredicate(Optional.empty(), mathOnWednesday)
+        assertTrue(studentSearch(Optional.empty(), mathOnWednesday)
                 .test(primaryWithWednesdayMath));
     }
 
@@ -72,13 +72,18 @@ public class LessonFilterPredicateTest {
         assertEquals(wednesdayMath.hashCode(), sameLessonFilter.hashCode());
         assertNotEquals(wednesdayMath, tuesdayMath);
 
-        StudentLessonMatchesPredicate secondaryMath = new StudentLessonMatchesPredicate(
+        StudentSearchPredicate secondaryMath = studentSearch(
                 Optional.of("Secondary"), wednesdayMath);
-        StudentLessonMatchesPredicate sameStudentFilter = new StudentLessonMatchesPredicate(
+        StudentSearchPredicate sameStudentFilter = studentSearch(
                 Optional.of("secondary"), sameLessonFilter);
         assertEquals(secondaryMath, sameStudentFilter);
         assertEquals(secondaryMath.hashCode(), sameStudentFilter.hashCode());
-        assertNotEquals(secondaryMath, new StudentLessonMatchesPredicate(Optional.of("Primary"), wednesdayMath));
+        assertNotEquals(secondaryMath, studentSearch(Optional.of("Primary"), wednesdayMath));
+    }
+
+    private static StudentSearchPredicate studentSearch(Optional<String> level, LessonMatchesPredicate lesson) {
+        return new StudentSearchPredicate(Optional.empty(), Optional.empty(), Optional.empty(), level,
+                Optional.of(lesson));
     }
 
     private static Lesson lesson(String subject, DayOfWeek day) {

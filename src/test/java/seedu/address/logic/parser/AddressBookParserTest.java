@@ -4,28 +4,47 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 import static seedu.address.logic.Messages.MESSAGE_UNKNOWN_COMMAND;
+import static seedu.address.logic.commands.CommandTestUtil.assertCommandSuccess;
+import static seedu.address.model.Model.PREDICATE_SHOW_ALL_PERSONS;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
+import static seedu.address.testutil.TypicalPersons.ALICE;
+import static seedu.address.testutil.TypicalPersons.BENSON;
 
+import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.Test;
 
+import seedu.address.logic.Messages;
 import seedu.address.logic.commands.AddCommand;
+import seedu.address.logic.commands.ArchiveCommand;
 import seedu.address.logic.commands.ClearCommand;
 import seedu.address.logic.commands.DeleteCommand;
 import seedu.address.logic.commands.EditCommand;
 import seedu.address.logic.commands.EditCommand.EditPersonDescriptor;
 import seedu.address.logic.commands.ExitCommand;
 import seedu.address.logic.commands.FindCommand;
+import seedu.address.logic.commands.FollowUpCommand;
+import seedu.address.logic.commands.FollowUpListCommand;
 import seedu.address.logic.commands.HelpCommand;
+import seedu.address.logic.commands.ListArchiveCommand;
 import seedu.address.logic.commands.ListCommand;
+import seedu.address.logic.commands.NoteCommand;
+import seedu.address.logic.commands.UnarchiveCommand;
 import seedu.address.logic.commands.ViewCommand;
 import seedu.address.logic.commands.WeekCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
+import seedu.address.model.Model;
+import seedu.address.model.ModelManager;
+import seedu.address.model.UserPrefs;
+import seedu.address.model.person.FollowUp;
 import seedu.address.model.person.NameContainsKeywordsPredicate;
+import seedu.address.model.person.ProgressNote;
 import seedu.address.model.person.Student;
+import seedu.address.testutil.AddressBookBuilder;
 import seedu.address.testutil.EditPersonDescriptorBuilder;
 import seedu.address.testutil.PersonBuilder;
 import seedu.address.testutil.PersonUtil;
@@ -39,6 +58,20 @@ public class AddressBookParserTest {
         Student person = new PersonBuilder().build();
         AddCommand command = (AddCommand) parser.parseCommand(PersonUtil.getAddCommand(person));
         assertEquals(new AddCommand(person), command);
+    }
+
+    @Test
+    public void parseCommand_archive() throws Exception {
+        ArchiveCommand command = (ArchiveCommand) parser.parseCommand(ArchiveCommand.COMMAND_WORD + " 2");
+        Model model = new ModelManager(new AddressBookBuilder().withPerson(ALICE).withPerson(BENSON).build(),
+                new UserPrefs());
+        Model expectedModel = new ModelManager(
+                new AddressBookBuilder().withPerson(ALICE).withPerson(BENSON.withArchived(true)).build(),
+                new UserPrefs());
+        expectedModel.updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS);
+        String expectedMessage = String.format(ArchiveCommand.MESSAGE_ARCHIVE_PERSON_SUCCESS, Messages.format(BENSON));
+
+        assertCommandSuccess(command, model, expectedMessage, expectedModel);
     }
 
     @Test
@@ -70,6 +103,36 @@ public class AddressBookParserTest {
     }
 
     @Test
+    public void parseCommand_noteAdd() throws Exception {
+        NoteCommand command = (NoteCommand) parser.parseCommand(
+                NoteCommand.ADD_COMMAND_WORD + " 1 date/2026-10-15 text/Fractions");
+        assertEquals(new NoteCommand(INDEX_FIRST_PERSON, NoteCommand.Operation.ADD, Optional.empty(),
+                Optional.of(new ProgressNote(LocalDate.of(2026, 10, 15), "Fractions"))), command);
+    }
+
+    @Test
+    public void parseCommand_noteDelete() throws Exception {
+        NoteCommand command = (NoteCommand) parser.parseCommand(NoteCommand.DELETE_COMMAND_WORD + " 1 1");
+        assertEquals(new NoteCommand(INDEX_FIRST_PERSON, NoteCommand.Operation.DELETE,
+                Optional.of(INDEX_FIRST_PERSON), Optional.empty()), command);
+    }
+
+    @Test
+    public void parseCommand_followUpCommands() throws Exception {
+        assertEquals(new FollowUpCommand(INDEX_FIRST_PERSON, FollowUpCommand.Operation.ADD, Optional.empty(),
+                Optional.of(new FollowUp("Send report"))),
+                parser.parseCommand(FollowUpCommand.ADD_COMMAND_WORD + " 1 text/Send report"));
+        assertEquals(new FollowUpCommand(INDEX_FIRST_PERSON, FollowUpCommand.Operation.EDIT,
+                Optional.of(INDEX_FIRST_PERSON), Optional.of(new FollowUp("Call"))),
+                parser.parseCommand(FollowUpCommand.EDIT_COMMAND_WORD + " 1 1 text/Call"));
+        assertEquals(new FollowUpCommand(INDEX_FIRST_PERSON, FollowUpCommand.Operation.DONE,
+                Optional.of(INDEX_FIRST_PERSON), Optional.empty()),
+                parser.parseCommand(FollowUpCommand.DONE_COMMAND_WORD + " 1 1"));
+        assertTrue(parser.parseCommand(FollowUpListCommand.COMMAND_WORD) instanceof FollowUpListCommand);
+        assertTrue(parser.parseCommand(FollowUpListCommand.COMMAND_WORD + " 3") instanceof FollowUpListCommand);
+    }
+
+    @Test
     public void parseCommand_find() throws Exception {
         List<String> keywords = List.of("foo", "bar", "baz");
         FindCommand command = (FindCommand) parser.parseCommand(
@@ -87,6 +150,26 @@ public class AddressBookParserTest {
     public void parseCommand_list() throws Exception {
         assertTrue(parser.parseCommand(ListCommand.COMMAND_WORD) instanceof ListCommand);
         assertTrue(parser.parseCommand(ListCommand.COMMAND_WORD + " 3") instanceof ListCommand);
+    }
+
+    @Test
+    public void parseCommand_listArchive() throws Exception {
+        assertTrue(parser.parseCommand(ListArchiveCommand.COMMAND_WORD) instanceof ListArchiveCommand);
+        assertTrue(parser.parseCommand(ListArchiveCommand.COMMAND_WORD + " 3") instanceof ListArchiveCommand);
+    }
+
+    @Test
+    public void parseCommand_unarchive() throws Exception {
+        UnarchiveCommand command = (UnarchiveCommand) parser.parseCommand(UnarchiveCommand.COMMAND_WORD + " 2");
+        Model model = new ModelManager(
+                new AddressBookBuilder().withPerson(ALICE).withPerson(BENSON.withArchived(true)).build(),
+                new UserPrefs());
+        Model expectedModel = new ModelManager(
+                new AddressBookBuilder().withPerson(ALICE).withPerson(BENSON).build(), new UserPrefs());
+        String expectedMessage = String.format(UnarchiveCommand.MESSAGE_UNARCHIVE_PERSON_SUCCESS,
+                Messages.format(BENSON.withArchived(true)));
+
+        assertCommandSuccess(command, model, expectedMessage, expectedModel);
     }
 
     @Test

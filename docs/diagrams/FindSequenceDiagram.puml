@@ -1,0 +1,64 @@
+@startuml
+!include style.puml
+skinparam ArrowFontStyle plain
+skinparam sequenceMessageAlign center
+box Logic LOGIC_COLOR_T1
+participant ":LogicManager" as LM LOGIC_COLOR
+participant ":AddressBookParser" as ABP LOGIC_COLOR
+participant ":FindCommandParser" as FP LOGIC_COLOR
+participant "f:FindCommand" as F LOGIC_COLOR
+participant "r:CommandResult" as R LOGIC_COLOR
+end box
+box Model MODEL_COLOR_T1
+participant "m:Model" as M MODEL_COLOR
+end box
+[-> LM : execute("find sch/nanyang subject/math day/mon")
+activate LM
+LM -> ABP : parseCommand(...)
+activate ABP
+create FP
+ABP -> FP
+ABP -> FP : parse(" sch/nanyang subject/math day/mon")
+activate FP
+note over FP
+Validates prefixes and constructs:
+s = StudentSearchPredicate(school = "nanyang", lesson = l)
+l = LessonMatchesPredicate(subject = "math", day = MONDAY)
+Other student criteria are absent.
+Predicate construction and validation calls omitted.
+end note
+create F
+FP -> F : FindCommand(s, l)
+FP --> ABP : f
+deactivate FP
+ABP --> LM : f
+deactivate ABP
+LM -> F : execute(m)
+activate F
+F -> M : updateFilteredPersonList(s, l)
+activate M
+note right of M
+Updates the student filter and
+observable lesson predicate.
+UI observation omitted.
+end note
+M --> F
+deactivate M
+F -> M : getFilteredPersonList()
+activate M
+M --> F : matching students
+deactivate M
+note over F
+Result count and logging details omitted.
+end note
+create R
+F -> R : CommandResult(summary, Screen.STUDENTS)
+F --> LM : r
+deactivate F
+note over LM
+Existing storage save occurs here.
+Storage interactions omitted.
+end note
+[<-- LM : r
+deactivate LM
+@enduml
