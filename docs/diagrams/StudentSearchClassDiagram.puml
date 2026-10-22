@@ -1,0 +1,33 @@
+@startuml
+set namespaceSeparator none
+!include style.puml
+skinparam ArrowFontStyle plain
+skinparam linetype ortho
+skinparam nodesep 100
+skinparam ranksep 100
+skinparam padding 15
+skinparam packageTitleAlignment left
+skinparam classBackgroundColor MODEL_COLOR
+skinparam arrowColor #51000A
+skinparam genericDisplay old
+package Logic {
+class FindCommand LOGIC_COLOR
+}
+' External Java interfaces; qualified names avoid an extra enclosing box.
+class "<<interface>>\njava.util.function.\nPredicate<Student>" as PS #525C6B
+class "<<interface>>\njava.util.function.\nPredicate<Lesson>" as PL #525C6B
+package Model {
+class StudentSearchPredicate
+class NameContainsKeywordsPredicate
+class SchoolingLevelContainsKeywordPredicate
+class LessonMatchesPredicate
+}
+FindCommand --> "1" PS
+FindCommand --> "1" PL
+StudentSearchPredicate .up.|> PS
+NameContainsKeywordsPredicate .up.|> PS
+SchoolingLevelContainsKeywordPredicate .up.|> PS
+LessonMatchesPredicate .up.|> PL
+StudentSearchPredicate -right-> "level\n0..1" SchoolingLevelContainsKeywordPredicate
+StudentSearchPredicate --> "lesson\n0..1" LessonMatchesPredicate
+@enduml
