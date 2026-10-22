@@ -27,6 +27,8 @@ import seedu.address.logic.commands.EditCommand;
 import seedu.address.logic.commands.EditCommand.EditPersonDescriptor;
 import seedu.address.logic.commands.ExitCommand;
 import seedu.address.logic.commands.FindCommand;
+import seedu.address.logic.commands.FollowUpCommand;
+import seedu.address.logic.commands.FollowUpListCommand;
 import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.ListArchiveCommand;
 import seedu.address.logic.commands.ListCommand;
@@ -38,6 +40,7 @@ import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
+import seedu.address.model.person.FollowUp;
 import seedu.address.model.person.NameContainsKeywordsPredicate;
 import seedu.address.model.person.ProgressNote;
 import seedu.address.model.person.Student;
@@ -112,6 +115,21 @@ public class AddressBookParserTest {
         NoteCommand command = (NoteCommand) parser.parseCommand(NoteCommand.DELETE_COMMAND_WORD + " 1 1");
         assertEquals(new NoteCommand(INDEX_FIRST_PERSON, NoteCommand.Operation.DELETE,
                 Optional.of(INDEX_FIRST_PERSON), Optional.empty()), command);
+    }
+
+    @Test
+    public void parseCommand_followUpCommands() throws Exception {
+        assertEquals(new FollowUpCommand(INDEX_FIRST_PERSON, FollowUpCommand.Operation.ADD, Optional.empty(),
+                Optional.of(new FollowUp("Send report"))),
+                parser.parseCommand(FollowUpCommand.ADD_COMMAND_WORD + " 1 text/Send report"));
+        assertEquals(new FollowUpCommand(INDEX_FIRST_PERSON, FollowUpCommand.Operation.EDIT,
+                Optional.of(INDEX_FIRST_PERSON), Optional.of(new FollowUp("Call"))),
+                parser.parseCommand(FollowUpCommand.EDIT_COMMAND_WORD + " 1 1 text/Call"));
+        assertEquals(new FollowUpCommand(INDEX_FIRST_PERSON, FollowUpCommand.Operation.DONE,
+                Optional.of(INDEX_FIRST_PERSON), Optional.empty()),
+                parser.parseCommand(FollowUpCommand.DONE_COMMAND_WORD + " 1 1"));
+        assertTrue(parser.parseCommand(FollowUpListCommand.COMMAND_WORD) instanceof FollowUpListCommand);
+        assertTrue(parser.parseCommand(FollowUpListCommand.COMMAND_WORD + " 3") instanceof FollowUpListCommand);
     }
 
     @Test
