@@ -189,7 +189,8 @@ public class StudentTest {
     public void withArchived_preservesDetailsWithoutChangingOriginal() {
         Student original = new PersonBuilder(ALICE).withSchoolingLevel(new SchoolingLevel("P5"))
                 .withGuardian(new Guardian(BOB.getName(), BOB.getPhone()))
-                .withLessons(MONDAY_MATH, TUESDAY_MATH).build();
+                .withLessons(MONDAY_MATH, TUESDAY_MATH)
+                .withNotes(new ProgressNote(LocalDate.of(2026, 10, 15), "Fractions")).build();
 
         Student archived = original.withArchived(true);
 
@@ -203,6 +204,7 @@ public class StudentTest {
         assertEquals(original.getSchoolingLevel(), archived.getSchoolingLevel());
         assertEquals(original.getGuardian(), archived.getGuardian());
         assertEquals(original.getLessons(), archived.getLessons());
+        assertEquals(original.getNotes(), archived.getNotes());
         assertEquals(original, archived.withArchived(false));
     }
 

@@ -117,7 +117,7 @@ public class Student extends Person {
     /** Returns a copy of this student with the given archive status and all other details unchanged. */
     public Student withArchived(boolean isArchived) {
         return new Student(getName(), getPhone(), email, address, tags, school, schoolingLevel, guardian, lessons,
-                isArchived, List.of());
+                isArchived, notes);
     }
 
     /**
