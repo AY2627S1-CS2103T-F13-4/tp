@@ -3,6 +3,7 @@ package seedu.address.logic.parser;
 import static java.util.Objects.requireNonNull;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -18,6 +19,7 @@ import seedu.address.model.person.LessonLocation;
 import seedu.address.model.person.LessonMode;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Phone;
+import seedu.address.model.person.ProgressNote;
 import seedu.address.model.person.SchoolingLevel;
 import seedu.address.model.person.Subject;
 import seedu.address.model.person.WeeklyLessonSlot;
@@ -29,6 +31,7 @@ import seedu.address.model.tag.Tag;
 public class ParserUtil {
 
     public static final String MESSAGE_INVALID_INDEX = "Index must be a positive integer.";
+    public static final String MESSAGE_FUTURE_NOTE_DATE = "Note dates cannot be later than today.";
 
     /**
      * Parses {@code oneBasedIndex} into an {@code Index} and returns it. Leading and trailing whitespaces will be
@@ -208,5 +211,30 @@ public class ParserUtil {
             throw new ParseException(LessonLocation.MESSAGE_CONSTRAINTS);
         }
         return new LessonLocation(location);
+    }
+
+    /**
+     * Parses a progress note from its date in YYYY-MM-DD format and its text.
+     * A note records something that already happened, so a date after {@code today} is rejected.
+     *
+     * @throws ParseException if the date or text is invalid.
+     */
+    public static ProgressNote parseProgressNote(String date, String text, LocalDate today) throws ParseException {
+        requireNonNull(date);
+        requireNonNull(text);
+        requireNonNull(today);
+        LocalDate noteDate;
+        try {
+            noteDate = ProgressNote.parseDate(date);
+        } catch (IllegalArgumentException e) {
+            throw new ParseException(ProgressNote.MESSAGE_DATE_CONSTRAINTS);
+        }
+        if (noteDate.isAfter(today)) {
+            throw new ParseException(MESSAGE_FUTURE_NOTE_DATE);
+        }
+        if (!ProgressNote.isValidText(text)) {
+            throw new ParseException(ProgressNote.MESSAGE_TEXT_CONSTRAINTS);
+        }
+        return new ProgressNote(noteDate, text);
     }
 }

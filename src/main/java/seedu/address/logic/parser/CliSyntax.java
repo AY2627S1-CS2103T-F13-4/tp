@@ -18,4 +18,6 @@ public class CliSyntax {
     public static final Prefix PREFIX_RATE = new Prefix("rate/");
     public static final Prefix PREFIX_MODE = new Prefix("mode/");
     public static final Prefix PREFIX_LOCATION = new Prefix("location/");
+    public static final Prefix PREFIX_DATE = new Prefix("date/");
+    public static final Prefix PREFIX_TEXT = new Prefix("text/");
 }
