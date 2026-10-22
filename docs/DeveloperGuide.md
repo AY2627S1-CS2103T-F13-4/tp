@@ -248,14 +248,15 @@ unmodifiable list sorted oldest first; the sort is stable, so notes on the same 
 A note's position in that list is the `NOTE_INDEX` shown in the details. The 8-argument `Student` constructor still
 creates a student with no notes, for new students and older callers.
 
-`note-add` is routed by `AddressBookParser` to `NoteCommandParser`, parameterized by the operation like the lesson
-and guardian parsers. The parser reads only `date/` and `text/`, so a word such as `and/or` stays in the note text.
+`note-add` and `note-delete` are routed by `AddressBookParser` to `NoteCommandParser`, parameterized by the
+operation like the lesson and guardian parsers. Deleting takes only the student index and the note's number. The parser reads only `date/` and `text/`, so a word such as `and/or` stays in the note text.
 `ParserUtil#parseProgressNote` rejects dates that are not real `YYYY-MM-DD` dates or are later than today. The
 future-date check is in the parser rather than the model, so a saved file still loads if the computer's clock is
 wrong.
 
-`NoteCommand` resolves the student from the current filtered list, rejects an identical note on the same date, and
-replaces the student with a copy that has the extra note. It returns a `CommandResult` that opens that student's
+`NoteCommand` resolves the student from the current filtered list. Adding rejects an identical note on the same
+date; deleting rejects a note number past the end. Either way, it replaces the student with a copy whose notes
+have changed. It returns a `CommandResult` that opens that student's
 details, where `PersonCard` lists the notes. Every command that rebuilds a `Student` (`edit`, the guardian commands
 and the lesson commands) passes the existing notes to the 9-argument constructor; `NoteCommandTest` checks each of
 them so a later field change cannot silently drop notes.
@@ -621,7 +622,9 @@ Use an empty test folder and sample data. These checks are a starting point; als
    The student's details should open with note `1.`, dated `15 Oct 2026`, with the text unchanged.
 2. Run `note-add INDEX date/2026-10-08 text/Placement test`. It should become note 1, and the earlier note 2.
 3. Edit the student's phone, add a guardian and add a lesson. Both notes should remain. Restart and check again.
-4. Try a duplicate note, tomorrow's date, `date/2026-02-30`, `date/15-10-2026`, empty text, 501 characters of text,
+4. Run `note-delete INDEX 1`. Only the `Placement test` note should go, and the other note becomes note 1.
+   Restart and check again. `note-delete INDEX 2` should then report an invalid note index.
+5. Try a duplicate note, tomorrow's date, `date/2026-02-30`, `date/15-10-2026`, empty text, 501 characters of text,
    a repeated prefix and an out-of-range index. Each should report an error and leave every record unchanged.
 
 ### Missing or invalid data files

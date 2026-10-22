@@ -4,8 +4,10 @@ import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseFailure;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseSuccess;
 import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
+import static seedu.address.testutil.TypicalIndexes.INDEX_SECOND_PERSON;
 
 import java.time.LocalDate;
+import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
 
@@ -17,12 +19,32 @@ import seedu.address.model.person.ProgressNote;
 public class NoteCommandParserTest {
     private static final String INVALID_FORMAT =
             String.format(MESSAGE_INVALID_COMMAND_FORMAT, NoteCommand.MESSAGE_ADD_USAGE);
+    private static final String INVALID_DELETE_FORMAT =
+            String.format(MESSAGE_INVALID_COMMAND_FORMAT, NoteCommand.MESSAGE_DELETE_USAGE);
     private static final LocalDate DATE = LocalDate.of(2026, 10, 15);
 
     private final NoteCommandParser parser = new NoteCommandParser(Operation.ADD);
+    private final NoteCommandParser deleteParser = new NoteCommandParser(Operation.DELETE);
 
     private static NoteCommand addFirst(LocalDate date, String text) {
-        return new NoteCommand(INDEX_FIRST_PERSON, Operation.ADD, new ProgressNote(date, text));
+        return new NoteCommand(INDEX_FIRST_PERSON, Operation.ADD, Optional.empty(),
+                Optional.of(new ProgressNote(date, text)));
+    }
+
+    @Test
+    public void parseDelete_validArgs_success() {
+        NoteCommand expected = new NoteCommand(INDEX_FIRST_PERSON, Operation.DELETE,
+                Optional.of(INDEX_SECOND_PERSON), Optional.empty());
+        assertParseSuccess(deleteParser, " 1 2", expected);
+        assertParseSuccess(deleteParser, "  1   2  ", expected);
+    }
+
+    @Test
+    public void parseDelete_invalidArgs_failure() {
+        for (String args : new String[] {"", " 1", " 1 2 3", " 0 1", " 1 0", " a 1", " 1 -2",
+            " 1 2 date/2026-10-15", " 1 text/Fractions"}) {
+            assertParseFailure(deleteParser, args, INVALID_DELETE_FORMAT);
+        }
     }
 
     @Test

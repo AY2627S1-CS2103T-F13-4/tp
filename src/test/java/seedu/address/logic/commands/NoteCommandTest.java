@@ -2,6 +2,7 @@ package seedu.address.logic.commands;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandFailure;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandSuccess;
 import static seedu.address.logic.commands.CommandTestUtil.showPersonAtIndex;
@@ -11,6 +12,7 @@ import static seedu.address.testutil.TypicalPersons.getTypicalAddressBook;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
 
@@ -29,11 +31,17 @@ import seedu.address.testutil.PersonBuilder;
 public class NoteCommandTest {
     private static final ProgressNote OCTOBER = new ProgressNote(LocalDate.of(2026, 10, 15), "Fractions");
     private static final ProgressNote SEPTEMBER = new ProgressNote(LocalDate.of(2026, 9, 1), "Placement test");
+    private static final Index FIRST_NOTE = Index.fromOneBased(1);
+    private static final Index SECOND_NOTE = Index.fromOneBased(2);
 
     private final Model model = new ModelManager(getTypicalAddressBook(), new UserPrefs());
 
     private static NoteCommand add(Index student, ProgressNote note) {
-        return new NoteCommand(student, Operation.ADD, note);
+        return new NoteCommand(student, Operation.ADD, Optional.empty(), Optional.of(note));
+    }
+
+    private static NoteCommand delete(Index student, Index note) {
+        return new NoteCommand(student, Operation.DELETE, Optional.of(note), Optional.empty());
     }
 
     private Model expectedModelWith(Student original, Student replacement) {
@@ -86,6 +94,44 @@ public class NoteCommandTest {
         assertCommandFailure(add(INDEX_FIRST_PERSON, OCTOBER), model, NoteCommand.MESSAGE_DUPLICATE_NOTE);
     }
 
+    @Test
+    public void constructor_invalidFields_throwsIllegalArgumentException() {
+        Optional<Index> index = Optional.of(FIRST_NOTE);
+        Optional<ProgressNote> note = Optional.of(OCTOBER);
+        assertThrows(IllegalArgumentException.class, () -> new NoteCommand(INDEX_FIRST_PERSON, Operation.ADD,
+                Optional.empty(), Optional.empty()));
+        assertThrows(IllegalArgumentException.class, () -> new NoteCommand(INDEX_FIRST_PERSON, Operation.ADD,
+                index, note));
+        assertThrows(IllegalArgumentException.class, () -> new NoteCommand(INDEX_FIRST_PERSON, Operation.DELETE,
+                Optional.empty(), Optional.empty()));
+        assertThrows(IllegalArgumentException.class, () -> new NoteCommand(INDEX_FIRST_PERSON, Operation.DELETE,
+                index, note));
+    }
+
+    @Test
+    public void execute_delete_removesOnlyThatNoteAndOpensStudent() throws Exception {
+        add(INDEX_FIRST_PERSON, OCTOBER).execute(model);
+        add(INDEX_FIRST_PERSON, SEPTEMBER).execute(model);
+        Student first = model.getFilteredPersonList().get(0);
+        Student expectedStudent = new PersonBuilder(first).withNotes(OCTOBER).build();
+        CommandResult expectedResult = new CommandResult(
+                String.format(NoteCommand.MESSAGE_DELETED, 1, first.getName()), INDEX_FIRST_PERSON);
+        // note 1 is the September note, since notes are numbered oldest first
+        assertCommandSuccess(delete(INDEX_FIRST_PERSON, FIRST_NOTE), model, expectedResult,
+                expectedModelWith(first, expectedStudent));
+    }
+
+    @Test
+    public void execute_deleteInvalidIndex_failure() throws Exception {
+        assertCommandFailure(delete(INDEX_FIRST_PERSON, FIRST_NOTE), model,
+                NoteCommand.MESSAGE_INVALID_NOTE_DISPLAYED_INDEX);
+        add(INDEX_FIRST_PERSON, OCTOBER).execute(model);
+        assertCommandFailure(delete(INDEX_FIRST_PERSON, SECOND_NOTE), model,
+                NoteCommand.MESSAGE_INVALID_NOTE_DISPLAYED_INDEX);
+        Index outOfBounds = Index.fromOneBased(model.getFilteredPersonList().size() + 1);
+        assertCommandFailure(delete(outOfBounds, FIRST_NOTE), model, Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
+    }
+
     /** Commands that rebuild a student must carry the notes over, or editing anything else would lose them. */
     @Test
     public void otherStudentCommands_keepNotes() throws Exception {
@@ -107,5 +153,11 @@ public class NoteCommandTest {
         assertNotEquals(addFirst, add(INDEX_SECOND_PERSON, OCTOBER));
         assertNotEquals(addFirst, add(INDEX_FIRST_PERSON, SEPTEMBER));
         assertNotEquals(addFirst, null);
+
+        NoteCommand deleteFirst = delete(INDEX_FIRST_PERSON, FIRST_NOTE);
+        assertEquals(deleteFirst, delete(INDEX_FIRST_PERSON, FIRST_NOTE));
+        assertNotEquals(deleteFirst, delete(INDEX_FIRST_PERSON, SECOND_NOTE));
+        assertNotEquals(deleteFirst, delete(INDEX_SECOND_PERSON, FIRST_NOTE));
+        assertNotEquals(deleteFirst, addFirst);
     }
 }
