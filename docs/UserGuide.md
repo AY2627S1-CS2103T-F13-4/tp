@@ -123,7 +123,7 @@ Shows the **This week** calendar. After `find`, it keeps the search and shows on
 
 Format: `view INDEX`
 
-Shows the **Students** table with the student at `INDEX` opened: every lesson with its number, day and time, rate, mode and location, then the phone, email, address, guardian and tags. On the calendar, a lesson labelled `#3.1` belongs to student `3`, so `view 3` shows its details.
+Shows the **Students** table with the student at `INDEX` opened: every lesson with its number, day and time, rate, mode and location, then the phone, email, address, guardian, tags and progress notes. On the calendar, a lesson labelled `#3.1` belongs to student `3`, so `view 3` shows its details.
 
 Examples:
 
@@ -234,6 +234,40 @@ For example, after `list`:
 Guardian commands keep an active search filter. Errors leave existing records unchanged. Guardian details are
 saved automatically. Older data files without a guardian still load with no guardian recorded.
 
+### Keep progress notes on a student
+
+Each student can have zero or more dated progress notes, such as what you covered in a lesson or what to revise
+next. Note commands use the student's positive `STUDENT_INDEX` in the currently displayed list, including search
+results. They preserve all other student fields.
+
+* **Create:** `note-add STUDENT_INDEX date/DATE text/TEXT`
+  Both fields are required. After adding, the **Students** table opens that student's details so you can see the note.
+* **Read:** Open the student's details (`view STUDENT_INDEX`, or **Alt+Down** on the table). The **Notes** section
+  lists every note oldest first, with its number, date and text, or a grey `No notes yet` when there are none.
+
+Field rules:
+
+* **Date** (`date/`): a real date in `YYYY-MM-DD` format, such as `2026-10-15`. It cannot be later than today, because a
+  note records something that already happened.
+* **Text** (`text/`): 1 to 500 characters. Leading and trailing spaces are removed. Words such as `and/or` or `w/o`
+  are kept as part of the text. Only `date/` and `text/` are read as prefixes, so the text cannot contain ` date/` or
+  ` text/` after a space.
+* Notes are kept oldest first. A note dated earlier than existing notes is placed before them, and the message says
+  its number. Notes on the same date stay in the order you added them.
+
+Errors:
+
+* Adding a note with the same date and text as one of the student's existing notes is rejected as a duplicate.
+* A student index that does not exist, a missing or repeated prefix, a date that is not real or is in the future, and
+  empty or overlong text are rejected. Any error leaves the record unchanged.
+
+For example, after `list`:
+
+1. `note-add 1 date/2026-10-15 text/Finished the fractions worksheet; revise decimals next`
+2. `note-add 1 date/2026-10-08 text/Struggled with word problems` adds an earlier note, which becomes note 1.
+
+Notes are saved automatically. Older data files without notes still load, with no notes recorded.
+
 ### Delete a student: `delete`
 
 Format: `delete INDEX`
@@ -316,6 +350,7 @@ Lesson numbers in warnings belong to the named student's lesson list; find that 
 | Add guardian | `guardian-add INDEX name/NAME phone/PHONE` |
 | Edit guardian | `guardian-edit INDEX [name/NAME] [phone/PHONE]` |
 | Delete guardian | `guardian-delete INDEX` |
+| Add note | `note-add STUDENT_INDEX date/DATE text/TEXT` |
 | Delete | `delete INDEX` |
 | Delete all | `clear` |
 | Help | `help` |
