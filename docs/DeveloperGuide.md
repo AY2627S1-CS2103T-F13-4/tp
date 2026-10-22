@@ -224,6 +224,27 @@ Tests cover loading, save/reload and invalid values (`TuitionStorageTest`). A fa
 
 Tests: `LessonCommandParserTest`, `LessonWorkflowTest` (add, edit, clear, delete, filtered indices, invalid input, duplicates and save/reload), `LessonTest`, `StudentTest` and `WeeklyLessonSlotTest`.
 
+### Student search
+
+`FindCommandParser` keeps bare keywords as whole-word, case-insensitive name searches using
+`NameContainsKeywordsPredicate`. Prefixed searches accept `name/`, `guardian/`, `level/`, `subject/` and `day/`;
+the parser rejects empty values, repeated prefixes, invalid weekdays and bare keywords before prefixes.
+
+`StudentContactMatchesPredicate` requires the optional student-name substring and guardian substring to match,
+ignoring case. The guardian criterion matches either the guardian's name or phone; an absent guardian fails that
+criterion. It also requires the existing level or lesson predicate to match. Contact and level searches do not
+require students to have lessons. `StudentLessonMatchesPredicate` requires subject and day to match the same lesson,
+and `FindCommand` passes that lesson predicate to the model so the calendar shows only qualifying lessons.
+
+`FindCommandParserTest` covers contact substrings, guardian phone matching, absent guardians, combined criteria,
+whole-word name compatibility, whitespace between prefixes, invalid input and calendar filtering.
+
+Search logging uses the existing `LogsCenter` framework. `FindCommand` logs successful searches and their matching
+student count at `INFO`. `FindCommandParser` logs selected prefix types (or `bare-name`) and validation rejection
+reasons at `FINE`. These search-specific entries omit search values and contact details. Existing command-level
+logging in `LogicManager` still records raw commands. Logs go to the console and rotating `studentbook.log.*` files;
+set `LOG_LEVEL` in `LogsCenter` to `Level.FINE` to enable the parser diagnostics during debugging.
+
 ### Guardian contact CRUD
 
 `guardian-add`, `guardian-edit` and `guardian-delete` are routed by `AddressBookParser` to
@@ -584,6 +605,19 @@ Use an empty test folder and sample data. These checks are a starting point; als
 5. Run `lesson-edit INDEX 2 mode/ location/`. The student's details should show the English lesson without mode or location, including after restart.
 6. Run `lesson-delete INDEX 1`. English becomes lesson 1. Delete it too and the card should show `No lessons yet`.
 7. Try a duplicate `lesson-add`, a lesson index larger than the list, a missing required field, `mode/hybrid`, a repeated prefix, an unknown prefix such as `x/`, and an empty `mode/` on `lesson-add`. Each should report an error and leave every record unchanged.
+
+### Name and guardian searches
+
+1. Create students named `Alex Tan` and `Alexander Tan`. Run `find alex`; only `Alex Tan` should match.
+   Run `find name/aLeX`; both should match, including students without lessons.
+2. Give Alex a guardian named `Janet Lee` with phone `91234567`, leaving Alexander without a guardian.
+   Run `find guardian/ANET`, then `find guardian/1234`; each should show only Alex.
+3. Run `find name/alex guardian/janet`; Alex should match. Replace `janet` with `missing`; nobody should match.
+4. Give Alex a Tuesday Math lesson and a Monday English lesson. Run `find name/alex subject/math day/mon`;
+   Alex should not match. Add a Monday Math lesson and repeat; Alex should now match. Run `week` and check that
+   only the Monday Math lesson appears. Run `list` to clear the search.
+5. Try `find name/`, `find guardian/`, `find name/alex name/bob`, `find guardian/janet guardian/john`,
+   `find alex guardian/janet` and `find name/alex day/Funday`. Each should report an error.
 
 ### Guardian contacts
 
