@@ -269,6 +269,44 @@ and automatic save/reload after each mutation. It verifies preservation of conta
 level and lessons, as well as preservation of guardians during student edits.
 Validation remains the current AB3 validation; broader name and phone rules remain a product decision.
 
+### Guardian follow-ups
+
+A `FollowUp` holds 1–200 characters of single-line text, trimmed, and counted in code points like note text. `Student`
+keeps its outstanding follow-ups in an unmodifiable list in the order they were added; a follow-up's position in that
+list is the `FOLLOW_UP_INDEX` shown in the details. Completing an item removes it, so the model has no "done" state:
+every stored item is outstanding. Follow-ups belong to the student rather than the `Guardian`, so they survive
+`guardian-delete` and can be recorded for a student with no guardian (for example, while waiting for contact details).
+The 11-argument `Student` constructor (ending `isArchived, notes`) still creates a student with no follow-ups; the
+12-argument form appends `followUps` after `notes`.
+
+`followup-add`, `followup-edit` and `followup-done` are routed by `AddressBookParser` to `FollowUpCommandParser`,
+parameterized by `FollowUpCommand.Operation` like the lesson, guardian and note parsers. The parser reads only
+`text/`, so a word such as `and/or` stays in the text, and requires exactly one index for adding and two for editing
+and completing. `ParserUtil#parseFollowUp` checks the text.
+
+`FollowUpCommand` resolves the student from the current filtered list, rejects a follow-up index past the end, and
+rejects text that matches another of the student's items ignoring case (an item may be edited to change only its
+case). It then replaces the student with a copy whose follow-ups have changed. The success message includes the
+item's text, so a wrong index on `followup-done` is visible straight away.
+
+`followups` (`FollowUpListCommand`) sets the student filter to active (not archived) students with at least one
+item, matching `list`, which hides archived students. It also resets the lesson filter.
+Because the filtered list re-applies its predicate after `Model#setPerson`, completing a student's last item while
+this filter is active removes the student from the list and renumbers the students after them. `FollowUpCommand`
+therefore opens the student's details at the student's new position, and opens none if the student is no longer shown,
+so the details never show the wrong student.
+
+Every command that rebuilds a `Student` (`edit`, the guardian, lesson and note commands, and `Student#withArchived`
+for `archive` and `unarchive`) passes the existing follow-ups on. `FollowUpCommandTest` checks each of them, so a later
+field change cannot silently drop follow-ups. `PersonCard` shows the items in a **Follow-ups** section under the guardian.
+
+`JsonAdaptedFollowUp` stores each item as `{"text": "..."}` in the person's `followUps` array. A missing or `null`
+`followUps` key loads as no follow-ups, so older data files still load; a `null` item, a non-string `text` or text
+that fails validation makes the file invalid.
+
+Tests: `FollowUpTest`, `FollowUpCommandTest`, `FollowUpListCommandTest`, `FollowUpCommandParserTest`,
+`FollowUpStorageTest` and the routing cases in `AddressBookParserTest`.
+
 ### Progress notes
 
 A `ProgressNote` holds a `LocalDate` and 1–500 characters of single-line text. `Student` keeps its notes in an
@@ -324,7 +362,7 @@ Independent private tutors who:
 
 **Value proposition**: StudentBook keeps student contacts, tuition details, weekly lesson slots and hourly rates in one place, so private tutors can find and update them quickly.
 
-The planned MVP includes student records and all five tuition features below. Keep the existing AB3 contact fields and commands. Payment processing and sending messages are out of scope. Group classes, follow-ups and other brainstormed ideas remain backlog candidates, not delivery commitments.
+The planned MVP includes student records and all five tuition features below. Keep the existing AB3 contact fields and commands. Payment processing and sending messages are out of scope. Group classes and other brainstormed ideas remain backlog candidates, not delivery commitments.
 
 | Owner | MVP feature | Story IDs |
 |---|---|---|
@@ -518,7 +556,7 @@ Use case ends.
   * 3a2. Tutor corrects and resubmits the request.
   * Use case resumes at step 3.
 
-#### UC05: Complete a guardian follow-up (backlog candidate)
+#### UC05: Complete a guardian follow-up
 
 **Related user stories:** 36, 44.
 
@@ -527,18 +565,25 @@ Use case ends.
 **MSS**
 
 1. Tutor requests to list outstanding guardian follow-up items.
-2. StudentBook displays the items with their associated students and guardians.
-3. Tutor carries out the selected follow-up outside StudentBook.
-4. Tutor requests to mark the selected item as complete.
-5. StudentBook records its completion and removes it from the outstanding list.
+2. StudentBook displays the students with outstanding items.
+3. Tutor opens a student's details to see the student's numbered items and guardian.
+4. Tutor carries out the selected follow-up outside StudentBook.
+5. Tutor requests to mark the selected item as complete.
+6. StudentBook removes the item from the student's outstanding items and shows its text.
 
 Use case ends.
 
 **Extensions**
 
-* 4a. The supplied item reference is invalid or the item is already complete.
-  * 4a1. StudentBook explains the error without changing any item.
+* 2a. No student has an outstanding item.
+  * 2a1. StudentBook shows an empty list and suggests `list`.
+  * Use case ends.
+* 5a. The supplied student or item number is invalid, for example because the item is already complete.
+  * 5a1. StudentBook explains the error without changing any item.
   * Use case resumes at step 1.
+* 6a. The completed item was the student's last one.
+  * 6a1. StudentBook removes the student from the outstanding list.
+  * Use case ends.
 
 #### UC06: Attach a guardian contact
 
@@ -658,6 +703,20 @@ Use an empty test folder and sample data. These checks are a starting point; als
    an invalid phone and repeated prefixes. Expect an error with existing records unchanged.
 6. Filter to one student with `find`, then use `guardian-add 1 name/Janet Tan phone/91234567`.
    Check that only the displayed student changes, the filter remains active, and other students are untouched.
+
+### Guardian follow-ups
+
+1. List students and choose an index. Run `followup-add INDEX text/Send the term 4 report and/or worksheet`.
+   The student's details should open with follow-up `1.` under the guardian, with the text unchanged.
+2. Run `followup-add INDEX text/Confirm the make-up lesson`, then `followup-edit INDEX 2 text/Confirm Saturday`.
+   Item 2 should change and item 1 should not.
+3. Edit the student's phone, delete or add a guardian, add a lesson and add a note. Both items should remain.
+   Restart and check again.
+4. Give a second student one item, then run `followups`. Only students with items should be listed. Complete every
+   item of student 1 with `followup-done 1 1`. Each message should show the completed text. After the last one, the
+   student should leave the list and no other student's details should open. `list` should show everyone again.
+5. Try a duplicate item in different letter case, empty text, 201 characters of text, a repeated `text/`, a missing
+   index and an out-of-range index. Each should report an error and leave every record unchanged.
 
 ### Progress notes
 

@@ -300,6 +300,51 @@ For example, after `list`:
 
 Notes are saved automatically. Older data files without notes still load, with no notes recorded.
 
+### Track guardian follow-ups
+
+A follow-up is something you still need to do for a student's guardian, such as sending a progress report or
+confirming a make-up lesson. Each student can have zero or more outstanding follow-ups. Follow-up commands use the
+student's positive `STUDENT_INDEX` in the currently displayed list, including search results. They preserve all
+other student fields.
+
+* **Create:** `followup-add STUDENT_INDEX text/TEXT`
+  Adds the item at the end of the student's list. The **Students** table then opens that student's details.
+* **Read:** Open the student's details (`view STUDENT_INDEX`, or **Alt+Down** on the table). The **Follow-ups**
+  section, under the guardian, lists the outstanding items with their numbers, or a grey `No outstanding follow-ups`.
+  Use the item's number as `FOLLOW_UP_INDEX`.
+* **List outstanding:** `followups`
+  Shows only the students who have at least one outstanding follow-up. Archived students are left out, as in `list`,
+  and keep their follow-ups for when you unarchive them. Use `list` to see every student again.
+* **Update:** `followup-edit STUDENT_INDEX FOLLOW_UP_INDEX text/TEXT`
+  Replaces the text of that item. Its number stays the same.
+* **Complete:** `followup-done STUDENT_INDEX FOLLOW_UP_INDEX`
+  Marking an item as done **removes** it, and the message shows its text so you can check it was the right one.
+  Later items move up by one position.
+
+Field rules:
+
+* **Text** (`text/`): 1 to 200 characters on one line. Leading and trailing spaces are removed. Words such as
+  `and/or` are kept as part of the text.
+* A follow-up does not need a guardian to be recorded, and `guardian-delete` keeps the student's follow-ups.
+
+Errors:
+
+* Adding an item, or editing one, so that it reads the same as another item of that student (ignoring letter case)
+  is rejected as a duplicate.
+* A student index or follow-up index that does not exist, a missing or repeated `text/`, and empty or overlong text
+  are rejected. Any error leaves the record unchanged.
+
+For example, after `list`:
+
+1. `followup-add 1 text/Send the term 4 progress report`
+2. `followup-add 1 text/Confirm the make-up lesson`
+3. `followup-edit 1 2 text/Confirm the make-up lesson on Saturday`
+4. `followups` shows only the students with outstanding items.
+5. `followup-done 1 1` removes the progress-report item. The make-up lesson item is now item 1.
+
+After `followups`, a student whose last item you complete leaves the list, so the students after them move up a
+number. Follow-ups are saved automatically. Older data files without follow-ups still load, with none recorded.
+
 ### Delete a student: `delete`
 
 Format: `delete INDEX`
@@ -385,6 +430,10 @@ Lesson numbers in warnings belong to the named student's lesson list; find that 
 | Delete guardian | `guardian-delete INDEX` |
 | Add note | `note-add STUDENT_INDEX date/DATE text/TEXT` |
 | Delete note | `note-delete STUDENT_INDEX NOTE_INDEX` |
+| Add follow-up | `followup-add STUDENT_INDEX text/TEXT` |
+| Edit follow-up | `followup-edit STUDENT_INDEX FOLLOW_UP_INDEX text/TEXT` |
+| Complete follow-up | `followup-done STUDENT_INDEX FOLLOW_UP_INDEX` |
+| List outstanding follow-ups | `followups` |
 | Delete | `delete INDEX` |
 | Delete all | `clear` |
 | Help | `help` |
