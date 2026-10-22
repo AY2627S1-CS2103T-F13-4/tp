@@ -8,12 +8,15 @@ import static seedu.address.logic.parser.CliSyntax.PREFIX_NAME;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_SUBJECT;
 
 import java.time.DayOfWeek;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.function.Predicate;
+import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
+import seedu.address.commons.core.LogsCenter;
 import seedu.address.logic.commands.FindCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.Model;
@@ -29,6 +32,8 @@ import seedu.address.model.person.StudentLessonMatchesPredicate;
  */
 public class FindCommandParser implements Parser<FindCommand> {
 
+    private static final Logger logger = LogsCenter.getLogger(FindCommandParser.class);
+
     /**
      * Parses the given {@code String} of arguments in the context of the FindCommand
      * and returns a FindCommand object for execution.
@@ -37,8 +42,7 @@ public class FindCommandParser implements Parser<FindCommand> {
     public FindCommand parse(String args) throws ParseException {
         String trimmedArgs = args.trim();
         if (trimmedArgs.isEmpty()) {
-            throw new ParseException(
-                    String.format(MESSAGE_INVALID_COMMAND_FORMAT, FindCommand.MESSAGE_USAGE));
+            throw invalidFormat("no search criteria");
         }
 
         if (List.of(PREFIX_NAME, PREFIX_GUARDIAN, PREFIX_LEVEL, PREFIX_SUBJECT, PREFIX_DAY).stream()
@@ -49,6 +53,7 @@ public class FindCommandParser implements Parser<FindCommand> {
 
         String[] nameKeywords = trimmedArgs.split("\\s+");
 
+        logger.fine("Search filters selected: [bare-name]");
         return new FindCommand(new NameContainsKeywordsPredicate(List.of(nameKeywords)));
     }
 
@@ -57,9 +62,14 @@ public class FindCommandParser implements Parser<FindCommand> {
         Prefix[] prefixes = {PREFIX_NAME, PREFIX_GUARDIAN, PREFIX_LEVEL, PREFIX_SUBJECT, PREFIX_DAY};
         ArgumentMultimap arguments = ArgumentTokenizer.tokenize(args, prefixes);
         if (!arguments.getPreamble().isEmpty()) {
-            throw invalidFormat();
+            throw invalidFormat("bare keywords mixed with prefixes");
         }
-        arguments.verifyNoDuplicatePrefixesFor(prefixes);
+        try {
+            arguments.verifyNoDuplicatePrefixesFor(prefixes);
+        } catch (ParseException e) {
+            logger.fine("Student search rejected: duplicate prefixes");
+            throw e;
+        }
         Optional<String> name = arguments.getValue(PREFIX_NAME);
         Optional<String> guardian = arguments.getValue(PREFIX_GUARDIAN);
         Optional<String> level = arguments.getValue(PREFIX_LEVEL);
@@ -67,9 +77,12 @@ public class FindCommandParser implements Parser<FindCommand> {
         Optional<String> dayText = arguments.getValue(PREFIX_DAY);
         if (List.of(name, guardian, level, subject, dayText).stream()
                 .anyMatch(value -> value.filter(String::isBlank).isPresent())) {
-            throw invalidFormat();
+            throw invalidFormat("empty filter value");
         }
         Optional<DayOfWeek> day = dayText.isPresent() ? Optional.of(parseDay(dayText.orElseThrow())) : Optional.empty();
+        logger.fine("Search filters selected: " + Arrays.stream(prefixes)
+                .filter(prefix -> arguments.getValue(prefix).isPresent())
+                .map(Prefix::getPrefix).toList());
         LessonMatchesPredicate lessonPredicate = new LessonMatchesPredicate(subject, day);
         Predicate<Student> predicate;
         if (subject.isPresent() || day.isPresent()) {
@@ -92,10 +105,11 @@ public class FindCommandParser implements Parser<FindCommand> {
                 return day;
             }
         }
-        throw invalidFormat();
+        throw invalidFormat("invalid weekday");
     }
 
-    private ParseException invalidFormat() {
+    private ParseException invalidFormat(String reason) {
+        logger.fine("Student search rejected: " + reason);
         return new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, FindCommand.MESSAGE_USAGE));
     }
 

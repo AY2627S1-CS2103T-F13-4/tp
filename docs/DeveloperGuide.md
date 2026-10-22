@@ -236,6 +236,12 @@ and `FindCommand` passes that lesson predicate to the model so the calendar show
 `FindCommandParserTest` covers contact substrings, guardian phone matching, absent guardians, combined criteria,
 whole-word name compatibility, whitespace between prefixes, invalid input and calendar filtering.
 
+Search logging uses the existing `LogsCenter` framework. `FindCommand` logs successful searches and their matching
+student count at `INFO`. `FindCommandParser` logs selected prefix types (or `bare-name`) and validation rejection
+reasons at `FINE`. These search-specific entries omit search values and contact details. Existing command-level
+logging in `LogicManager` still records raw commands. Logs go to the console and rotating `studentbook.log.*` files;
+set `LOG_LEVEL` in `LogsCenter` to `Level.FINE` to enable the parser diagnostics during debugging.
+
 ### Guardian contact CRUD
 
 `guardian-add`, `guardian-edit` and `guardian-delete` are routed by `AddressBookParser` to

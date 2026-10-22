@@ -8,7 +8,9 @@ import static seedu.address.logic.parser.CliSyntax.PREFIX_NAME;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_SUBJECT;
 
 import java.util.function.Predicate;
+import java.util.logging.Logger;
 
+import seedu.address.commons.core.LogsCenter;
 import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.logic.Messages;
 import seedu.address.model.Model;
@@ -32,6 +34,8 @@ public class FindCommand extends Command {
             + "Example: " + COMMAND_WORD + " " + PREFIX_LEVEL + "Secondary "
             + PREFIX_SUBJECT + "Math " + PREFIX_DAY + "Wed";
 
+    private static final Logger logger = LogsCenter.getLogger(FindCommand.class);
+
     private final Predicate<Student> predicate;
     private final Predicate<Lesson> lessonPredicate;
 
@@ -49,6 +53,7 @@ public class FindCommand extends Command {
     public CommandResult execute(Model model) {
         requireNonNull(model);
         model.updateFilteredPersonList(predicate, lessonPredicate);
+        logger.info("Student search completed: matchedStudents=" + model.getFilteredPersonList().size());
         return new CommandResult(
                 String.format(Messages.MESSAGE_PERSONS_LISTED_OVERVIEW, model.getFilteredPersonList().size()),
                 CommandResult.Screen.STUDENTS);
