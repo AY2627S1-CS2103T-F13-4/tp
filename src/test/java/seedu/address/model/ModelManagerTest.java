@@ -81,6 +81,16 @@ public class ModelManagerTest {
     }
 
     @Test
+    public void archivePerson_nullPerson_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> modelManager.archivePerson(null));
+    }
+
+    @Test
+    public void unarchivePerson_nullPerson_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> modelManager.unarchivePerson(null));
+    }
+
+    @Test
     public void archivePerson_showAllPredicateInstalled_notifiesDisplayedListAndRetainsArchivedPerson() {
         modelManager.addPerson(ALICE);
         modelManager.addPerson(BENSON);
@@ -102,6 +112,30 @@ public class ModelManagerTest {
         assertTrue(archivedPerson.isSamePerson(ALICE));
         assertTrue(archivedPerson.isArchived());
         assertFalse(ALICE.isArchived());
+    }
+
+    @Test
+    public void unarchivePerson_archivePredicateInstalled_notifiesDisplayedListAndShowsActivePersons() {
+        Student archivedAlice = ALICE.withArchived(true);
+        Student archivedBenson = BENSON.withArchived(true);
+        modelManager = new ModelManager(new AddressBookBuilder().withPerson(archivedAlice).withPerson(archivedBenson)
+                .build(), new UserPrefs());
+        modelManager.updateFilteredPersonList(Student::isArchived);
+        ObservableList<Student> displayedPersons = modelManager.getFilteredPersonList();
+        List<Student> addedPersons = new ArrayList<>();
+        displayedPersons.addListener((ListChangeListener<Student>) change -> {
+            while (change.next()) {
+                addedPersons.addAll(change.getAddedSubList());
+            }
+        });
+
+        modelManager.unarchivePerson(archivedAlice);
+
+        assertEquals(List.of(ALICE), displayedPersons);
+        assertEquals(List.of(ALICE), addedPersons);
+        assertEquals(List.of(ALICE, archivedBenson), modelManager.getAddressBook().getPersonList());
+        assertNotSame(archivedAlice, displayedPersons.get(0));
+        assertTrue(archivedAlice.isArchived());
     }
 
     // Students are listed by school stage so the table can show Primary, Secondary and JC groups, and the numbers on

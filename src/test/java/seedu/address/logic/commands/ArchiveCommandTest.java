@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandFailure;
 import static seedu.address.logic.commands.CommandTestUtil.showPersonAtIndex;
+import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
 import static seedu.address.testutil.TypicalIndexes.INDEX_SECOND_PERSON;
 import static seedu.address.testutil.TypicalPersons.ALICE;
@@ -30,6 +31,20 @@ public class ArchiveCommandTest {
 
     private Model model = new ModelManager(new AddressBookBuilder().withPerson(ALICE).withPerson(BENSON).build(),
             new UserPrefs());
+
+    @Test
+    public void execute_nullModel_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> new ArchiveCommand(INDEX_FIRST_PERSON).execute(null));
+    }
+
+    @Test
+    public void execute_personAlreadyArchived_throwsCommandException() {
+        model = new ModelManager(new AddressBookBuilder().withPerson(ALICE.withArchived(true)).withPerson(BENSON)
+                .build(), new UserPrefs());
+        new ListArchiveCommand().execute(model);
+
+        assertCommandFailure(new ArchiveCommand(INDEX_FIRST_PERSON), model, ArchiveCommand.MESSAGE_ALREADY_ARCHIVED);
+    }
 
     @Test
     public void execute_afterList_removesPersonFromDisplayedList() throws CommandException {

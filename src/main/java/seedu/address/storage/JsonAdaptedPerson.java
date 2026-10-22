@@ -39,14 +39,16 @@ class JsonAdaptedPerson {
     private final String schoolingLevel;
     private final JsonAdaptedGuardian guardianContact;
     private final List<JsonAdaptedLesson> lessons = new ArrayList<>();
+    private final boolean isArchived;
 
     /** Retains compatibility with existing adapter callers. */
     public JsonAdaptedPerson(String name, String phone, String email, String address, List<JsonAdaptedTag> tags) {
-        this(name, phone, email, address, tags, null, null, null);
+        this(name, phone, email, address, tags, null, null, null, false);
     }
 
     /**
      * Constructs a {@code JsonAdaptedPerson} with the given person details.
+     * A missing archive status in older JSON files defaults to {@code false}.
      */
     @JsonCreator
     public JsonAdaptedPerson(@JsonProperty("name") String name, @JsonProperty("phone") String phone,
@@ -54,13 +56,15 @@ class JsonAdaptedPerson {
             @JsonProperty("tags") List<JsonAdaptedTag> tags,
             @JsonProperty("schoolingLevel") String schoolingLevel,
             @JsonProperty("guardianContact") JsonAdaptedGuardian guardianContact,
-            @JsonProperty("lessons") List<JsonAdaptedLesson> lessons) {
+            @JsonProperty("lessons") List<JsonAdaptedLesson> lessons,
+            @JsonProperty("isArchived") boolean isArchived) {
         this.name = name;
         this.phone = phone;
         this.email = email;
         this.address = address;
         this.schoolingLevel = schoolingLevel;
         this.guardianContact = guardianContact;
+        this.isArchived = isArchived;
         if (tags != null) {
             this.tags.addAll(tags);
         }
@@ -79,6 +83,7 @@ class JsonAdaptedPerson {
         address = source.getAddress().value;
         schoolingLevel = source.getSchoolingLevel().map(SchoolingLevel::toString).orElse(null);
         guardianContact = source.getGuardian().map(JsonAdaptedGuardian::new).orElse(null);
+        isArchived = source.isArchived();
         lessons.addAll(source.getLessons().stream()
                 .map(JsonAdaptedLesson::new)
                 .collect(Collectors.toList()));
@@ -140,7 +145,7 @@ class JsonAdaptedPerson {
                 modelLessons.add(lesson.toModelType());
             }
             return new Student(modelName, modelPhone, modelEmail, modelAddress, modelTags,
-                    modelLevel, modelGuardian, modelLessons);
+                    modelLevel, modelGuardian, modelLessons, isArchived);
         } catch (IllegalArgumentException e) {
             throw new IllegalValueException(e.getMessage());
         }

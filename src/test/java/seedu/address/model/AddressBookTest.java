@@ -7,6 +7,7 @@ import static seedu.address.logic.commands.CommandTestUtil.VALID_ADDRESS_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_TAG_HUSBAND;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalPersons.ALICE;
+import static seedu.address.testutil.TypicalPersons.BENSON;
 import static seedu.address.testutil.TypicalPersons.getTypicalAddressBook;
 
 import java.util.Collection;
@@ -18,6 +19,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import seedu.address.model.person.Student;
 import seedu.address.model.person.exceptions.DuplicatePersonException;
+import seedu.address.model.person.exceptions.PersonNotFoundException;
 import seedu.address.testutil.PersonBuilder;
 
 public class AddressBookTest {
@@ -74,6 +76,47 @@ public class AddressBookTest {
         Student editedAlice = new PersonBuilder(ALICE).withAddress(VALID_ADDRESS_BOB).withTags(VALID_TAG_HUSBAND)
                 .build();
         assertTrue(addressBook.hasPerson(editedAlice));
+    }
+
+    @Test
+    public void archivePerson_nullPerson_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> addressBook.archivePerson(null));
+    }
+
+    @Test
+    public void archivePerson_personNotInAddressBook_throwsPersonNotFoundException() {
+        assertThrows(PersonNotFoundException.class, () -> addressBook.archivePerson(ALICE));
+    }
+
+    @Test
+    public void archivePerson_existingPerson_preservesDetailsAndOrder() {
+        addressBook.setPersons(List.of(ALICE, BENSON));
+
+        addressBook.archivePerson(ALICE);
+
+        assertEquals(List.of(ALICE.withArchived(true), BENSON), addressBook.getPersonList());
+        assertFalse(ALICE.isArchived());
+    }
+
+    @Test
+    public void unarchivePerson_nullPerson_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> addressBook.unarchivePerson(null));
+    }
+
+    @Test
+    public void unarchivePerson_personNotInAddressBook_throwsPersonNotFoundException() {
+        assertThrows(PersonNotFoundException.class, () -> addressBook.unarchivePerson(ALICE.withArchived(true)));
+    }
+
+    @Test
+    public void unarchivePerson_existingPerson_preservesDetailsAndOrder() {
+        Student archivedAlice = ALICE.withArchived(true);
+        addressBook.setPersons(List.of(BENSON, archivedAlice));
+
+        addressBook.unarchivePerson(archivedAlice);
+
+        assertEquals(List.of(BENSON, ALICE), addressBook.getPersonList());
+        assertTrue(archivedAlice.isArchived());
     }
 
     @Test

@@ -114,6 +114,39 @@ public class TuitionStorageTest {
     }
 
     @Test
+    public void archiveStatus_jsonRoundTrip_preservesArchiveStatus() throws Exception {
+        for (boolean isArchived : new boolean[]{false, true}) {
+            Student original = completeStudent().withArchived(isArchived);
+            String saved = JsonUtil.toJsonString(new JsonAdaptedPerson(original));
+            assertTrue(saved.contains("\"isArchived\" : " + isArchived));
+            assertEquals(original, JsonUtil.fromJsonString(saved, JsonAdaptedPerson.class).toModelType());
+        }
+    }
+
+    @Test
+    public void archiveStatus_missingField_defaultsToActive() throws Exception {
+        Student loaded = JsonUtil.fromJsonString(LEGACY_PERSON, JsonAdaptedPerson.class).toModelType();
+        assertFalse(loaded.isArchived());
+    }
+
+    @Test
+    public void archivedStudent_saveReloadAndUnarchive_preservesArchiveStatus() throws Exception {
+        Student archived = completeStudent().withArchived(true);
+        AddressBook book = new AddressBook();
+        book.addPerson(archived);
+        JsonAddressBookStorage storage = new JsonAddressBookStorage(temporaryFolder.resolve("studentbook.json"));
+        storage.saveAddressBook(book);
+        AddressBook loaded = new AddressBook(storage.readAddressBook().orElseThrow());
+        Student reloaded = loaded.getPersonList().get(0);
+        assertEquals(archived, reloaded);
+
+        Student unarchived = reloaded.withArchived(false);
+        loaded.setPerson(reloaded, unarchived);
+        storage.saveAddressBook(loaded);
+        assertEquals(unarchived, storage.readAddressBook().orElseThrow().getPersonList().get(0));
+    }
+
+    @Test
     public void lessonLocationAndMode_roundTripAndAreOptionalInJson() throws Exception {
         Lesson withExtras = new Lesson(new Subject("Math"),
                 new WeeklyLessonSlot(DayOfWeek.MONDAY, LocalTime.of(16, 0), LocalTime.of(17, 30)),

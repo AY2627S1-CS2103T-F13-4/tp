@@ -147,6 +147,28 @@ public class UniquePersonListTest {
     }
 
     @Test
+    public void unarchive_nullPerson_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> uniquePersonList.unarchive(null));
+    }
+
+    @Test
+    public void unarchive_personDoesNotExist_throwsPersonNotFoundException() {
+        assertThrows(PersonNotFoundException.class, () -> uniquePersonList.unarchive(ALICE.withArchived(true)));
+    }
+
+    @Test
+    public void unarchive_existingPerson_replacesPersonInPlaceWithoutChangingOriginal() {
+        Student archivedAlice = ALICE.withArchived(true);
+        uniquePersonList.setPersons(List.of(BOB, archivedAlice));
+
+        uniquePersonList.unarchive(new PersonBuilder(archivedAlice).build());
+
+        assertEquals(List.of(BOB, ALICE), uniquePersonList.asUnmodifiableObservableList());
+        assertTrue(archivedAlice.isArchived());
+        assertTrue(uniquePersonList.contains(ALICE));
+    }
+
+    @Test
     public void setPersons_nullUniquePersonList_throwsNullPointerException() {
         assertThrows(NullPointerException.class, () -> uniquePersonList.setPersons((UniquePersonList) null));
     }
