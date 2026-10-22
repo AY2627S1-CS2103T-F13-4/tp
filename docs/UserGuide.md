@@ -152,6 +152,7 @@ Include at least one field to change. Fields you leave out stay unchanged.
 
 * Tags replace the entire existing set. Use an empty `tag/` to clear all tags.
 * An empty `sch/` clears the school.
+* A successful edit clears the active search and shows all students, including when changing or clearing a school.
 * An empty `level/` clears the schooling level.
 * Editing a student never changes their lessons or guardian. Use the `lesson-` and `guardian-` commands for those.
 

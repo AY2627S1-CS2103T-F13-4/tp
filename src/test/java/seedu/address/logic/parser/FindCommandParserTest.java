@@ -102,10 +102,37 @@ public class FindCommandParserTest {
         assertEquals(List.of(matching), model.getFilteredPersonList());
         assertTrue(model.getLessonPredicate().getValue().test(tuesdayMath));
 
-        model.setPerson(matching, new PersonBuilder(matching).withSchool(null).build());
-        assertTrue(model.getFilteredPersonList().isEmpty());
         new ListCommand().execute(model);
         assertEquals(2, model.getFilteredPersonList().size());
+    }
+
+    @Test
+    public void parse_editSchoolAfterSearch_clearsStudentAndLessonFilters() throws Exception {
+        Lesson mondayMath = lesson("Math", DayOfWeek.MONDAY);
+        Lesson tuesdayEnglish = lesson("English", DayOfWeek.TUESDAY);
+        Student alex = new PersonBuilder().withName("Alex Tan").withSchool(new School("Raffles Institution"))
+                .withLessons(mondayMath).build();
+        Student other = new PersonBuilder().withName("Bob Tan").withSchool(new School("Dunman High"))
+                .withLessons(tuesdayEnglish).build();
+        AddressBookParser commandParser = new AddressBookParser();
+
+        for (String schoolText : List.of("Dunman High", "")) {
+            Model model = new ModelManager();
+            model.addPerson(alex);
+            model.addPerson(other);
+            commandParser.parseCommand("find sch/raffles subject/math day/mon").execute(model);
+            assertEquals(List.of(alex), model.getFilteredPersonList());
+            assertFalse(model.getLessonPredicate().getValue().test(tuesdayEnglish));
+
+            commandParser.parseCommand("edit 1 sch/" + schoolText).execute(model);
+
+            Student edited = new PersonBuilder(alex)
+                    .withSchool(schoolText.isEmpty() ? null : new School(schoolText)).build();
+            assertEquals(List.of(edited, other), model.getFilteredPersonList());
+            assertTrue(model.getLessonPredicate().getValue().test(tuesdayEnglish));
+            commandParser.parseCommand("find sch/raffles").execute(model);
+            assertTrue(model.getFilteredPersonList().isEmpty());
+        }
     }
 
     @Test

@@ -232,11 +232,12 @@ the recorded school's substring ignoring case and requires the other supplied st
 Students without a school never match; a school or school-and-level search does not require lessons.
 Lesson criteria continue to use `StudentLessonMatchesPredicate`, so subject and day must match the same
 lesson, and `FindCommand` passes the lesson filter to the model for `week`. A later school-only search
-resets the lesson filter; `list` clears the entire search. School edits re-evaluate the active filter.
+resets the lesson filter; `list` clears the entire search. `EditCommand`, including school changes and
+clearing a school, clears both student and lesson filters and displays all students after a successful edit.
 
 Tests: `SchoolContainsKeywordPredicateTest` and `FindCommandParserTest` cover partial and mixed-case
 school names, missing schools, students without lessons, combined filters, calendar filtering, clearing
-the search, school edits, invalid input and prefix ordering.
+the search, school edits through `EditCommand`, invalid input and prefix ordering.
 
 ### Guardian contact CRUD
 
