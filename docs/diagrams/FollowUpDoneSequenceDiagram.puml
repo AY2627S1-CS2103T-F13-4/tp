@@ -1,0 +1,94 @@
+@startuml
+!include style.puml
+skinparam ArrowFontStyle plain
+
+box Logic LOGIC_COLOR_T1
+participant ":LogicManager" as LogicManager LOGIC_COLOR
+participant ":AddressBookParser" as AddressBookParser LOGIC_COLOR
+participant ":FollowUpCommandParser" as FollowUpCommandParser LOGIC_COLOR
+participant "c:FollowUpCommand" as FollowUpCommand LOGIC_COLOR
+participant "r:CommandResult" as CommandResult LOGIC_COLOR
+end box
+
+box Model MODEL_COLOR_T1
+participant "m:Model" as Model MODEL_COLOR
+participant "updated:Student" as Student MODEL_COLOR
+end box
+
+[-> LogicManager : execute("followup-done 1 2")
+activate LogicManager
+
+LogicManager -> AddressBookParser : parseCommand("followup-done 1 2")
+activate AddressBookParser
+
+create FollowUpCommandParser
+AddressBookParser -> FollowUpCommandParser : FollowUpCommandParser(DONE)
+activate FollowUpCommandParser
+FollowUpCommandParser --> AddressBookParser
+deactivate FollowUpCommandParser
+
+AddressBookParser -> FollowUpCommandParser : parse(" 1 2")
+activate FollowUpCommandParser
+
+create FollowUpCommand
+FollowUpCommandParser -> FollowUpCommand : FollowUpCommand(1, DONE, 2)
+activate FollowUpCommand
+FollowUpCommand --> FollowUpCommandParser
+deactivate FollowUpCommand
+
+FollowUpCommandParser --> AddressBookParser : c
+deactivate FollowUpCommandParser
+'Hidden arrow to position the destroy marker below the end of the activation bar.
+FollowUpCommandParser -[hidden]-> AddressBookParser
+destroy FollowUpCommandParser
+
+AddressBookParser --> LogicManager : c
+deactivate AddressBookParser
+
+LogicManager -> FollowUpCommand : execute(m)
+activate FollowUpCommand
+
+FollowUpCommand -> Model : getFilteredPersonList()
+activate Model
+Model --> FollowUpCommand : student 1
+deactivate Model
+
+note right of FollowUpCommand
+  Removes item 2 from a copy
+  of student 1's follow-ups
+end note
+
+create Student
+FollowUpCommand -> Student : Student(..., remaining follow-ups)
+activate Student
+Student --> FollowUpCommand
+deactivate Student
+
+FollowUpCommand -> Model : setPerson(student 1, updated)
+activate Model
+Model --> FollowUpCommand
+deactivate Model
+
+FollowUpCommand -> Model : getFilteredPersonList()
+activate Model
+Model --> FollowUpCommand : list
+deactivate Model
+
+alt updated is still in list
+    FollowUpCommand -> FollowUpCommand : open its details\nat its new position
+else updated left the list (its last item is done after followups)
+    FollowUpCommand -> FollowUpCommand : open no details
+end
+
+create CommandResult
+FollowUpCommand -> CommandResult : CommandResult("Completed follow-up 2 ...", ...)
+activate CommandResult
+CommandResult --> FollowUpCommand
+deactivate CommandResult
+
+FollowUpCommand --> LogicManager : r
+deactivate FollowUpCommand
+
+[<-- LogicManager : r
+deactivate LogicManager
+@enduml
