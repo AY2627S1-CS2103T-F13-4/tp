@@ -9,17 +9,23 @@ import java.util.regex.Pattern;
 
 import seedu.address.commons.core.LogsCenter;
 import seedu.address.logic.commands.AddCommand;
+import seedu.address.logic.commands.ArchiveCommand;
 import seedu.address.logic.commands.ClearCommand;
 import seedu.address.logic.commands.Command;
 import seedu.address.logic.commands.DeleteCommand;
 import seedu.address.logic.commands.EditCommand;
 import seedu.address.logic.commands.ExitCommand;
 import seedu.address.logic.commands.FindCommand;
+import seedu.address.logic.commands.FollowUpCommand;
+import seedu.address.logic.commands.FollowUpListCommand;
 import seedu.address.logic.commands.GuardianCommand;
 import seedu.address.logic.commands.GuardianCommand.Operation;
 import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.LessonCommand;
+import seedu.address.logic.commands.ListArchiveCommand;
 import seedu.address.logic.commands.ListCommand;
+import seedu.address.logic.commands.NoteCommand;
+import seedu.address.logic.commands.UnarchiveCommand;
 import seedu.address.logic.commands.ViewCommand;
 import seedu.address.logic.commands.WeekCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
@@ -66,14 +72,27 @@ public class AddressBookParser {
                 new LessonCommandParser(LessonCommand.Operation.EDIT).parse(arguments);
             case LessonCommand.DELETE_COMMAND_WORD ->
                 new LessonCommandParser(LessonCommand.Operation.DELETE).parse(arguments);
+            case NoteCommand.ADD_COMMAND_WORD -> new NoteCommandParser(NoteCommand.Operation.ADD).parse(arguments);
+            case NoteCommand.DELETE_COMMAND_WORD ->
+                new NoteCommandParser(NoteCommand.Operation.DELETE).parse(arguments);
+            case FollowUpCommand.ADD_COMMAND_WORD ->
+                new FollowUpCommandParser(FollowUpCommand.Operation.ADD).parse(arguments);
+            case FollowUpCommand.EDIT_COMMAND_WORD ->
+                new FollowUpCommandParser(FollowUpCommand.Operation.EDIT).parse(arguments);
+            case FollowUpCommand.DONE_COMMAND_WORD ->
+                new FollowUpCommandParser(FollowUpCommand.Operation.DONE).parse(arguments);
+            case FollowUpListCommand.COMMAND_WORD -> new FollowUpListCommand();
             case AddCommand.COMMAND_WORD -> new AddCommandParser().parse(arguments);
             case EditCommand.COMMAND_WORD -> new EditCommandParser().parse(arguments);
             case DeleteCommand.COMMAND_WORD -> new DeleteCommandParser().parse(arguments);
             case ClearCommand.COMMAND_WORD -> new ClearCommand();
             case FindCommand.COMMAND_WORD -> new FindCommandParser().parse(arguments);
             case ListCommand.COMMAND_WORD -> new ListCommand();
+            case ListArchiveCommand.COMMAND_WORD -> new ListArchiveCommand();
             case WeekCommand.COMMAND_WORD -> new WeekCommand();
             case ViewCommand.COMMAND_WORD -> new ViewCommandParser().parse(arguments);
+            case ArchiveCommand.COMMAND_WORD -> new ArchiveCommandParser().parse(arguments);
+            case UnarchiveCommand.COMMAND_WORD -> new UnarchiveCommandParser().parse(arguments);
             case ExitCommand.COMMAND_WORD -> new ExitCommand();
             case HelpCommand.COMMAND_WORD -> new HelpCommand();
             default -> {

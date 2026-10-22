@@ -30,6 +30,7 @@ import seedu.address.model.person.LessonLocation;
 import seedu.address.model.person.LessonMode;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Phone;
+import seedu.address.model.person.School;
 import seedu.address.model.person.SchoolingLevel;
 import seedu.address.model.person.Student;
 import seedu.address.model.person.Subject;
@@ -56,6 +57,7 @@ public class TuitionStorageTest {
         return new PersonBuilder()
                 .withLessons(lesson("Combined Science", DayOfWeek.MONDAY, "45.50"),
                         lesson("Math", DayOfWeek.WEDNESDAY, "50"))
+                .withSchool(new School("Nanyang Primary School"))
                 .withSchoolingLevel(new SchoolingLevel("Primary 5"))
                 .withGuardian(new Guardian(new Name("Janet Tan"), new Phone("91234567"))).build();
     }
@@ -77,6 +79,7 @@ public class TuitionStorageTest {
         assertEquals(2, loaded.getPersonList().size());
         Student first = loaded.getPersonList().get(0);
         assertTrue(first.getLessons().isEmpty());
+        assertTrue(first.getSchool().isEmpty());
         assertTrue(first.getSchoolingLevel().isEmpty());
         assertTrue(first.getGuardian().isEmpty());
     }
@@ -111,6 +114,39 @@ public class TuitionStorageTest {
         Student single = JsonUtil.fromJsonString(withProperty("\"lessons\":[" + VALID_LESSON + "]"),
                 JsonAdaptedPerson.class).toModelType();
         assertEquals(List.of(lesson("Math", DayOfWeek.MONDAY, "45.5")), single.getLessons());
+    }
+
+    @Test
+    public void archiveStatus_jsonRoundTrip_preservesArchiveStatus() throws Exception {
+        for (boolean isArchived : new boolean[]{false, true}) {
+            Student original = completeStudent().withArchived(isArchived);
+            String saved = JsonUtil.toJsonString(new JsonAdaptedPerson(original));
+            assertTrue(saved.contains("\"isArchived\" : " + isArchived));
+            assertEquals(original, JsonUtil.fromJsonString(saved, JsonAdaptedPerson.class).toModelType());
+        }
+    }
+
+    @Test
+    public void archiveStatus_missingField_defaultsToActive() throws Exception {
+        Student loaded = JsonUtil.fromJsonString(LEGACY_PERSON, JsonAdaptedPerson.class).toModelType();
+        assertFalse(loaded.isArchived());
+    }
+
+    @Test
+    public void archivedStudent_saveReloadAndUnarchive_preservesArchiveStatus() throws Exception {
+        Student archived = completeStudent().withArchived(true);
+        AddressBook book = new AddressBook();
+        book.addPerson(archived);
+        JsonAddressBookStorage storage = new JsonAddressBookStorage(temporaryFolder.resolve("studentbook.json"));
+        storage.saveAddressBook(book);
+        AddressBook loaded = new AddressBook(storage.readAddressBook().orElseThrow());
+        Student reloaded = loaded.getPersonList().get(0);
+        assertEquals(archived, reloaded);
+
+        Student unarchived = reloaded.withArchived(false);
+        loaded.setPerson(reloaded, unarchived);
+        storage.saveAddressBook(loaded);
+        assertEquals(unarchived, storage.readAddressBook().orElseThrow().getPersonList().get(0));
     }
 
     @Test

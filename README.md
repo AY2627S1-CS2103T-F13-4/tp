@@ -5,7 +5,7 @@
 
 StudentBook helps private tutors keep student contacts and tuition details in one place. It runs on your computer and uses typed commands.
 
-StudentBook supports student contacts, optional schooling levels and guardian contacts. Each student can have multiple lessons; each lesson records a subject, weekly time slot and hourly rate, with optional mode and location. Use `lesson-add`, `lesson-edit` and `lesson-delete` to manage lessons, and `guardian-add`, `guardian-edit` and `guardian-delete` to manage a student's guardian contact. `find` can search by name or filter by schooling level, lesson subject and day; the lesson filters also apply to the weekly calendar. Changes are saved automatically.
+StudentBook supports student contacts, optional schooling levels and guardian contacts. Each student can have multiple lessons; each lesson records a subject, weekly time slot and hourly rate, with optional mode and location. Use `lesson-add`, `lesson-edit` and `lesson-delete` to manage lessons, and `guardian-add`, `guardian-edit` and `guardian-delete` to manage a student's guardian contact. `find` can search by name or combine filters for name (`name/`), guardian (`guardian/`), school (`sch/`), schooling level, lesson subject and day; the lesson filters also apply to the weekly calendar. Changes are saved automatically.
 
 Tutors can:
 

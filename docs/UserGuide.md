@@ -5,7 +5,7 @@ title: User Guide
 
 StudentBook is a desktop contact book for private tutors. Type commands to manage student records.
 
-This development version supports contact details, schooling levels, guardian contacts and lessons. Each student can have any number of lessons, and each lesson has a subject, a weekly time slot and an hourly rate. See the [Developer Guide](DeveloperGuide.md#product-scope) for the plan and open decisions.
+This development version supports contact details, schools, schooling levels, guardian contacts and lessons. Each student can have any number of lessons, and each lesson has a subject, a weekly time slot and an hourly rate. See the [Developer Guide](DeveloperGuide.md#product-scope) for the plan and open decisions.
 
 * Table of Contents
 {:toc}
@@ -49,7 +49,7 @@ The command box sits at the top of the window, under the StudentBook name, since
 * **Tabs:** The row under the command box has **This week**, which runs `week`, and **Students**, which runs `list`; each tab shows the command it runs. After them, each schooling level in use runs `find level/LEVEL` (point at one to see the command). **All commands** at the right opens help. The levels are hidden in windows narrower than 900px, and any that do not fit are left out. In windows shorter than 560px, the StudentBook name and the data file path at the bottom are hidden to leave room for your students.
 * **Header:** The page header shows how many students there are. **+ Add student** puts the `add` format in the command box for you to fill in.
 * **Student list:** The list is a table with one row per student and the columns **#**, **Name**, **Subjects**, **Next lesson**, **Rate** and **Guardian**. **Next lesson** is the lesson that comes next in the week, with `+2 more` when the student has others; **Rate** is that lesson's rate. Use the number in the **#** column as `INDEX`. In narrow windows the Subjects and Guardian columns are hidden.
-* **Student details:** On the **Students** table, a student's details open under their row: every lesson with its number, subject, day and time, rate, mode and location, then the phone, email, address, guardian and tags. Details open when a search leaves one student (e.g. `find hafiz`), when you press **Alt+Down** or **Alt+Up** to step through students, or when you click a row. Press **Esc** in an empty command box to close them. Use a lesson's number in the details as `LESSON_INDEX`.
+* **Student details:** On the **Students** table, a student's details open under their row: school, phone, email and address together, followed by guardian information, lessons and tags. Each lesson shows its number, subject, day and time, rate, mode and location. Details open when a search leaves one student (e.g. `find hafiz`), when you press **Alt+Down** or **Alt+Up** to step through students, or when you click a row. Press **Esc** in an empty command box to close them. Use a lesson's number in the details as `LESSON_INDEX`.
 * **Colours:** The initials badge and the level dots under the command box are amber for primary (`P5`, `Primary 5`), blue for secondary (`Sec 3`, `Secondary 4 Express`) and violet for JC (`JC1`). Levels written another way, such as `Poly Y1`, stay grey. In a student's details, a lesson's mode shows in green for `Physical` and teal for `Virtual`. Tags are grey.
 * **Count:** The count beside the title shows how many students there are. After `find`, it shows how many match, such as `Showing 1 of 8`.
 * **Empty list:** When the list is empty, the app suggests the next step. With no students, it shows an example `add` command you can type as shown. When a search matches no one, it suggests `list`. The This week screen does the same: with no lessons it shows an example `lesson-add` command, and when a search hides every lesson it suggests `list`.
@@ -82,16 +82,30 @@ Every shortcut is optional: each one has a command that does the same, such as `
 
 ### Add a student: `add`
 
-Format: `add name/NAME phone/PHONE_NUMBER email/EMAIL address/ADDRESS [tag/TAG]... [level/SCHOOLING_LEVEL]`
+Format: `add name/NAME phone/PHONE_NUMBER email/EMAIL address/ADDRESS [tag/TAG]... [sch/SCHOOL] [level/SCHOOLING_LEVEL]`
 
-Name, phone, email and address are required. Tags and schooling level are optional. A new student has no lessons; add them with [`lesson-add`](#manage-a-students-lessons).
+Name, phone, email and address are required. Tags, school and schooling level are optional. A new student has no lessons; add them with [`lesson-add`](#manage-a-students-lessons).
 
 ```text
-add name/Alex Tan phone/91234567 email/alex@example.com address/123 Clementi Road tag/weekday level/Primary 5
+add name/Alex Tan phone/91234567 email/alex@example.com address/123 Clementi Road tag/weekday sch/Clementi Primary School level/Primary 5
 add name/Mei Lim phone/92345678 email/mei@example.com address/45 Dover Road
 ```
 
-Records with exactly the same name are duplicates. Name matching is case-sensitive: `Alex Tan` and `alex tan` are treated as different names. Schooling level and lessons do not change this rule.
+Records with exactly the same name are duplicates. Name matching is case-sensitive: `Alex Tan` and `alex tan` are treated as different names. School, schooling level and lessons do not change this rule.
+
+### Record or clear a school
+
+Each student can have zero or one school, supplied with `sch/`.
+
+| Task | Command |
+|---|---|
+| Set or replace a school | `edit 1 sch/Clementi Primary School` |
+| Clear a school | `edit 1 sch/` |
+| Include a school when adding a student | Add `sch/Clementi Primary School` to the `add` command |
+
+The school appears in the student's expanded details when recorded. Leave out `sch/` to keep the existing school when editing. Changing the school keeps the student's schooling level and all other fields unchanged.
+
+Schools must have 1 to 60 characters after leading and trailing spaces are removed, and cannot be blank. An empty `sch/` clears the school with `edit`, but is invalid with `add`. Repeating `sch/` in one command is invalid. Invalid input leaves the record unchanged.
 
 ### Record or clear a schooling level
 
@@ -123,7 +137,7 @@ Shows the **This week** calendar. After `find`, it keeps the search and shows on
 
 Format: `view INDEX`
 
-Shows the **Students** table with the student at `INDEX` opened: every lesson with its number, day and time, rate, mode and location, then the phone, email, address, guardian and tags. On the calendar, a lesson labelled `#3.1` belongs to student `3`, so `view 3` shows its details.
+Shows the **Students** table with the student at `INDEX` opened: school, phone, email and address together, followed by guardian information, lessons, tags and progress notes. Each lesson shows its number, subject, day and time, rate, mode and location. On the calendar, a lesson labelled `#3.1` belongs to student `3`, so `view 3` shows its details.
 
 Examples:
 
@@ -132,11 +146,13 @@ Examples:
 
 ### Edit a student: `edit`
 
-Format: `edit INDEX [name/NAME] [phone/PHONE_NUMBER] [email/EMAIL] [address/ADDRESS] [tag/TAG]... [level/SCHOOLING_LEVEL]`
+Format: `edit INDEX [name/NAME] [phone/PHONE_NUMBER] [email/EMAIL] [address/ADDRESS] [tag/TAG]... [sch/SCHOOL] [level/SCHOOLING_LEVEL]`
 
 Include at least one field to change. Fields you leave out stay unchanged.
 
 * Tags replace the entire existing set. Use an empty `tag/` to clear all tags.
+* An empty `sch/` clears the school.
+* A successful edit clears the active search and shows all students, including when changing or clearing a school.
 * An empty `level/` clears the schooling level.
 * Editing a student never changes their lessons or guardian. Use the `lesson-` and `guardian-` commands for those.
 
@@ -144,28 +160,40 @@ Examples:
 
 * `edit 1 phone/91234567 email/alex.tan@example.com` changes the first displayed student's phone and email.
 * `edit 2 name/Mei Ling tag/` changes the second displayed student's name and clears their tags.
+* `edit 1 sch/Clementi Primary School` changes the first displayed student's school.
 * `edit 1 level/Primary 6` changes the first displayed student's schooling level.
 
-### Find students by name, schooling level or lesson: `find`
+### Find students by name, guardian, school, schooling level or lesson: `find`
 
-Format: `find KEYWORD [MORE_KEYWORDS]` or `find [level/TEXT] [subject/TEXT] [day/DAY]`
+Format: `find KEYWORD [MORE_KEYWORDS]` or `find [name/TEXT] [guardian/TEXT] [sch/TEXT] [level/TEXT] [subject/TEXT] [day/DAY]`
 
 The matching students show in the **Students** table.
 
-Without `level/`, searches names for whole words, ignoring letter case. A student appears if any keyword matches; keyword order does not matter.
+Without prefixes, searches names for whole words, ignoring letter case. A student appears if any keyword matches; keyword order does not matter.
 
 * `find John` matches `John Doe`, but not `Johnny`.
 * `find alex david` matches names containing `Alex` or `David`.
 
+Use `name/TEXT` to match part of a student's name, ignoring case. For example, `find name/alex` matches both
+`Alex Tan` and `Alexander Tan`. Multiple words form a single substring: `find name/alex tan` searches for
+that phrase together.
+
+Use `guardian/TEXT` to match part of the guardian's name or phone number, ignoring case. For example,
+`find guardian/janet` matches a guardian named `Janet Lee`, and `find guardian/9123` matches a guardian whose
+phone contains `9123`. Students without a guardian are excluded. `find name/alex guardian/janet sch/raffles`
+requires all three criteria to match and does not require students to have lessons.
+
+Use `find sch/TEXT` to search schools, ignoring letter case. Partial matches are allowed: `find sch/raffles` matches `Raffles Institution`. Multiple words form a single substring: `find sch/raffles institution` searches for that phrase together. Students without a recorded school are excluded. School searches do not require students to have lessons.
+
 Use `find level/TEXT` to search schooling levels, ignoring letter case. Partial matches are allowed: `find level/prim` matches `Primary 5`. Students without a level are excluded.
 
-Use `subject/` to match part of a lesson's subject, ignoring case, and `day/` with a three-letter or full weekday name (`Mon` or `Monday`). Combine prefixes in any order; every supplied criterion must match, and subject and day must match the **same lesson**. For example, `find level/Secondary subject/math day/wed` finds secondary students with a Wednesday Math lesson. Name keywords cannot be combined with prefixes. Empty or repeated prefixes and invalid days are rejected.
+Use `subject/` to match part of a lesson's subject, ignoring case, and `day/` with a three-letter or full weekday name (`Mon` or `Monday`). Supply at least one prefix. Combine prefixes in any order; every supplied criterion must match, and subject and day must match the **same lesson**. For example, `find name/alex guardian/janet sch/raffles level/Secondary subject/math day/wed` finds secondary students whose names contain `alex`, whose guardian's name or phone contains `janet`, and whose school contains `raffles`, with a Wednesday Math lesson. Bare name keywords cannot be combined with prefixes. Empty or repeated prefixes and invalid days are rejected.
 
 `find` opens the Students table. `week` then shows only the matching lessons on the calendar, and its header reads e.g. `Showing 3 of 12 lessons`; lesson numbers still refer to their positions in each student's full lesson list. `list` clears the search.
 
 The search stays while you change lessons. A lesson you add or edit that no longer matches `subject/` or `day/` is hidden, and a student left with no matching lesson leaves the list, so the students after them move up a number. Use `list` to see everything again.
 
-Phone and other contact fields are not searched.
+The student's own phone, email and address are not searched.
 
 ![Name search results](images/findAlexDavidResult.png)
 
@@ -234,6 +262,89 @@ For example, after `list`:
 Guardian commands keep an active search filter. Errors leave existing records unchanged. Guardian details are
 saved automatically. Older data files without a guardian still load with no guardian recorded.
 
+### Keep progress notes on a student
+
+Each student can have zero or more dated progress notes, such as what you covered in a lesson or what to revise
+next. Note commands use the student's positive `STUDENT_INDEX` in the currently displayed list, including search
+results. They preserve all other student fields.
+
+* **Create:** `note-add STUDENT_INDEX date/DATE text/TEXT`
+  Both fields are required. After adding, the **Students** table opens that student's details so you can see the note.
+* **Read:** Open the student's details (`view STUDENT_INDEX`, or **Alt+Down** on the table). The **Notes** section
+  lists every note oldest first, with its number, date and text, or a grey `No notes yet` when there are none.
+  Use the note's number as `NOTE_INDEX`.
+* **Delete:** `note-delete STUDENT_INDEX NOTE_INDEX`
+  Removes only that note and shows its date and text in the message, so you can check it was the right one. Later
+  notes move up by one position. The student's details open afterwards.
+
+Field rules:
+
+* **Date** (`date/`): a real date in `YYYY-MM-DD` format, such as `2026-10-15`. It cannot be later than today, because a
+  note records something that already happened.
+* **Text** (`text/`): 1 to 500 characters. Leading and trailing spaces are removed. Words such as `and/or` or `w/o`
+  are kept as part of the text. Avoid using slashes that may interfere with keyword detection, e.g. `date/` or `text/`.
+* Notes are kept oldest first. A note dated earlier than existing notes is placed before them, and the message says
+  its number. Notes on the same date stay in the order you added them.
+
+Errors:
+
+* Adding a note with the same date and text as one of the student's existing notes is rejected as a duplicate.
+* A student index or note index that does not exist, a missing or repeated prefix, a date that is not real or is in the future, and
+  empty or overlong text are rejected. Any error leaves the record unchanged.
+
+For example, after `list`:
+
+1. `note-add 1 date/2026-10-15 text/Finished the fractions worksheet; revise decimals next`
+2. `note-add 1 date/2026-10-08 text/Struggled with word problems` adds an earlier note, which becomes note 1.
+3. `note-delete 1 1` removes the word-problems note. The fractions note is now note 1.
+
+Notes are saved automatically. Older data files without notes still load, with no notes recorded.
+
+### Track guardian follow-ups
+
+A follow-up is something you still need to do for a student's guardian, such as sending a progress report or
+confirming a make-up lesson. Each student can have zero or more outstanding follow-ups. Follow-up commands use the
+student's positive `STUDENT_INDEX` in the currently displayed list, including search results. They preserve all
+other student fields.
+
+* **Create:** `followup-add STUDENT_INDEX text/TEXT`
+  Adds the item at the end of the student's list. The **Students** table then opens that student's details.
+* **Read:** Open the student's details (`view STUDENT_INDEX`, or **Alt+Down** on the table). The **Follow-ups**
+  section, under the guardian, lists the outstanding items with their numbers, or a grey `No outstanding follow-ups`.
+  Use the item's number as `FOLLOW_UP_INDEX`.
+* **List outstanding:** `followups`
+  Shows only the students who have at least one outstanding follow-up. Archived students are left out, as in `list`,
+  and keep their follow-ups for when you unarchive them. Use `list` to see every student again.
+* **Update:** `followup-edit STUDENT_INDEX FOLLOW_UP_INDEX text/TEXT`
+  Replaces the text of that item. Its number stays the same.
+* **Complete:** `followup-done STUDENT_INDEX FOLLOW_UP_INDEX`
+  Marking an item as done **removes** it, and the message shows its text so you can check it was the right one.
+  Later items move up by one position.
+
+Field rules:
+
+* **Text** (`text/`): 1 to 200 characters on one line. Leading and trailing spaces are removed. Words such as
+  `and/or` are kept as part of the text.
+* A follow-up does not need a guardian to be recorded, and `guardian-delete` keeps the student's follow-ups.
+
+Errors:
+
+* Adding an item, or editing one, so that it reads the same as another item of that student (ignoring letter case)
+  is rejected as a duplicate.
+* A student index or follow-up index that does not exist, a missing or repeated `text/`, and empty or overlong text
+  are rejected. Any error leaves the record unchanged.
+
+For example, after `list`:
+
+1. `followup-add 1 text/Send the term 4 progress report`
+2. `followup-add 1 text/Confirm the make-up lesson`
+3. `followup-edit 1 2 text/Confirm the make-up lesson on Saturday`
+4. `followups` shows only the students with outstanding items.
+5. `followup-done 1 1` removes the progress-report item. The make-up lesson item is now item 1.
+
+After `followups`, a student whose last item you complete leaves the list, so the students after them move up a
+number. Follow-ups are saved automatically. Older data files without follow-ups still load, with none recorded.
+
 ### Delete a student: `delete`
 
 Format: `delete INDEX`
@@ -265,7 +376,7 @@ Closes the app.
 
 ## Saving and transferring records
 
-The app saves automatically after each successfully executed command. Schooling levels, guardian contacts and lessons are saved with the contact details. Each student's lessons are stored as a `lessons` array, where every lesson has a `subject`, a `weeklyLessonSlot` and an `hourlyRate`, plus an optional `mode` (`PHYSICAL` or `VIRTUAL`) and `location`. Files without these two fields still load.
+The app saves automatically after each successfully executed command. Schools, schooling levels, guardian contacts and lessons are saved with the contact details. A student's school is stored as an optional `school` string; files without it still load with no school recorded. Each student's lessons are stored as a `lessons` array, where every lesson has a `subject`, a `weeklyLessonSlot` and an `hourlyRate`, plus an optional `mode` (`PHYSICAL` or `VIRTUAL`) and `location`. Files without these two fields still load.
 
 Older files that stored a student's `subject`, `subjects`, `weeklyLessonSlot` or `hourlyRate` directly on the student still load, but those values are ignored and are lost the next time the app saves. Re-enter them with `lesson-add` or copy them into a `lessons` array first.
 
@@ -303,10 +414,11 @@ Lesson numbers in warnings belong to the named student's lesson list; find that 
 
 | Task | Format |
 |---|---|
-| Add | `add name/NAME phone/PHONE_NUMBER email/EMAIL address/ADDRESS [tag/TAG]... [level/SCHOOLING_LEVEL]` |
-| Edit | `edit INDEX [name/NAME] [phone/PHONE_NUMBER] [email/EMAIL] [address/ADDRESS] [tag/TAG]... [level/SCHOOLING_LEVEL]` |
+| Add | `add name/NAME phone/PHONE_NUMBER email/EMAIL address/ADDRESS [tag/TAG]... [sch/SCHOOL] [level/SCHOOLING_LEVEL]` |
+| Edit | `edit INDEX [name/NAME] [phone/PHONE_NUMBER] [email/EMAIL] [address/ADDRESS] [tag/TAG]... [sch/SCHOOL] [level/SCHOOLING_LEVEL]` |
+| Clear school | `edit INDEX sch/` |
 | Clear schooling level | `edit INDEX level/` |
-| Find | `find KEYWORD [MORE_KEYWORDS]` or `find [level/TEXT] [subject/TEXT] [day/DAY]` |
+| Find | `find KEYWORD [MORE_KEYWORDS]` or `find [name/TEXT] [guardian/TEXT] [sch/TEXT] [level/TEXT] [subject/TEXT] [day/DAY]` |
 | List | `list` |
 | This week's lessons | `week` |
 | A student's details | `view INDEX` |
@@ -316,6 +428,12 @@ Lesson numbers in warnings belong to the named student's lesson list; find that 
 | Add guardian | `guardian-add INDEX name/NAME phone/PHONE` |
 | Edit guardian | `guardian-edit INDEX [name/NAME] [phone/PHONE]` |
 | Delete guardian | `guardian-delete INDEX` |
+| Add note | `note-add STUDENT_INDEX date/DATE text/TEXT` |
+| Delete note | `note-delete STUDENT_INDEX NOTE_INDEX` |
+| Add follow-up | `followup-add STUDENT_INDEX text/TEXT` |
+| Edit follow-up | `followup-edit STUDENT_INDEX FOLLOW_UP_INDEX text/TEXT` |
+| Complete follow-up | `followup-done STUDENT_INDEX FOLLOW_UP_INDEX` |
+| List outstanding follow-ups | `followups` |
 | Delete | `delete INDEX` |
 | Delete all | `clear` |
 | Help | `help` |

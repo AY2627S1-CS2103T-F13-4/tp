@@ -9,10 +9,13 @@ import java.util.Set;
 
 import seedu.address.model.person.Address;
 import seedu.address.model.person.Email;
+import seedu.address.model.person.FollowUp;
 import seedu.address.model.person.Guardian;
 import seedu.address.model.person.Lesson;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Phone;
+import seedu.address.model.person.ProgressNote;
+import seedu.address.model.person.School;
 import seedu.address.model.person.SchoolingLevel;
 import seedu.address.model.person.Student;
 import seedu.address.model.tag.Tag;
@@ -33,9 +36,13 @@ public class PersonBuilder {
     private Email email;
     private Address address;
     private Set<Tag> tags;
+    private Optional<School> school = Optional.empty();
     private Optional<SchoolingLevel> schoolingLevel = Optional.empty();
     private Optional<Guardian> guardianContact = Optional.empty();
     private List<Lesson> lessons = new ArrayList<>();
+    private boolean isArchived;
+    private List<ProgressNote> notes = new ArrayList<>();
+    private List<FollowUp> followUps = new ArrayList<>();
 
     /**
      * Creates a {@code PersonBuilder} with the default details.
@@ -57,9 +64,13 @@ public class PersonBuilder {
         email = personToCopy.getEmail();
         address = personToCopy.getAddress();
         tags = new HashSet<>(personToCopy.getTags());
+        school = personToCopy.getSchool();
         schoolingLevel = personToCopy.getSchoolingLevel();
         guardianContact = personToCopy.getGuardian();
         lessons = new ArrayList<>(personToCopy.getLessons());
+        isArchived = personToCopy.isArchived();
+        notes = new ArrayList<>(personToCopy.getNotes());
+        followUps = new ArrayList<>(personToCopy.getFollowUps());
     }
 
     /**
@@ -102,9 +113,27 @@ public class PersonBuilder {
         return this;
     }
 
+    /** Sets the progress notes of the {@code Student} that we are building. */
+    public PersonBuilder withNotes(ProgressNote... values) {
+        notes = new ArrayList<>(Arrays.asList(values));
+        return this;
+    }
+
+    /** Sets the outstanding guardian follow-ups of the {@code Student} that we are building, in the given order. */
+    public PersonBuilder withFollowUps(String... texts) {
+        followUps = new ArrayList<>(Arrays.stream(texts).map(FollowUp::new).toList());
+        return this;
+    }
+
     /** Sets the lessons of the {@code Student} that we are building, in the given order. */
     public PersonBuilder withLessons(Lesson... values) {
         lessons = new ArrayList<>(Arrays.asList(values));
+        return this;
+    }
+
+    /** Sets the optional school; null clears it. */
+    public PersonBuilder withSchool(School value) {
+        school = Optional.ofNullable(value);
         return this;
     }
 
@@ -122,7 +151,8 @@ public class PersonBuilder {
 
     /** Builds an immutable student record. */
     public Student build() {
-        return new Student(name, phone, email, address, tags, schoolingLevel, guardianContact, lessons);
+        return new Student(name, phone, email, address, tags, school, schoolingLevel, guardianContact, lessons,
+                isArchived, notes, followUps);
     }
 
 }

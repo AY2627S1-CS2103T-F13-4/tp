@@ -15,6 +15,7 @@ import static seedu.address.testutil.TypicalPersons.BOB;
 
 import java.math.BigDecimal;
 import java.time.DayOfWeek;
+import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
@@ -117,6 +118,35 @@ public class StudentTest {
     }
 
     @Test
+    public void equals_school_comparesSchool() {
+        School school = new School("Nanyang Primary School");
+        Student withSchool = new PersonBuilder(ALICE).withSchool(school).build();
+        Student sameSchool = new PersonBuilder(ALICE).withSchool(new School("Nanyang Primary School")).build();
+
+        assertEquals(Optional.of(school), withSchool.getSchool());
+        assertEquals(withSchool, sameSchool);
+        assertEquals(withSchool.hashCode(), sameSchool.hashCode());
+        assertNotEquals(ALICE, withSchool);
+        assertNotEquals(withSchool,
+                new PersonBuilder(ALICE).withSchool(new School("Clementi Primary School")).build());
+        assertTrue(ALICE.isSamePerson(withSchool));
+        assertEquals(withSchool, new PersonBuilder(withSchool).build());
+        assertEquals(ALICE, new PersonBuilder(withSchool).withSchool(null).build());
+    }
+
+    @Test
+    public void constructor_schoolAbsent_isEmpty() {
+        assertTrue(ALICE.getSchool().isEmpty());
+    }
+
+    @Test
+    public void constructor_nullSchool_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> new Student(ALICE.getName(), ALICE.getPhone(), ALICE.getEmail(),
+                ALICE.getAddress(), ALICE.getTags(), null, Optional.empty(), Optional.empty(),
+                List.of(), false, List.of()));
+    }
+
+    @Test
     public void equals_lessons_comparesContentAndOrder() {
         Student withMonday = new PersonBuilder(ALICE).withLessons(MONDAY_MATH).build();
         Student withSameLesson = new PersonBuilder(ALICE).withLessons(new Lesson(new Subject("math"),
@@ -156,6 +186,47 @@ public class StudentTest {
     }
 
     @Test
+    public void withArchived_preservesDetailsWithoutChangingOriginal() {
+        Student original = new PersonBuilder(ALICE).withSchoolingLevel(new SchoolingLevel("P5"))
+                .withGuardian(new Guardian(BOB.getName(), BOB.getPhone()))
+                .withLessons(MONDAY_MATH, TUESDAY_MATH).build();
+
+        Student archived = original.withArchived(true);
+
+        assertFalse(original.isArchived());
+        assertTrue(archived.isArchived());
+        assertEquals(original.getName(), archived.getName());
+        assertEquals(original.getPhone(), archived.getPhone());
+        assertEquals(original.getEmail(), archived.getEmail());
+        assertEquals(original.getAddress(), archived.getAddress());
+        assertEquals(original.getTags(), archived.getTags());
+        assertEquals(original.getSchoolingLevel(), archived.getSchoolingLevel());
+        assertEquals(original.getGuardian(), archived.getGuardian());
+        assertEquals(original.getLessons(), archived.getLessons());
+        assertEquals(original, archived.withArchived(false));
+    }
+
+    @Test
+    public void equals_archiveStatus_comparesStatusWithoutChangingIdentity() {
+        Student archivedAlice = ALICE.withArchived(true);
+        Student archivedAliceCopy = ALICE.withArchived(true);
+
+        assertNotEquals(ALICE, archivedAlice);
+        assertTrue(ALICE.isSamePerson(archivedAlice));
+        assertEquals(archivedAlice, archivedAliceCopy);
+        assertEquals(archivedAlice.hashCode(), archivedAliceCopy.hashCode());
+    }
+
+    @Test
+    public void personBuilder_copy_preservesArchiveStatus() {
+        Student original = ALICE.withArchived(true);
+        Student copy = new PersonBuilder(original).build();
+
+        assertTrue(copy.isArchived());
+        assertEquals(original, copy);
+    }
+
+    @Test
     public void constructor_noLessons_isEmpty() {
         assertTrue(ALICE.getLessons().isEmpty());
     }
@@ -170,7 +241,7 @@ public class StudentTest {
     public void constructor_defensivelyCopiesLessons() {
         List<Lesson> input = new java.util.ArrayList<>(List.of(MONDAY_MATH));
         Student person = new Student(ALICE.getName(), ALICE.getPhone(), ALICE.getEmail(), ALICE.getAddress(),
-                ALICE.getTags(), Optional.empty(), Optional.empty(), input);
+                ALICE.getTags(), Optional.empty(), Optional.empty(), Optional.empty(), input, false, List.of());
         input.clear();
         assertEquals(List.of(MONDAY_MATH), person.getLessons());
     }
@@ -185,7 +256,44 @@ public class StudentTest {
     public void toStringMethod() {
         String expected = Student.class.getCanonicalName() + "{name=" + ALICE.getName() + ", phone=" + ALICE.getPhone()
                 + ", email=" + ALICE.getEmail() + ", address=" + ALICE.getAddress() + ", tags=" + ALICE.getTags()
-                + ", schoolingLevel=Optional.empty, guardian=Optional.empty, lessons=[]}";
+                + ", school=Optional.empty, schoolingLevel=Optional.empty, guardian=Optional.empty, lessons=[]"
+                + ", isArchived=false, notes=[], followUps=[]}";
         assertEquals(expected, ALICE.toString());
+    }
+
+    @Test
+    public void constructor_notes_keptOldestFirstAndStableWithinADay() {
+        ProgressNote october = new ProgressNote(LocalDate.of(2026, 10, 15), "Fractions");
+        // Added in reverse alphabetical order, so sorting same-date notes by text would fail this test.
+        ProgressNote septemberFirst = new ProgressNote(LocalDate.of(2026, 9, 1), "Set homework");
+        ProgressNote septemberSecond = new ProgressNote(LocalDate.of(2026, 9, 1), "Placement test");
+        Student student = new PersonBuilder(ALICE).withNotes(october, septemberFirst, septemberSecond).build();
+        assertEquals(List.of(septemberFirst, septemberSecond, october), student.getNotes());
+        assertThrows(UnsupportedOperationException.class, () -> student.getNotes().clear());
+    }
+
+    @Test
+    public void followUps_comparedKeptInOrderAndUnmodifiable() {
+        Student withItems = new PersonBuilder(ALICE).withFollowUps("Send report", "Call about Saturday").build();
+        assertEquals(withItems, new PersonBuilder(ALICE).withFollowUps("Send report", "Call about Saturday").build());
+        Student reordered = new PersonBuilder(ALICE).withFollowUps("Call about Saturday", "Send report").build();
+        assertNotEquals(withItems, reordered);
+        assertNotEquals(withItems, ALICE);
+        assertTrue(withItems.isSamePerson(ALICE));
+        assertTrue(withItems.hasFollowUps());
+        assertFalse(ALICE.hasFollowUps());
+        assertEquals(List.of(new FollowUp("Send report"), new FollowUp("Call about Saturday")),
+                withItems.getFollowUps());
+        assertThrows(UnsupportedOperationException.class, () -> withItems.getFollowUps().clear());
+    }
+
+    @Test
+    public void equals_notes_compared() {
+        ProgressNote note = new ProgressNote(LocalDate.of(2026, 10, 15), "Fractions");
+        Student withNote = new PersonBuilder(ALICE).withNotes(note).build();
+        assertEquals(withNote, new PersonBuilder(ALICE).withNotes(note).build());
+        assertNotEquals(withNote, ALICE);
+        assertTrue(withNote.isSamePerson(ALICE));
+        assertTrue(ALICE.getNotes().isEmpty());
     }
 }
