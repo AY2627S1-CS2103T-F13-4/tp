@@ -2,31 +2,30 @@
 layout: page
 title: User Guide
 ---
-
+# StudentBook
 StudentBook is a desktop contact book for private tutors. Type commands to manage student records.
 
 This development version supports contact details, schooling levels, guardian contacts and lessons. Each student can have any number of lessons, and each lesson has a subject, a weekly time slot and an hourly rate. See the [Developer Guide](DeveloperGuide.md#product-scope) for the plan and open decisions.
 
-* Table of Contents
-{:toc}
+## Table of Contents
+* [Quick Start](#quick-start)
+* [Main Window](#main-window)
+* [Features](#features)
+  * [Reading Command Formats](#reading-command-formats)
 
-## Quick start
-
+## Quick Start
 1. Install Java `25`. Mac users should follow the [course Java installation guide](https://se-education.org/guides/tutorials/javaInstallationMac.html).
-
 1. Build the development version from the [team repository](https://github.com/AY2627S1-CS2103T-F13-4/tp).
-
-   ```text
+   ```shell
    git clone https://github.com/AY2627S1-CS2103T-F13-4/tp.git studentbook
    cd studentbook
    ./gradlew shadowJar
    ```
-
+   
    On Windows, use `gradlew.bat shadowJar` for the last command. The JAR is `build/libs/studentbook.jar`.
 
 1. Copy the JAR into the folder where you want to keep your records. Open a terminal in that folder and run:
-
-   ```text
+   ```shell
    java -jar studentbook.jar
    ```
 
@@ -39,7 +38,7 @@ This development version supports contact details, schooling levels, guardian co
 
    The first command adds Alex, who appears at the bottom of the list. Replace `1` in the second command with Alex's number in the list. It gives that student a Math lesson on Wednesdays from 1pm to 5pm at SGD 45.50 per hour. Type `exit` to close the app.
 
-## The main window
+## Main Window
 
 ![StudentBook main window](images/Ui.png)
 
@@ -70,102 +69,125 @@ Every shortcut is optional: each one has a command that does the same, such as `
 
 ## Features
 
-### Reading command formats
+### Reading Command Formats
+<div markdown="block" class="alert alert-info">
 
-* Replace uppercase words with your values. For example, `name/NAME` becomes `name/Alex Tan`.
-* Square brackets mark optional fields. Do not type the brackets.
-* `...` means a field can be repeated. For example, `[tag/TAG]...` allows zero or more tags.
-* Fields may appear in any order. Prefixes such as `name/` and `subject/` are case-sensitive.
-* `INDEX` is the number beside a student in the current list. It must be 1 or greater.
-* `help`, `list`, `clear` and `exit` ignore extra arguments.
-* When copying commands from a PDF, check that spaces around line breaks are preserved.
+**:information_source: Notes about the command format:**<br>
+
+* `UPPER_CASE` words are user-defined parameters.<br>
+  E.g. `name/NAME` &rarr; `name/John Doe`.
+
+* `[square brackets]` mark optional fields.<br>
+  E.g. `name/NAME [tag/TAG]` &rarr; `name/John Doe tag/friend` or `name/John Doe`.
+
+* `…`​ means a field can be repeated.<br>
+  E.g. `[t/TAG]…​` &rarr; ` ` or `t/friend` or `t/friend t/family`. 
+
+* Parameters can be in any order.<br>
+  E.g. `name/NAME p/PHONE_NUMBER` &rarr; `name/John Doe phone/87654321` or `phone/87654321 name/John Doe`
+
+* `INDEX` is the number beside a student in the current list display.
+
+* Commands with no parameters (`help`, `list`, `clear`, `exit`, etc.) ignore extra arguments.
+  E.g. `help 123` &rarr; `help`
+</div>
+
+<div markdown="span" class="alert alert-warning">
+
+**:warning: When copying commands from the PDF version of this document, spaces around line breaks may be omitted.**
+
+</div>
 
 ### Add a student: `add`
 
+Adds a student to StudentBook
+
 Format: `add name/NAME phone/PHONE_NUMBER email/EMAIL address/ADDRESS [tag/TAG]... [level/SCHOOLING_LEVEL]`
 
-Name, phone, email and address are required. Tags and schooling level are optional. A new student has no lessons; add them with [`lesson-add`](#manage-a-students-lessons).
+Examples:
+* `add name/Alex Tan phone/91234567 email/alex@example.com address/123 Clementi Road tag/weekday level/Primary 5`
+* `add name/Mei Lim phone/92345678 email/mei@example.com address/45 Dover Road`
 
-```text
-add name/Alex Tan phone/91234567 email/alex@example.com address/123 Clementi Road tag/weekday level/Primary 5
-add name/Mei Lim phone/92345678 email/mei@example.com address/45 Dover Road
-```
+<div markdown="block" class="alert alert-primary">
 
-Records with exactly the same name are duplicates. Name matching is case-sensitive: `Alex Tan` and `alex tan` are treated as different names. Schooling level and lessons do not change this rule.
+:bulb: **Tips:**<br>
+* A new student has no lessons or guardians. Add them with [`lesson-add`](#manage-a-students-lessons) and [`guardian-add`](#manage-a-students-guardian-contact) respectively.
+* The added student cannot share a name with an existing one (case-sensitive).
 
-### Record or clear a schooling level
+</div>
 
-| Task | Command |
-|---|---|
-| Set or replace a level | `edit 1 level/Secondary 1` |
-| Clear a level | `edit 1 level/` |
-| Include a level when adding a student | Add `level/Primary 5` to the `add` command |
-
-The student's row shows the level `Primary 5` beside the name when one is recorded. If none is recorded, it is left out. Leave out `level/` to keep the existing level when editing. Changing a level keeps every other field unchanged, including lessons.
-
-Levels must have 1 to 30 characters after the space cleanup below. Start with a letter or digit and include at least one letter. Use English letters `A-Z` or `a-z`, digits `0-9`, spaces and these symbols: `'`, `-`, `.`, `(`, `)`. Leading and trailing spaces or tabs are removed, and repeated spaces or tabs become one space. An empty `level/` clears the level with `edit`, but is invalid with `add`. Repeating `level/` in one command is invalid. Invalid input leaves the record unchanged.
 
 ### List all students: `list`
 
+Shows a list of all students in StudentBook, grouped by schooling level.
+
 Format: `list`
-
-Shows every student in the **Students** table and clears any active search filter.
-
-Students are grouped under **Primary**, **Secondary**, **JC** and **Other** headings, in the order you added them within each group. A level counts as Primary for forms like `P5` or `Primary 5`, Secondary for `Sec 3` or `S4`, and JC for `JC1` or `J2`. Any other level, or no level, goes under Other. The number beside each student is the `INDEX` that commands use, so changing a student's level with `edit` can change their number.
-
-### See this week's lessons: `week`
-
-Format: `week`
-
-Shows the **This week** calendar. After `find`, it keeps the search and shows only matching lessons; otherwise it shows every student's lessons. Use `list` to clear the search. The app opens on this screen.
-
-### See a student's details: `view`
-
-Format: `view INDEX`
-
-Shows the **Students** table with the student at `INDEX` opened: every lesson with its number, day and time, rate, mode and location, then the phone, email, address, guardian and tags. On the calendar, a lesson labelled `#3.1` belongs to student `3`, so `view 3` shows its details.
-
-Examples:
-
-* `view 3` shows the third student's details.
-* `find alex` then `view 1` shows the details of the first student found.
 
 ### Edit a student: `edit`
 
+Edits an existing student in StudentBook
+
 Format: `edit INDEX [name/NAME] [phone/PHONE_NUMBER] [email/EMAIL] [address/ADDRESS] [tag/TAG]... [level/SCHOOLING_LEVEL]`
 
-Include at least one field to change. Fields you leave out stay unchanged.
-
-* Tags replace the entire existing set. Use an empty `tag/` to clear all tags.
-* An empty `level/` clears the schooling level.
-* Editing a student never changes their lessons or guardian. Use the `lesson-` and `guardian-` commands for those.
+* Edits the student at the specified [`INDEX`](#reading-command-formats).
+* At least one of the optional fields must be provided.
+* Existing values will be updated to the input values.
+* Empty parameters for optional fields (e.g. `tag/`) will clear the field
 
 Examples:
-
 * `edit 1 phone/91234567 email/alex.tan@example.com` changes the first displayed student's phone and email.
 * `edit 2 name/Mei Ling tag/` changes the second displayed student's name and clears their tags.
 * `edit 1 level/Primary 6` changes the first displayed student's schooling level.
 
-### Find students by name, schooling level or lesson: `find`
+<div markdown="block" class="alert alert-primary">
 
-Format: `find KEYWORD [MORE_KEYWORDS]` or `find [level/TEXT] [subject/TEXT] [day/DAY]`
+:bulb: **Tips:**<br>
+* To edit a student's lessons or guardians, use [`lesson-edit`](#manage-a-students-lessons) and [`guardian-edit`](#manage-a-students-guardian-contact) respectively.
 
-The matching students show in the **Students** table.
+</div>
 
-Without `level/`, searches names for whole words, ignoring letter case. A student appears if any keyword matches; keyword order does not matter.
+### Show weekly lessons: `week`
 
+Displays all lessons for students in the current list display.
+
+Format: `week`
+
+### View a student's details: `view`
+
+Displays the student at `INDEX` and their details.
+
+Format: `view INDEX`
+
+### Find students by name: `find`
+
+Find students whose names contain any of the given keywords
+
+Format: `find KEYWORD [MORE_KEYWORDS]`
+
+* The search is case-insensitive.
+* Only full words match.
+
+Examples:
 * `find John` matches `John Doe`, but not `Johnny`.
 * `find alex david` matches names containing `Alex` or `David`.
 
-Use `find level/TEXT` to search schooling levels, ignoring letter case. Partial matches are allowed: `find level/prim` matches `Primary 5`. Students without a level are excluded.
+### Find students by filter criteria: `find`
 
-Use `subject/` to match part of a lesson's subject, ignoring case, and `day/` with a three-letter or full weekday name (`Mon` or `Monday`). Combine prefixes in any order; every supplied criterion must match, and subject and day must match the **same lesson**. For example, `find level/Secondary subject/math day/wed` finds secondary students with a Wednesday Math lesson. Name keywords cannot be combined with prefixes. Empty or repeated prefixes and invalid days are rejected.
+Find students by level, lesson subject and/or lesson day.
 
-`find` opens the Students table. `week` then shows only the matching lessons on the calendar, and its header reads e.g. `Showing 3 of 12 lessons`; lesson numbers still refer to their positions in each student's full lesson list. `list` clears the search.
+Format: `find [level/TEXT] [subject/TEXT] [day/DAY]`
 
-The search stays while you change lessons. A lesson you add or edit that no longer matches `subject/` or `day/` is hidden, and a student left with no matching lesson leaves the list, so the students after them move up a number. Use `list` to see everything again.
+* The search is case-insensitive.
+* At least one of the optional fields must be provided.
+* Partial matches are allowed.
+* Students without a level are excluded from the level filter
+* When both subject and day are specified, the same lesson must match both criteria
+* Day may be specified with three-letter or full names
 
-Phone and other contact fields are not searched.
+Examples:
+* `find level/prim` matches `Primary 5`.
+* `find day/Mon` matches students with a lesson on Monday.
+* `find level/Secondary subject/math day/wednesday` matches secondary students with a Math lesson on Wednesday.
 
 ![Name search results](images/findAlexDavidResult.png)
 
