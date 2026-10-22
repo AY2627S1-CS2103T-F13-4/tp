@@ -250,8 +250,7 @@ Field rules:
 * **Date** (`date/`): a real date in `YYYY-MM-DD` format, such as `2026-10-15`. It cannot be later than today, because a
   note records something that already happened.
 * **Text** (`text/`): 1 to 500 characters. Leading and trailing spaces are removed. Words such as `and/or` or `w/o`
-  are kept as part of the text. Only `date/` and `text/` are read as prefixes, so the text cannot contain ` date/` or
-  ` text/` after a space.
+  are kept as part of the text. Avoid using slashes that may interfere with keyword detection, e.g. `date/` or `text/`.
 * Notes are kept oldest first. A note dated earlier than existing notes is placed before them, and the message says
   its number. Notes on the same date stay in the order you added them.
 

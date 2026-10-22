@@ -1,6 +1,7 @@
 package seedu.address.logic.parser;
 
 import static java.util.Objects.requireNonNull;
+import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -220,9 +221,7 @@ public class ParserUtil {
      * @throws ParseException if the date or text is invalid.
      */
     public static ProgressNote parseProgressNote(String date, String text, LocalDate today) throws ParseException {
-        requireNonNull(date);
-        requireNonNull(text);
-        requireNonNull(today);
+        requireAllNonNull(date, text, today);
         LocalDate noteDate;
         try {
             noteDate = ProgressNote.parseDate(date);
