@@ -14,6 +14,7 @@ import seedu.address.model.person.Lesson;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Phone;
 import seedu.address.model.person.ProgressNote;
+import seedu.address.model.person.School;
 import seedu.address.model.person.SchoolingLevel;
 import seedu.address.model.person.Student;
 import seedu.address.model.tag.Tag;
@@ -34,6 +35,7 @@ public class PersonBuilder {
     private Email email;
     private Address address;
     private Set<Tag> tags;
+    private Optional<School> school = Optional.empty();
     private Optional<SchoolingLevel> schoolingLevel = Optional.empty();
     private Optional<Guardian> guardianContact = Optional.empty();
     private List<Lesson> lessons = new ArrayList<>();
@@ -59,6 +61,7 @@ public class PersonBuilder {
         email = personToCopy.getEmail();
         address = personToCopy.getAddress();
         tags = new HashSet<>(personToCopy.getTags());
+        school = personToCopy.getSchool();
         schoolingLevel = personToCopy.getSchoolingLevel();
         guardianContact = personToCopy.getGuardian();
         lessons = new ArrayList<>(personToCopy.getLessons());
@@ -117,6 +120,12 @@ public class PersonBuilder {
         return this;
     }
 
+    /** Sets the optional school; null clears it. */
+    public PersonBuilder withSchool(School value) {
+        school = Optional.ofNullable(value);
+        return this;
+    }
+
     /** Sets the optional schoolingLevel; null clears it. */
     public PersonBuilder withSchoolingLevel(SchoolingLevel value) {
         schoolingLevel = Optional.ofNullable(value);
@@ -131,7 +140,8 @@ public class PersonBuilder {
 
     /** Builds an immutable student record. */
     public Student build() {
-        return new Student(name, phone, email, address, tags, schoolingLevel, guardianContact, lessons, notes);
+        return new Student(name, phone, email, address, tags, school, schoolingLevel, guardianContact, lessons,
+                notes);
     }
 
 }

@@ -7,10 +7,12 @@ public class CliSyntax {
 
     /* Prefix definitions */
     public static final Prefix PREFIX_NAME = new Prefix("name/");
+    public static final Prefix PREFIX_GUARDIAN = new Prefix("guardian/");
     public static final Prefix PREFIX_PHONE = new Prefix("phone/");
     public static final Prefix PREFIX_EMAIL = new Prefix("email/");
     public static final Prefix PREFIX_ADDRESS = new Prefix("address/");
     public static final Prefix PREFIX_TAG = new Prefix("tag/");
+    public static final Prefix PREFIX_SCHOOL = new Prefix("sch/");
     public static final Prefix PREFIX_SUBJECT = new Prefix("subject/");
     public static final Prefix PREFIX_DAY = new Prefix("day/");
     public static final Prefix PREFIX_LEVEL = new Prefix("level/");

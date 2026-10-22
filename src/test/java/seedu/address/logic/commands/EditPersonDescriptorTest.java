@@ -10,6 +10,8 @@ import static seedu.address.logic.commands.CommandTestUtil.VALID_ADDRESS_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_EMAIL_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_NAME_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_PHONE_BOB;
+import static seedu.address.logic.commands.CommandTestUtil.VALID_SCHOOL_AMY;
+import static seedu.address.logic.commands.CommandTestUtil.VALID_SCHOOL_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_TAG_HUSBAND;
 
 import org.junit.jupiter.api.Test;
@@ -22,6 +24,18 @@ public class EditPersonDescriptorTest {
     @Test
     public void isAnyFieldEdited_noFields_returnsFalse() {
         assertFalse(new EditPersonDescriptor().isAnyFieldEdited());
+    }
+
+    @Test
+    public void isAnyFieldEdited_schoolSet_returnsTrue() {
+        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withSchool(VALID_SCHOOL_AMY).build();
+        assertTrue(descriptor.isAnyFieldEdited());
+    }
+
+    @Test
+    public void isAnyFieldEdited_schoolCleared_returnsTrue() {
+        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withSchool(null).build();
+        assertTrue(descriptor.isAnyFieldEdited());
     }
 
     @Test
@@ -85,6 +99,32 @@ public class EditPersonDescriptorTest {
     }
 
     @Test
+    public void equals_schoolEdits_comparesValueAndPresence() {
+        EditPersonDescriptor unchanged = new EditPersonDescriptorBuilder(DESC_AMY).build();
+        EditPersonDescriptor set = new EditPersonDescriptorBuilder(DESC_AMY).withSchool(VALID_SCHOOL_AMY).build();
+        EditPersonDescriptor different = new EditPersonDescriptorBuilder(DESC_AMY).withSchool(VALID_SCHOOL_BOB).build();
+        EditPersonDescriptor cleared = new EditPersonDescriptorBuilder(DESC_AMY).withSchool(null).build();
+
+        assertEquals(set, new EditPersonDescriptorBuilder(DESC_AMY).withSchool(VALID_SCHOOL_AMY).build());
+        assertEquals(cleared, new EditPersonDescriptorBuilder(DESC_AMY).withSchool(null).build());
+        assertNotEquals(set, different);
+        assertNotEquals(set, cleared);
+        assertNotEquals(unchanged, set);
+        assertNotEquals(unchanged, cleared);
+    }
+
+    @Test
+    public void copyConstructor_schoolEdits_preservesValueAndPresence() {
+        EditPersonDescriptor unchanged = new EditPersonDescriptor();
+        EditPersonDescriptor set = new EditPersonDescriptorBuilder().withSchool(VALID_SCHOOL_AMY).build();
+        EditPersonDescriptor cleared = new EditPersonDescriptorBuilder().withSchool(null).build();
+
+        assertEquals(unchanged, new EditPersonDescriptor(unchanged));
+        assertEquals(set, new EditPersonDescriptor(set));
+        assertEquals(cleared, new EditPersonDescriptor(cleared));
+    }
+
+    @Test
     public void equals_schoolingLevelEdits_comparesValueAndPresence() {
         EditPersonDescriptor unchanged = new EditPersonDescriptorBuilder(DESC_AMY).build();
         EditPersonDescriptor set = new EditPersonDescriptorBuilder(DESC_AMY).withSchoolingLevel("Primary 5").build();
@@ -119,7 +159,8 @@ public class EditPersonDescriptorTest {
                 + editPersonDescriptor.getPhone().orElse(null) + ", email="
                 + editPersonDescriptor.getEmail().orElse(null) + ", address="
                 + editPersonDescriptor.getAddress().orElse(null) + ", tags="
-                + editPersonDescriptor.getTags().orElse(null) + ", schoolingLevel="
+                + editPersonDescriptor.getTags().orElse(null) + ", school="
+                + editPersonDescriptor.getSchool().orElse(null) + ", schoolingLevel="
                 + editPersonDescriptor.getSchoolingLevel().orElse(null) + "}";
         assertEquals(expected, editPersonDescriptor.toString());
     }

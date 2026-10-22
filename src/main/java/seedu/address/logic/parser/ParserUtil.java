@@ -1,6 +1,7 @@
 package seedu.address.logic.parser;
 
 import static java.util.Objects.requireNonNull;
+import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -20,6 +21,7 @@ import seedu.address.model.person.LessonMode;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Phone;
 import seedu.address.model.person.ProgressNote;
+import seedu.address.model.person.School;
 import seedu.address.model.person.SchoolingLevel;
 import seedu.address.model.person.Subject;
 import seedu.address.model.person.WeeklyLessonSlot;
@@ -78,6 +80,21 @@ public class ParserUtil {
             subjects.add(parseSubject(value));
         }
         return subjects;
+    }
+
+    /**
+     * Parses a {@code String school} into a {@code School}.
+     * Leading and trailing whitespaces will be trimmed.
+     *
+     * @throws ParseException if the given {@code school} is invalid.
+     */
+    public static School parseSchool(String school) throws ParseException {
+        requireNonNull(school);
+        String trimmedSchool = school.trim();
+        if (!School.isValidSchool(trimmedSchool)) {
+            throw new ParseException(School.MESSAGE_CONSTRAINTS);
+        }
+        return new School(trimmedSchool);
     }
 
     /**
@@ -220,9 +237,7 @@ public class ParserUtil {
      * @throws ParseException if the date or text is invalid.
      */
     public static ProgressNote parseProgressNote(String date, String text, LocalDate today) throws ParseException {
-        requireNonNull(date);
-        requireNonNull(text);
-        requireNonNull(today);
+        requireAllNonNull(date, text, today);
         LocalDate noteDate;
         try {
             noteDate = ProgressNote.parseDate(date);

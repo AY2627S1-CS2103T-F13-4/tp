@@ -51,7 +51,7 @@ public class NoteCommand extends Command {
         notes.add(note);
 
         Student replacement = new Student(student.getName(), student.getPhone(), student.getEmail(),
-                student.getAddress(), student.getTags(), student.getSchoolingLevel(),
+                student.getAddress(), student.getTags(), student.getSchool(), student.getSchoolingLevel(),
                 student.getGuardian(), student.getLessons(), notes);
         model.setPerson(student, replacement);
         // The student keeps notes oldest first, so a note dated earlier than others lands before them.

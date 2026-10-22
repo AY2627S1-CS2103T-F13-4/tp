@@ -29,9 +29,11 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
+import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 import javafx.stage.WindowEvent;
@@ -311,6 +313,37 @@ public class MainWindowTest {
         });
     }
 
+    // A school supplied when adding a student must appear in their expanded details.
+    @Test
+    public void add_schoolPresent_showsSchoolInStudentDetails() throws Exception {
+        runOnFxThread(() -> {
+            submitCommand("clear");
+            submitCommand("add name/Carol phone/91234567 email/carol@example.com address/1"
+                    + " sch/Clementi Primary School");
+            submitCommand("view 1");
+
+            assertEquals(List.of("Clementi Primary School"), openStudentSchools());
+        });
+    }
+
+    // School changes rebuild the open row's content, and an absent or cleared school has no section.
+    @Test
+    public void openStudent_schoolSetReplacedOrCleared_updatesDetails() throws Exception {
+        runOnFxThread(() -> {
+            submitCommand("view 1");
+            assertEquals(List.of(), openStudentSchools());
+
+            submitCommand("edit 1 sch/Clementi Primary School");
+            assertEquals(List.of("Clementi Primary School"), openStudentSchools());
+
+            submitCommand("edit 1 sch/Nanyang Primary School");
+            assertEquals(List.of("Nanyang Primary School"), openStudentSchools());
+
+            submitCommand("edit 1 sch/");
+            assertEquals(List.of(), openStudentSchools());
+        });
+    }
+
     // Editing an open student's level moves them to another group. Their details must stay open, not jump to
     // whoever takes their old row.
     @Test
@@ -521,6 +554,19 @@ public class MainWindowTest {
 
     private Node studentTable() {
         return stage.getScene().lookup("#personListView");
+    }
+
+    /** Reads school sections from the open row after the list has laid out any replacement cells. */
+    private List<String> openStudentSchools() {
+        stage.getScene().getRoot().applyCss();
+        stage.getScene().getRoot().layout();
+        FlowPane details = assertInstanceOf(FlowPane.class, studentTable().lookup(".student-row-open #details"));
+        assertTrue(isShown(details));
+        assertTrue(details.isManaged());
+        return details.lookupAll(".detail-caption").stream().filter(Label.class::isInstance).map(Label.class::cast)
+                .filter(label -> label.getText().equals("School"))
+                .flatMap(label -> label.getParent().getChildrenUnmodifiable().stream())
+                .filter(Text.class::isInstance).map(Text.class::cast).map(Text::getText).toList();
     }
 
     /** Returns true if {@code node} and every container around it are visible. */
