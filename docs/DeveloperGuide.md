@@ -224,6 +224,20 @@ Tests cover loading, save/reload and invalid values (`TuitionStorageTest`). A fa
 
 Tests: `LessonCommandParserTest`, `LessonWorkflowTest` (add, edit, clear, delete, filtered indices, invalid input, duplicates and save/reload), `LessonTest`, `StudentTest` and `WeeklyLessonSlotTest`.
 
+### School search
+
+`FindCommandParser` accepts `sch/TEXT` alongside `level/`, `subject/` and `day/`, rejecting empty values,
+duplicate prefixes and bare name keywords mixed with prefixes. `SchoolContainsKeywordPredicate` matches
+the recorded school's substring ignoring case and requires the other supplied student criteria to match.
+Students without a school never match; a school or school-and-level search does not require lessons.
+Lesson criteria continue to use `StudentLessonMatchesPredicate`, so subject and day must match the same
+lesson, and `FindCommand` passes the lesson filter to the model for `week`. A later school-only search
+resets the lesson filter; `list` clears the entire search. School edits re-evaluate the active filter.
+
+Tests: `SchoolContainsKeywordPredicateTest` and `FindCommandParserTest` cover partial and mixed-case
+school names, missing schools, students without lessons, combined filters, calendar filtering, clearing
+the search, school edits, invalid input and prefix ordering.
+
 ### Guardian contact CRUD
 
 `guardian-add`, `guardian-edit` and `guardian-delete` are routed by `AddressBookParser` to

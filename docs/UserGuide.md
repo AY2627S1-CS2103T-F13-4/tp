@@ -162,20 +162,22 @@ Examples:
 * `edit 1 sch/Clementi Primary School` changes the first displayed student's school.
 * `edit 1 level/Primary 6` changes the first displayed student's schooling level.
 
-### Find students by name, schooling level or lesson: `find`
+### Find students by name, school, schooling level or lesson: `find`
 
-Format: `find KEYWORD [MORE_KEYWORDS]` or `find [level/TEXT] [subject/TEXT] [day/DAY]`
+Format: `find KEYWORD [MORE_KEYWORDS]` or `find [sch/TEXT] [level/TEXT] [subject/TEXT] [day/DAY]`
 
 The matching students show in the **Students** table.
 
-Without `level/`, searches names for whole words, ignoring letter case. A student appears if any keyword matches; keyword order does not matter.
+Without prefixes, searches names for whole words, ignoring letter case. A student appears if any keyword matches; keyword order does not matter.
 
 * `find John` matches `John Doe`, but not `Johnny`.
 * `find alex david` matches names containing `Alex` or `David`.
 
+Use `find sch/TEXT` to search schools, ignoring letter case. Partial matches are allowed: `find sch/raffles` matches `Raffles Institution`. Multiple words form a single substring: `find sch/raffles institution` searches for that phrase together. Students without a recorded school are excluded. School searches do not require students to have lessons.
+
 Use `find level/TEXT` to search schooling levels, ignoring letter case. Partial matches are allowed: `find level/prim` matches `Primary 5`. Students without a level are excluded.
 
-Use `subject/` to match part of a lesson's subject, ignoring case, and `day/` with a three-letter or full weekday name (`Mon` or `Monday`). Combine prefixes in any order; every supplied criterion must match, and subject and day must match the **same lesson**. For example, `find level/Secondary subject/math day/wed` finds secondary students with a Wednesday Math lesson. Name keywords cannot be combined with prefixes. Empty or repeated prefixes and invalid days are rejected.
+Use `subject/` to match part of a lesson's subject, ignoring case, and `day/` with a three-letter or full weekday name (`Mon` or `Monday`). Supply at least one prefix. Combine prefixes in any order; every supplied criterion must match, and subject and day must match the **same lesson**. For example, `find sch/raffles level/Secondary subject/math day/wed` finds secondary students at a school containing `raffles` with a Wednesday Math lesson. Name keywords cannot be combined with prefixes. Empty or repeated prefixes and invalid days are rejected.
 
 `find` opens the Students table. `week` then shows only the matching lessons on the calendar, and its header reads e.g. `Showing 3 of 12 lessons`; lesson numbers still refer to their positions in each student's full lesson list. `list` clears the search.
 
@@ -323,7 +325,7 @@ Lesson numbers in warnings belong to the named student's lesson list; find that 
 | Edit | `edit INDEX [name/NAME] [phone/PHONE_NUMBER] [email/EMAIL] [address/ADDRESS] [tag/TAG]... [sch/SCHOOL] [level/SCHOOLING_LEVEL]` |
 | Clear school | `edit INDEX sch/` |
 | Clear schooling level | `edit INDEX level/` |
-| Find | `find KEYWORD [MORE_KEYWORDS]` or `find [level/TEXT] [subject/TEXT] [day/DAY]` |
+| Find | `find KEYWORD [MORE_KEYWORDS]` or `find [sch/TEXT] [level/TEXT] [subject/TEXT] [day/DAY]` |
 | List | `list` |
 | This week's lessons | `week` |
 | A student's details | `view INDEX` |

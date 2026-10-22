@@ -3,19 +3,24 @@ package seedu.address.logic.parser;
 import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_DAY;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_LEVEL;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_SCHOOL;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_SUBJECT;
 
 import java.time.DayOfWeek;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.function.Predicate;
 import java.util.regex.Pattern;
 
 import seedu.address.logic.commands.FindCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
+import seedu.address.model.Model;
 import seedu.address.model.person.LessonMatchesPredicate;
 import seedu.address.model.person.NameContainsKeywordsPredicate;
+import seedu.address.model.person.SchoolContainsKeywordPredicate;
 import seedu.address.model.person.SchoolingLevelContainsKeywordPredicate;
+import seedu.address.model.person.Student;
 import seedu.address.model.person.StudentLessonMatchesPredicate;
 
 /**
@@ -35,7 +40,7 @@ public class FindCommandParser implements Parser<FindCommand> {
                     String.format(MESSAGE_INVALID_COMMAND_FORMAT, FindCommand.MESSAGE_USAGE));
         }
 
-        if (List.of(PREFIX_LEVEL, PREFIX_SUBJECT, PREFIX_DAY).stream()
+        if (List.of(PREFIX_SCHOOL, PREFIX_LEVEL, PREFIX_SUBJECT, PREFIX_DAY).stream()
                 .anyMatch(prefix -> trimmedArgs.matches("(?s)(.*\\s)?"
                         + Pattern.quote(prefix.getPrefix()) + ".*"))) {
             return parsePrefixedSearch(" " + trimmedArgs);
@@ -46,26 +51,38 @@ public class FindCommandParser implements Parser<FindCommand> {
         return new FindCommand(new NameContainsKeywordsPredicate(List.of(nameKeywords)));
     }
 
-    /** Parses level, subject and day searches. Each supplied criterion must match. */
+    /** Parses school, level, subject and day searches. Each supplied criterion must match. */
     private FindCommand parsePrefixedSearch(String args) throws ParseException {
-        ArgumentMultimap arguments = ArgumentTokenizer.tokenize(args, PREFIX_LEVEL, PREFIX_SUBJECT, PREFIX_DAY);
+        Prefix[] prefixes = {PREFIX_SCHOOL, PREFIX_LEVEL, PREFIX_SUBJECT, PREFIX_DAY};
+        // The tokenizer recognizes spaces before prefixes; accept other whitespace at those boundaries too.
+        for (Prefix prefix : prefixes) {
+            args = args.replaceAll("\\s(?=" + Pattern.quote(prefix.getPrefix()) + ")", " ");
+        }
+        ArgumentMultimap arguments = ArgumentTokenizer.tokenize(args, prefixes);
         if (!arguments.getPreamble().isEmpty()) {
             throw invalidFormat();
         }
-        arguments.verifyNoDuplicatePrefixesFor(PREFIX_LEVEL, PREFIX_SUBJECT, PREFIX_DAY);
+        arguments.verifyNoDuplicatePrefixesFor(prefixes);
+        Optional<String> school = arguments.getValue(PREFIX_SCHOOL);
         Optional<String> level = arguments.getValue(PREFIX_LEVEL);
         Optional<String> subject = arguments.getValue(PREFIX_SUBJECT);
         Optional<String> dayText = arguments.getValue(PREFIX_DAY);
-        if (level.filter(String::isBlank).isPresent() || subject.filter(String::isBlank).isPresent()
+        if (school.filter(String::isBlank).isPresent() || level.filter(String::isBlank).isPresent()
+                || subject.filter(String::isBlank).isPresent()
                 || dayText.filter(String::isBlank).isPresent()) {
             throw invalidFormat();
         }
-        if (level.isPresent() && subject.isEmpty() && dayText.isEmpty()) {
-            return new FindCommand(new SchoolingLevelContainsKeywordPredicate(level.orElseThrow()));
-        }
         Optional<DayOfWeek> day = dayText.isPresent() ? Optional.of(parseDay(dayText.orElseThrow())) : Optional.empty();
         LessonMatchesPredicate lessonPredicate = new LessonMatchesPredicate(subject, day);
-        return new FindCommand(new StudentLessonMatchesPredicate(level, lessonPredicate), lessonPredicate);
+        boolean filtersLessons = subject.isPresent() || day.isPresent();
+        Predicate<Student> predicate = filtersLessons
+                ? new StudentLessonMatchesPredicate(level, lessonPredicate)
+                : level.<Predicate<Student>>map(SchoolingLevelContainsKeywordPredicate::new)
+                        .orElse(Model.PREDICATE_SHOW_ALL_PERSONS);
+        if (school.isPresent()) {
+            predicate = new SchoolContainsKeywordPredicate(school.orElseThrow(), predicate);
+        }
+        return filtersLessons ? new FindCommand(predicate, lessonPredicate) : new FindCommand(predicate);
     }
 
     private DayOfWeek parseDay(String value) throws ParseException {
