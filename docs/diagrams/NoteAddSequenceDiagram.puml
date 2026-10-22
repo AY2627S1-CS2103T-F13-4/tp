@@ -49,7 +49,7 @@ ParserUtil --> NoteCommandParser : n
 deactivate ParserUtil
 
 create NoteCommand
-NoteCommandParser -> NoteCommand : NoteCommand(1, ADD, n)
+NoteCommandParser -> NoteCommand : NoteCommand(1, ADD, empty, n)
 activate NoteCommand
 NoteCommand --> NoteCommandParser
 deactivate NoteCommand
