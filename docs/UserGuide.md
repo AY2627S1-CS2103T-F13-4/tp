@@ -8,10 +8,7 @@ StudentBook is a desktop contact book for private tutors. Type commands to manag
 This development version supports contact details, schooling levels, guardian contacts and lessons. Each student can have any number of lessons, and each lesson has a subject, a weekly time slot and an hourly rate. See the [Developer Guide](DeveloperGuide.md#product-scope) for the plan and open decisions.
 
 ## Table of Contents
-* [Quick Start](#quick-start)
-* [Main Window](#main-window)
-* [Features](#features)
-  * [Reading Command Formats](#reading-command-formats)
+{:toc}
 
 ## Quick Start
 1. Install Java `25`. Mac users should follow the [course Java installation guide](https://se-education.org/guides/tutorials/javaInstallationMac.html).
