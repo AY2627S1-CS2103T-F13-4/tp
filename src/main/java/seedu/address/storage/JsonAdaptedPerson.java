@@ -14,6 +14,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import seedu.address.commons.exceptions.IllegalValueException;
 import seedu.address.model.person.Address;
 import seedu.address.model.person.Email;
+import seedu.address.model.person.FollowUp;
 import seedu.address.model.person.Guardian;
 import seedu.address.model.person.Lesson;
 import seedu.address.model.person.Name;
@@ -45,6 +46,7 @@ class JsonAdaptedPerson {
     private final List<JsonAdaptedLesson> lessons = new ArrayList<>();
     private final boolean isArchived;
     private final List<JsonAdaptedProgressNote> notes = new ArrayList<>();
+    private final List<JsonAdaptedFollowUp> followUps = new ArrayList<>();
 
     /** Retains compatibility with existing adapter callers. */
     public JsonAdaptedPerson(String name, String phone, String email, String address, List<JsonAdaptedTag> tags) {
@@ -58,9 +60,17 @@ class JsonAdaptedPerson {
         this(name, phone, email, address, tags, school, schoolingLevel, guardianContact, lessons, false, null);
     }
 
+    /** Constructs a {@code JsonAdaptedPerson} with the given person details and no follow-ups. */
+    public JsonAdaptedPerson(String name, String phone, String email, String address, List<JsonAdaptedTag> tags,
+            String school, String schoolingLevel, JsonAdaptedGuardian guardianContact,
+            List<JsonAdaptedLesson> lessons, boolean isArchived, List<JsonAdaptedProgressNote> notes) {
+        this(name, phone, email, address, tags, school, schoolingLevel, guardianContact, lessons, isArchived, notes,
+                null);
+    }
+
     /**
      * Constructs a {@code JsonAdaptedPerson} with the given person details.
-     * Files saved before notes existed have no {@code notes}, which loads as no notes.
+     * Files saved before notes or follow-ups existed have no {@code notes} or {@code followUps}, which load as none.
      */
     @JsonCreator
     public JsonAdaptedPerson(@JsonProperty("name") String name, @JsonProperty("phone") String phone,
@@ -71,7 +81,8 @@ class JsonAdaptedPerson {
             @JsonProperty("guardianContact") JsonAdaptedGuardian guardianContact,
             @JsonProperty("lessons") List<JsonAdaptedLesson> lessons,
             @JsonProperty("isArchived") boolean isArchived,
-            @JsonProperty("notes") List<JsonAdaptedProgressNote> notes) {
+            @JsonProperty("notes") List<JsonAdaptedProgressNote> notes,
+            @JsonProperty("followUps") List<JsonAdaptedFollowUp> followUps) {
         this.name = name;
         this.phone = phone;
         this.email = email;
@@ -88,6 +99,9 @@ class JsonAdaptedPerson {
         }
         if (notes != null) {
             this.notes.addAll(notes);
+        }
+        if (followUps != null) {
+            this.followUps.addAll(followUps);
         }
     }
 
@@ -108,6 +122,9 @@ class JsonAdaptedPerson {
                 .collect(Collectors.toList()));
         notes.addAll(source.getNotes().stream()
                 .map(JsonAdaptedProgressNote::new)
+                .collect(Collectors.toList()));
+        followUps.addAll(source.getFollowUps().stream()
+                .map(JsonAdaptedFollowUp::new)
                 .collect(Collectors.toList()));
         tags.addAll(source.getTags().stream()
                 .map(JsonAdaptedTag::new)
@@ -174,8 +191,15 @@ class JsonAdaptedPerson {
                 }
                 modelNotes.add(note.toModelType());
             }
+            final List<FollowUp> modelFollowUps = new ArrayList<>();
+            for (JsonAdaptedFollowUp followUp : followUps) {
+                if (followUp == null) {
+                    throw new IllegalValueException(String.format(MISSING_FIELD_MESSAGE_FORMAT, "follow-up"));
+                }
+                modelFollowUps.add(followUp.toModelType());
+            }
             return new Student(modelName, modelPhone, modelEmail, modelAddress, modelTags,
-                    modelSchool, modelLevel, modelGuardian, modelLessons, isArchived, modelNotes);
+                    modelSchool, modelLevel, modelGuardian, modelLessons, isArchived, modelNotes, modelFollowUps);
         } catch (IllegalArgumentException e) {
             throw new IllegalValueException(e.getMessage());
         }

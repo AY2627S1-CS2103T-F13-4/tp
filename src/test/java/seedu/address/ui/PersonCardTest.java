@@ -4,6 +4,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.List;
+
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -11,6 +13,8 @@ import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.scene.Group;
+import javafx.scene.Node;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.layout.FlowPane;
@@ -67,6 +71,57 @@ public class PersonCardTest {
                 assertTrue(school.getLayoutBounds().getHeight() > unwrapped.getLayoutBounds().getHeight());
             }
         });
+    }
+
+    @Test
+    public void open_followUps_listedInOrderAndLongItemWraps() throws Exception {
+        FxTestUtil.runOnFxThread(() -> {
+            String longItem = "Send the term 4 progress report " + "W".repeat(150);
+            Student student = new PersonBuilder().withFollowUps("Confirm the make-up lesson", longItem).build();
+            DoubleProperty availableWidth = new SimpleDoubleProperty(320);
+            PersonCard card = new PersonCard(student, 1);
+            Region root = prepareCard(card, availableWidth);
+            card.setOpen(true);
+            root.applyCss();
+            double padding = root.getInsets().getLeft() + root.getInsets().getRight();
+            root.resize(320 + padding, root.prefHeight(320 + padding));
+            root.layout();
+
+            List<String> texts = sectionTexts(root, "Follow-ups");
+            assertEquals(List.of("1.", "Confirm the make-up lesson", "2.", longItem), texts);
+            Text wrapped = sectionNodes(root, "Follow-ups").stream().filter(Text.class::isInstance)
+                    .map(Text.class::cast).filter(text -> text.getText().equals(longItem)).findFirst().orElseThrow();
+            assertTrue(wrapped.getWrappingWidth() > 0);
+            assertTrue(wrapped.getWrappingWidth() <= 320);
+        });
+    }
+
+    @Test
+    public void open_noFollowUps_showsPlaceholder() throws Exception {
+        FxTestUtil.runOnFxThread(() -> {
+            PersonCard card = new PersonCard(new PersonBuilder().build(), 1);
+            Region root = prepareCard(card, new SimpleDoubleProperty(320));
+            card.setOpen(true);
+            root.applyCss();
+
+            assertEquals(List.of(StudentCardText.NO_FOLLOW_UPS), sectionTexts(root, "Follow-ups"));
+        });
+    }
+
+    /** Returns the content of the details section with the given caption: the content node and its children. */
+    private static List<Node> sectionNodes(Region root, String caption) {
+        FlowPane details = assertInstanceOf(FlowPane.class, root.lookup("#details"));
+        Label label = details.lookupAll(".detail-caption").stream().filter(Label.class::isInstance)
+                .map(Label.class::cast).filter(found -> found.getText().equals(caption)).findFirst().orElseThrow();
+        // A section holds its caption, then its content.
+        Node content = label.getParent().getChildrenUnmodifiable().get(1);
+        return content instanceof Parent parent ? parent.getChildrenUnmodifiable() : List.of(content);
+    }
+
+    /** Returns the text shown in the details section with the given caption, in layout order. */
+    private static List<String> sectionTexts(Region root, String caption) {
+        return sectionNodes(root, caption).stream().filter(Text.class::isInstance).map(Text.class::cast)
+                .map(Text::getText).toList();
     }
 
     private static Region prepareCard(PersonCard card, DoubleProperty detailsWidth) {

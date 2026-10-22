@@ -23,6 +23,7 @@ final class StudentCardText {
     static final String NOT_SET = "Not set";
     static final String NO_LESSONS = "No lessons yet";
     static final String NO_NOTES = "No notes yet";
+    static final String NO_FOLLOW_UPS = "No outstanding follow-ups";
 
     /**
      * One lesson, split into the parts the card lines up in columns. The number is the lesson's LESSON_INDEX.

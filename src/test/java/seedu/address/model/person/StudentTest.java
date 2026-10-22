@@ -257,7 +257,7 @@ public class StudentTest {
         String expected = Student.class.getCanonicalName() + "{name=" + ALICE.getName() + ", phone=" + ALICE.getPhone()
                 + ", email=" + ALICE.getEmail() + ", address=" + ALICE.getAddress() + ", tags=" + ALICE.getTags()
                 + ", school=Optional.empty, schoolingLevel=Optional.empty, guardian=Optional.empty, lessons=[]"
-                + ", isArchived=false, notes=[]}";
+                + ", isArchived=false, notes=[], followUps=[]}";
         assertEquals(expected, ALICE.toString());
     }
 
@@ -270,6 +270,21 @@ public class StudentTest {
         Student student = new PersonBuilder(ALICE).withNotes(october, septemberFirst, septemberSecond).build();
         assertEquals(List.of(septemberFirst, septemberSecond, october), student.getNotes());
         assertThrows(UnsupportedOperationException.class, () -> student.getNotes().clear());
+    }
+
+    @Test
+    public void followUps_comparedKeptInOrderAndUnmodifiable() {
+        Student withItems = new PersonBuilder(ALICE).withFollowUps("Send report", "Call about Saturday").build();
+        assertEquals(withItems, new PersonBuilder(ALICE).withFollowUps("Send report", "Call about Saturday").build());
+        Student reordered = new PersonBuilder(ALICE).withFollowUps("Call about Saturday", "Send report").build();
+        assertNotEquals(withItems, reordered);
+        assertNotEquals(withItems, ALICE);
+        assertTrue(withItems.isSamePerson(ALICE));
+        assertTrue(withItems.hasFollowUps());
+        assertFalse(ALICE.hasFollowUps());
+        assertEquals(List.of(new FollowUp("Send report"), new FollowUp("Call about Saturday")),
+                withItems.getFollowUps());
+        assertThrows(UnsupportedOperationException.class, () -> withItems.getFollowUps().clear());
     }
 
     @Test

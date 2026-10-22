@@ -9,6 +9,7 @@ import java.util.Set;
 
 import seedu.address.model.person.Address;
 import seedu.address.model.person.Email;
+import seedu.address.model.person.FollowUp;
 import seedu.address.model.person.Guardian;
 import seedu.address.model.person.Lesson;
 import seedu.address.model.person.Name;
@@ -41,6 +42,7 @@ public class PersonBuilder {
     private List<Lesson> lessons = new ArrayList<>();
     private boolean isArchived;
     private List<ProgressNote> notes = new ArrayList<>();
+    private List<FollowUp> followUps = new ArrayList<>();
 
     /**
      * Creates a {@code PersonBuilder} with the default details.
@@ -68,6 +70,7 @@ public class PersonBuilder {
         lessons = new ArrayList<>(personToCopy.getLessons());
         isArchived = personToCopy.isArchived();
         notes = new ArrayList<>(personToCopy.getNotes());
+        followUps = new ArrayList<>(personToCopy.getFollowUps());
     }
 
     /**
@@ -116,6 +119,12 @@ public class PersonBuilder {
         return this;
     }
 
+    /** Sets the outstanding guardian follow-ups of the {@code Student} that we are building, in the given order. */
+    public PersonBuilder withFollowUps(String... texts) {
+        followUps = new ArrayList<>(Arrays.stream(texts).map(FollowUp::new).toList());
+        return this;
+    }
+
     /** Sets the lessons of the {@code Student} that we are building, in the given order. */
     public PersonBuilder withLessons(Lesson... values) {
         lessons = new ArrayList<>(Arrays.asList(values));
@@ -143,7 +152,7 @@ public class PersonBuilder {
     /** Builds an immutable student record. */
     public Student build() {
         return new Student(name, phone, email, address, tags, school, schoolingLevel, guardianContact, lessons,
-                isArchived, notes);
+                isArchived, notes, followUps);
     }
 
 }

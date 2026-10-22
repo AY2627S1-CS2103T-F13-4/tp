@@ -25,6 +25,7 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
+import seedu.address.model.person.FollowUp;
 import seedu.address.model.person.ProgressNote;
 import seedu.address.model.person.SchoolingLevel;
 import seedu.address.model.person.Student;
@@ -118,6 +119,7 @@ public class PersonCard extends UiPart<Region> {
     private final List<Text> lessonLocations = new ArrayList<>();
     private final List<Text> detailLines = new ArrayList<>();
     private final List<Text> noteTexts = new ArrayList<>();
+    private final List<Text> followUpTexts = new ArrayList<>();
     private final List<StudentCardText.LessonLine> lines;
     private boolean detailsBuilt;
     private boolean open;
@@ -213,7 +215,10 @@ public class PersonCard extends UiPart<Region> {
         }
     }
 
-    /** Fills the details: school and contact details together, then the guardian, lessons, any tags and notes. */
+    /**
+     * Fills the details: school and contact details together, then the guardian and their follow-ups, lessons,
+     * any tags and notes.
+     */
     private void fillDetails(List<StudentCardText.LessonLine> lines) {
         VBox contactDetails = new VBox(16);
         person.getSchool().ifPresent(school -> {
@@ -240,6 +245,10 @@ public class PersonCard extends UiPart<Region> {
         }
         details.getChildren().add(section("Guardian", guardian));
 
+        List<FollowUp> followUps = person.getFollowUps();
+        Node followUpContent = followUps.isEmpty() ? muted(StudentCardText.NO_FOLLOW_UPS) : followUpTable(followUps);
+        details.getChildren().add(section("Follow-ups", followUpContent));
+
         Node lessonContent = lines.isEmpty() ? muted(StudentCardText.NO_LESSONS) : lessonTable(lines);
         details.getChildren().add(section("Lessons", lessonContent));
 
@@ -259,6 +268,23 @@ public class PersonCard extends UiPart<Region> {
         List<ProgressNote> notes = person.getNotes();
         Node noteContent = notes.isEmpty() ? muted(StudentCardText.NO_NOTES) : noteTable(notes);
         details.getChildren().add(section("Notes", noteContent));
+    }
+
+    /** Lays out the outstanding follow-ups in the order recorded: number and text. Numbers match the index. */
+    private GridPane followUpTable(List<FollowUp> followUps) {
+        GridPane table = new GridPane();
+        table.getColumnConstraints().add(new ColumnConstraints(NOTE_COLUMN_WIDTHS[0]));
+        table.setHgap(NOTE_COLUMN_GAP);
+        table.setVgap(4);
+        for (int i = 0; i < followUps.size(); i++) {
+            Text number = text((i + 1) + ".", "lesson-number");
+            Text followUpText = text(followUps.get(i).getText(), "row-value");
+            followUpTexts.add(followUpText);
+            // A long item wraps; its number stays level with its first line.
+            GridPane.setValignment(number, VPos.TOP);
+            table.addRow(i, number, followUpText);
+        }
+        return table;
     }
 
     /**
@@ -354,6 +380,9 @@ public class PersonCard extends UiPart<Region> {
         DoubleExpression noteLimit = Bindings.min(detailsWidth, NOTES_MAX_WIDTH)
                 .subtract(Arrays.stream(NOTE_COLUMN_WIDTHS).sum() + NOTE_COLUMN_WIDTHS.length * NOTE_COLUMN_GAP);
         noteTexts.forEach(note -> wrapWhenLonger(note, noteLimit, BODY_FONT_SIZE));
+        DoubleExpression followUpLimit = Bindings.min(detailsWidth, NOTES_MAX_WIDTH)
+                .subtract(NOTE_COLUMN_WIDTHS[0] + NOTE_COLUMN_GAP);
+        followUpTexts.forEach(followUp -> wrapWhenLonger(followUp, followUpLimit, BODY_FONT_SIZE));
     }
 
     /** Returns the style class that colours {@code level} by its school stage. */

@@ -15,6 +15,7 @@ import seedu.address.commons.util.StringUtil;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.person.Address;
 import seedu.address.model.person.Email;
+import seedu.address.model.person.FollowUp;
 import seedu.address.model.person.HourlyRate;
 import seedu.address.model.person.LessonLocation;
 import seedu.address.model.person.LessonMode;
@@ -251,5 +252,18 @@ public class ParserUtil {
             throw new ParseException(ProgressNote.MESSAGE_TEXT_CONSTRAINTS);
         }
         return new ProgressNote(noteDate, text);
+    }
+
+    /**
+     * Parses the text of a guardian follow-up, trimming spaces around it.
+     *
+     * @throws ParseException if the text is blank, longer than 200 characters or spans several lines.
+     */
+    public static FollowUp parseFollowUp(String text) throws ParseException {
+        requireNonNull(text);
+        if (!FollowUp.isValidText(text)) {
+            throw new ParseException(FollowUp.MESSAGE_TEXT_CONSTRAINTS);
+        }
+        return new FollowUp(text);
     }
 }
