@@ -3,6 +3,7 @@ package seedu.address.testutil;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static seedu.address.testutil.Assert.assertThrows;
 
 import java.math.BigDecimal;
 import java.nio.file.Path;
@@ -18,9 +19,11 @@ import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import seedu.address.model.person.FollowUp;
 import seedu.address.model.person.Guardian;
 import seedu.address.model.person.HourlyRate;
 import seedu.address.model.person.Lesson;
+import seedu.address.model.person.ProgressNote;
 import seedu.address.model.person.SchoolingLevel;
 import seedu.address.model.person.Student;
 import seedu.address.model.person.Subject;
@@ -45,6 +48,36 @@ public class StudentBookSeederTest {
         assertEquals(0, new StudentBookSeeder(1).generate(0).size());
         assertEquals(200, STUDENTS.size());
         assertEquals(200, STUDENTS.stream().map(Student::getName).distinct().count());
+    }
+
+    @Test
+    public void generate_moreThanMaxStudents_throwsIllegalArgumentException() {
+        assertThrows(IllegalArgumentException.class, () ->
+                new StudentBookSeeder(1).generate(StudentBookSeeder.MAX_STUDENTS + 1));
+    }
+
+    @Test
+    public void generate_maxStudents_returnsAllUniqueNames() {
+        List<Student> students = new StudentBookSeeder(1).generate(StudentBookSeeder.MAX_STUDENTS, true);
+
+        assertEquals(students.size(), students.stream().map(Student::getName).distinct().count());
+    }
+
+    @Test
+    public void generate_schoolStudentsHaveSchoolsAndOthersDoNot() {
+        for (Student student : STUDENTS) {
+            assertEquals(student.getSchoolingLevel().isPresent(), student.getSchool().isPresent(),
+                    student.getName().fullName);
+        }
+    }
+
+    @Test
+    public void generate_someStudentsArchivedOrWithNotesAndFollowUps() {
+        long archived = STUDENTS.stream().filter(Student::isArchived).count();
+
+        assertTrue(archived > 0 && archived < STUDENTS.size() / 5, "archived: " + archived);
+        assertTrue(STUDENTS.stream().anyMatch(student -> !student.getNotes().isEmpty()));
+        assertTrue(STUDENTS.stream().anyMatch(student -> !student.getFollowUps().isEmpty()));
     }
 
     @Test
@@ -123,10 +156,13 @@ public class StudentBookSeederTest {
         Student longest = edgeCase("Muhammad Nur Iskandar Hakim bin Abdul Rahman Shah Zulkarnain Al Habshi");
         Lesson lesson = longest.getLessons().get(0);
 
+        assertEquals(60, longest.getSchool().orElseThrow().value.length());
         assertEquals(30, longest.getSchoolingLevel().orElseThrow().value.length());
         assertEquals(SchoolingLevel.Stage.SECONDARY, longest.getStage());
         assertEquals(40, lesson.getSubject().value.length());
         assertEquals(100, lesson.getLocation().orElseThrow().value.length());
+        assertEquals(ProgressNote.MAX_TEXT_LENGTH, longest.getNotes().get(0).getText().length());
+        assertEquals(FollowUp.MAX_TEXT_LENGTH, longest.getFollowUps().get(0).getText().length());
     }
 
     @Test
@@ -155,7 +191,13 @@ public class StudentBookSeederTest {
         assertTrue(edgeCase("Clement Chua").getGuardian().isEmpty());
         Student bare = edgeCase("Theresa Pereira");
         assertTrue(bare.getLessons().isEmpty() && bare.getGuardian().isEmpty()
-                && bare.getSchoolingLevel().isEmpty());
+                && bare.getSchoolingLevel().isEmpty() && bare.getSchool().isEmpty());
+    }
+
+    @Test
+    public void generateWithEdgeCases_hasArchivedStudent() {
+        assertTrue(edgeCase("Daniel Ho").isArchived());
+        assertEquals(1, EDGE_CASES.stream().filter(Student::isArchived).count());
     }
 
     @Test

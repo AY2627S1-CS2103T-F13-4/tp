@@ -2,8 +2,10 @@ package seedu.address.testutil;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.DayOfWeek;
+import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -20,6 +22,7 @@ import seedu.address.model.AddressBook;
 import seedu.address.model.ReadOnlyAddressBook;
 import seedu.address.model.person.Address;
 import seedu.address.model.person.Email;
+import seedu.address.model.person.FollowUp;
 import seedu.address.model.person.Guardian;
 import seedu.address.model.person.HourlyRate;
 import seedu.address.model.person.Lesson;
@@ -27,6 +30,8 @@ import seedu.address.model.person.LessonLocation;
 import seedu.address.model.person.LessonMode;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Phone;
+import seedu.address.model.person.ProgressNote;
+import seedu.address.model.person.School;
 import seedu.address.model.person.SchoolingLevel;
 import seedu.address.model.person.Student;
 import seedu.address.model.person.Subject;
@@ -39,20 +44,12 @@ import seedu.address.storage.JsonAddressBookStorage;
  * Writes a StudentBook data file filled with realistic Singapore tuition students.
  * Students are built from the real model classes and saved with the app's own storage, so every generated file
  * is one the app can load. Run it with, for example:
- * {@code ./gradlew seed --args="--students 500 --seed 7 --out data/studentbook.json"}.
+ * {@code ./gradlew seed --args="--students 500 --seed 7 --out data/studentbook.json --force"}.
  */
 public class StudentBookSeeder {
     public static final int DEFAULT_STUDENTS = 40;
     public static final long DEFAULT_SEED = 2103;
     public static final Path DEFAULT_OUT = Path.of("data", "studentbook.json");
-
-    private static final String USAGE = String.join("\n",
-            "Usage: ./gradlew seed --args=\"[--students N] [--seed S] [--out FILE] [--edge-cases]\"",
-            "  --students N  number of students (default " + DEFAULT_STUDENTS + "; try 500 for stress testing)",
-            "  --seed S      random seed; the same seed gives the same file (default " + DEFAULT_SEED + ")",
-            "  --out FILE    file to write, replacing any existing file (default " + DEFAULT_OUT + ")",
-            "  --edge-cases  also add fixed students with max-length fields, a Zoom link, back-to-back and",
-            "                overlapping lessons, 'Alex Tan' and 'alex tan', and no lessons or guardian");
 
     private static final List<String> CHINESE_SURNAMES = List.of("Tan", "Lim", "Lee", "Ng", "Ong", "Wong", "Goh",
             "Chua", "Chan", "Koh", "Teo", "Ang", "Yeo", "Tay", "Ho", "Low", "Toh", "Sim", "Chong", "Chia");
@@ -74,6 +71,34 @@ public class StudentBookSeeder {
             "Muthu", "Nair", "Pillai", "Selvam", "Ganesan", "Kumar", "Raman", "Chandran");
     private static final List<String> EURASIAN_SURNAMES = List.of("De Souza", "Pereira", "Rodrigues", "Fernandez",
             "Oliveiro", "Shepherdson");
+    /** The number of distinct names the pools above give, and so the most random students one file can hold. */
+    public static final int MAX_STUDENTS = CHINESE_SURNAMES.size() * (ENGLISH_GIVEN.size() + CHINESE_GIVEN.size())
+            + MALAY_FATHERS.size() * (MALAY_MALE.size() + MALAY_FEMALE.size())
+            + INDIAN_FATHERS.size() * INDIAN_GIVEN.size()
+            + EURASIAN_SURNAMES.size() * ENGLISH_GIVEN.size();
+
+    private static final String USAGE = String.join("\n",
+            "Usage: ./gradlew seed --args=\"[--students N] [--seed S] [--out FILE] [--force] [--edge-cases]\"",
+            "  --students N  number of students, at most " + MAX_STUDENTS + " (default "
+                    + DEFAULT_STUDENTS + "; try 500 for stress testing)",
+            "  --seed S      random seed; the same seed gives the same file (default " + DEFAULT_SEED + ")",
+            "  --out FILE    file to write (default " + DEFAULT_OUT + ")",
+            "  --force       replace FILE if it already exists",
+            "  --edge-cases  also add fixed students with max-length fields, a Zoom link, back-to-back and",
+            "                overlapping lessons, 'Alex Tan' and 'alex tan', and no lessons or guardian");
+
+    private static final List<String> PRIMARY_SCHOOLS = List.of("Tampines Primary School",
+            "Rosyth School", "Nan Hua Primary School", "Henry Park Primary School", "Ai Tong School",
+            "Pei Hwa Presbyterian Primary School", "Rulang Primary School", "Woodlands Ring Primary School",
+            "Punggol Green Primary School", "Red Swastika School");
+    private static final List<String> SECONDARY_SCHOOLS = List.of("Bedok View Secondary School",
+            "Bukit Panjang Government High School", "Chung Cheng High School (Main)", "Crescent Girls' School",
+            "Dunman High School", "Hwa Chong Institution", "Jurong Secondary School", "Nan Chiau High School",
+            "Raffles Girls' School (Secondary)", "Yishun Town Secondary School");
+    private static final List<String> JUNIOR_COLLEGES = List.of("Anderson Serangoon Junior College",
+            "Catholic Junior College", "Eunoia Junior College", "Nanyang Junior College",
+            "National Junior College", "Raffles Institution", "Tampines Meridian Junior College",
+            "Victoria Junior College");
 
     private static final List<String> HDB_TOWNS = List.of("Tampines", "Bedok", "Jurong West", "Woodlands", "Yishun",
             "Ang Mo Kio", "Hougang", "Sengkang", "Punggol", "Bukit Batok", "Choa Chu Kang", "Pasir Ris", "Toa Payoh",
@@ -130,6 +155,17 @@ public class StudentBookSeeder {
     private static final int FREE_SLOT_TRIES = 40;
     private static final int ANY_SLOT_TRIES = 20;
 
+    private static final double ARCHIVED_SHARE = 0.05;
+    private static final LocalDate TERM_START = LocalDate.of(2026, 7, 6);
+    private static final List<String> NOTE_TEXTS = List.of("Covered fractions; needs more practice on word problems.",
+            "Homework done well. Revised past-year paper 2.", "Struggled with the new topic; will recap next lesson.",
+            "Quiz score improved from 14/25 to 19/25.", "Missed homework; reminded to finish before next lesson.",
+            "Went through school test corrections together.", "Confident with the basics; moving on to harder "
+                    + "questions.");
+    private static final List<String> FOLLOW_UP_TEXTS = List.of("Confirm make-up lesson date",
+            "Send term fee reminder", "Share mid-year exam results", "Ask about school test schedule",
+            "Check if lessons continue next term");
+
     private final Random rng;
     private final Set<String> names = new HashSet<>();
     private final Set<String> phones = new HashSet<>();
@@ -158,8 +194,14 @@ public class StudentBookSeeder {
 
     /**
      * Returns {@code count} students with unique names. Some pairs are siblings who share a guardian and address.
+     *
+     * @throws IllegalArgumentException if {@code count} is more than {@link #MAX_STUDENTS}.
      */
     public List<Student> generate(int count) {
+        if (count > MAX_STUDENTS) {
+            throw new IllegalArgumentException("Cannot generate more than " + MAX_STUDENTS + " students with "
+                    + "unique names, but " + count + " were requested.");
+        }
         List<LevelInfo> schoolLevels = LEVELS.stream().filter(info -> info.level() != null).toList();
         List<Student> students = new ArrayList<>();
 
@@ -205,19 +247,23 @@ public class StudentBookSeeder {
                                 LessonMode.PHYSICAL))),
                 edgeStudent("alex tan", "Sec 2", "Tan Mei Hua", List.of(
                         lesson("English", DayOfWeek.MONDAY, "17:30", "19:00", "46", "Zoom", LessonMode.VIRTUAL))),
-                // Every capped field at its limit: level 30, subject 40 and location 100 characters.
+                // Every capped field at its limit: school 60, level 30, subject 40, location 100, note 500 and
+                // follow-up 200 characters.
                 new Student(new Name("Muhammad Nur Iskandar Hakim bin Abdul Rahman Shah Zulkarnain Al Habshi"),
                         new Phone(makePhone()),
                         new Email(makeEmail("Muhammad Nur Iskandar Hakim bin Abdul Rahman Shah Zulkarnain Al Habshi")),
                         new Address("Blk 999B Upper Bukit Timah Road, Hillview Heights Residences Tower 2, "
                                 + "#25-1234, Singapore 678999"),
                         SampleDataUtil.getTagSet("examyear", "newstudent", "siblingdiscount", "scholarshipapplicant"),
+                        Optional.of(new School("Bukit Timah Integrated Programme Secondary School (Campus 2)")),
                         Optional.of(new SchoolingLevel("Sec 4 Express Integrated Prog.")),
                         Optional.of(new Guardian(new Name("Abdul Rahman Shah Zulkarnain bin Ismail Al Habshi"),
                                 new Phone(makePhone()))),
                         List.of(lesson("Combined Science (Physics and Chemistry)", DayOfWeek.SATURDAY, "09:00",
                                 "11:00", "58.50", "Blk 999B Upper Bukit Timah Road, Hillview Heights Clubhouse, "
-                                        + "Function Room 2, level 3, near the pool", LessonMode.PHYSICAL))),
+                                        + "Function Room 2, level 3, near the pool", LessonMode.PHYSICAL)),
+                        false, List.of(new ProgressNote(TERM_START, "x".repeat(ProgressNote.MAX_TEXT_LENGTH))),
+                        List.of(new FollowUp("y".repeat(FollowUp.MAX_TEXT_LENGTH)))),
                 // Two lessons of one student, back to back.
                 edgeStudent("Brandon Lim", "P6", "Lim Kok Leong", List.of(
                         lesson("Mathematics", DayOfWeek.FRIDAY, "16:00", "17:00", "42", "Tutor's home",
@@ -243,9 +289,13 @@ public class StudentBookSeeder {
                 edgeStudent("Clement Chua", "Sec 4", null, List.of(
                         lesson("Additional Mathematics", DayOfWeek.THURSDAY, "18:00", "19:30", "56",
                                 "Student's home", LessonMode.PHYSICAL))),
-                // No lessons; then no lessons, no guardian and no level.
+                // No lessons; then no lessons, no guardian, no level and no school.
                 edgeStudent("Siti Aminah binte Yusof", "P6", "Yusof bin Hamzah", List.of()),
-                edgeStudent("Theresa Pereira", null, null, List.of()));
+                edgeStudent("Theresa Pereira", null, null, List.of()),
+                // Archived, so hidden from the default list.
+                archived(edgeStudent("Daniel Ho", "Sec 1", "Ho Mei Fong", List.of(
+                        lesson("Mathematics", DayOfWeek.TUESDAY, "17:00", "18:30", "45", "Student's home",
+                                LessonMode.PHYSICAL)))));
     }
 
     /** Returns a student with a random phone, email and address; {@code level} and {@code guardianName} may be null. */
@@ -256,7 +306,14 @@ public class StudentBookSeeder {
         Optional<Guardian> guardian = Optional.ofNullable(guardianName)
                 .map(guardianNameValue -> new Guardian(new Name(guardianNameValue), new Phone(makePhone())));
         return new Student(new Name(name), new Phone(makePhone()), new Email(makeEmail(name)), makeAddress(),
-                Set.of(), Optional.ofNullable(level).map(SchoolingLevel::new), guardian, lessons);
+                Set.of(), makeSchool(level), Optional.ofNullable(level).map(SchoolingLevel::new), guardian, lessons,
+                false, List.of());
+    }
+
+    private static Student archived(Student student) {
+        return new Student(student.getName(), student.getPhone(), student.getEmail(), student.getAddress(),
+                student.getTags(), student.getSchool(), student.getSchoolingLevel(), student.getGuardian(),
+                student.getLessons(), true, student.getNotes(), student.getFollowUps());
     }
 
     private static Lesson lesson(String subject, DayOfWeek day, String start, String end, String rate,
@@ -278,8 +335,36 @@ public class StudentBookSeeder {
             tags.add(new Tag("siblingdiscount"));
         }
         int lessonCount = weighted(LESSON_COUNTS, LESSON_COUNT_WEIGHTS);
+        List<Lesson> lessons = makeLessons(info, lessonCount);
+        boolean isArchived = rng.nextDouble() < ARCHIVED_SHARE;
+        List<FollowUp> followUps = guardian.isPresent() && rng.nextDouble() < 0.2
+                ? List.of(new FollowUp(pick(FOLLOW_UP_TEXTS)))
+                : List.of();
         return new Student(new Name(name), new Phone(makePhone()), new Email(makeEmail(name)), address, tags,
-                Optional.ofNullable(info.level()).map(SchoolingLevel::new), guardian, makeLessons(info, lessonCount));
+                makeSchool(info.level()), Optional.ofNullable(info.level()).map(SchoolingLevel::new), guardian,
+                lessons, isArchived, makeNotes(lessons.isEmpty() ? 0 : rng.nextInt(3)), followUps);
+    }
+
+    /** Returns a school that fits {@code level}, or none for students with no level. */
+    private Optional<School> makeSchool(String level) {
+        if (level == null) {
+            return Optional.empty();
+        }
+        List<String> schools = level.startsWith("P") ? PRIMARY_SCHOOLS
+                : level.startsWith("JC") ? JUNIOR_COLLEGES
+                : SECONDARY_SCHOOLS;
+        return Optional.of(new School(pick(schools)));
+    }
+
+    /** Returns {@code count} progress notes from this term, oldest first. */
+    private List<ProgressNote> makeNotes(int count) {
+        List<ProgressNote> notes = new ArrayList<>();
+        LocalDate date = TERM_START;
+        for (int i = 0; i < count; i++) {
+            date = date.plusWeeks(rng.nextInt(1, 4));
+            notes.add(new ProgressNote(date, pick(NOTE_TEXTS)));
+        }
+        return notes;
     }
 
     private Family makeFamily() {
@@ -443,6 +528,7 @@ public class StudentBookSeeder {
         int count = DEFAULT_STUDENTS;
         long seed = DEFAULT_SEED;
         Path out = DEFAULT_OUT;
+        boolean force = false;
         boolean withEdgeCases = false;
         try {
             for (int i = 0; i < args.length; i++) {
@@ -453,6 +539,8 @@ public class StudentBookSeeder {
                     seed = Long.parseLong(args[++i]);
                 } else if (option.equals("--out")) {
                     out = Path.of(args[++i]);
+                } else if (option.equals("--force")) {
+                    force = true;
                 } else if (option.equals("--edge-cases")) {
                     withEdgeCases = true;
                 } else {
@@ -462,9 +550,18 @@ public class StudentBookSeeder {
             if (count < 0) {
                 throw new IllegalArgumentException("--students must not be negative");
             }
+            if (count > MAX_STUDENTS) {
+                throw new IllegalArgumentException("--students must be at most " + MAX_STUDENTS
+                        + ", the number of distinct names the generator can make");
+            }
         } catch (IllegalArgumentException | ArrayIndexOutOfBoundsException e) {
             System.err.println((e instanceof ArrayIndexOutOfBoundsException ? "Missing option value" : e.getMessage())
                     + "\n" + USAGE);
+            System.exit(2);
+        }
+        // The default output is the app's own data file, so never replace it unless asked to.
+        if (Files.exists(out) && !force) {
+            System.err.println(out + " already exists; pass --force to replace it.");
             System.exit(2);
         }
 

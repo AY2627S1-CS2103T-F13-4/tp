@@ -1,6 +1,7 @@
 package seedu.address.model.util;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
@@ -47,6 +48,14 @@ public class SampleDataUtilTest {
                 .collect(Collectors.toSet());
 
         assertEquals(EnumSet.allOf(SchoolingLevel.Stage.class), stages);
+    }
+
+    @Test
+    public void getSamplePersons_schoolStudentsHaveSchoolsAndNoneArchived() {
+        for (Student student : SampleDataUtil.getSamplePersons()) {
+            assertEquals(student.getSchoolingLevel().isPresent(), student.getSchool().isPresent());
+            assertFalse(student.isArchived());
+        }
     }
 
     @Test
