@@ -7,6 +7,7 @@ import static seedu.address.logic.parser.CliSyntax.PREFIX_TEXT;
 
 import java.time.LocalDate;
 import java.util.Optional;
+import java.util.regex.Pattern;
 
 import seedu.address.commons.core.index.Index;
 import seedu.address.logic.commands.NoteCommand;
@@ -19,6 +20,7 @@ import seedu.address.model.person.ProgressNote;
  * {@code date/} and {@code text/} are read as prefixes.
  */
 public class NoteCommandParser implements Parser<NoteCommand> {
+    private static final Pattern WHITESPACE = Pattern.compile("\\s+");
     private final Operation operation;
 
     public NoteCommandParser(Operation operation) {
@@ -28,6 +30,13 @@ public class NoteCommandParser implements Parser<NoteCommand> {
     @Override
     public NoteCommand parse(String args) throws ParseException {
         requireNonNull(args);
+        return switch (operation) {
+            case ADD -> parseAdd(args);
+            case DELETE -> parseDelete(args);
+        };
+    }
+
+    private static NoteCommand parseAdd(String args) throws ParseException {
         String formatError = String.format(MESSAGE_INVALID_COMMAND_FORMAT, NoteCommand.MESSAGE_ADD_USAGE);
         ArgumentMultimap arguments = ArgumentTokenizer.tokenize(args, PREFIX_DATE, PREFIX_TEXT);
         Index studentIndex;
@@ -43,6 +52,20 @@ public class NoteCommandParser implements Parser<NoteCommand> {
         }
         arguments.verifyNoDuplicatePrefixesFor(PREFIX_DATE, PREFIX_TEXT);
         ProgressNote note = ParserUtil.parseProgressNote(date.get(), text.get(), LocalDate.now());
-        return new NoteCommand(studentIndex, operation, note);
+        return new NoteCommand(studentIndex, Operation.ADD, Optional.empty(), Optional.of(note));
+    }
+
+    private static NoteCommand parseDelete(String args) throws ParseException {
+        String formatError = String.format(MESSAGE_INVALID_COMMAND_FORMAT, NoteCommand.MESSAGE_DELETE_USAGE);
+        String[] indexes = WHITESPACE.split(args.trim());
+        if (indexes.length != 2) {
+            throw new ParseException(formatError);
+        }
+        try {
+            return new NoteCommand(ParserUtil.parseIndex(indexes[0]), Operation.DELETE,
+                    Optional.of(ParserUtil.parseIndex(indexes[1])), Optional.empty());
+        } catch (ParseException e) {
+            throw new ParseException(formatError, e);
+        }
     }
 }

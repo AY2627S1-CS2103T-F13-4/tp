@@ -264,6 +264,10 @@ results. They preserve all other student fields.
   Both fields are required. After adding, the **Students** table opens that student's details so you can see the note.
 * **Read:** Open the student's details (`view STUDENT_INDEX`, or **Alt+Down** on the table). The **Notes** section
   lists every note oldest first, with its number, date and text, or a grey `No notes yet` when there are none.
+  Use the note's number as `NOTE_INDEX`.
+* **Delete:** `note-delete STUDENT_INDEX NOTE_INDEX`
+  Removes only that note and shows its date and text in the message, so you can check it was the right one. Later
+  notes move up by one position. The student's details open afterwards.
 
 Field rules:
 
@@ -277,13 +281,14 @@ Field rules:
 Errors:
 
 * Adding a note with the same date and text as one of the student's existing notes is rejected as a duplicate.
-* A student index that does not exist, a missing or repeated prefix, a date that is not real or is in the future, and
+* A student index or note index that does not exist, a missing or repeated prefix, a date that is not real or is in the future, and
   empty or overlong text are rejected. Any error leaves the record unchanged.
 
 For example, after `list`:
 
 1. `note-add 1 date/2026-10-15 text/Finished the fractions worksheet; revise decimals next`
 2. `note-add 1 date/2026-10-08 text/Struggled with word problems` adds an earlier note, which becomes note 1.
+3. `note-delete 1 1` removes the word-problems note. The fractions note is now note 1.
 
 Notes are saved automatically. Older data files without notes still load, with no notes recorded.
 
@@ -371,6 +376,7 @@ Lesson numbers in warnings belong to the named student's lesson list; find that 
 | Edit guardian | `guardian-edit INDEX [name/NAME] [phone/PHONE]` |
 | Delete guardian | `guardian-delete INDEX` |
 | Add note | `note-add STUDENT_INDEX date/DATE text/TEXT` |
+| Delete note | `note-delete STUDENT_INDEX NOTE_INDEX` |
 | Delete | `delete INDEX` |
 | Delete all | `clear` |
 | Help | `help` |

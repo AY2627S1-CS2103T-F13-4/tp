@@ -9,6 +9,7 @@ import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.Test;
@@ -76,8 +77,15 @@ public class AddressBookParserTest {
     public void parseCommand_noteAdd() throws Exception {
         NoteCommand command = (NoteCommand) parser.parseCommand(
                 NoteCommand.ADD_COMMAND_WORD + " 1 date/2026-10-15 text/Fractions");
-        assertEquals(new NoteCommand(INDEX_FIRST_PERSON, NoteCommand.Operation.ADD,
-                new ProgressNote(LocalDate.of(2026, 10, 15), "Fractions")), command);
+        assertEquals(new NoteCommand(INDEX_FIRST_PERSON, NoteCommand.Operation.ADD, Optional.empty(),
+                Optional.of(new ProgressNote(LocalDate.of(2026, 10, 15), "Fractions"))), command);
+    }
+
+    @Test
+    public void parseCommand_noteDelete() throws Exception {
+        NoteCommand command = (NoteCommand) parser.parseCommand(NoteCommand.DELETE_COMMAND_WORD + " 1 1");
+        assertEquals(new NoteCommand(INDEX_FIRST_PERSON, NoteCommand.Operation.DELETE,
+                Optional.of(INDEX_FIRST_PERSON), Optional.empty()), command);
     }
 
     @Test
