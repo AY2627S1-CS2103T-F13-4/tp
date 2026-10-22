@@ -126,7 +126,7 @@ public class NoteCommandTest {
         Student first = model.getFilteredPersonList().get(0);
         Student expectedStudent = new PersonBuilder(first).withNotes(OCTOBER).build();
         CommandResult expectedResult = new CommandResult(
-                String.format(NoteCommand.MESSAGE_DELETED, 1, first.getName()), INDEX_FIRST_PERSON);
+                String.format(NoteCommand.MESSAGE_DELETED, 1, first.getName(), SEPTEMBER), INDEX_FIRST_PERSON);
         // note 1 is the September note, since notes are numbered oldest first
         assertCommandSuccess(delete(INDEX_FIRST_PERSON, FIRST_NOTE), model, expectedResult,
                 expectedModelWith(first, expectedStudent));

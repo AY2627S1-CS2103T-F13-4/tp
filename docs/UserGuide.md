@@ -262,7 +262,8 @@ results. They preserve all other student fields.
   lists every note oldest first, with its number, date and text, or a grey `No notes yet` when there are none.
   Use the note's number as `NOTE_INDEX`.
 * **Delete:** `note-delete STUDENT_INDEX NOTE_INDEX`
-  Removes only that note. Later notes move up by one position. The student's details open afterwards.
+  Removes only that note and shows its date and text in the message, so you can check it was the right one. Later
+  notes move up by one position. The student's details open afterwards.
 
 Field rules:
 

@@ -29,7 +29,7 @@ public class NoteCommand extends Command {
     public static final String MESSAGE_DUPLICATE_NOTE = "This student already has this note on that date.";
     public static final String MESSAGE_INVALID_NOTE_DISPLAYED_INDEX = "The note index provided is invalid.";
     public static final String MESSAGE_ADDED = "Added note %1$d for %2$s.";
-    public static final String MESSAGE_DELETED = "Deleted note %1$d for %2$s.";
+    public static final String MESSAGE_DELETED = "Deleted note %1$d for %2$s: %3$s";
 
     /** Supported note mutations. Reading uses the student's details. */
     public enum Operation { ADD, DELETE }
@@ -62,6 +62,7 @@ public class NoteCommand extends Command {
         }
         Student student = model.getFilteredPersonList().get(studentIndex.getZeroBased());
         List<ProgressNote> notes = new ArrayList<>(student.getNotes());
+        ProgressNote removed = null;
         switch (operation) {
             case ADD -> {
                 if (notes.contains(note.orElseThrow())) {
@@ -74,7 +75,7 @@ public class NoteCommand extends Command {
                 if (position >= notes.size()) {
                     throw new CommandException(MESSAGE_INVALID_NOTE_DISPLAYED_INDEX);
                 }
-                notes.remove(position);
+                removed = notes.remove(position);
             }
             default -> throw new AssertionError(operation);
         }
@@ -84,8 +85,9 @@ public class NoteCommand extends Command {
                 student.getGuardian(), student.getLessons(), notes);
         model.setPerson(student, replacement);
         if (operation == Operation.DELETE) {
+            // Show the removed note, since a wrong NOTE_INDEX cannot be undone.
             return new CommandResult(String.format(MESSAGE_DELETED, noteIndex.orElseThrow().getOneBased(),
-                    student.getName()), studentIndex);
+                    student.getName(), removed), studentIndex);
         }
         // The student keeps notes oldest first, so a note dated earlier than others lands before them.
         int noteNumber = replacement.getNotes().lastIndexOf(note.orElseThrow()) + 1;
