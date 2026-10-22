@@ -90,7 +90,7 @@ The `DeleteCommandParser` lifeline should end at the X marker; PlantUML draws it
 
 <img src="images/ModelClassDiagram.png" width="450" />
 
-`ModelManager` holds the address book, user preferences, the current filtered list and the lesson filter. `updateFilteredPersonList(Predicate<Student>, Predicate<Lesson>)` sets both; the one-argument form, used by `list` and `edit`, shows all lessons again. `StudentLessonMatchesPredicate` keeps a student with at least one lesson that passes a `LessonMatchesPredicate`, so subject and day must match the same lesson.
+`ModelManager` holds the address book, user preferences, the current filtered list and the lesson filter. `updateFilteredPersonList(Predicate<Student>, Predicate<Lesson>)` sets both; the one-argument form, used by `list` and `edit`, shows all lessons again. `StudentSearchPredicate` combines the supplied student criteria and, when lesson criteria are present, requires at least one lesson that passes a `LessonMatchesPredicate`, so subject and day must match the same lesson.
 
 * `UniquePersonList` stores the `Student` records.
 * The UI observes an unmodifiable `ObservableList<Student>` of matching records.
@@ -224,20 +224,30 @@ Tests cover loading, save/reload and invalid values (`TuitionStorageTest`). A fa
 
 Tests: `LessonCommandParserTest`, `LessonWorkflowTest` (add, edit, clear, delete, filtered indices, invalid input, duplicates and save/reload), `LessonTest`, `StudentTest` and `WeeklyLessonSlotTest`.
 
-### School search
+### Student search
 
-`FindCommandParser` accepts `sch/TEXT` alongside `level/`, `subject/` and `day/`, rejecting empty values,
-duplicate prefixes and bare name keywords mixed with prefixes. `SchoolContainsKeywordPredicate` matches
-the recorded school's substring ignoring case and requires the other supplied student criteria to match.
-Students without a school never match; a school or school-and-level search does not require lessons.
-Lesson criteria continue to use `StudentLessonMatchesPredicate`, so subject and day must match the same
-lesson, and `FindCommand` passes the lesson filter to the model for `week`. A later school-only search
+`FindCommandParser` accepts `name/`, `guardian/`, `sch/`, `level/`, `subject/` and `day/`, rejecting empty
+values, duplicate prefixes and bare name keywords mixed with prefixes. It builds one `StudentSearchPredicate`
+for every prefixed search. The predicate requires every supplied criterion to match: student name, guardian
+name or phone, school and schooling level use case-insensitive substrings. Missing optional fields fail only
+when their criteria are supplied. Searches without lesson criteria do not require students to have lessons.
+Bare name keywords retain whole-word, case-insensitive OR matching through `NameContainsKeywordsPredicate`.
+
+`LessonMatchesPredicate` stays separate: subject and day must match the same lesson. The student predicate
+requires at least one such lesson, and `FindCommand` passes that same lesson filter to the model for `week`.
+A later search without lesson criteria
 resets the lesson filter; `list` clears the entire search. `EditCommand`, including school changes and
 clearing a school, clears both student and lesson filters and displays all students after a successful edit.
 
-Tests: `SchoolContainsKeywordPredicateTest` and `FindCommandParserTest` cover partial and mixed-case
-school names, missing schools, students without lessons, combined filters, calendar filtering, clearing
-the search, school edits through `EditCommand`, invalid input and prefix ordering.
+Search logging uses the existing `LogsCenter` framework. The parser logs selected prefix names and rejection
+reasons at `FINE`; the command logs the result count at `INFO`. These search-specific diagnostics omit search
+values. Existing command-level logging in `LogicManager` still records raw commands. Logs go to the console
+and rotating `studentbook.log.*` files; set `LOG_LEVEL` in `LogsCenter` to `Level.FINE` for parser diagnostics.
+
+Tests: `StudentSearchPredicateTest`, `LessonFilterPredicateTest`, `FindCommandParserTest` and `FindLoggingTest`
+cover contact and school substrings, absent fields, searches without lessons, all criteria combined, same-lesson
+and calendar filtering, bare-name compatibility, filter resets, school edits through `EditCommand`, invalid
+input, prefix ordering, equality, defensive checks and logging.
 
 ### Guardian contact CRUD
 
@@ -599,6 +609,19 @@ Use an empty test folder and sample data. These checks are a starting point; als
 5. Run `lesson-edit INDEX 2 mode/ location/`. The student's details should show the English lesson without mode or location, including after restart.
 6. Run `lesson-delete INDEX 1`. English becomes lesson 1. Delete it too and the card should show `No lessons yet`.
 7. Try a duplicate `lesson-add`, a lesson index larger than the list, a missing required field, `mode/hybrid`, a repeated prefix, an unknown prefix such as `x/`, and an empty `mode/` on `lesson-add`. Each should report an error and leave every record unchanged.
+
+### Name and guardian searches
+
+1. Create students named `Alex Tan` and `Alexander Tan`. Run `find alex`; only `Alex Tan` should match.
+   Run `find name/aLeX`; both should match, including students without lessons.
+2. Give Alex a guardian named `Janet Lee` with phone `91234567`, leaving Alexander without a guardian.
+   Run `find guardian/ANET`, then `find guardian/1234`; each should show only Alex.
+3. Run `find name/alex guardian/janet`; Alex should match. Replace `janet` with `missing`; nobody should match.
+4. Give Alex a Tuesday Math lesson and a Monday English lesson. Run `find name/alex subject/math day/mon`;
+   Alex should not match. Add a Monday Math lesson and repeat; Alex should now match. Run `week` and check that
+   only the Monday Math lesson appears. Run `list` to clear the search.
+5. Try `find name/`, `find guardian/`, `find name/alex name/bob`, `find guardian/janet guardian/john`,
+   `find alex guardian/janet` and `find name/alex day/Funday`. Each should report an error.
 
 ### Guardian contacts
 

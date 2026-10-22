@@ -4,7 +4,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_GUARDIAN;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_LEVEL;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_NAME;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_SCHOOL;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_SUBJECT;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseFailure;
@@ -24,16 +26,17 @@ import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.commands.WeekCommand;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
+import seedu.address.model.person.Guardian;
 import seedu.address.model.person.HourlyRate;
 import seedu.address.model.person.Lesson;
 import seedu.address.model.person.LessonMatchesPredicate;
+import seedu.address.model.person.Name;
 import seedu.address.model.person.NameContainsKeywordsPredicate;
+import seedu.address.model.person.Phone;
 import seedu.address.model.person.School;
-import seedu.address.model.person.SchoolContainsKeywordPredicate;
 import seedu.address.model.person.SchoolingLevel;
-import seedu.address.model.person.SchoolingLevelContainsKeywordPredicate;
 import seedu.address.model.person.Student;
-import seedu.address.model.person.StudentLessonMatchesPredicate;
+import seedu.address.model.person.StudentSearchPredicate;
 import seedu.address.model.person.Subject;
 import seedu.address.model.person.WeeklyLessonSlot;
 import seedu.address.testutil.PersonBuilder;
@@ -41,6 +44,82 @@ import seedu.address.testutil.PersonBuilder;
 public class FindCommandParserTest {
 
     private FindCommandParser parser = new FindCommandParser();
+
+    @Test
+    public void parse_contactCriteria_preservesBareNameMatchingAndGuardianPhoneSearch() throws Exception {
+        Model model = new ModelManager();
+        Student alex = new PersonBuilder().withName("Alex Tan").withGuardian(
+                new Guardian(new Name("Janet Lee"), new Phone("91234567"))).build();
+        Student alexander = new PersonBuilder().withName("Alexander Tan").withPhone("91234567").build();
+        model.addPerson(alex);
+        model.addPerson(alexander);
+        parser.parse("alex").execute(model);
+        assertEquals(List.of(alex), model.getFilteredPersonList());
+        parser.parse("alex alexander").execute(model);
+        assertEquals(List.of(alex, alexander), model.getFilteredPersonList());
+        parser.parse("name/aLeX").execute(model);
+        assertEquals(List.of(alex, alexander), model.getFilteredPersonList());
+        parser.parse("guardian/ANET").execute(model);
+        assertEquals(List.of(alex), model.getFilteredPersonList());
+        parser.parse("guardian/1234").execute(model);
+        assertEquals(List.of(alex), model.getFilteredPersonList());
+        parser.parse("name/alexander guardian/janet").execute(model);
+        assertTrue(model.getFilteredPersonList().isEmpty());
+        parser.parse("name/lex tan").execute(model);
+        assertEquals(List.of(alex), model.getFilteredPersonList());
+    }
+
+    @Test
+    public void parse_allCriteria_usesOneStudentPredicateAndSameLessonForCalendar() throws Exception {
+        Model model = new ModelManager();
+        Lesson tuesdayMath = lesson("Math", DayOfWeek.TUESDAY);
+        Lesson mondayEnglish = lesson("English", DayOfWeek.MONDAY);
+        Lesson mondayMath = lesson("Math", DayOfWeek.MONDAY);
+        Student alex = new PersonBuilder().withName("Alex Tan").withSchool(new School("Raffles Institution"))
+                .withGuardian(new Guardian(new Name("Janet Lee"), new Phone("91234567")))
+                .withSchoolingLevel(new SchoolingLevel("Secondary 3"))
+                .withLessons(tuesdayMath, mondayEnglish).build();
+        model.addPerson(alex);
+        String query = "name/alex guardian/janet sch/raffles level/secondary subject/math day/mon";
+        parser.parse(query).execute(model);
+        assertTrue(model.getFilteredPersonList().isEmpty());
+
+        Student matching = new PersonBuilder(alex).withLessons(tuesdayMath, mondayEnglish, mondayMath).build();
+        Student wrongSchool = new PersonBuilder(matching).withName("Alexander Tan")
+                .withSchool(new School("Dunman High")).build();
+        Student noGuardian = new PersonBuilder(matching).withName("Alex Lee").withGuardian(null).build();
+        model.setPerson(alex, matching);
+        model.addPerson(wrongSchool);
+        model.addPerson(noGuardian);
+        FindCommand expected = new FindCommand(new StudentSearchPredicate(Optional.of("alex"), Optional.of("janet"),
+                Optional.of("raffles"), Optional.of("secondary"), Optional.of(new LessonMatchesPredicate(
+                        Optional.of("math"), Optional.of(DayOfWeek.MONDAY)))),
+                new LessonMatchesPredicate(Optional.of("math"), Optional.of(DayOfWeek.MONDAY)));
+        assertParseSuccess(parser, query, expected);
+        assertParseSuccess(parser, "day/MONDAY\tguardian/JANET sch/RAFFLES\nname/ALEX level/SECONDARY subject/MATH",
+                expected);
+        parser.parse(query).execute(model);
+        new WeekCommand().execute(model);
+        assertEquals(List.of(matching), model.getFilteredPersonList());
+        assertFalse(model.getLessonPredicate().getValue().test(tuesdayMath));
+        assertFalse(model.getLessonPredicate().getValue().test(mondayEnglish));
+        assertTrue(model.getLessonPredicate().getValue().test(mondayMath));
+        parser.parse("name/alex guardian/janet sch/raffles").execute(model);
+        assertTrue(model.getLessonPredicate().getValue().test(tuesdayMath));
+    }
+
+    @Test
+    public void parse_invalidContactCriteria_rejectsEmptyDuplicateAndMixedInput() {
+        String invalid = String.format(MESSAGE_INVALID_COMMAND_FORMAT, FindCommand.MESSAGE_USAGE);
+        for (String input : List.of("name/", "guardian/", "name/alex sch/", "guardian/janet name/",
+                "alex guardian/janet", "alex name/alex", "guardian/janet day/Funday")) {
+            assertParseFailure(parser, input, invalid);
+        }
+        assertParseFailure(parser, "name/alex name/bob",
+                Messages.getErrorMessageForDuplicatePrefixes(PREFIX_NAME));
+        assertParseFailure(parser, "guardian/janet\tguardian/john",
+                Messages.getErrorMessageForDuplicatePrefixes(PREFIX_GUARDIAN));
+    }
 
     @Test
     public void parse_schoolOnly_matchesSubstringWithoutRequiringLessons() throws Exception {
@@ -54,7 +133,7 @@ public class FindCommandParserTest {
         model.addPerson(noSchool);
 
         assertParseSuccess(parser, " sch/  RAFFLES  ",
-                new FindCommand(new SchoolContainsKeywordPredicate("raffles")));
+                new FindCommand(search(Optional.of("raffles"), Optional.empty(), Optional.empty())));
         parser.parse("sch/fFlEs Ins").execute(model);
         assertEquals(List.of(raffles), model.getFilteredPersonList());
         parser.parse("sch/missing").execute(model);
@@ -63,8 +142,8 @@ public class FindCommandParserTest {
 
     @Test
     public void parse_schoolAndLevel_requiresBothRegardlessOfOrder() {
-        FindCommand expected = new FindCommand(new SchoolContainsKeywordPredicate("raffles",
-                new SchoolingLevelContainsKeywordPredicate("secondary")));
+        FindCommand expected = new FindCommand(search(Optional.of("raffles"), Optional.of("secondary"),
+                Optional.empty()));
         assertParseSuccess(parser, "sch/Raffles level/Secondary", expected);
         assertParseSuccess(parser, "level/SECONDARY\tsch/RAFFLES", expected);
     }
@@ -172,10 +251,10 @@ public class FindCommandParserTest {
 
     @Test
     public void parse_levelPrefix_returnsLevelFindCommand() {
-        FindCommand expected = new FindCommand(new SchoolingLevelContainsKeywordPredicate("Primary 5"));
+        FindCommand expected = new FindCommand(search(Optional.empty(), Optional.of("Primary 5"), Optional.empty()));
         assertParseSuccess(parser, " level/Primary 5", expected);
         assertParseSuccess(parser, "   level/  Primary   5  ", new FindCommand(
-                new SchoolingLevelContainsKeywordPredicate("Primary   5")));
+                search(Optional.empty(), Optional.of("Primary   5"), Optional.empty())));
     }
 
     @Test
@@ -208,14 +287,19 @@ public class FindCommandParserTest {
         LessonMatchesPredicate wednesdayMath = new LessonMatchesPredicate(
                 Optional.of("Math"), Optional.of(DayOfWeek.WEDNESDAY));
         assertParseSuccess(parser, " subject/math day/wed",
-                new FindCommand(new StudentLessonMatchesPredicate(Optional.empty(), wednesdayMath), wednesdayMath));
+                new FindCommand(search(Optional.empty(), Optional.empty(), Optional.of(wednesdayMath)), wednesdayMath));
         assertParseSuccess(parser, " day/Wednesday subject/Math level/Secondary",
-                new FindCommand(new StudentLessonMatchesPredicate(Optional.of("Secondary"), wednesdayMath),
+                new FindCommand(search(Optional.empty(), Optional.of("Secondary"), Optional.of(wednesdayMath)),
                         wednesdayMath));
 
         LessonMatchesPredicate monday = new LessonMatchesPredicate(Optional.empty(), Optional.of(DayOfWeek.MONDAY));
         assertParseSuccess(parser, " day/mon",
-                new FindCommand(new StudentLessonMatchesPredicate(Optional.empty(), monday), monday));
+                new FindCommand(search(Optional.empty(), Optional.empty(), Optional.of(monday)), monday));
+    }
+
+    private static StudentSearchPredicate search(Optional<String> school, Optional<String> level,
+            Optional<LessonMatchesPredicate> lesson) {
+        return new StudentSearchPredicate(Optional.empty(), Optional.empty(), school, level, lesson);
     }
 
     @Test
