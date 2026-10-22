@@ -152,6 +152,7 @@ Include at least one field to change. Fields you leave out stay unchanged.
 
 * Tags replace the entire existing set. Use an empty `tag/` to clear all tags.
 * An empty `sch/` clears the school.
+* A successful edit clears the active search and shows all students, including when changing or clearing a school.
 * An empty `level/` clears the schooling level.
 * Editing a student never changes their lessons or guardian. Use the `lesson-` and `guardian-` commands for those.
 
@@ -162,9 +163,9 @@ Examples:
 * `edit 1 sch/Clementi Primary School` changes the first displayed student's school.
 * `edit 1 level/Primary 6` changes the first displayed student's schooling level.
 
-### Find students by name, guardian, schooling level or lesson: `find`
+### Find students by name, guardian, school, schooling level or lesson: `find`
 
-Format: `find KEYWORD [MORE_KEYWORDS]` or `find [name/TEXT] [guardian/TEXT] [level/TEXT] [subject/TEXT] [day/DAY]`
+Format: `find KEYWORD [MORE_KEYWORDS]` or `find [name/TEXT] [guardian/TEXT] [sch/TEXT] [level/TEXT] [subject/TEXT] [day/DAY]`
 
 The matching students show in the **Students** table.
 
@@ -173,19 +174,26 @@ Without prefixes, searches names for whole words, ignoring letter case. A studen
 * `find John` matches `John Doe`, but not `Johnny`.
 * `find alex david` matches names containing `Alex` or `David`.
 
-Use `name/TEXT` for a case-insensitive substring search of the student's name. For example, `find name/alex` matches both `Alex Tan` and `Alexander Tan`. Multiple words after one prefix form a single substring: `find name/alex tan` searches for `alex tan` together.
+Use `name/TEXT` to match part of a student's name, ignoring case. For example, `find name/alex` matches both
+`Alex Tan` and `Alexander Tan`. Multiple words form a single substring: `find name/alex tan` searches for
+that phrase together.
 
-Use `guardian/TEXT` to match part of the guardian's name or phone number, ignoring letter case. For example, `find guardian/janet` matches a guardian named `Janet Lee`, and `find guardian/9123` matches a guardian whose phone contains `9123`. Students without a guardian are excluded. `find name/alex guardian/janet` requires both the student name and guardian criterion to match.
+Use `guardian/TEXT` to match part of the guardian's name or phone number, ignoring case. For example,
+`find guardian/janet` matches a guardian named `Janet Lee`, and `find guardian/9123` matches a guardian whose
+phone contains `9123`. Students without a guardian are excluded. `find name/alex guardian/janet sch/raffles`
+requires all three criteria to match and does not require students to have lessons.
+
+Use `find sch/TEXT` to search schools, ignoring letter case. Partial matches are allowed: `find sch/raffles` matches `Raffles Institution`. Multiple words form a single substring: `find sch/raffles institution` searches for that phrase together. Students without a recorded school are excluded. School searches do not require students to have lessons.
 
 Use `find level/TEXT` to search schooling levels, ignoring letter case. Partial matches are allowed: `find level/prim` matches `Primary 5`. Students without a level are excluded.
 
-Use `subject/` to match part of a lesson's subject, ignoring case, and `day/` with a three-letter or full weekday name (`Mon` or `Monday`). Supply at least one prefix. Combine prefixes in any order; every supplied criterion must match, and subject and day must match the **same lesson**. For example, `find name/alex guardian/janet level/Secondary subject/math day/wed` finds secondary students whose names contain `alex`, whose guardian's name or phone contains `janet`, and who have a Wednesday Math lesson. Bare name keywords cannot be combined with prefixes. Empty or repeated prefixes and invalid days are rejected.
+Use `subject/` to match part of a lesson's subject, ignoring case, and `day/` with a three-letter or full weekday name (`Mon` or `Monday`). Supply at least one prefix. Combine prefixes in any order; every supplied criterion must match, and subject and day must match the **same lesson**. For example, `find name/alex guardian/janet sch/raffles level/Secondary subject/math day/wed` finds secondary students whose names contain `alex`, whose guardian's name or phone contains `janet`, and whose school contains `raffles`, with a Wednesday Math lesson. Bare name keywords cannot be combined with prefixes. Empty or repeated prefixes and invalid days are rejected.
 
 `find` opens the Students table. `week` then shows only the matching lessons on the calendar, and its header reads e.g. `Showing 3 of 12 lessons`; lesson numbers still refer to their positions in each student's full lesson list. `list` clears the search.
 
 The search stays while you change lessons. A lesson you add or edit that no longer matches `subject/` or `day/` is hidden, and a student left with no matching lesson leaves the list, so the students after them move up a number. Use `list` to see everything again.
 
-Phone and other contact fields are not searched.
+The student's own phone, email and address are not searched.
 
 ![Name search results](images/findAlexDavidResult.png)
 
@@ -365,7 +373,7 @@ Lesson numbers in warnings belong to the named student's lesson list; find that 
 | Edit | `edit INDEX [name/NAME] [phone/PHONE_NUMBER] [email/EMAIL] [address/ADDRESS] [tag/TAG]... [sch/SCHOOL] [level/SCHOOLING_LEVEL]` |
 | Clear school | `edit INDEX sch/` |
 | Clear schooling level | `edit INDEX level/` |
-| Find | `find KEYWORD [MORE_KEYWORDS]` or `find [name/TEXT] [guardian/TEXT] [level/TEXT] [subject/TEXT] [day/DAY]` |
+| Find | `find KEYWORD [MORE_KEYWORDS]` or `find [name/TEXT] [guardian/TEXT] [sch/TEXT] [level/TEXT] [subject/TEXT] [day/DAY]` |
 | List | `list` |
 | This week's lessons | `week` |
 | A student's details | `view INDEX` |

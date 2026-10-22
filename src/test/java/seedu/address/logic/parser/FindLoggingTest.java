@@ -48,7 +48,7 @@ public class FindLoggingTest {
         try {
             ModelManager model = new ModelManager();
             model.addPerson(new PersonBuilder().withName("SecretStudent").build());
-            parser.parse("name/SecretStudent guardian/SecretGuardian").execute(model);
+            parser.parse("name/SecretStudent guardian/SecretGuardian sch/SecretSchool").execute(model);
             parser.parse("SecretStudent").execute(model);
             assertThrows(ParseException.class, () -> parser.parse(""));
             assertThrows(ParseException.class, () -> parser.parse("SecretStudent name/SecretStudent"));
@@ -57,7 +57,7 @@ public class FindLoggingTest {
             assertThrows(ParseException.class, () -> parser.parse("day/SecretDay"));
 
             assertEquals(List.of(
-                    "Search filters selected: [name/, guardian/]",
+                    "Search filters selected: [name/, guardian/, sch/]",
                     "Student search completed: matchedStudents=0",
                     "Search filters selected: [bare-name]",
                     "Student search completed: matchedStudents=1",
