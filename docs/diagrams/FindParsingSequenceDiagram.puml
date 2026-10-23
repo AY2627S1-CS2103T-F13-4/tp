@@ -1,0 +1,38 @@
+@startuml
+!include style.puml
+skinparam ArrowFontStyle plain
+skinparam sequenceMessageAlign left
+skinparam ParticipantPadding 12
+
+participant ":FindCommandParser" as Parser LOGIC_COLOR
+participant "l:LessonMatchesPredicate" as LessonPredicate MODEL_COLOR
+participant "s:StudentSearchPredicate" as StudentPredicate MODEL_COLOR
+participant "f:FindCommand" as FindCommand LOGIC_COLOR
+
+[-> Parser : parse(args)
+activate Parser
+
+create LessonPredicate
+Parser -> LessonPredicate : LessonMatchesPredicate(subject, day)
+activate LessonPredicate
+||12||
+LessonPredicate --> Parser
+deactivate LessonPredicate
+
+create StudentPredicate
+Parser -> StudentPredicate : StudentSearchPredicate(...,\nOptional.of(l))
+activate StudentPredicate
+||12||
+StudentPredicate --> Parser
+deactivate StudentPredicate
+
+create FindCommand
+Parser -> FindCommand : FindCommand(s, l)
+activate FindCommand
+||12||
+FindCommand --> Parser
+deactivate FindCommand
+
+[<-- Parser : f
+deactivate Parser
+@enduml
