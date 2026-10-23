@@ -39,96 +39,52 @@ This development version supports contact details, schools, schooling levels, gu
 
 ![StudentBook main window](images/Ui.png)
 
-You type every command in the **command box** at the top. The app has two screens:
+Type every command in the **command box** at the top. The cursor stays there, so the whole app works from the keyboard.
 
 | Screen | Shows | Open it with |
 |---|---|---|
 | **This week** (opens first) | A calendar of every student's lessons | `week`, or the **This week** tab |
 | **Students** | A table of students | `list` or `find`, or the **Students** tab |
 
+The level tabs (e.g. **Sec 3**) run `find level/LEVEL`, **All commands** opens help, and **+ Add student** fills in the `add` format for you.
+
 ### This week
 
-* Shows Monday to Sunday of the current week. Today's date is circled, and a red line marks the current time.
-* Shows 9.00am to 8.00pm, and stretches to fit lessons outside those hours. It opens scrolled to the current time.
-* Each lesson shows the student, the time, then its number, level and subject, e.g. `#3.1 · Sec 3 · A-Math`.
-* Lessons are coloured by school stage (key at the top right). Lessons at the same time sit side by side, and that day widens to fit them.
-
-To change a lesson you see on the calendar:
-
-1. Read its number, e.g. `#3.1` means student `3`, lesson `1`.
-1. Type `lesson-edit 3 1` followed by the fields to change.
-
-To see a lesson's rate, mode and location, point at it, or type `view` with its student's number (e.g. `view 3`).
+* The calendar covers at least 9.00am to 8.00pm, and extends earlier or later to fit any lesson.
+* `#3.1` on a lesson means student `3`, lesson `1`, so `lesson-edit 3 1 ...` changes it. Point at a lesson, or type `view 3`, to see its rate, mode and location.
+* Colours show the school stage: amber for primary, blue for secondary, violet for JC and grey for anything else.
 
 ### Students
 
-* One row per student, with the columns **#**, **Name**, **Subjects**, **Next lesson**, **Rate** and **Guardian**.
-* **Next lesson** is the student's next lesson in the week, with `+2 more` if they have others. **Rate** is that lesson's rate.
-* Use the number in the **#** column as `INDEX`.
-* The count beside the title shows how many students there are, or how many match after `find`, e.g. `Showing 1 of 8`.
+* Use the number in the **#** column as `INDEX`. **Next lesson** is the student's next lesson in the week, and **Rate** is that lesson's rate.
+* A student's details (school, contacts, guardian, follow-ups, lessons, tags and notes) open under their row when you click it, type `view INDEX`, press **Alt+Down** / **Alt+Up**, or run a `find` that matches one student. Use a lesson's number there as `LESSON_INDEX`.
 
-**Student details** open under a student's row and show their school and contact details, guardian, follow-ups, lessons, tags and notes. Each lesson shows its number, subject, day and time and rate, plus its mode and location if set. Use a lesson's number as `LESSON_INDEX`.
+### Fixing a command
 
-| To | Do this |
-|---|---|
-| Open a student's details | Click their row, type `view INDEX`, or press **Alt+Down** / **Alt+Up** to step through students. A search that leaves one student (e.g. `find hafiz`) opens them too. |
-| Close the details | Press **Esc** in an empty command box |
+After an error, your command stays in the box so you can fix it.
 
-### Tabs and header
-
-* **This week** and **Students** tabs run `week` and `list`; each tab shows its command.
-* After them, one tab per schooling level in use runs `find level/LEVEL` (point at it to see the command).
-* **All commands** at the right opens help.
-* **+ Add student** in the header puts the `add` format in the command box for you to fill in.
-
-### Results and errors
-
-The row under the command box shows the result of your last command.
-
-* **Success:** a green tick. After a one-line success, it also shows your last few commands; click one to reuse it, or press **Up** to step through your earlier commands from this session.
-* **Error:** a red `!` on pink. Your command stays in the box, in red, so you can fix it.
-* **Empty list or calendar:** the app suggests the next step, such as an example `add` or `lesson-add` command, or `list` when a search matches nothing.
-
-To fix a command with the wrong format:
-
-1. Read what the command does, its **Format** and an **Example**, shown under the error.
-1. Press **Tab** to put the Example in the command box (or click a Format or Example line to copy it).
+1. Read the **Format** and **Example** shown under the error.
+1. Press **Tab** to put the Example in the command box.
 1. Edit it and press **Enter**.
-
-Long messages take up to 40% of the window before they scroll.
-
-### Colours
-
-| Colour | Means |
-|---|---|
-| Amber | Primary level, e.g. `P5`, `Primary 5` |
-| Blue | Secondary level, e.g. `Sec 3`, `Secondary 4 Express` |
-| Violet | JC level, e.g. `JC1` |
-| Grey | Any other level (e.g. `Poly Y1`), and tags |
-| Green / teal | Lesson mode `Physical` / `Virtual`, in a student's details |
-
-Level colours appear on the initials badge and the level tabs.
 
 ### Small windows
 
-* Narrower than 900px: the level tabs, and the **Subjects** and **Guardian** columns, are hidden. Level tabs that do not fit are left out.
-* Shorter than 560px: the StudentBook name and the data file path at the bottom are hidden, to leave room for your students.
+* Narrower than 900px: the level tabs and the **Subjects** and **Guardian** columns are hidden.
+* Shorter than 560px: the StudentBook name and the data file path are hidden.
 
 ### Keyboard shortcuts
-
-The command box is focused when the app starts and stays focused (outlined in blue), so you can use the whole app from the keyboard. Clicking elsewhere or closing help leaves the cursor in the box. After a successful command, the box clears.
 
 | Key | Action |
 |---|---|
 | Enter | Run the command |
-| Up / Down | Show earlier commands from this session. Down past the newest brings back what you were typing. |
-| Esc | Clear the command box. In an empty box, close a student's details. Also closes the help window. |
-| Alt+Down / Alt+Up | On **This week**, scroll the calendar. On **Students**, open the next or previous student's details. (On a Mac, Alt is the Option key.) |
-| Tab | When the result shows an Example (e.g. after a format error), put that Example in the command box |
-| Page Up / Page Down | Also scroll, if your keyboard has these keys (on a Mac laptop: Fn+Up / Fn+Down) |
-| F1 | Open help, as the `help` command does (on a Mac laptop you may need Fn+F1) |
+| Up / Down | Step through earlier commands from this session |
+| Esc | Clear the command box, close a student's details if the box is empty, or close help |
+| Alt+Down / Alt+Up | **This week**: scroll the calendar. **Students**: open the next or previous student's details. (Alt is Option on a Mac.) |
+| Tab | Put the Example from an error into the command box |
+| Page Up / Page Down | Scroll (Fn+Up / Fn+Down on a Mac laptop) |
+| F1 | Open help |
 
-Every shortcut is optional: each one has a command that does the same, such as `week`, `list`, `view INDEX` and `help`.
+Each shortcut has a command that does the same, such as `week`, `list`, `view INDEX` and `help`.
 
 ## Features
 
@@ -368,7 +324,7 @@ Format: `guardian-delete INDEX`
 
 ## Saving and transferring records
 
-StudentBook saves automatically after every successful command, to `data/studentbook.json` in the folder where you start the app. Everything you enter is saved, including lessons, guardians, notes, follow-ups and archived students.
+StudentBook saves everything automatically after each successful command, to `data/studentbook.json` in the folder where you start it.
 
 <div markdown="span" class="alert alert-warning">
 :warning: If saving fails, the app shows an error. The change may still appear on screen but is not saved.
@@ -377,28 +333,21 @@ StudentBook saves automatically after every successful command, to `data/student
 To move your records to another computer:
 
 1. Close StudentBook on both computers.
-1. On the new computer, go to the folder where you start StudentBook and create a `data` folder there if it does not exist.
-1. Copy `data/studentbook.json` into that `data` folder.
+1. Copy `data/studentbook.json` into a `data` folder (create it if needed) in the folder where you start StudentBook on the new computer.
 1. Start StudentBook there.
 
 ### Edit the data file manually
 
 1. Close StudentBook.
 1. Back up `data/studentbook.json`.
-1. Edit the file, keeping its structure and valid values.
-1. Start StudentBook and check your records.
+1. Edit the file. Change only the values, and keep the same layout.
+1. Start StudentBook and check that your students are all there.
 
 <div markdown="block" class="alert alert-warning">
 
 :warning: **If the file is invalid, the app starts with an empty list.** The invalid file stays until a command saves over it, so restore your backup before running any command.
 
 </div>
-
-What the file holds:
-
-* Each student has an optional `school`, and a `lessons` array. Each lesson has a `subject`, a `weeklyLessonSlot` and an `hourlyRate`, plus an optional `mode` (`PHYSICAL` or `VIRTUAL`) and `location`.
-* Files without `school`, `mode` or `location` still load.
-* Older files that store `subject`, `subjects`, `weeklyLessonSlot` or `hourlyRate` directly on a student still load, but those values are ignored and lost on the next save. Re-enter them with `lesson-add`, or move them into a `lessons` array first.
 
 ## Known issues
 
@@ -407,19 +356,16 @@ What the file holds:
 
 ### Lesson clash warnings
 
-When you add or edit a lesson that overlaps another lesson on the same day, StudentBook **still saves it** and shows an amber warning with an exclamation icon, headed "Lesson saved - scheduling clash detected". The warning says how many lessons clash, then lists each on its own line: the student's name, their lesson number, subject and time.
+If a lesson you add or edit overlaps another lesson on the same day, StudentBook **still saves it** and warns "Lesson saved - scheduling clash detected", listing each clashing lesson's student, lesson number, subject and time.
 
-* All students are checked, including those hidden by a search, and the student's own other lessons.
-* Back-to-back lessons (one ends when the next starts) do not clash.
-* Every lesson edit re-checks, so even a rate-only edit warns again about an existing clash.
-* Deleting a lesson never warns.
-* The warning stays until your next command.
+* Every student is checked, including those hidden by a search.
+* Back-to-back lessons, such as 3-4pm then 4-5pm, do not clash.
+* Any lesson edit re-checks, so even a rate change warns again about an existing clash.
 
 To fix a clash:
 
-1. Note the student's name and lesson number in the warning. The lesson number belongs to that student's own list.
-1. `find` that student, then use their `#` number.
-1. Move one of the lessons with `lesson-edit STUDENT_INDEX LESSON_INDEX slot/...`.
+1. `find` the student named in the warning.
+1. Move the lesson with `lesson-edit INDEX LESSON_INDEX slot/...`, using their `#` number and the lesson number from the warning.
 
 ## Command summary
 
