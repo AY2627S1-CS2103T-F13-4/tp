@@ -24,7 +24,7 @@ Person -down-> "1" Phone : phone
 ' Both students and guardians inherit their identity fields from Person.
 Student -up-|> Person
 Guardian -up-|> Person
-Student -right-> "0..1" Guardian
+Student -right-> "0..1" Guardian : guardian
 
 ' Referenced immutable model objects may be shared between student instances.
 Student -down-> "1" Email
