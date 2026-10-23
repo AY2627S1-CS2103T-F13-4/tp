@@ -1,7 +1,6 @@
 package seedu.address.model.util;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
@@ -51,11 +50,23 @@ public class SampleDataUtilTest {
     }
 
     @Test
-    public void getSamplePersons_schoolStudentsHaveSchoolsAndNoneArchived() {
+    public void getSamplePersons_schoolStudentsHaveSchoolsAndOnlyPastStudentArchived() {
         for (Student student : SampleDataUtil.getSamplePersons()) {
             assertEquals(student.getSchoolingLevel().isPresent(), student.getSchool().isPresent());
-            assertFalse(student.isArchived());
+            // Current students have lessons; the one archived past student has given up their slot.
+            assertEquals(student.isArchived(), student.getLessons().isEmpty());
         }
+        assertEquals(1, Arrays.stream(SampleDataUtil.getSamplePersons()).filter(Student::isArchived).count());
+    }
+
+    @Test
+    public void getSamplePersons_coversNotesFollowUpsAndMissingGuardian() {
+        List<Student> current = Arrays.stream(SampleDataUtil.getSamplePersons())
+                .filter(student -> !student.isArchived()).toList();
+
+        assertTrue(current.stream().anyMatch(student -> !student.getNotes().isEmpty()));
+        assertTrue(current.stream().anyMatch(student -> !student.getFollowUps().isEmpty()));
+        assertTrue(current.stream().anyMatch(student -> student.getGuardian().isEmpty()));
     }
 
     @Test
@@ -69,7 +80,7 @@ public class SampleDataUtilTest {
     }
 
     @Test
-    public void getSamplePersons_containsExactlyOneClash() {
+    public void getSamplePersons_containsNoClashes() {
         List<Lesson> lessons = Arrays.stream(SampleDataUtil.getSamplePersons())
                 .flatMap(student -> student.getLessons().stream())
                 .toList();
@@ -85,7 +96,7 @@ public class SampleDataUtilTest {
             }
         }
 
-        assertEquals(1, clashes);
+        assertEquals(0, clashes);
     }
 
     @Test
