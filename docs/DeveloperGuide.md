@@ -232,11 +232,26 @@ both a student predicate and a lesson predicate.
 
 ![Student search predicate structure](images/StudentSearchClassDiagram.png)
 
-The following sequence illustrates a successful `find sch/nanyang subject/math day/mon` search.
-The same lesson predicate is used to select students and to filter lessons in the calendar.
-The model is shown through its interface; validation, logging, UI observation and storage details are omitted.
+The following two sequences illustrate a successful `find sch/nanyang subject/math day/mon` search.
+Blue participants belong to Logic; red participants belong to Model. Each diagram focuses on one stage
+of the search, leaving the surrounding command-routing and persistence workflow to the
+[Logic component](#logic-component) description.
 
-![Combined student search sequence](images/FindSequenceDiagram.png)
+**Constructing the search command.** `AddressBookParser` creates a `FindCommandParser` and calls
+`parse(args)`. After validation, the parser creates the lesson predicate `l`, then the student predicate
+`s`, then the command `f`. Here, `subject` contains `math`, `day` contains `MONDAY`, and the omitted
+student criteria are empty except for school, which contains `nanyang`. The same `l` is supplied to
+both `s` and `f`. Prefix validation and the parser's own creation and lifetime are outside this diagram's scope.
+
+![Construction of a combined student search](images/FindParsingSequenceDiagram.png)
+
+**Executing the search command.** `LogicManager` calls `f.execute(m)`. The command passes `s` and `l`
+to the model, reads the matching students to form the result summary, and returns a `CommandResult`
+that selects the students screen. The model is shown through its interface; internal filtering, logging
+and UI observation are omitted. The repeated list lookup used by logging is also omitted.
+`LogicManager` performs the existing storage save after execution, outside this diagram's scope.
+
+![Execution of a combined student search](images/FindSequenceDiagram.png)
 
 `FindCommandParser` accepts `name/`, `guardian/`, `sch/`, `level/`, `subject/` and `day/`, rejecting empty
 values, duplicate prefixes and bare name keywords mixed with prefixes. It builds one `StudentSearchPredicate`
