@@ -1,0 +1,34 @@
+@startuml
+!include style.puml
+skinparam arrowThickness 1.1
+skinparam arrowColor MODEL_COLOR
+skinparam classBackgroundColor MODEL_COLOR
+skinparam classAttributeIconSize 0
+skinparam classAttributeFontColor #FFFFFF
+skinparam genericDisplay old
+
+class Lesson
+class Subject
+class WeeklyLessonSlot
+class HourlyRate
+class LessonLocation
+enum LessonMode <<enumeration>> {
+    PHYSICAL
+    VIRTUAL
+}
+
+show LessonMode members
+
+' These immutable objects may be shared, so the relationships are associations.
+Lesson -down-> "1" Subject : subject
+Lesson -down-> "1" WeeklyLessonSlot : weeklyLessonSlot
+Lesson -down-> "1" HourlyRate : hourlyRate
+Lesson -down-> "0..1" LessonLocation : location
+Lesson -down-> "0..1" LessonMode : mode
+
+' Keep required fields together, followed by the optional fields.
+Subject -[hidden]right- WeeklyLessonSlot
+WeeklyLessonSlot -[hidden]right- HourlyRate
+HourlyRate -[hidden]right- LessonLocation
+LessonLocation -[hidden]right- LessonMode
+@enduml
