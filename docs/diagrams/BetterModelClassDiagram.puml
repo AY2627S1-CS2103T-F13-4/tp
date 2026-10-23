@@ -4,50 +4,18 @@ skinparam arrowThickness 1.1
 skinparam arrowColor MODEL_COLOR
 skinparam classBackgroundColor MODEL_COLOR
 
-class AddressBook
-class UniquePersonList
-class Student
-abstract class Person
-class Guardian
-class Name
-class Phone
-class Email
-class Address
-class School
-class SchoolingLevel
-class Tag
-class Lesson
-class ProgressNote
+AddressBook *-right-> "1" UniquePersonList
+AddressBook *-right-> "1" UniqueTagList
+UniqueTagList -[hidden]down- UniquePersonList
+UniqueTagList -[hidden]down- UniquePersonList
 
-' The list retains its existing name, but its elements are now Students.
-' Tags are held by each Student; there is no separate UniqueTagList.
-AddressBook "1" *--right-> "1" UniquePersonList
-UniquePersonList --down-> "*" Student
+UniqueTagList -right-> "*" Tag
+UniquePersonList -right-> Person
 
-' Both students and guardians inherit their identity fields from Person.
-Student --up-|> Person
-Guardian --up-|> Person
-Person -up-> "1" Name : name
-Person -up-> "1" Phone : phone
+Person -up-> "*" Tag
 
-' Referenced immutable model objects may be shared between student instances.
-Student -down-> "1" Email
-Student -down-> "1" Address
-Student -down-> "0..1" School
-Student -down-> "0..1" SchoolingLevel
-Student -right-> "0..1" Guardian
-
-Student ---down-> "*" Lesson
-Student ---down-> "*" ProgressNote
-Student ---down-> "*" Tag
-
-' Keep the inherited and student-specific field types in readable groups.
-Name -[hidden]right- Phone
-
-Email -[hidden]right- Address
-Email -[hidden]down- School
-School -[hidden]right- SchoolingLevel
-
-Tag -[hidden]right- ProgressNote
-ProgressNote -[hidden]right- Lesson
+Person *--> Name
+Person *--> Phone
+Person *--> Email
+Person *--> Address
 @enduml
