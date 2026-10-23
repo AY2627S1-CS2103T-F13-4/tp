@@ -19,6 +19,7 @@ Read the latest entries alongside the agreed product scope. Older tabs and brain
 | What product constraints and contribution expectations apply throughout the TP? | [Standing rules](01-standing-rules.md) |
 | How should we manage issues, PRs, tests, code quality, reuse, and the feature freeze? | [Workflow and quality](03-workflow-and-quality.md) |
 | What must the JAR, UG, DG, diagrams, and website contain? | [Deliverables and release checks](04-deliverables.md) |
+| How do we draw each UML diagram the course's way? | [Diagram guides](diagrams/README.md) |
 | How are contributions assessed, and how do PE reporting and responses work? | [Assessment and PE](05-assessment-and-pe.md) |
 | Which pages were checked, and how do we refresh this reference? | [Sources and refresh procedure](06-sources-and-refresh.md) |
 
