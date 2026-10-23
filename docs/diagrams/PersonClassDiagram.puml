@@ -1,0 +1,49 @@
+@startuml
+!include style.puml
+skinparam arrowThickness 1.1
+skinparam arrowColor MODEL_COLOR
+skinparam classBackgroundColor MODEL_COLOR
+
+abstract class Person
+class Student
+class Guardian
+class Name
+class Phone
+class Email
+class Address
+class School
+class SchoolingLevel
+class Tag
+class Lesson
+class ProgressNote
+
+' Person sits at the head; its identity fields hang off to the sides.
+Person -left-> "1" Name : name
+Person -down-> "1" Phone : phone
+
+' Both students and guardians inherit their identity fields from Person.
+Student -up-|> Person
+Guardian -up-|> Person
+Student -right-> "0..1" Guardian
+
+' Referenced immutable model objects may be shared between student instances.
+Student -down-> "1" Email
+Student -down-> "1" Address
+Student -down-> "0..1" School
+Student -down-> "0..1" SchoolingLevel
+
+Student ---down-> "*" Tag
+Student ---down-> "*" ProgressNote
+Student ---down-> "*" Lesson
+
+' Keep the student-specific field types in readable groups.
+Name -[hidden]down- Phone
+
+Email -[hidden]right- Address
+Address -[hidden]right- School
+School -[hidden]right- SchoolingLevel
+
+Email -[hidden]down- Tag
+Tag -[hidden]right- ProgressNote
+ProgressNote -[hidden]right- Lesson
+@enduml
