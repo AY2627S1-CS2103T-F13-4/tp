@@ -39,52 +39,19 @@ This development version supports contact details, schools, schooling levels, gu
 
 ![StudentBook main window](images/Ui.png)
 
-Type every command in the **command box** at the top. The cursor stays there, so the whole app works from the keyboard.
+Type commands in the box at the top and press **Enter**.
 
-| Screen | Shows | Open it with |
-|---|---|---|
-| **This week** (opens first) | A calendar of every student's lessons | `week`, or the **This week** tab |
-| **Students** | A table of students | `list` or `find`, or the **Students** tab |
-
-The level tabs (e.g. **Sec 3**) run `find level/LEVEL`, **All commands** opens help, and **+ Add student** fills in the `add` format for you.
-
-### This week
-
-* The calendar covers at least 9.00am to 8.00pm, and extends earlier or later to fit any lesson.
-* `#3.1` on a lesson means student `3`, lesson `1`, so `lesson-edit 3 1 ...` changes it. Point at a lesson, or type `view 3`, to see its rate, mode and location.
-* Colours show the school stage: amber for primary, blue for secondary, violet for JC and grey for anything else.
-
-### Students
-
-* Use the number in the **#** column as `INDEX`. **Next lesson** is the student's next lesson in the week, and **Rate** is that lesson's rate.
-* A student's details (school, contacts, guardian, follow-ups, lessons, tags and notes) open under their row when you click it, type `view INDEX`, press **Alt+Down** / **Alt+Up**, or run a `find` that matches one student. Use a lesson's number there as `LESSON_INDEX`.
-
-### Fixing a command
-
-After an error, your command stays in the box so you can fix it.
-
-1. Read the **Format** and **Example** shown under the error.
-1. Press **Tab** to put the Example in the command box.
-1. Edit it and press **Enter**.
-
-### Small windows
-
-* Narrower than 900px: the level tabs and the **Subjects** and **Guardian** columns are hidden.
-* Shorter than 560px: the StudentBook name and the data file path are hidden.
-
-### Keyboard shortcuts
+* **This week** shows your lessons on a calendar (`week`). **Students** shows your students (`list`).
+* A lesson marked `#3.1` is student `3`'s lesson `1`. Edit it with `lesson-edit 3 1 ...`.
+* To see a student's full details, click their row or type `view INDEX`.
+* If a command is wrong, the correct format and an example appear below the box. Press **Tab** to copy the example into the box.
 
 | Key | Action |
 |---|---|
-| Enter | Run the command |
-| Up / Down | Step through earlier commands from this session |
-| Esc | Clear the command box, close a student's details if the box is empty, or close help |
-| Alt+Down / Alt+Up | **This week**: scroll the calendar. **Students**: open the next or previous student's details. (Alt is Option on a Mac.) |
-| Tab | Put the Example from an error into the command box |
-| Page Up / Page Down | Scroll (Fn+Up / Fn+Down on a Mac laptop) |
-| F1 | Open help |
-
-Each shortcut has a command that does the same, such as `week`, `list`, `view INDEX` and `help`.
+| Up / Down | Previous commands |
+| Esc | Clear the box |
+| Alt+Up / Alt+Down | Scroll the calendar, or move between students |
+| F1 | Help |
 
 ## Features
 
@@ -324,29 +291,12 @@ Format: `guardian-delete INDEX`
 
 ## Saving and transferring records
 
-StudentBook saves everything automatically after each successful command, to `data/studentbook.json` in the folder where you start it.
+StudentBook saves automatically to `data/studentbook.json`, in the folder you start it from.
+
+To move to another computer, copy that file into the same place on the new computer.
 
 <div markdown="span" class="alert alert-warning">
-:warning: If saving fails, the app shows an error. The change may still appear on screen but is not saved.
-</div>
-
-To move your records to another computer:
-
-1. Close StudentBook on both computers.
-1. Copy `data/studentbook.json` into a `data` folder (create it if needed) in the folder where you start StudentBook on the new computer.
-1. Start StudentBook there.
-
-### Edit the data file manually
-
-1. Close StudentBook.
-1. Back up `data/studentbook.json`.
-1. Edit the file. Change only the values, and keep the same layout.
-1. Start StudentBook and check that your students are all there.
-
-<div markdown="block" class="alert alert-warning">
-
-:warning: **If the file is invalid, the app starts with an empty list.** The invalid file stays until a command saves over it, so restore your backup before running any command.
-
+:warning: Back up the file before editing it by hand. If the file is invalid, StudentBook starts empty.
 </div>
 
 ## Known issues
@@ -356,16 +306,7 @@ To move your records to another computer:
 
 ### Lesson clash warnings
 
-If a lesson you add or edit overlaps another lesson on the same day, StudentBook **still saves it** and warns "Lesson saved - scheduling clash detected", listing each clashing lesson's student, lesson number, subject and time.
-
-* Every student is checked, including those hidden by a search.
-* Back-to-back lessons, such as 3-4pm then 4-5pm, do not clash.
-* Any lesson edit re-checks, so even a rate change warns again about an existing clash.
-
-To fix a clash:
-
-1. `find` the student named in the warning.
-1. Move the lesson with `lesson-edit INDEX LESSON_INDEX slot/...`, using their `#` number and the lesson number from the warning.
+If a lesson overlaps another lesson, StudentBook still saves it but warns you which lessons clash. Use `lesson-edit` to move one of them.
 
 ## Command summary
 
