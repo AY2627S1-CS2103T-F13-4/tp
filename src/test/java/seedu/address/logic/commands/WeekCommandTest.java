@@ -1,5 +1,7 @@
 package seedu.address.logic.commands;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandSuccess;
 import static seedu.address.logic.commands.CommandTestUtil.showPersonAtIndex;
 import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
@@ -36,5 +38,18 @@ public class WeekCommandTest {
         showPersonAtIndex(model, INDEX_FIRST_PERSON);
         showPersonAtIndex(expectedModel, INDEX_FIRST_PERSON);
         assertCommandSuccess(new WeekCommand(), model, SHOWS_WEEK, expectedModel);
+    }
+
+    @Test
+    public void execute_afterArchiveSearch_returnsToActiveSearch() {
+        showPersonAtIndex(model, INDEX_FIRST_PERSON);
+        showPersonAtIndex(expectedModel, INDEX_FIRST_PERSON);
+        new ListArchiveCommand().execute(model);
+        model.updateFilteredPersonList(student -> false, lesson -> false);
+
+        assertEquals(SHOWS_WEEK, new WeekCommand().execute(model));
+        assertFalse(model.isArchiveView());
+        assertEquals(expectedModel.getFilteredPersonList(), model.getFilteredPersonList());
+        assertEquals(Model.PREDICATE_SHOW_ALL_LESSONS, model.getLessonPredicate().getValue());
     }
 }

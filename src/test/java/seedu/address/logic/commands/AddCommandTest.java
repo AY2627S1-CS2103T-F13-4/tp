@@ -148,6 +148,26 @@ public class AddCommandTest {
         }
 
         @Override
+        public ObservableList<Student> getFilteredActivePersonList() {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
+        public ObservableList<Student> getFilteredArchivedPersonList() {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
+        public void setArchiveView(boolean archiveView) {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
+        public boolean isArchiveView() {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
         public void updateFilteredPersonList(Predicate<Student> predicate) {
             throw new AssertionError("This method should not be called.");
         }

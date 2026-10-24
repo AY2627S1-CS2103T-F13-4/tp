@@ -48,6 +48,19 @@ public class JsonAdaptedPersonTest {
     }
 
     @Test
+    public void toModelType_personDetailsWithoutNotes_preservesArchiveStatus() throws Exception {
+        for (boolean isArchived : new boolean[] {false, true}) {
+            JsonAdaptedPerson person = new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL, VALID_ADDRESS,
+                    VALID_TAGS, null, null, null, null, isArchived);
+            Student expected = BENSON.withArchived(isArchived);
+
+            assertEquals(expected, person.toModelType());
+            String json = JsonUtil.toJsonString(person);
+            assertEquals(expected, JsonUtil.fromJsonString(json, JsonAdaptedPerson.class).toModelType());
+        }
+    }
+
+    @Test
     public void toModelType_validSchool_preservesSchool() throws Exception {
         Student student = new PersonBuilder(BENSON).withSchool(new School(VALID_SCHOOL)).build();
         JsonAdaptedPerson person = new JsonAdaptedPerson(student);

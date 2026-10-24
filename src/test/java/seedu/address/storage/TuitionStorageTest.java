@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.math.BigDecimal;
 import java.nio.file.Path;
 import java.time.DayOfWeek;
+import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
@@ -30,6 +31,7 @@ import seedu.address.model.person.LessonLocation;
 import seedu.address.model.person.LessonMode;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Phone;
+import seedu.address.model.person.ProgressNote;
 import seedu.address.model.person.School;
 import seedu.address.model.person.SchoolingLevel;
 import seedu.address.model.person.Student;
@@ -134,17 +136,22 @@ public class TuitionStorageTest {
 
     @Test
     public void archivedStudent_saveReloadAndUnarchive_preservesArchiveStatus() throws Exception {
-        Student archived = completeStudent().withArchived(true);
+        Student archived = new PersonBuilder(completeStudent())
+                .withNotes(new ProgressNote(LocalDate.of(2026, 10, 15), "Revised fractions"))
+                .withFollowUps("Send progress report", "Confirm next term lessons")
+                .build().withArchived(true);
         AddressBook book = new AddressBook();
         book.addPerson(archived);
         JsonAddressBookStorage storage = new JsonAddressBookStorage(temporaryFolder.resolve("studentbook.json"));
         storage.saveAddressBook(book);
         AddressBook loaded = new AddressBook(storage.readAddressBook().orElseThrow());
-        Student reloaded = loaded.getPersonList().get(0);
+        assertTrue(loaded.getPersonList().isEmpty());
+        Student reloaded = loaded.getArchivedPersonList().get(0);
         assertEquals(archived, reloaded);
 
         Student unarchived = reloaded.withArchived(false);
         loaded.setPerson(reloaded, unarchived);
+        assertTrue(loaded.getArchivedPersonList().isEmpty());
         storage.saveAddressBook(loaded);
         assertEquals(unarchived, storage.readAddressBook().orElseThrow().getPersonList().get(0));
     }
