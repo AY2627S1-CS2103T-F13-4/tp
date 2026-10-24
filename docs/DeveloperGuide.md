@@ -97,7 +97,7 @@ The `DeleteCommandParser` lifeline should end at the X marker; PlantUML draws it
 * Preferences are exposed through `ReadOnlyUserPrefs`.
 * The model does not depend on UI, Logic or Storage.
 
-The diagram shows the original contact model. The [shared tuition model](#shared-tuition-model) section describes the current `Person`, `Student`, `Guardian` and `Lesson` types.
+`Student`'s fields and its relationship to `Person` and `Guardian` are shown in the [shared tuition model](#shared-tuition-model) diagram.
 
 An inherited alternative stores unique tags centrally and lets records reference them:
 
@@ -129,6 +129,8 @@ Clashing changes return `CommandResult.warning`. `MainWindow` routes these succe
 The next success, error or warning result replaces the previous feedback and clears its styling.
 
 ### Shared tuition model
+
+<img src="images/PersonClassDiagram.png" width="500" />
 
 `Person` is an abstract base class holding a `Name` and `Phone`. `Student` and `Guardian` extend it. `isSamePerson` and `equals` compare the runtime class as well as the fields, so a student never equals a guardian. `UniquePersonList` only stores students, and two students are duplicates when their `Name` is exactly equal (case-sensitive).
 
