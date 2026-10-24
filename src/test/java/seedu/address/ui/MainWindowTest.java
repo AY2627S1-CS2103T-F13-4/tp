@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.testutil.FxTestUtil.runOnFxThread;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.nio.file.Path;
 import java.time.DayOfWeek;
@@ -39,9 +40,11 @@ import javafx.stage.Window;
 import javafx.stage.WindowEvent;
 import seedu.address.logic.LogicManager;
 import seedu.address.logic.commands.HelpCommand;
+import seedu.address.logic.commands.ListArchiveCommand;
 import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.commands.WeekCommand;
 import seedu.address.model.ModelManager;
+import seedu.address.model.ReadOnlyAddressBook;
 import seedu.address.model.person.HourlyRate;
 import seedu.address.model.person.Lesson;
 import seedu.address.model.person.Student;
@@ -64,6 +67,7 @@ public class MainWindowTest {
     private ModelManager model;
     private MainWindow mainWindow;
     private Stage stage;
+    private boolean failSaves;
 
     @BeforeAll
     public static void initializeJavaFx() throws Exception {
@@ -78,7 +82,16 @@ public class MainWindowTest {
             model.addPerson(student("Alice", DayOfWeek.MONDAY));
             model.addPerson(student("Bob", DayOfWeek.TUESDAY));
             Path dataFile = temporaryFolder.resolve("students.json");
-            LogicManager logic = new LogicManager(model, new StorageManager(new JsonAddressBookStorage(dataFile),
+            JsonAddressBookStorage addressBookStorage = new JsonAddressBookStorage(dataFile) {
+                @Override
+                public void saveAddressBook(ReadOnlyAddressBook addressBook) throws IOException {
+                    if (failSaves) {
+                        throw new IOException("Test save failure");
+                    }
+                    super.saveAddressBook(addressBook);
+                }
+            };
+            LogicManager logic = new LogicManager(model, new StorageManager(addressBookStorage,
                     new JsonUserPrefsStorage(temporaryFolder.resolve("preferences.json"))));
             stage = new Stage();
             stage.setOpacity(0);
@@ -214,14 +227,178 @@ public class MainWindowTest {
         runOnFxThread(() -> {
             assertEquals(WeekCommand.COMMAND_WORD, navHint("#weekNav"));
             assertEquals(ListCommand.COMMAND_WORD, navHint("#studentsNav"));
+            assertEquals(ListArchiveCommand.COMMAND_WORD, navHint("#archiveNav"));
             assertEquals(HelpCommand.COMMAND_WORD, navHint("#helpNav"));
 
             Button studentsTab = assertInstanceOf(Button.class, stage.getScene().lookup("#studentsNav"));
             studentsTab.fire();
             assertTrue(isShown(studentTable()));
+            Button archiveTab = assertInstanceOf(Button.class, stage.getScene().lookup("#archiveNav"));
+            archiveTab.fire();
+            assertTrue(isShown(archivedStudentTable()));
+            assertFalse(isShown(studentTable()));
+            assertActiveNav("#archiveNav");
             Button weekTab = assertInstanceOf(Button.class, stage.getScene().lookup("#weekNav"));
             weekTab.fire();
             assertTrue(isShown(schedulePlaceholder()));
+            assertFalse(isShown(archivedStudentTable()));
+        });
+    }
+
+    // Archived students have their own table and indices; viewing or editing them stays on their tab.
+    @Test
+    public void listArchive_separateTable_usesArchivedIndicesAndKeepsCalendarActive() throws Exception {
+        runOnFxThread(() -> {
+            submitCommand("add name/Carol phone/91234567 email/carol@example.com address/1");
+            submitCommand("archive 1");
+            submitCommand("archive 2");
+            submitCommand("list-archive");
+
+            ListView<?> archive = archivedStudentTable();
+            assertTrue(isShown(archive));
+            assertFalse(isShown(studentTable()));
+            assertActiveNav("#archiveNav");
+            assertEquals(List.of("Alice", "Carol"), tableNames(archive));
+            assertEquals(List.of("Bob"), tableNames(studentTable()));
+            assertEquals(List.of("Bob"), cardNames(scheduleGrid()));
+            assertEquals("1 lesson", weekSummary());
+
+            submitCommand("view 2");
+            assertEquals(1, archive.getSelectionModel().getSelectedIndex());
+            assertActiveNav("#archiveNav");
+            submitCommand("edit 2 name/Caroline");
+            assertEquals(List.of("Alice", "Caroline"), tableNames(archive));
+            assertEquals(1, archive.getSelectionModel().getSelectedIndex());
+            assertActiveNav("#archiveNav");
+
+            submitCommand("find Caroline");
+            assertEquals(List.of("Caroline"), tableNames(archive));
+            assertActiveNav("#archiveNav");
+            assertEquals(List.of("Bob"), cardNames(scheduleGrid()));
+
+            submitCommand("week");
+            assertTrue(isShown(schedulePlaceholder()));
+            assertActiveNav("#weekNav");
+            assertEquals(List.of("Bob"), model.getFilteredPersonList().stream()
+                    .map(student -> student.getName().fullName).toList());
+            submitCommand("list");
+            assertTrue(isShown(studentTable()));
+            assertFalse(isShown(archive));
+            assertActiveNav("#studentsNav");
+        });
+    }
+
+    // Saving runs after the model changes its list, so a save error must not leave indices on a hidden table.
+    @Test
+    public void listSwitch_saveFails_visibleRowsMatchNextCommandIndices() throws Exception {
+        runOnFxThread(() -> {
+            submitCommand("archive 1");
+            submitCommand("list");
+            failSaves = true;
+            submitFailedCommand("list-archive");
+            assertTrue(isShown(archivedStudentTable()));
+            assertActiveNav("#archiveNav");
+            assertSame(model.getFilteredPersonList(), archivedStudentTable().getItems());
+            assertEquals(List.of("Alice"), tableNames(archivedStudentTable()));
+
+            failSaves = false;
+            submitCommand("edit 1 name/Alicia");
+            assertEquals(List.of("Alicia"), tableNames(archivedStudentTable()));
+            assertEquals(List.of("Bob"), tableNames(studentTable()));
+
+            failSaves = true;
+            submitFailedCommand("list");
+            assertTrue(isShown(studentTable()));
+            assertActiveNav("#studentsNav");
+            assertSame(model.getFilteredPersonList(), studentTable().getItems());
+            assertEquals(List.of("Bob"), tableNames(studentTable()));
+
+            failSaves = false;
+            submitCommand("edit 1 name/Bobby");
+            assertEquals(List.of("Bobby"), tableNames(studentTable()));
+            assertEquals(List.of("Alicia"), tableNames(archivedStudentTable()));
+        });
+    }
+
+    @Test
+    public void weekSwitch_saveFails_showsActiveRowsAndPreservesWeekForOrdinaryErrors() throws Exception {
+        runOnFxThread(() -> {
+            submitCommand("archive 1");
+            submitCommand("list-archive");
+            failSaves = true;
+            submitFailedCommand("week");
+            assertTrue(isShown(studentTable()));
+            assertActiveNav("#studentsNav");
+            assertSame(model.getFilteredPersonList(), studentTable().getItems());
+
+            failSaves = false;
+            submitCommand("week");
+            submitFailedCommand("view");
+            assertTrue(isShown(schedulePlaceholder()));
+            assertActiveNav("#weekNav");
+            submitFailedCommand("delete 99");
+            assertTrue(isShown(schedulePlaceholder()));
+            assertActiveNav("#weekNav");
+        });
+    }
+
+    // Both lists share the same columns and keyboard controls, while keeping their open details independent.
+    @Test
+    public void archivedTable_sameLayoutAndKeyboardControlsAsStudents() throws Exception {
+        runOnFxThread(() -> {
+            submitCommand("archive 1");
+            submitCommand("archive 1");
+            submitCommand("list-archive");
+            ListView<?> archive = archivedStudentTable();
+            assertEquals(tableHeadings(studentTable()), tableHeadings(archive));
+            assertEquals(studentTable().getStyleClass(), archive.getStyleClass());
+
+            pressKey(KeyCode.ESCAPE, false);
+            assertEquals(-1, archive.getSelectionModel().getSelectedIndex());
+            pressKey(KeyCode.DOWN, true);
+            assertEquals(0, archive.getSelectionModel().getSelectedIndex());
+            pressKey(KeyCode.DOWN, true);
+            assertEquals(1, archive.getSelectionModel().getSelectedIndex());
+            assertEquals(-1, studentTable().getSelectionModel().getSelectedIndex());
+        });
+    }
+
+    // Level chips come from the selected list, so archived levels do not leak into the active table.
+    @Test
+    public void levelFilters_selectedArchive_followsArchivedLevels() throws Exception {
+        runOnFxThread(() -> {
+            submitCommand("edit 1 level/P5");
+            submitCommand("edit 2 level/Sec 3");
+            submitCommand("archive 1");
+            assertEquals(List.of("Sec 3"), levelFilterNames());
+            submitCommand("list-archive");
+            assertEquals(List.of("P5"), levelFilterNames());
+            Button primary = assertInstanceOf(Button.class, levelNav().getChildren().get(1));
+            primary.fire();
+            assertActiveNav("#archiveNav");
+            assertEquals(List.of("Alice"), tableNames(archivedStudentTable()));
+            submitCommand("list");
+            assertEquals(List.of("Sec 3"), levelFilterNames());
+        });
+    }
+
+    @Test
+    public void tabs_minimumWindowWidth_allCommandsFit() throws Exception {
+        resizeWindow(1000);
+        resizeWindow(FxTestUtil.callOnFxThread(stage::getMinWidth));
+        runOnFxThread(() -> {
+            Node navBar = stage.getScene().lookup("#navBar");
+            double rightEdge = navBar.localToScene(navBar.getBoundsInLocal()).getMaxX();
+            double previousRightEdge = navBar.localToScene(navBar.getBoundsInLocal()).getMinX();
+            for (String id : List.of("#weekNav", "#studentsNav", "#archiveNav", "#helpNav")) {
+                Button tab = assertInstanceOf(Button.class, stage.getScene().lookup(id));
+                double tabLeft = tab.localToScene(tab.getBoundsInLocal()).getMinX();
+                double tabRight = tab.localToScene(tab.getBoundsInLocal()).getMaxX();
+                assertTrue(tabLeft >= previousRightEdge, id + " should not overlap the previous tab");
+                assertTrue(tabRight <= rightEdge, id + " should fit in the navigation bar");
+                assertGraphicFits(tab);
+                previousRightEdge = tabRight;
+            }
         });
     }
 
@@ -244,6 +421,8 @@ public class MainWindowTest {
             assertEquals(4, filters.size());
             assertTrue(filters.get(0).isVisible());
             assertFalse(filters.get(3).isVisible());
+            filters.stream().map(filter -> assertInstanceOf(Button.class, filter))
+                    .forEach(MainWindowTest::assertGraphicFits);
             assertVisibleFiltersFit();
         });
         double widthNeeded = FxTestUtil.callOnFxThread(() -> {
@@ -535,6 +714,14 @@ public class MainWindowTest {
         }
     }
 
+    private static void assertGraphicFits(Button button) {
+        Node graphic = button.getGraphic();
+        assertTrue(graphic.localToScene(graphic.getBoundsInLocal()).getMinX()
+                >= button.localToScene(button.getBoundsInLocal()).getMinX());
+        assertTrue(graphic.localToScene(graphic.getBoundsInLocal()).getMaxX()
+                <= button.localToScene(button.getBoundsInLocal()).getMaxX());
+    }
+
     private List<String> levelFilterNames() {
         // Read from each filter's graphic, as a filter added since the last layout has no skin to look up yet
         return levelNav().getChildren().stream().skip(1)
@@ -552,8 +739,22 @@ public class MainWindowTest {
         return assertInstanceOf(Label.class, stage.getScene().lookup("#emptyState").lookup(selector));
     }
 
-    private Node studentTable() {
-        return stage.getScene().lookup("#personListView");
+    private ListView<?> studentTable() {
+        return assertInstanceOf(ListView.class, mainWindow.getPersonListPanel().getRoot().lookup("#personListView"));
+    }
+
+    private ListView<?> archivedStudentTable() {
+        return stage.getScene().getRoot().lookupAll("#personListView").stream().filter(node -> node != studentTable())
+                .map(node -> assertInstanceOf(ListView.class, node)).findFirst().orElseThrow();
+    }
+
+    private static List<String> tableNames(ListView<?> table) {
+        return table.getItems().stream().map(Student.class::cast).map(student -> student.getName().fullName).toList();
+    }
+
+    private static List<String> tableHeadings(ListView<?> table) {
+        return table.getParent().lookupAll(".table-heading").stream().map(Label.class::cast).map(Label::getText)
+                .sorted().toList();
     }
 
     /** Reads school sections from the open row after the list has laid out any replacement cells. */
@@ -599,7 +800,7 @@ public class MainWindowTest {
     }
 
     private void assertActiveNav(String activeId) {
-        for (String id : List.of("#weekNav", "#studentsNav")) {
+        for (String id : List.of("#weekNav", "#studentsNav", "#archiveNav")) {
             boolean active = stage.getScene().lookup(id).getStyleClass().contains("nav-item-active");
             assertEquals(id.equals(activeId), active, id);
         }
@@ -610,6 +811,13 @@ public class MainWindowTest {
         commandField.setText(command);
         commandField.fireEvent(new ActionEvent());
         assertEquals("", commandField.getText(), "Command should execute successfully: " + command);
+    }
+
+    private void submitFailedCommand(String command) {
+        TextField commandField = commandField();
+        commandField.setText(command);
+        commandField.fireEvent(new ActionEvent());
+        assertEquals(command, commandField.getText(), "A rejected command should remain available to correct");
     }
 
     private static List<String> cardNames(GridPane grid) {

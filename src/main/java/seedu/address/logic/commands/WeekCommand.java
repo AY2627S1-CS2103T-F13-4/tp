@@ -16,7 +16,8 @@ public class WeekCommand extends Command {
     @Override
     public CommandResult execute(Model model) {
         requireNonNull(model);
-        // Keep the current find results; calendar numbers use the same displayed student list.
+        // Keep active find results; calendar numbers use the same displayed active student list.
+        model.setArchiveView(false);
         return new CommandResult(MESSAGE_SUCCESS, CommandResult.Screen.WEEK);
     }
 }

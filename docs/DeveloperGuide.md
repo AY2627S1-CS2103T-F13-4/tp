@@ -117,10 +117,26 @@ Shared helpers live in `seedu.address.commons`.
 
 ## Implementation
 
+### Active and archived student lists
+
+`AddressBook` stores active and archived students in separate `UniquePersonList` instances, exposed as unmodifiable
+observable lists by `getPersonList()` and `getArchivedPersonList()`. Duplicate checks cover both lists. Archiving and
+restoring replace the immutable student with a copy carrying the new archive status and move it to the corresponding
+list, preserving all other details. Copying, resetting and clearing the address book include both lists.
+
+`ModelManager` filters and sorts each list independently using the same school-stage grouping. `list` selects the
+active list, while `list-archive` selects the archived list; `getFilteredPersonList()` supplies the selected list for
+searches and indexed commands. `MainWindow` binds two instances of the same `PersonListPanel` to the respective lists.
+The calendar always observes the active list, and `week` selects it without clearing its search or lesson filters.
+
+JSON files retain the existing `persons` array and `isArchived` flag. Storage writes both lists and partitions records
+by their archive status when loading, so existing files remain compatible.
+
 ### Lesson clash detection
 
-After a valid lesson addition or edit, `LessonCommand` calls `LessonClashes.warning` with the complete student list
-and the changed lesson's position. The helper excludes that lesson itself and checks every other lesson.
+After a valid lesson addition or edit, `LessonCommand` calls `LessonClashes.warning` with the complete active or archived
+student list matching the edited student and the changed lesson's position. Search filters do not limit clash checks.
+The helper excludes that lesson itself and checks every other lesson in that list.
 Intervals clash when their weekdays match and each starts strictly before the other ends. Thus touching endpoints
 are allowed. The warning is appended to normal success feedback; existing validation and persistence still apply.
 Deleting a lesson requires no clash warning. No clash state is stored, so each warning reflects current records.

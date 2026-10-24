@@ -168,6 +168,7 @@ public class LessonCommandTest {
     public void execute_editArchivedStudentLesson_preservesArchiveStatus() throws CommandException {
         Student archived = withLessons(firstStudent(), FULL_LESSON).withArchived(true);
         model.setPerson(firstStudent(), archived);
+        new ListArchiveCommand().execute(model);
         model.updateFilteredPersonList(archived::isSamePerson);
         LessonCommand command = new LessonCommand(INDEX_FIRST_PERSON, Operation.EDIT,
                 Optional.of(INDEX_FIRST_LESSON), Optional.of(ENGLISH), Optional.empty(), Optional.empty(),
@@ -179,6 +180,76 @@ public class LessonCommandTest {
         assertEquals(withLessons(archived,
                 new Lesson(ENGLISH, MONDAY, RATE, Optional.of(LIBRARY), Optional.of(LessonMode.PHYSICAL))), edited);
         assertTrue(edited.isArchived());
+    }
+
+    @Test
+    public void execute_addArchivedLessonOverlappingOwnLesson_warns() throws CommandException {
+        Student archived = withLessons(firstStudent(), FULL_LESSON).withArchived(true);
+        model.setPerson(firstStudent(), archived);
+        new ListArchiveCommand().execute(model);
+
+        CommandResult result = add(INDEX_FIRST_PERSON, ENGLISH, MONDAY).execute(model);
+
+        assertTrue(result.isWarning());
+        assertTrue(result.getFeedbackToUser().contains(archived.getName() + ", lesson 1"));
+        assertTrue(result.getFeedbackToUser().contains("overlaps with 1 lesson(s)"));
+        assertEquals(withLessons(archived, FULL_LESSON, new Lesson(ENGLISH, MONDAY, RATE)), firstStudent());
+    }
+
+    @Test
+    public void execute_editArchivedLessonOverlappingOwnLesson_warns() throws CommandException {
+        Student archived = withLessons(firstStudent(), FULL_LESSON, new Lesson(ENGLISH, TUESDAY, RATE))
+                .withArchived(true);
+        model.setPerson(firstStudent(), archived);
+        new ListArchiveCommand().execute(model);
+        LessonCommand command = new LessonCommand(INDEX_FIRST_PERSON, Operation.EDIT,
+                Optional.of(INDEX_SECOND_LESSON), Optional.empty(), Optional.of(MONDAY), Optional.empty(),
+                Optional.empty(), Optional.empty());
+
+        CommandResult result = command.execute(model);
+
+        assertTrue(result.isWarning());
+        assertTrue(result.getFeedbackToUser().contains(archived.getName() + ", lesson 1"));
+        assertTrue(result.getFeedbackToUser().contains("overlaps with 1 lesson(s)"));
+        assertEquals(withLessons(archived, FULL_LESSON, new Lesson(ENGLISH, MONDAY, RATE)), firstStudent());
+    }
+
+    @Test
+    public void execute_addArchivedLesson_warnsForHiddenArchivedPeerOnly() throws CommandException {
+        Student archived = firstStudent().withArchived(true);
+        model.setPerson(firstStudent(), archived);
+        Student archivedPeer = new PersonBuilder().withName("Archived Peer").withLessons(FULL_LESSON).build()
+                .withArchived(true);
+        Student activePeer = new PersonBuilder().withName("Active Peer").withLessons(FULL_LESSON).build();
+        model.addPerson(archivedPeer);
+        model.addPerson(activePeer);
+        new ListArchiveCommand().execute(model);
+        model.updateFilteredPersonList(archived::isSamePerson);
+
+        CommandResult result = add(INDEX_FIRST_PERSON, ENGLISH, MONDAY).execute(model);
+
+        assertTrue(result.isWarning());
+        assertTrue(result.getFeedbackToUser().contains("Archived Peer, lesson 1"));
+        assertFalse(result.getFeedbackToUser().contains("Active Peer"));
+        assertTrue(result.getFeedbackToUser().contains("overlaps with 1 lesson(s)"));
+    }
+
+    @Test
+    public void execute_addActiveLesson_warnsForHiddenActivePeerOnly() throws CommandException {
+        Student student = firstStudent();
+        Student activePeer = new PersonBuilder().withName("Active Peer").withLessons(FULL_LESSON).build();
+        Student archivedPeer = new PersonBuilder().withName("Archived Peer").withLessons(FULL_LESSON).build()
+                .withArchived(true);
+        model.addPerson(activePeer);
+        model.addPerson(archivedPeer);
+        model.updateFilteredPersonList(student::isSamePerson);
+
+        CommandResult result = add(INDEX_FIRST_PERSON, ENGLISH, MONDAY).execute(model);
+
+        assertTrue(result.isWarning());
+        assertTrue(result.getFeedbackToUser().contains("Active Peer, lesson 1"));
+        assertFalse(result.getFeedbackToUser().contains("Archived Peer"));
+        assertTrue(result.getFeedbackToUser().contains("overlaps with 1 lesson(s)"));
     }
 
     @Test

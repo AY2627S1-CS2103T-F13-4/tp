@@ -39,10 +39,10 @@ This development version supports contact details, schools, schooling levels, gu
 
 ![StudentBook main window](images/Ui.png)
 
-The command box sits at the top of the window, under the StudentBook name, since you use the app by typing. The app opens on **This week**, a calendar of every student's lessons. `list` and `find` show the **Students** table instead, and `week` brings the calendar back.
+The command box sits at the top of the window, under the StudentBook name, since you use the app by typing. The app opens on **This week**, a calendar of active students' lessons. `list` shows the **Students** table, `list-archive` shows the **Archives** table, and `week` brings the calendar back. `find` searches the currently selected student list.
 
 * **This week:** The calendar shows Monday to Sunday of the current week, with today's date circled and a red line at the current time. It always shows 9.00am to 8.00pm, and stretches to fit any lesson outside those hours. Each lesson shows the student, the time, and then its number, level and subject, such as `#3.1 · Sec 3 · A-Math`. The number means student `3`, lesson `1`, so `lesson-edit 3 1` changes that lesson. Lessons are coloured by school stage, as shown in the key at the top right. Lessons at the same time sit side by side, and that day widens to fit them. To see a lesson's rate, mode and location, type `view` with its student's number (e.g. `view 3` for `#3.1`), or point at the lesson. The calendar opens scrolled to the current time.
-* **Tabs:** The row under the command box has **This week**, which runs `week`, and **Students**, which runs `list`; each tab shows the command it runs. After them, each schooling level in use runs `find level/LEVEL` (point at one to see the command). **All commands** at the right opens help. The levels are hidden in windows narrower than 900px, and any that do not fit are left out. In windows shorter than 560px, the StudentBook name and the data file path at the bottom are hidden to leave room for your students.
+* **Tabs:** The row under the command box has **This week**, which runs `week`, **Students**, which runs `list`, and **Archives**, which runs `list-archive`; each tab shows the command it runs. The two student tables use the same layout, grouping and detail controls. After them, each schooling level in the selected list runs `find level/LEVEL` (point at one to see the command). **All commands** at the right opens help. The levels are hidden in windows narrower than 900px, and any that do not fit are left out. In windows shorter than 560px, the StudentBook name and the data file path at the bottom are hidden to leave room for your students.
 * **Header:** The page header shows how many students there are. **+ Add student** puts the `add` format in the command box for you to fill in.
 * **Student list:** The list is a table with one row per student and the columns **#**, **Name**, **Subjects**, **Next lesson**, **Rate** and **Guardian**. **Next lesson** is the lesson that comes next in the week, with `+2 more` when the student has others; **Rate** is that lesson's rate. Use the number in the **#** column as `INDEX`. In narrow windows the Subjects and Guardian columns are hidden.
 * **Student details:** On the **Students** table, a student's details open under their row: school, phone, email and address together, followed by guardian information, lessons and tags. Each lesson shows its number, subject, day and time, rate, mode and location. Details open when a search leaves one student (e.g. `find hafiz`), when you press **Alt+Down** or **Alt+Up** to step through students, or when you click a row. Press **Esc** in an empty command box to close them. Use a lesson's number in the details as `LESSON_INDEX`.
@@ -116,9 +116,21 @@ Examples:
 
 ### List all students: `list`
 
-Shows a list of all students in StudentBook, grouped by schooling level.
+Shows all active students in StudentBook, grouped by schooling level, and selects this list for searches and indexed commands.
 
 Format: `list`
+
+### List archived students: `list-archive`
+
+Shows all archived students in a separate **Archives** tab with the same layout as **Students**. Searches and commands using `INDEX` now use this list. Type `list` to return to active students.
+
+Format: `list-archive`
+
+### Archive or restore a student: `archive`, `unarchive`
+
+`archive INDEX` moves an active student to the archived list, keeping their details, lessons, notes and follow-ups. Archived students do not appear in the active list or weekly calendar.
+
+To restore a student, run `list-archive`, then `unarchive INDEX` using the number shown in that tab. The student moves back to the active list; the archived tab stays open. Run `list` to see the restored student.
 
 ### Edit a student: `edit`
 
@@ -146,7 +158,7 @@ Examples:
 
 ### Show weekly lessons: `week`
 
-Displays all lessons for students in the current list display.
+Displays lessons for active students, retaining the active list's search and lesson filters. Running `week` from the archived tab returns to active students.
 
 Format: `week`
 

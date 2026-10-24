@@ -30,10 +30,12 @@ public class UnarchiveCommandParserTest {
                 new UserPrefs());
         Model expectedModel = new ModelManager(
                 new AddressBookBuilder().withPerson(ALICE).withPerson(BENSON).build(), new UserPrefs());
+        model.setArchiveView(true);
+        expectedModel.setArchiveView(true);
         String expectedMessage = String.format(UnarchiveCommand.MESSAGE_UNARCHIVE_PERSON_SUCCESS,
                 Messages.format(BENSON.withArchived(true)));
 
-        assertCommandSuccess(parser.parse(" 2 "), model, expectedMessage, expectedModel);
+        assertCommandSuccess(parser.parse(" 1 "), model, expectedMessage, expectedModel);
     }
 
     @Test
