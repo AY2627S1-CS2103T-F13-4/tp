@@ -32,8 +32,17 @@ public interface Logic {
      */
     ReadOnlyAddressBook getAddressBook();
 
-    /** Returns an unmodifiable view of the filtered list of persons */
+    /** Returns an unmodifiable view of the selected active or archived student list. */
     ObservableList<Student> getFilteredPersonList();
+
+    /** Returns an unmodifiable view of the filtered active student list. */
+    ObservableList<Student> getFilteredActivePersonList();
+
+    /** Returns an unmodifiable view of the filtered archived student list. */
+    ObservableList<Student> getFilteredArchivedPersonList();
+
+    /** Returns whether commands currently use the archived student list. */
+    boolean isArchiveView();
 
     /** Returns the active calendar lesson filter. */
     ObservableValue<Predicate<Lesson>> getLessonPredicate();

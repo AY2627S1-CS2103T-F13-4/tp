@@ -27,6 +27,9 @@ public class ModelManager implements Model {
     private final UserPrefs userPrefs;
     private final FilteredList<Student> filteredPersons;
     private final SortedList<Student> shownPersons;
+    private final FilteredList<Student> filteredArchivedPersons;
+    private final SortedList<Student> shownArchivedPersons;
+    private boolean archiveView;
     private final ReadOnlyObjectWrapper<Predicate<Lesson>> lessonPredicate =
             new ReadOnlyObjectWrapper<>(PREDICATE_SHOW_ALL_LESSONS);
 
@@ -40,13 +43,18 @@ public class ModelManager implements Model {
 
         this.addressBook = new AddressBook(addressBook);
         this.userPrefs = new UserPrefs(userPrefs);
-        filteredPersons = new FilteredList<>(this.addressBook.getPersonList());
+        filteredPersons = new FilteredList<>(this.addressBook.getPersonList(), PREDICATE_SHOW_ALL_PERSONS);
         // Shown grouped by school stage (Primary, Secondary, JC, then others), keeping the order added within each.
         // Commands use this list too, so the numbers on screen always match command indices. The tie-break on the
         // stored order matters: without it an edited student can move within its group and change its number.
         ObservableList<Student> stored = this.addressBook.getPersonList();
         shownPersons = new SortedList<>(filteredPersons,
                 Comparator.comparing(Student::getStage).thenComparingInt(stored::indexOf));
+        filteredArchivedPersons = new FilteredList<>(this.addressBook.getArchivedPersonList(),
+                PREDICATE_SHOW_ALL_PERSONS);
+        ObservableList<Student> archived = this.addressBook.getArchivedPersonList();
+        shownArchivedPersons = new SortedList<>(filteredArchivedPersons,
+                Comparator.comparing(Student::getStage).thenComparingInt(archived::indexOf));
     }
 
     public ModelManager() {
@@ -127,7 +135,27 @@ public class ModelManager implements Model {
      */
     @Override
     public ObservableList<Student> getFilteredPersonList() {
+        return archiveView ? shownArchivedPersons : shownPersons;
+    }
+
+    @Override
+    public ObservableList<Student> getFilteredActivePersonList() {
         return shownPersons;
+    }
+
+    @Override
+    public ObservableList<Student> getFilteredArchivedPersonList() {
+        return shownArchivedPersons;
+    }
+
+    @Override
+    public void setArchiveView(boolean archiveView) {
+        this.archiveView = archiveView;
+    }
+
+    @Override
+    public boolean isArchiveView() {
+        return archiveView;
     }
 
     @Override
@@ -139,8 +167,12 @@ public class ModelManager implements Model {
     public void updateFilteredPersonList(Predicate<Student> predicate, Predicate<Lesson> lessonPredicate) {
         requireNonNull(predicate);
         requireNonNull(lessonPredicate);
-        filteredPersons.setPredicate(predicate);
-        this.lessonPredicate.set(lessonPredicate);
+        if (archiveView) {
+            filteredArchivedPersons.setPredicate(predicate);
+        } else {
+            filteredPersons.setPredicate(predicate);
+            this.lessonPredicate.set(lessonPredicate);
+        }
     }
 
     @Override
@@ -162,6 +194,8 @@ public class ModelManager implements Model {
         return addressBook.equals(otherModelManager.addressBook)
                 && userPrefs.equals(otherModelManager.userPrefs)
                 && filteredPersons.equals(otherModelManager.filteredPersons)
+                && filteredArchivedPersons.equals(otherModelManager.filteredArchivedPersons)
+                && archiveView == otherModelManager.archiveView
                 && lessonPredicate.get().equals(otherModelManager.lessonPredicate.get());
     }
 

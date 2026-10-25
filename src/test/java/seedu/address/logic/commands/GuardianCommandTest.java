@@ -59,6 +59,7 @@ public class GuardianCommandTest {
         Student archived = new PersonBuilder().withGuardian(originalGuardian).build().withArchived(true);
         Model model = new ModelManager();
         model.addPerson(archived);
+        new ListArchiveCommand().execute(model);
         model.updateFilteredPersonList(archived::isSamePerson);
         Phone updatedPhone = new Phone("98765432");
         GuardianCommand command = new GuardianCommand(INDEX_FIRST_PERSON, Operation.EDIT,

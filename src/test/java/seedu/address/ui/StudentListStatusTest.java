@@ -35,6 +35,16 @@ public class StudentListStatusTest {
         assertEquals("list", StudentListStatus.emptyCommand(3));
     }
 
+    @Test
+    public void emptyState_archive_suggestsTheAppropriateStudentList() {
+        assertEquals("No archived students yet", StudentListStatus.emptyTitle(0, true));
+        assertEquals("View your active students with:", StudentListStatus.emptyDetail(0, true));
+        assertEquals("list", StudentListStatus.emptyCommand(0, true));
+        assertEquals("No students match", StudentListStatus.emptyTitle(3, true));
+        assertEquals("Show all 3 students with:", StudentListStatus.emptyDetail(3, true));
+        assertEquals("list-archive", StudentListStatus.emptyCommand(3, true));
+    }
+
     // The empty states show commands to type as they are, so each must work in the state it is shown in:
     // the add on an empty book, then the week screen's lesson-add on the student it just added.
     @Test

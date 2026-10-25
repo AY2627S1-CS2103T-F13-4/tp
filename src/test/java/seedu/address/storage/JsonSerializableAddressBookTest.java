@@ -2,9 +2,12 @@ package seedu.address.storage;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static seedu.address.testutil.Assert.assertThrows;
+import static seedu.address.testutil.TypicalPersons.ALICE;
+import static seedu.address.testutil.TypicalPersons.BENSON;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
@@ -42,6 +45,38 @@ public class JsonSerializableAddressBookTest {
                 JsonSerializableAddressBook.class).get();
         assertThrows(IllegalValueException.class, JsonSerializableAddressBook.MESSAGE_DUPLICATE_PERSON,
                 dataFromFile::toModelType);
+    }
+
+    @Test
+    public void toModelType_duplicateAcrossArchiveStatuses_throwsIllegalValueException() {
+        JsonSerializableAddressBook data = new JsonSerializableAddressBook(List.of(new JsonAdaptedPerson(ALICE),
+                new JsonAdaptedPerson(ALICE.withArchived(true))));
+
+        assertThrows(IllegalValueException.class, JsonSerializableAddressBook.MESSAGE_DUPLICATE_PERSON,
+                data::toModelType);
+    }
+
+    @Test
+    public void toModelType_mixedArchiveStatuses_separatesLists() throws Exception {
+        JsonSerializableAddressBook data = new JsonSerializableAddressBook(List.of(
+                new JsonAdaptedPerson(ALICE.withArchived(true)), new JsonAdaptedPerson(BENSON)));
+
+        AddressBook addressBook = data.toModelType();
+
+        assertEquals(List.of(BENSON), addressBook.getPersonList());
+        assertEquals(List.of(ALICE.withArchived(true)), addressBook.getArchivedPersonList());
+    }
+
+    @Test
+    public void jsonRoundTrip_activeAndArchivedPersons_preservesBothLists() throws Exception {
+        AddressBook original = new AddressBook();
+        original.addPerson(ALICE);
+        original.addPerson(BENSON.withArchived(true));
+
+        String json = JsonUtil.toJsonString(new JsonSerializableAddressBook(original));
+        AddressBook reloaded = JsonUtil.fromJsonString(json, JsonSerializableAddressBook.class).toModelType();
+
+        assertEquals(original, reloaded);
     }
 
 }

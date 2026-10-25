@@ -74,6 +74,21 @@ public class LogicManager implements Logic {
     }
 
     @Override
+    public ObservableList<Student> getFilteredActivePersonList() {
+        return model.getFilteredActivePersonList();
+    }
+
+    @Override
+    public ObservableList<Student> getFilteredArchivedPersonList() {
+        return model.getFilteredArchivedPersonList();
+    }
+
+    @Override
+    public boolean isArchiveView() {
+        return model.isArchiveView();
+    }
+
+    @Override
     public ObservableValue<Predicate<Lesson>> getLessonPredicate() {
         return model.getLessonPredicate();
     }

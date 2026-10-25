@@ -13,7 +13,7 @@ import seedu.address.model.person.Student;
  */
 public interface Model {
     /** {@code Predicate} that always evaluates to true */
-    Predicate<Student> PREDICATE_SHOW_ALL_PERSONS = student -> !student.isArchived();
+    Predicate<Student> PREDICATE_SHOW_ALL_PERSONS = unused -> true;
     Predicate<Lesson> PREDICATE_SHOW_ALL_LESSONS = unused -> true;
 
     /**
@@ -75,16 +75,28 @@ public interface Model {
      */
     void setPerson(Student target, Student editedPerson);
 
-    /** Returns an unmodifiable view of the filtered person list */
+    /** Returns an unmodifiable view of the selected active or archived student list. */
     ObservableList<Student> getFilteredPersonList();
 
+    /** Returns an unmodifiable view of the filtered active student list. */
+    ObservableList<Student> getFilteredActivePersonList();
+
+    /** Returns an unmodifiable view of the filtered archived student list. */
+    ObservableList<Student> getFilteredArchivedPersonList();
+
+    /** Selects which student list filters and indexed commands use, retaining each list's filter. */
+    void setArchiveView(boolean archiveView);
+
+    /** Returns whether filters and indexed commands currently use the archived student list. */
+    boolean isArchiveView();
+
     /**
-     * Updates the filter of the filtered person list to filter by the given {@code predicate}.
+     * Updates the selected student list to filter by the given {@code predicate}.
      * @throws NullPointerException if {@code predicate} is null.
      */
     void updateFilteredPersonList(Predicate<Student> predicate);
 
-    /** Updates the students shown and the lessons shown for those students in the calendar. */
+    /** Updates the selected students and, when viewing active students, their calendar lesson filter. */
     void updateFilteredPersonList(Predicate<Student> predicate, Predicate<Lesson> lessonPredicate);
 
     /** The calendar observes this even when the same students match two different lesson searches. */
