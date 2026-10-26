@@ -3,6 +3,7 @@ package seedu.address.model.person;
 import static java.util.Objects.requireNonNull;
 import static seedu.address.commons.util.AppUtil.checkArgument;
 
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /** An immutable, normalized tuition label. */
@@ -21,6 +22,8 @@ public final class SchoolingLevel {
     private static final Pattern PRIMARY = Pattern.compile("(?i)(p|pri|primary)\\s*[1-6](\\s.*)?");
     private static final Pattern SECONDARY = Pattern.compile("(?i)(s|sec|secondary)\\s*[1-5](\\s.*)?");
     private static final Pattern JC = Pattern.compile("(?i)(j|jc|junior college)\\s*[1-3](\\s.*)?");
+
+    private static final Pattern NUMBER = Pattern.compile("\\d");
 
     public final String value;
 
@@ -58,6 +61,12 @@ public final class SchoolingLevel {
             return Stage.JC;
         }
         return Stage.OTHER;
+    }
+
+    /** Returns the year number in this level, e.g. 5 for "P5", or {@code Integer.MAX_VALUE} if it has none. */
+    public int number() {
+        Matcher matcher = NUMBER.matcher(value);
+        return stage() != Stage.OTHER && matcher.find() ? Integer.parseInt(matcher.group()) : Integer.MAX_VALUE;
     }
 
     private static String normalize(String text) {
