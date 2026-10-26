@@ -129,6 +129,7 @@ public class Student extends Person {
         return Comparator.comparing(Student::getStage)
                 .thenComparingInt(student ->
                         student.schoolingLevel.map(SchoolingLevel::number).orElse(Integer.MAX_VALUE))
+                .thenComparing(student -> student.schoolingLevel.isEmpty())
                 .thenComparing(student -> student.schoolingLevel
                         .filter(level -> level.number() == Integer.MAX_VALUE)
                         .map(level -> level.value.toLowerCase()).orElse(""))
