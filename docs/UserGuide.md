@@ -108,7 +108,7 @@ Examples:
 <div markdown="block" class="alert alert-primary">
 
 :bulb: **Tips:**<br>
-* A new student has no lessons or guardians. Add them with [`lesson-add`](#manage-a-students-lessons) and [`guardian-add`](#manage-a-students-guardian-contact) respectively.
+* A new student has no lessons or guardians. Add them with [`lesson-add`](#add-a-lesson-lesson-add) and [`guardian-add`](#add-a-guardian-guardian-add) respectively.
 * The added student cannot share a name with an existing one (case-sensitive).
 
 </div>
@@ -152,7 +152,7 @@ Examples:
 <div markdown="block" class="alert alert-primary">
 
 :bulb: **Tips:**<br>
-* To edit a student's lessons or guardians, use [`lesson-edit`](#manage-a-students-lessons) and [`guardian-edit`](#manage-a-students-guardian-contact) respectively.
+* To edit a student's lessons or guardians, use [`lesson-edit`](#edit-a-lesson-lesson-edit) and [`guardian-edit`](#edit-a-guardian-guardian-edit) respectively.
 
 </div>
 
@@ -301,8 +301,8 @@ Format: `guardian-edit INDEX [name/NAME] [phone/PHONE]`
 * Existing values will be updated to the input values.
 
 Examples:
-* `edit 1 name/Jane Doe`
-* `edit 1 name/81234567`
+* `guardian-edit 1 name/Jane Doe` changes the first displayed student's guardian name.
+* `guardian-edit 1 phone/81234567` changes the first displayed student's guardian phone.
 
 ### Delete a guardian: `guardian-delete`
 
@@ -356,6 +356,9 @@ Lesson numbers in warnings belong to the named student's lesson list; find that 
 | Clear schooling level | `edit INDEX level/` |
 | Find | `find KEYWORD [MORE_KEYWORDS]` or `find [name/TEXT] [guardian/TEXT] [sch/TEXT] [level/TEXT] [subject/TEXT] [day/DAY]` |
 | List | `list` |
+| List archived students | `list-archive` |
+| Archive | `archive INDEX` |
+| Restore from archive | `unarchive INDEX` |
 | This week's lessons | `week` |
 | A student's details | `view INDEX` |
 | Add lesson | `lesson-add STUDENT_INDEX subject/SUBJECT slot/LESSON_SLOT rate/HOURLY_RATE [mode/MODE] [location/LOCATION]` |
