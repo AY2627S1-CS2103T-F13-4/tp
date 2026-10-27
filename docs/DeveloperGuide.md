@@ -163,9 +163,6 @@ The `Model` component stores:
 * the filter for `Lesson`s
 * user preferences in `UserPrefs`
 
-
-`Student`'s fields and its relationship to `Person` and `Guardian` are shown in the [shared tuition model](#shared-tuition-model) diagram.
-
 <div markdown="span" class="alert alert-info">
 
 :information_source: An alternative, more object-oriented design keeps a list of unique tags in `AddressBook`, then each `Student` references tags in that list, allowing `AddressBook` to maintain one `Tag` object per unique tag instead of each `Student` holding its own `Tag` object.
@@ -174,6 +171,11 @@ The `Model` component stores:
 
 This alternative is not the current implementation.
 </div>
+<br>
+
+`Student`'s fields and its relationship to `Person` and `Guardian` are shown in the following diagram.
+
+<img src="images/PersonClassDiagram.png" width="500" />
 
 ### Storage component
 
@@ -196,6 +198,8 @@ This section describes noteworthy details on how certain features are implemente
 
 ### Lesson clash detection
 
+
+
 After a valid lesson addition or edit, `LessonCommand` calls `LessonClashes.warning` with the complete active or archived
 student list matching the edited student and the changed lesson's position. Search filters do not limit clash checks.
 The helper excludes that lesson itself and checks every other lesson in that list.
@@ -205,88 +209,6 @@ Deleting a lesson requires no clash warning. No clash state is stored, so each w
 Clashing changes return `CommandResult.warning`. `MainWindow` routes these successful results to
 `ResultDisplay#setWarningToUser`, which applies an amber warning style and an exclamation icon.
 The next success, error or warning result replaces the previous feedback and clears its styling.
-
-### Shared tuition model <!-- move to Model -->
-
-<img src="images/PersonClassDiagram.png" width="500" />
-
-`Person` is an abstract base class holding a `Name` and `Phone`. `Student` and `Guardian` extend it. `isSamePerson` and `equals` compare the runtime class as well as the fields, so a student never equals a guardian. `UniquePersonList` only stores students, and two students are duplicates when their `Name` is exactly equal (case-sensitive).
-
-A `Student` adds an `Email`, an `Address`, a set of `Tag`s and the tuition fields below. Optional fields use `Optional`; absence means "not recorded".
-
-| Field | Java type | Rules |
-|---|---|---|
-| School | `Optional<School>` | Zero or one school, 1 to 60 characters after trimming leading and trailing whitespace; cannot be blank |
-| Schooling level | `Optional<SchoolingLevel>` | One text label, 1 to 30 ASCII characters after the space cleanup below |
-| Guardian | `Optional<Guardian>` | Both `Name` and `Phone`, using AB3 validation |
-| Lessons | `List<Lesson>` | Zero or more lessons in insertion order; identical lessons are rejected |
-
-A `Lesson` is an immutable value object:
-
-| Field | Java type | Rules |
-|---|---|---|
-| Subject | `Subject` | Required. 1 to 40 ASCII characters after the space cleanup below; equality ignores case |
-| Weekly slot | `WeeklyLessonSlot` | Required. `DayOfWeek`, `LocalTime start` and `LocalTime end`; whole minutes, end later on the same day. Parsing ignores case |
-| Hourly rate | `HourlyRate` | Required. SGD/hour as a non-negative `BigDecimal` with at most two decimal places, stored with scale 2; zero is a recorded value. `HourlyRate.isValidHourlyRate` holds the text rule |
-| Location | `Optional<LessonLocation>` | 1 to 100 characters after space cleanup. A word of letters followed by `/` (such as `x/`) is rejected because it looks like a command prefix |
-| Mode | `Optional<LessonMode>` | `PHYSICAL` or `VIRTUAL`, ignoring case and surrounding spaces |
-
-Subject and level use text labels, not enums. For both:
-
-* Remove leading and trailing spaces or tabs. Replace repeated spaces or tabs with one space. Keep uppercase and lowercase letters as entered.
-* Start with an ASCII letter or digit and include at least one letter.
-* Allow letters, digits, spaces, apostrophes, hyphens, periods and parentheses.
-* Do not map synonyms or check whether a subject matches a level.
-
-Lesson equality includes every field, including location and mode. Overlapping time slots are allowed. Siblings can have the same guardian details, but each student keeps a separate copy. There is no tutor/student role field or generic `class[]` field.
-
-### JSON storage <!-- Move to Storage, if required -->
-
-Storage uses the configured file path, default `data/studentbook.json`, and the top-level `persons` array. `JsonAdaptedPerson` writes these properties in addition to the contact fields:
-
-| Property | JSON value |
-|---|---|
-| `school` | Text string |
-| `schoolingLevel` | Text string |
-| `guardianContact` | Object with `name` and `phone` (the key keeps its original name so existing files still load) |
-| `lessons` | Array of lesson objects; empty means no lessons |
-
-Each lesson object, written by `JsonAdaptedLesson`, has:
-
-| Property | JSON value |
-|---|---|
-| `subject` | Text string |
-| `weeklyLessonSlot` | Object with uppercase English `day`, such as `MONDAY`, and `start`/`end` in `HH:mm` |
-| `hourlyRate` | Decimal string, such as `"45.50"` |
-| `location` | Text string; omitted when not recorded |
-| `mode` | `PHYSICAL` or `VIRTUAL`; omitted when not recorded |
-
-Missing or null `school`, `schoolingLevel`, `guardianContact` and `lessons` load as absent or empty. Supplied values must have the correct JSON type and pass the model validation; a lesson missing `subject`, `weeklyLessonSlot` or `hourlyRate` is rejected.
-
-**Older data files:** files saved before lessons existed stored `subjects`, `weeklyLessonSlot` and `hourlyRate` directly on each student. There is no migration: Jackson ignores those unknown properties on load, and the next save removes them. This is acceptable while there are no real users. Delete or convert an old `data/studentbook.json` if you need to keep its tuition details.
-
-Tests cover loading, save/reload and invalid values (`TuitionStorageTest`). A failed save reports an error but does not undo the in-memory change. A failed load does not block commands. These inherited failure behaviors differ from the earlier specification; see [decisions to confirm](#decisions-to-confirm).
-
-### Lesson workflow <!-- Move to Model, if required -->
-
-`lesson-add`, `lesson-edit` and `lesson-delete` are routed by `AddressBookParser` to `LessonCommandParser`, parameterized by `LessonCommand.Operation`.
-
-| Command | Format |
-|---|---|
-| `lesson-add` | `lesson-add STUDENT_INDEX subject/SUBJECT slot/LESSON_SLOT rate/HOURLY_RATE [mode/MODE] [location/LOCATION]` |
-| `lesson-edit` | `lesson-edit STUDENT_INDEX LESSON_INDEX [subject/SUBJECT] [slot/LESSON_SLOT] [rate/HOURLY_RATE] [mode/MODE] [location/LOCATION]` (at least one field) |
-| `lesson-delete` | `lesson-delete STUDENT_INDEX LESSON_INDEX` |
-
-| Step | Code and behavior |
-|---|---|
-| Parse | `LessonCommandParser` rejects unknown and repeated prefixes, then validates each value with `ParserUtil` (`parseSubject`, `parseWeeklyLessonSlot`, `parseHourlyRate`, `parseLessonMode`, `parseLessonLocation`). Add requires subject, slot and rate; edit requires at least one field; delete takes none. An empty `mode/` or `location/` is valid only in `lesson-edit`, where it clears that field. |
-| Execute | `LessonCommand` resolves the student from the current filtered list, copies the lesson list, then adds, replaces or removes one entry. Edit keeps any lesson field that was not supplied. |
-| Validate | A result containing duplicate lessons fails with `MESSAGE_DUPLICATE_LESSON`. A bad student or lesson index fails with `MESSAGE_INVALID_PERSON_DISPLAYED_INDEX` or `MESSAGE_INVALID_LESSON_DISPLAYED_INDEX`. Failures leave the model unchanged. |
-| Update | The command builds a replacement `Student` with the new lesson list and every other field copied, then calls `Model#setPerson`. The active filter stays, so after `find subject/` or `day/` a lesson that no longer matches is hidden, and a student with no matching lesson leaves the list. |
-| Display | The compact card shows the student's subjects. The sidebar lists every lesson from `StudentCardText#lessons` with its number, subject, short day and time, and short rate. Lesson fields stack vertically, with the mode chip and location underneath when recorded. The number is the lesson's `LESSON_INDEX`. |
-| Save | `LogicManager` saves through the existing storage workflow; `JsonAdaptedLesson` persists each lesson. |
-
-Tests: `LessonCommandParserTest`, `LessonWorkflowTest` (add, edit, clear, delete, filtered indices, invalid input, duplicates and save/reload), `LessonTest`, `StudentTest` and `WeeklyLessonSlotTest`.
 
 ### Student search
 
@@ -339,26 +261,6 @@ Tests: `StudentSearchPredicateTest`, `LessonFilterPredicateTest`, `FindCommandPa
 cover contact and school substrings, absent fields, searches without lessons, all criteria combined, same-lesson
 and calendar filtering, bare-name compatibility, filter resets, school edits through `EditCommand`, invalid
 input, prefix ordering, equality, defensive checks and logging.
-
-### Guardian contact CRUD <!-- Move to Model -->
-
-`guardian-add`, `guardian-edit` and `guardian-delete` are routed by `AddressBookParser` to
-`GuardianCommandParser`, parameterized by the operation. The parser validates the displayed index and guardian
-fields using the existing `Name` and `Phone` rules. It rejects missing fields, empty values, repeated prefixes
-and unsupported prefixes. Adding requires both fields; editing requires at least one; deletion takes only an index.
-
-`GuardianCommand` resolves the student from the current filtered list. Adding an existing guardian, or editing or
-deleting an absent guardian, fails without changing the model. A successful command constructs a replacement
-`Student` with the new optional guardian and copies every other field unchanged before calling `Model#setPerson`.
-The current filter remains active. Siblings can hold identical guardian contacts independently.
-
-Reading uses the existing list/find workflow: `PersonCard` displays the name and phone, or a muted `Not set`.
-`JsonAdaptedGuardian` and `JsonAdaptedPerson` persist the contact under the `guardianContact` key. `LogicManager` saves the updated address book through the existing storage workflow.
-
-`GuardianWorkflowTest` covers CRUD, partial updates, filtered indices, invalid requests, siblings sharing a guardian,
-and automatic save/reload after each mutation. It verifies preservation of contact details, schooling
-level and lessons, as well as preservation of guardians during student edits.
-Validation remains the current AB3 validation; broader name and phone rules remain a product decision.
 
 ### Guardian follow-ups <!-- Move to model...? -->
 
