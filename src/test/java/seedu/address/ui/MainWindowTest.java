@@ -35,6 +35,7 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 import javafx.scene.text.Text;
+import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 import javafx.stage.WindowEvent;
@@ -430,11 +431,18 @@ public class MainWindowTest {
             double overflow = children.get(children.size() - 1).getBoundsInParent().getMaxX() - levelNav().getWidth();
             return stage.getWidth() + overflow + 10;
         });
-        resizeWindow(widthNeeded);
+        // macOS keeps a window within the screen, which on a 1024px CI runner is narrower than widthNeeded.
+        resizeWindow(Math.min(widthNeeded, Screen.getPrimary().getVisualBounds().getWidth()));
         runOnFxThread(() -> {
             String sizes = "window " + stage.getWidth() + " of " + widthNeeded + ", filters " + levelNav().getWidth();
-            assertTrue(levelNav().getChildren().stream().allMatch(Node::isVisible), sizes);
-            assertVisibleFiltersFit();
+            List<Node> children = levelNav().getChildren();
+            for (Node filter : children.subList(1, children.size())) {
+                boolean fits = filter.getBoundsInParent().getMaxX() <= levelNav().getWidth();
+                assertEquals(fits, filter.isVisible(), sizes);
+            }
+            if (stage.getWidth() >= widthNeeded) {
+                assertTrue(children.stream().allMatch(Node::isVisible), sizes);
+            }
         });
     }
 
