@@ -1,6 +1,8 @@
 package seedu.address.ui;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 
 import java.math.BigDecimal;
 import java.time.DayOfWeek;
@@ -11,6 +13,8 @@ import java.util.List;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
@@ -95,6 +99,48 @@ public class PersonListPanelSortTest {
             stage.setScene(new Scene(panel.getRoot(), 900, 600));
             stage.show();
             assertEquals(List.of("$60/h"), shownRates(panel));
+            stage.hide();
+        });
+    }
+
+    @Test
+    public void cell_sortOrderChangesWhileEmpty_keepsCellEmpty() throws Exception {
+        FxTestUtil.runOnFxThread(() -> {
+            AddressBook book = new AddressBook();
+            book.addPerson(new PersonBuilder().withLessons(lesson("60")).build());
+            Model model = new ModelManager(book, new UserPrefs());
+            SimpleObjectProperty<RateSortOrder> sortOrder = new SimpleObjectProperty<>(RateSortOrder.NONE);
+            PersonListPanel panel = new PersonListPanel(model.getFilteredActivePersonList(),
+                    model.getAddressBook().getPersonList(), false, sortOrder);
+            PersonListPanel.PersonListViewCell cell = panel.new PersonListViewCell();
+            cell.updateItem(null, true);
+
+            sortOrder.set(RateSortOrder.DESCENDING);
+            assertNull(cell.getGraphic());
+        });
+    }
+
+    @Test
+    public void cell_redrawnWithSameStudentAndOrder_keepsCard() throws Exception {
+        FxTestUtil.runOnFxThread(() -> {
+            AddressBook book = new AddressBook();
+            book.addPerson(new PersonBuilder().withLessons(lesson("60")).build());
+            Model model = new ModelManager(book, new UserPrefs());
+            PersonListPanel panel = new PersonListPanel(model.getFilteredActivePersonList(),
+                    model.getAddressBook().getPersonList(), false, model.getRateSortOrder());
+            Stage stage = new Stage();
+            stage.setScene(new Scene(panel.getRoot(), 900, 600));
+            stage.show();
+            ListView<?> listView = (ListView<?>) panel.getRoot().lookup("#personListView");
+            listView.applyCss();
+            listView.layout();
+            PersonListPanel.PersonListViewCell cell = (PersonListPanel.PersonListViewCell) listView
+                    .lookupAll(".list-cell").stream().filter(PersonListPanel.PersonListViewCell.class::isInstance)
+                    .filter(node -> !((ListCell<?>) node).isEmpty()).findFirst().orElseThrow();
+            Node graphic = cell.getGraphic();
+
+            cell.updateItem(cell.getItem(), false);
+            assertSame(graphic, cell.getGraphic());
             stage.hide();
         });
     }
