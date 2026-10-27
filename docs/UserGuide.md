@@ -310,6 +310,81 @@ Delete a guardian for a given student.
 
 Format: `guardian-delete INDEX`
 
+### Add a progress note: `note-add`
+
+Adds a dated progress note to a student, such as what you covered in a lesson or what to revise next.
+
+Format: `note-add STUDENT_INDEX date/DATE text/TEXT`
+
+* Both `date/` and `text/` are required.
+* `DATE` is a real date in `YYYY-MM-DD` format, such as `2026-10-15`. It cannot be later than today.
+* `TEXT` is 1 to 500 characters on one line. Spaces at the start and end are removed.
+* Notes are listed oldest first in the student's details, each with its number, date and text. A note dated earlier than existing notes is placed before them, and notes on the same date stay in the order you added them.
+* Adding a note with the same date and text as an existing note of that student is rejected.
+
+Examples:
+* `note-add 1 date/2026-10-15 text/Finished the fractions worksheet; revise decimals next`
+* `note-add 1 date/2026-10-08 text/Struggled with word problems` is placed before the first note and becomes note 1.
+
+### Delete a progress note: `note-delete`
+
+Deletes one progress note from a student.
+
+Format: `note-delete STUDENT_INDEX NOTE_INDEX`
+
+* `NOTE_INDEX` is the note's number in the student's details. Later notes move up by one.
+* The message shows the deleted note's text, so you can check it was the right one.
+
+Example: `note-delete 1 1`
+
+### Add a guardian follow-up: `followup-add`
+
+Adds something you still need to do for a student's guardian, such as sending a progress report or confirming a make-up lesson.
+
+Format: `followup-add STUDENT_INDEX text/TEXT`
+
+* `TEXT` is 1 to 200 characters on one line. Spaces at the start and end are removed.
+* The follow-up is added at the end of the student's list. Follow-ups appear in the student's details, under the guardian, with their numbers.
+* A follow-up that reads the same as another one of that student (ignoring letter case) is rejected.
+* A student does not need a guardian to have follow-ups, and `guardian-delete` keeps them.
+
+Example: `followup-add 1 text/Send the term 4 progress report`
+
+### Edit a guardian follow-up: `followup-edit`
+
+Replaces the text of a follow-up. Its number stays the same.
+
+Format: `followup-edit STUDENT_INDEX FOLLOW_UP_INDEX text/TEXT`
+
+* `FOLLOW_UP_INDEX` is the follow-up's number in the student's details.
+* The same rules for `TEXT` as in `followup-add` apply, including rejecting duplicates.
+
+Example: `followup-edit 1 2 text/Confirm the make-up lesson on Saturday`
+
+### Complete a guardian follow-up: `followup-done`
+
+Marks a follow-up as done by removing it from the student's list.
+
+Format: `followup-done STUDENT_INDEX FOLLOW_UP_INDEX`
+
+* The message shows the removed follow-up's text. Later follow-ups move up by one.
+
+Example: `followup-done 1 1`
+
+### List students with outstanding follow-ups: `followups`
+
+Shows only active students who have at least one outstanding follow-up. Archived students are left out and keep their follow-ups. Type `list` to see every student again.
+
+Format: `followups`
+
+<div markdown="block" class="alert alert-primary">
+
+:bulb: **Tips:**<br>
+* After `followups`, a student whose last follow-up you complete leaves the list, so the students after them move up a number. Check the number before the next command.
+* Notes and follow-ups are saved automatically. Older data files without them still load, with none recorded.
+
+</div>
+
 ## Saving and transferring records
 
 The app saves automatically after each successfully executed command. Schools, schooling levels, guardian contacts and lessons are saved with the contact details. A student's school is stored as an optional `school` string; files without it still load with no school recorded. Each student's lessons are stored as a `lessons` array, where every lesson has a `subject`, a `weeklyLessonSlot` and an `hourlyRate`, plus an optional `mode` (`PHYSICAL` or `VIRTUAL`) and `location`. Files without these two fields still load.
