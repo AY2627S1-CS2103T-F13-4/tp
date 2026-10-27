@@ -21,6 +21,7 @@ import javafx.collections.ObservableList;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.model.person.Lesson;
 import seedu.address.model.person.NameContainsKeywordsPredicate;
+import seedu.address.model.person.RateSortOrder;
 import seedu.address.model.person.SchoolingLevel;
 import seedu.address.model.person.Student;
 import seedu.address.testutil.AddressBookBuilder;
@@ -282,5 +283,24 @@ public class ModelManagerTest {
         UserPrefs differentUserPrefs = new UserPrefs();
         differentUserPrefs.setGuiSettings(new GuiSettings(1, 2, 3, 4));
         assertFalse(modelManager.equals(new ModelManager(addressBook, differentUserPrefs)));
+    }
+
+    @Test
+    public void equals_differentRateSortOrder_returnsFalse() {
+        ModelManager sorted = new ModelManager();
+        sorted.setRateSortOrder(RateSortOrder.ASCENDING);
+        assertFalse(sorted.equals(new ModelManager()));
+        assertTrue(sorted.equals(sortedCopy()));
+    }
+
+    private static ModelManager sortedCopy() {
+        ModelManager copy = new ModelManager();
+        copy.setRateSortOrder(RateSortOrder.ASCENDING);
+        return copy;
+    }
+
+    @Test
+    public void setRateSortOrder_null_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> modelManager.setRateSortOrder(null));
     }
 }

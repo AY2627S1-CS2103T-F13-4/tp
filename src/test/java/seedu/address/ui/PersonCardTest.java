@@ -158,6 +158,32 @@ public class PersonCardTest {
         return assertInstanceOf(Text.class, root.lookup("#rate")).getText();
     }
 
+    @Test
+    public void setSortOrder_studentWithoutLessons_keepsDash() throws Exception {
+        FxTestUtil.runOnFxThread(() -> {
+            PersonCard card = new PersonCard(new PersonBuilder().withLessons().build(), 1, RateSortOrder.ASCENDING);
+            Region root = prepareCard(card, new SimpleDoubleProperty(240));
+            card.setSortOrder(RateSortOrder.DESCENDING);
+            assertEquals("\u2014", assertInstanceOf(Text.class, root.lookup("#rate")).getText());
+        });
+    }
+
+    @Test
+    public void setSortOrder_severalLessons_showsLowestThenHighestThenNextLesson() throws Exception {
+        FxTestUtil.runOnFxThread(() -> {
+            Student student = new PersonBuilder().withLessons(lesson("60"), lesson("52")).build();
+            PersonCard card = new PersonCard(student, 1);
+            Region root = prepareCard(card, new SimpleDoubleProperty(240));
+            Text rate = assertInstanceOf(Text.class, root.lookup("#rate"));
+            card.setSortOrder(RateSortOrder.ASCENDING);
+            assertEquals("$52/h", rate.getText());
+            card.setSortOrder(RateSortOrder.DESCENDING);
+            assertEquals("$60/h", rate.getText());
+            card.setSortOrder(RateSortOrder.NONE);
+            assertEquals("$60/h", rate.getText());
+        });
+    }
+
     /** Returns the content of the details section with the given caption: the content node and its children. */
     private static List<Node> sectionNodes(Region root, String caption) {
         FlowPane details = assertInstanceOf(FlowPane.class, root.lookup("#details"));

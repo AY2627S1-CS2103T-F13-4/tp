@@ -2,6 +2,7 @@ package seedu.address.logic.commands;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static seedu.address.testutil.Assert.assertThrows;
 
 import java.math.BigDecimal;
 import java.time.DayOfWeek;
@@ -90,6 +91,17 @@ public class SortCommandTest {
                 .filter(s -> s.getName().fullName.equals("Ann")).findFirst().orElseThrow();
         model.setPerson(ann, new PersonBuilder(ann).withLessons(lesson("10")).build());
         assertEquals("Ann", names(model).get(0));
+    }
+
+    @Test
+    public void constructor_invalidOrder_throws() {
+        assertThrows(NullPointerException.class, () -> new SortCommand(null));
+        assertThrows(AssertionError.class, () -> new SortCommand(RateSortOrder.NONE));
+    }
+
+    @Test
+    public void execute_nullModel_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> new SortCommand(RateSortOrder.ASCENDING).execute(null));
     }
 
     @Test
