@@ -12,11 +12,11 @@ StudentBook builds on AddressBook Level 3, or AB3. The architecture below descri
 
 * Based on [AddressBook Level 3](https://github.com/se-edu/addressbook-level3) from the [SE-EDU initiative](https://se-education.org).
 * Pranav used Claude (Anthropic), through Claude Code, to draft the v1.3 UI restyle: the mock-ups, the FXML and CSS in `src/main/resources/view`, the UI classes in `seedu.address.ui`, and their tests. He reviewed, ran and tested the changes.
-* The UI uses the [Geist and Geist Mono fonts](https://github.com/vercel/geist-font) (v1.7.2) by The Geist Project Authors, under the SIL Open Font License 1.1. The font files and licence are in `src/main/resources/fonts`.
+* The UI uses the [Geist and Geist Mono fonts](https://github.com/vercel/geist-font) (v1.7.2) by The Geist Project Authors, under the SIL Open Font License 1.1. The font files and license are in `src/main/resources/fonts`.
 
 ## Getting started
 
-Refer to the guide [*Setting up and getting started*](SeetingUp.md)
+Refer to the guide [*Setting up and getting started*](SettingUp.md)
 
 ## Design
 
@@ -98,7 +98,7 @@ Abstract class `UiPart` captures common behaviour among classes representing vis
 User commands received by the UI component are sent to `Logic` for execution.
 
 Additionally, `Logic` supplies the following data:
-* The list of students to display, from `Logic#getFilteredPresonList()`
+* The list of students to display, from `Logic#getFilteredPersonList()`
 * The total number of students and lessons, from `Logic#getAddressBook()`
 * Empty-state message, also from `Logic#getAddressBook()`
 * Lesson filter, to determine total number of students and lessons, from `Logic#getLessonPredicate()`
