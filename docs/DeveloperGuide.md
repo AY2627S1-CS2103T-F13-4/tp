@@ -5,8 +5,6 @@ title: Developer Guide
 
 StudentBook builds on AddressBook Level 3, or AB3. The architecture below describes the inherited application. The shared tuition model, school, schooling-level, guardian and lesson workflows are implemented; other tuition commands are planned.
 
-Start with [setup](SettingUp.md), then the [shared tuition model](#shared-tuition-model) and [product scope](#product-scope).
-
 * Table of Contents
 {:toc}
 
@@ -14,11 +12,11 @@ Start with [setup](SettingUp.md), then the [shared tuition model](#shared-tuitio
 
 * Based on [AddressBook Level 3](https://github.com/se-edu/addressbook-level3) from the [SE-EDU initiative](https://se-education.org).
 * Pranav used Claude (Anthropic), through Claude Code, to draft the v1.3 UI restyle: the mock-ups, the FXML and CSS in `src/main/resources/view`, the UI classes in `seedu.address.ui`, and their tests. He reviewed, ran and tested the changes.
-* The UI uses the [Geist and Geist Mono fonts](https://github.com/vercel/geist-font) (v1.7.2) by The Geist Project Authors, under the SIL Open Font License 1.1. The font files and licence are in `src/main/resources/fonts`.
+* The UI uses the [Geist and Geist Mono fonts](https://github.com/vercel/geist-font) (v1.7.2) by The Geist Project Authors, under the SIL Open Font License 1.1. The font files and license are in `src/main/resources/fonts`.
 
 ## Getting started
 
-Follow the [setup guide](SettingUp.md), then run the [tests](Testing.md).
+Refer to the guide [*Setting up and getting started*](SettingUp.md)
 
 ## Design
 
@@ -26,113 +24,181 @@ Follow the [setup guide](SettingUp.md), then run the [tests](Testing.md).
 
 <img src="images/ArchitectureDiagram.png" width="280" />
 
-`Main` and `MainApp` start the app, connect its components and clean up on shutdown.
+#### Overview
+
+StudentBook relies primarily on 4 components:
 
 | Component | Responsibility |
 |---|---|
-| [UI](#ui-component) | Display records and accept commands |
-| [Logic](#logic-component) | Parse and execute commands |
-| [Model](#model-component) | Hold records and settings in memory |
-| [Storage](#storage-component) | Read and write JSON files |
-| [Commons](#common-classes) | Share utilities across components |
+| [**`UI`**](#ui-component) | App UI |
+| [**`Logic`**](#logic-component) | Command parsing and execution |
+| [**`Model`**](#model-component) | Hold app records and settings in memory |
+| [**`Storage`**](#storage-component) | Read and write JSON files |
 
-Each main component exposes an interface and implements it in a manager class. For example, callers use `Logic`; `LogicManager` implements it.
+**`Main`** then manages these components as follows:
+* **App Launch**: Initialise components in correct sequence and connect them with one another
+* **Shut down**: Shut down components, invoke necessary cleanup methods
 
-<img src="images/ComponentManagers.png" width="300" />
+**`Commons`** shares utilities across the above components.
 
-This sequence shows a `delete 1` command passing through the components:
-
+#### Interactions
 <img src="images/ArchitectureSequenceDiagram.png" width="574" />
 
-Diagram sources are in `docs/diagrams`. See the [PlantUML tutorial](https://se-education.org/guides/tutorials/plantUml.html) to edit them.
+Each main component
+* Defines its *API* through an interface
+* Provides functionality through a concrete `{COMPONENT_NAME}Manager` class that implements the corresponding API interface
+
+Other components interact with a component through its interface (rather than it's concrete class), preventing them from coupling to that component's implementation.
+
+<details open>
+<summary>Example Component Structure (Logic)</summary>
+<img src="images/ComponentManagers.png" width="300" />
+
+`LogicManager`
+* implements the `Logic` interface
+* interacts with `Model` and `Storage` components through their respective interfaces (not their concrete implementations)
+
+</details>
 
 ### UI component
 
 ![UI structure](images/UiClassDiagram.png)
 
-`MainWindow` contains `CommandBox`, `ResultDisplay`, `WeekPanel`, `PersonListPanel` and `StatusBarFooter`. These classes extend `UiPart` and use JavaFX layouts in `src/main/resources/view`. `LightTheme.css` styles all of them, using the bundled Geist fonts that `AppFonts` loads at startup.
+**API Specification**: `Ui.java`
+**Interacts with**: `Model`, `Logic`
+**Depends on**: `Model`, `Logic`
 
-The UI sends commands to `Logic` and observes two lists:
+Abstract class `UiPart` captures common behaviour among classes representing visible GUI parts. Each part:
+* Inherit from `UiPart`
+* Use the JavaFX UI framework
+* Defines layout in a matching `.fxml` file in `src/main/resources/view`
+* Use `LightTheme.css` for style, with fonts loaded by `AppFonts` at startup
 
-* **Filtered list** (`Logic#getFilteredPersonList()`): the rows on screen. `ModelManager` sorts the filtered list by school stage (Primary, Secondary, JC, then others), then by stored order, so editing a student never moves it within its group. `PersonListPanel` shows them in the same order as the model, so the number on each card is the `INDEX` that commands use. The UI never sorts or groups its own copy.
-* **Full list** (`Logic#getAddressBook()`): used only to count students and lessons. `StudentListStatus` uses both counts to choose the header text, such as `Showing 1 of 8`. It also chooses the empty-state message: `add` when there are no students, `list` when a search matches no one. `WeekPanel` does the same for lessons: `Showing 3 of 12 lessons`, and `list` instead of `lesson-add` when a search hides every lesson.
+<details open>
+<summary>List of UI Components</summary>
 
-The UI also observes the lesson filter (`Logic#getLessonPredicate()`), set by `find subject/` and `day/`. `ScheduleGrid` places only the lessons it accepts, keeping each lesson's position in the student's full list as its number.
+| Class | UI Component |
+|---|---|
+|`MainWindow`|Main application window|
+|`CommandBox`|Command input box|
+|`StatusBarFooter`|Status bar footer|
+|`ResultDisplay`|Result display|
+|`HelpWindow`|Help window|
+|`PersonListPanel`|Student list display|
+|`PersonCard`|Individual student display|
+|`WeekPanel`|Weekly schedule header|
+|`ScheduleGrid`|Weekly schedule display|
+|`LessonCard`|Individual lesson display|
 
-When either list changes, the `ListView` rebuilds the affected `PersonCard`s, so cards never show stale data after an edit.
+</details>
+<br>
 
-* **Window:** `MainWindow` stacks the brand, the command panel (`CommandBox`, then `ResultDisplay`), a row of tabs and the screen below it. `LightTheme.css` keeps the command panel white and the rest of the window a shade darker, so the command panel stands out. Tabs run commands through `CommandBox#submit`, so they get the same feedback and history as typed commands. The level filters after the tabs are rebuilt from the schooling levels in use and run `find level/LEVEL`; they are hidden below 900px, and `MainWindow#hideCutOffFilters` hides any that do not fully fit, so a long level is never shown cut short. Below 560px of height, the brand and the status bar footer are hidden, so the screen keeps a few rows on a 1280x720 screen at 150% scaling (a window of about 853x410). The menu bar moves into the macOS system menu bar. The page header's **+ Add student** button calls `CommandBox#prefill` with the `add` format.
-* **Screens:** The main area holds two screens, `WeekPanel` (the week's lessons, shown at startup) and `PersonListPanel` (the student table); one is visible at a time. A command chooses the screen through `CommandResult#getScreen`: `week` returns `WEEK`, `list` and `find` return `STUDENTS`, and every other command returns `UNCHANGED`. `MainWindow#showScreen` swaps the screens and marks the matching tab. `week` keeps the current filter; the calendar labels lessons using each student's index in the filtered list.
-* **Week calendar:** `WeekPanel` shows a page header with the lesson count and a colour key, then `ScheduleGrid` in a scroll pane. `ScheduleGrid` lays out the filtered list's lessons on a `GridPane`: column 0 holds the times, and every lesson column gets an equal share of the remaining width, so a day with overlapping lessons is wider than the others. Rows are one hour, from 9am to 8pm, extended to the whole hours around any earlier or later lesson. Each lesson is a `LessonCard` placed by minute, using margins inside the hours it spans. Within a day, overlapping lessons get separate columns (a greedy interval partition); every block is one column wide, so a day with overlaps is wider rather than its lessons narrower. `ScheduleEntry` carries the student and lesson numbers that the card shows, such as `#3.1`. The grid takes a `Clock` so tests can fix the dates in the day headings, today's shading and the current-time line; a `Timeline` moves that line at the start of every minute and redraws the week when the date changes. The day headings are pinned to the top: `WeekPanel` passes the scroll offset to `ScheduleGrid#setHeadingOffset`.
-* **Rows:** The student list is a table. `PersonListPanel` computes the column widths (Name, Subjects, Next lesson, Rate, Guardian) from the list's width and binds the header and each `PersonCard` to them; below 900px the Subjects and Guardian columns are hidden. A row shows the initials badge, name and level, the subjects across lessons, the next lesson (`StudentCardText#nextLesson`, the soonest start in the weekly cycle) and its rate, and the guardian's name. Its details (school and contact details grouped together, then guardian with phone, lessons and tags) are built the first time the row opens and then shown or hidden by `PersonCard#setOpen`. A row is open while it is selected: the list selects the only row after a search, a click selects a row, and Alt+Up/Alt+Down in the command box call `PersonListPanel#moveDetails`, which selects the next row and scrolls only if it is out of view. Esc in an empty box calls `closeDetails`. Only the two rows whose selection changes are updated, so browsing details does not rebuild the list. `StudentCardText` formats lessons with short days and rates and numbers them from 1 in stored order, matching `LESSON_INDEX`. `SchoolingLevel#stageOf` gives each level its school stage, matching only clear forms such as `P5`, `Sec 3 Express` and `JC1`; the stage colours the initials badge, level filter dots and group headings. Each stage's first row shows a heading with the stage name and count. JavaFX asks a row for its height before laying it out, so wrapping text (`Text`) has its wrapping width bound to its column.
-* **Results:** `MainWindow#executeCommand` sends successes to `ResultDisplay#setFeedbackToUser` (with the last three commands from `CommandHistory#recent`, shown as chips beside a one-line result) and failures to `ResultDisplay#setErrorToUser`. The row shows a matching mark. `FeedbackLines` splits a message into a title, text, formats and examples; it recognises the shapes the commands' `MESSAGE_USAGE` strings use. `ResultDisplay` shows formats and examples with captions in a monospace font chosen by `MonospaceFont`; clicking one copies it, since `Text` nodes cannot be selected. The row sizes to the message and scrolls past its maximum height. `FeedbackLinesTest` runs every command's real usage error, so rewording a usage message into an unrecognised shape fails a test.
-* **Keyboard:** `CommandBox` keeps the AB3 behaviour: it clears the input after a success, and keeps it with an error style after a failure. Every feature has a command, and the command box keeps focus (the list, calendar, tabs and buttons are not focus-traversable, and closing `HelpWindow` refocuses it), so shortcuts are only speed-ups. They use keys every laptop has: Up and Down for `CommandHistory` (this session only, with the unsent text kept), Esc to clear (or, in an empty box, close a student's details), Alt+Up and Alt+Down to step through students' details on the table or scroll the calendar (`MainWindow` routes them by screen and sets the matching hint), and Tab to put the example of the last usage error (`ResultDisplay#getExample`) in the box. Page Up and Page Down also scroll, as an extra. After Alt+Up/Down, `CommandBox` keeps the Alt release from focusing the menu bar on Windows and Linux. Key hints show while the box is empty and the command panel is at least 900px wide. `view INDEX` returns a `CommandResult` carrying the student to open, which `PersonListPanel#openStudent` selects.
-* **Window size:** The window's minimum size is 760×400, so a row's Student and Next lesson columns always fit side by side. A saved window size larger than the screen it opens on is reduced to fit, so the app stays usable on a 1280×720 screen at 150% scaling. The saved position is used as before.
+#### Interactions
+**`Logic`**
+User commands received by the UI component are sent to `Logic` for execution.
+
+Additionally, `Logic` supplies the following data:
+* The list of students to display, from `Logic#getFilteredPersonList()`
+* The total number of students and lessons, from `Logic#getAddressBook()`
+* Empty-state message, also from `Logic#getAddressBook()`
+* Lesson filter, to determine total number of students and lessons, from `Logic#getLessonPredicate()`
+
+**`Ui`** and **`Model`**
+* `Ui` listens for changes to `Model` data for updates
+* `Ui` depends on some classes in `Model` to display `Student` objects correctly
 
 ### Logic component
 
+**API Specification**: `Logic.java`
+**Interacts with**: `Ui`, `Model`, `Storage`
+**Depends on**: `Model`
+
 <img src="images/LogicClassDiagram.png" width="550" />
 
-1. `LogicManager` passes command text to `AddressBookParser`.
-2. The parser selects a command parser, such as `DeleteCommandParser`.
-3. That parser creates a `Command`, which `LogicManager` executes against the model.
-4. After execution, `LogicManager` saves the data and returns a `CommandResult`. A save failure raises a command error even if the model has already changed.
+Above is a (partial) class diagram of the `Logic` component.
+
+#### Command Execution
+The sequence diagram below illustrates the interactions within the `Logic` component (API call `execute("delete 1")` is used as an example).
 
 ![Delete command sequence](images/DeleteSequenceDiagram.png)
 
-Command parsers implement the `Parser` interface and use the helpers below:
+<div markdown="span" class="alert alert-info">
+
+:information_source: **Note:** The lifeline for `DeleteCommandParser` should end at the destroy marker (X), but due to a limitation of PlantUML, it continues to the end of the diagram.
+
+</div>
+
+Command execution works as follows:
+1. `Logic` is called to execute a command.
+1. Command is passed to an `AddressBookParser`.
+1. `AddressBookParser` creates a parser matching the command (e.g. `DeleteCommandParser`).
+1. The created parser is used to parse the command into a `Command` object (e.g. `DeleteCommand`).
+1. The `Command` object is executed by `LogicManager`
+1. The `Command` object communicates with `Model` when executed (e.g. deleting a person). This may require several interactions between `Command` and `Model`, but is represented as one interaction above for simplicity.
+1. The result of the command is encapsulated as a `CommandResult` object when returned from `Logic`.
+
+#### Command Parsing
+
+The other classes in `Logic` (omitted from the class diagram above) that are used for parsing a user command:
 
 <img src="images/ParserClasses.png" width="600" />
 
-The `DeleteCommandParser` lifeline should end at the X marker; PlantUML draws it longer.
+Command parsing works as follows:
+1. `Logic` is called to parse a command.
+1. `AddressBookParser` creates an `XYZCommandParser`(`XYZ` is a placeholder for a specific command name, e.g. `AddCommandParser`).
+1. The parser uses the other classes shown above to parse the user command and create an `XYZCommand` object (e.g. `AddCommand`).
+1. `AddressBookParser` returns that object as a `Command` object.
 
 ### Model component
 
+**API Specification**: `Model.java`
+**Interacts with**: `Ui`, `Logic`
+**Depends on**: `None`
+
 <img src="images/ModelClassDiagram.png" width="450" />
 
-`ModelManager` holds the address book, user preferences, the current filtered list and the lesson filter. `updateFilteredPersonList(Predicate<Student>, Predicate<Lesson>)` sets both; the one-argument form, used by `list` and `edit`, shows all lessons again. `StudentSearchPredicate` combines the supplied student criteria and, when lesson criteria are present, requires at least one lesson that passes a `LessonMatchesPredicate`, so subject and day must match the same lesson.
+The `Model` component stores:
+* all students in one of two `UniquePersonList`s, depending on if they are active or archived
+* current filtered list of `Student`s, as a separate unmodifiable `ObservableList<Person>`
+* the filter for `Lesson`s
+* user preferences in `UserPrefs`
 
-* `UniquePersonList` stores the `Student` records.
-* The UI observes an unmodifiable `ObservableList<Student>` of matching records.
-* Preferences are exposed through `ReadOnlyUserPrefs`.
-* The model does not depend on UI, Logic or Storage.
+<div markdown="span" class="alert alert-info">
 
-`Student`'s fields and its relationship to `Person` and `Guardian` are shown in the [shared tuition model](#shared-tuition-model) diagram.
-
-An inherited alternative stores unique tags centrally and lets records reference them:
+:information_source: An alternative, more object-oriented design keeps a list of unique tags in `AddressBook`, then each `Student` references tags in that list, allowing `AddressBook` to maintain one `Tag` object per unique tag instead of each `Student` holding its own `Tag` object.
 
 <img src="images/BetterModelClassDiagram.png" width="450" />
 
 This alternative is not the current implementation.
+</div>
+<br>
+
+`Student`'s fields and its relationship to `Person` and `Guardian` are shown in the following diagram.
+
+<img src="images/PersonClassDiagram.png" width="500" />
 
 ### Storage component
 
+**API Specification**: `Storage.java`
+**Interacts with**: `Model`
+**Depends on**: `Model`
+
 <img src="images/StorageClassDiagram.png" width="550" />
 
-`StorageManager` delegates record files to `JsonAddressBookStorage` and preferences to `JsonUserPrefsStorage`. Both use JSON and convert stored values to model objects.
+The `Storage` component:
+* Saves address book data and user preference data in JSON format, and reads them back into corresponding objects
+* Delegates JSON file access to `JsonAddressBookStorage` and `JsonUserPrefsStorage` (one class per data file)
 
 ### Common classes
-
-Shared helpers live in `seedu.address.commons`.
+Classes used by multiple components are in the `seedu.address.commons package`.
 
 ## Implementation
 
-### Active and archived student lists
-
-`AddressBook` stores active and archived students in separate `UniquePersonList` instances, exposed as unmodifiable
-observable lists by `getPersonList()` and `getArchivedPersonList()`. Duplicate checks cover both lists. Archiving and
-restoring replace the immutable student with a copy carrying the new archive status and move it to the corresponding
-list, preserving all other details. Copying, resetting and clearing the address book include both lists.
-
-`ModelManager` filters and sorts each list independently using the same school-stage grouping. `list` selects the
-active list, while `list-archive` selects the archived list; `getFilteredPersonList()` supplies the selected list for
-searches and indexed commands. `MainWindow` binds two instances of the same `PersonListPanel` to the respective lists.
-The calendar always observes the active list, and `week` selects it without clearing its search or lesson filters.
-
-JSON files retain the existing `persons` array and `isArchived` flag. Storage writes both lists and partitions records
-by their archive status when loading, so existing files remain compatible.
+This section describes noteworthy details on how certain features are implemented.
 
 ### Lesson clash detection
+
+
 
 After a valid lesson addition or edit, `LessonCommand` calls `LessonClashes.warning` with the complete active or archived
 student list matching the edited student and the changed lesson's position. Search filters do not limit clash checks.
@@ -143,104 +209,6 @@ Deleting a lesson requires no clash warning. No clash state is stored, so each w
 Clashing changes return `CommandResult.warning`. `MainWindow` routes these successful results to
 `ResultDisplay#setWarningToUser`, which applies an amber warning style and an exclamation icon.
 The next success, error or warning result replaces the previous feedback and clears its styling.
-
-### Shared tuition model
-
-<img src="images/PersonClassDiagram.png" width="500" />
-
-`Person` is an abstract base class holding a `Name` and `Phone`. `Student` and `Guardian` extend it. `isSamePerson` and `equals` compare the runtime class as well as the fields, so a student never equals a guardian. `UniquePersonList` only stores students, and two students are duplicates when their `Name` is exactly equal (case-sensitive).
-
-A `Student` adds an `Email`, an `Address`, a set of `Tag`s and the tuition fields below. Optional fields use `Optional`; absence means "not recorded".
-
-| Field | Java type | Rules |
-|---|---|---|
-| School | `Optional<School>` | Zero or one school, 1 to 60 characters after trimming leading and trailing whitespace; cannot be blank |
-| Schooling level | `Optional<SchoolingLevel>` | One text label, 1 to 30 ASCII characters after the space cleanup below |
-| Guardian | `Optional<Guardian>` | Both `Name` and `Phone`, using AB3 validation |
-| Lessons | `List<Lesson>` | Zero or more lessons in insertion order; identical lessons are rejected |
-
-A `Lesson` is an immutable value object:
-
-| Field | Java type | Rules |
-|---|---|---|
-| Subject | `Subject` | Required. 1 to 40 ASCII characters after the space cleanup below; equality ignores case |
-| Weekly slot | `WeeklyLessonSlot` | Required. `DayOfWeek`, `LocalTime start` and `LocalTime end`; whole minutes, end later on the same day. Parsing ignores case |
-| Hourly rate | `HourlyRate` | Required. SGD/hour as a non-negative `BigDecimal` with at most two decimal places, stored with scale 2; zero is a recorded value. `HourlyRate.isValidHourlyRate` holds the text rule |
-| Location | `Optional<LessonLocation>` | 1 to 100 characters after space cleanup. A word of letters followed by `/` (such as `x/`) is rejected because it looks like a command prefix |
-| Mode | `Optional<LessonMode>` | `PHYSICAL` or `VIRTUAL`, ignoring case and surrounding spaces |
-
-Subject and level use text labels, not enums. For both:
-
-* Remove leading and trailing spaces or tabs. Replace repeated spaces or tabs with one space. Keep uppercase and lowercase letters as entered.
-* Start with an ASCII letter or digit and include at least one letter.
-* Allow letters, digits, spaces, apostrophes, hyphens, periods and parentheses.
-* Do not map synonyms or check whether a subject matches a level.
-
-Lesson equality includes every field, including location and mode. Overlapping time slots are allowed. Siblings can have the same guardian details, but each student keeps a separate copy. There is no tutor/student role field or generic `class[]` field.
-
-#### Constructors and editing
-
-The five-argument `Student` constructor (`name, phone, email, address, tags`) leaves the school, level and guardian absent and the lesson list empty. The full nine-argument form is:
-
-```text
-name, phone, email, address, tags,
-school, schoolingLevel, guardian, lessons
-```
-
-All arguments, including each `Optional` and each lesson, must be non-null. The constructor throws `IllegalArgumentException` (`Student.MESSAGE_DUPLICATE_LESSONS`) if `lessons` contains duplicates, and `getLessons()` returns an unmodifiable list.
-
-* Every edit keeps fields it does not change. `edit` cannot change lessons or the guardian; the `lesson-` and `guardian-` commands build a replacement `Student` and call `Model#setPerson`.
-* The optional `sch/SCHOOL` argument follows tags and precedes schooling level in the `add` and `edit` formats. Omitting it preserves the school on edit; an empty `sch/` clears it on edit and is rejected on add. Repeated `sch/` prefixes are rejected.
-* Full equality and hashing include all tuition fields.
-* Tuition fields may be absent: records from older files, and some built-in sample students (e.g. an adult learner with no level or guardian), leave them empty.
-
-#### JSON storage
-
-Storage uses the configured file path, default `data/studentbook.json`, and the top-level `persons` array. `JsonAdaptedPerson` writes these properties in addition to the contact fields:
-
-| Property | JSON value |
-|---|---|
-| `school` | Text string |
-| `schoolingLevel` | Text string |
-| `guardianContact` | Object with `name` and `phone` (the key keeps its original name so existing files still load) |
-| `lessons` | Array of lesson objects; empty means no lessons |
-
-Each lesson object, written by `JsonAdaptedLesson`, has:
-
-| Property | JSON value |
-|---|---|
-| `subject` | Text string |
-| `weeklyLessonSlot` | Object with uppercase English `day`, such as `MONDAY`, and `start`/`end` in `HH:mm` |
-| `hourlyRate` | Decimal string, such as `"45.50"` |
-| `location` | Text string; omitted when not recorded |
-| `mode` | `PHYSICAL` or `VIRTUAL`; omitted when not recorded |
-
-Missing or null `school`, `schoolingLevel`, `guardianContact` and `lessons` load as absent or empty. Supplied values must have the correct JSON type and pass the model validation; a lesson missing `subject`, `weeklyLessonSlot` or `hourlyRate` is rejected.
-
-**Older data files:** files saved before lessons existed stored `subjects`, `weeklyLessonSlot` and `hourlyRate` directly on each student. There is no migration: Jackson ignores those unknown properties on load, and the next save removes them. This is acceptable while there are no real users. Delete or convert an old `data/studentbook.json` if you need to keep its tuition details.
-
-Tests cover loading, save/reload and invalid values (`TuitionStorageTest`). A failed save reports an error but does not undo the in-memory change. A failed load does not block commands. These inherited failure behaviors differ from the earlier specification; see [decisions to confirm](#decisions-to-confirm).
-
-### Lesson workflow
-
-`lesson-add`, `lesson-edit` and `lesson-delete` are routed by `AddressBookParser` to `LessonCommandParser`, parameterized by `LessonCommand.Operation`.
-
-| Command | Format |
-|---|---|
-| `lesson-add` | `lesson-add STUDENT_INDEX subject/SUBJECT slot/LESSON_SLOT rate/HOURLY_RATE [mode/MODE] [location/LOCATION]` |
-| `lesson-edit` | `lesson-edit STUDENT_INDEX LESSON_INDEX [subject/SUBJECT] [slot/LESSON_SLOT] [rate/HOURLY_RATE] [mode/MODE] [location/LOCATION]` (at least one field) |
-| `lesson-delete` | `lesson-delete STUDENT_INDEX LESSON_INDEX` |
-
-| Step | Code and behavior |
-|---|---|
-| Parse | `LessonCommandParser` rejects unknown and repeated prefixes, then validates each value with `ParserUtil` (`parseSubject`, `parseWeeklyLessonSlot`, `parseHourlyRate`, `parseLessonMode`, `parseLessonLocation`). Add requires subject, slot and rate; edit requires at least one field; delete takes none. An empty `mode/` or `location/` is valid only in `lesson-edit`, where it clears that field. |
-| Execute | `LessonCommand` resolves the student from the current filtered list, copies the lesson list, then adds, replaces or removes one entry. Edit keeps any lesson field that was not supplied. |
-| Validate | A result containing duplicate lessons fails with `MESSAGE_DUPLICATE_LESSON`. A bad student or lesson index fails with `MESSAGE_INVALID_PERSON_DISPLAYED_INDEX` or `MESSAGE_INVALID_LESSON_DISPLAYED_INDEX`. Failures leave the model unchanged. |
-| Update | The command builds a replacement `Student` with the new lesson list and every other field copied, then calls `Model#setPerson`. The active filter stays, so after `find subject/` or `day/` a lesson that no longer matches is hidden, and a student with no matching lesson leaves the list. |
-| Display | A row shows the student's next lesson; its details list every lesson from `StudentCardText#lessons`: number, subject, short day and time, and short rate in fixed-width columns, with the mode chip and location underneath when recorded. The number is the lesson's `LESSON_INDEX`. |
-| Save | `LogicManager` saves through the existing storage workflow; `JsonAdaptedLesson` persists each lesson. |
-
-Tests: `LessonCommandParserTest`, `LessonWorkflowTest` (add, edit, clear, delete, filtered indices, invalid input, duplicates and save/reload), `LessonTest`, `StudentTest` and `WeeklyLessonSlotTest`.
 
 ### Student search
 
@@ -294,27 +262,7 @@ cover contact and school substrings, absent fields, searches without lessons, al
 and calendar filtering, bare-name compatibility, filter resets, school edits through `EditCommand`, invalid
 input, prefix ordering, equality, defensive checks and logging.
 
-### Guardian contact CRUD
-
-`guardian-add`, `guardian-edit` and `guardian-delete` are routed by `AddressBookParser` to
-`GuardianCommandParser`, parameterized by the operation. The parser validates the displayed index and guardian
-fields using the existing `Name` and `Phone` rules. It rejects missing fields, empty values, repeated prefixes
-and unsupported prefixes. Adding requires both fields; editing requires at least one; deletion takes only an index.
-
-`GuardianCommand` resolves the student from the current filtered list. Adding an existing guardian, or editing or
-deleting an absent guardian, fails without changing the model. A successful command constructs a replacement
-`Student` with the new optional guardian and copies every other field unchanged before calling `Model#setPerson`.
-The current filter remains active. Siblings can hold identical guardian contacts independently.
-
-Reading uses the existing list/find workflow: `PersonCard` displays the name and phone, or a muted `Not set`.
-`JsonAdaptedGuardian` and `JsonAdaptedPerson` persist the contact under the `guardianContact` key. `LogicManager` saves the updated address book through the existing storage workflow.
-
-`GuardianWorkflowTest` covers CRUD, partial updates, filtered indices, invalid requests, siblings sharing a guardian,
-and automatic save/reload after each mutation. It verifies preservation of contact details, schooling
-level and lessons, as well as preservation of guardians during student edits.
-Validation remains the current AB3 validation; broader name and phone rules remain a product decision.
-
-### Guardian follow-ups
+### Guardian follow-ups <!-- Move to model...? -->
 
 A `FollowUp` holds 1–200 characters of single-line text, trimmed, and counted in code points like note text. `Student`
 keeps its outstanding follow-ups in an unmodifiable list in the order they were added; a follow-up's position in that
@@ -359,7 +307,7 @@ that fails validation makes the file invalid.
 Tests: `FollowUpTest`, `FollowUpCommandTest`, `FollowUpListCommandTest`, `FollowUpCommandParserTest`,
 `FollowUpStorageTest` and the routing cases in `AddressBookParserTest`.
 
-### Progress notes
+### Progress notes <!-- Move to model -->
 
 A `ProgressNote` holds a `LocalDate` and 1–500 characters of single-line text. `Student` keeps its notes in an
 unmodifiable list sorted oldest first; the sort is stable, so notes on the same date keep the order they were added.
@@ -387,17 +335,6 @@ updated address book, as for any other command.
 
 `JsonAdaptedProgressNote` stores each note as `{"date": "YYYY-MM-DD", "text": "..."}` in the person's `notes`
 array. A missing or `null` `notes` key loads as no notes, so older data files still load.
-
-### Inherited undo/redo proposal
-
-Undo and redo are not implemented or part of the selected tuition work. The inherited AB3 proposal uses `VersionedAddressBook` to store snapshots and a pointer to the current snapshot.
-
-* `commit()` adds a snapshot after a successful change and removes any redo history.
-* `undo()` moves to the previous snapshot; `redo()` moves to the next.
-* Failed commands and read-only commands do not add snapshots. Moving past either end reports an error.
-* Full snapshots are simpler to implement but use more memory. Command-specific inverse operations use less memory but require correct undo logic for each command.
-
-The inherited diagrams remain in `docs/diagrams` and `docs/images` for reference. Data archiving is also unimplemented.
 
 ## Documentation, logging, testing, dev-ops
 
@@ -717,10 +654,10 @@ For larger or boundary-value data sets, generate a data file with `./gradlew see
 4. Run `delete 0`. The result row should turn pink with a red `!`, and `delete 0` should stay in the box in red. Fix it to a valid index and press Enter; the box should clear.
 5. Run `add name/Ryan`. The result row should show the description, a **Format** line and an **Example** line in a monospace font.
 6. Run two commands, then press Up twice and Down twice. The box should show the earlier commands, then what you had typed. Press Esc; the box should clear.
-7. With more students than fit, press Page Down and Page Up while the cursor is in the command box. The list should scroll, and typing should still go into the box.
+7. With more students than fit, press Esc in the empty command box to clear the selected student, then press Page Down and Page Up. The list should scroll, and typing should still go into the box. Run `view INDEX` for a student with long details, then press Page Down and Page Up again; the sidebar should scroll while the list and selection stay in place.
 8. Press F1, then Esc. The help window should close.
-9. With the command box empty, press Alt+Down twice. The second student's details should open, with focus still in the box. Press Esc to close them. Run `find` with one student's name; their details should open.
-10. Add a student with a long name, several lessons and a long address. Shrink the window to its minimum size. The text should wrap, and the list and result row should scroll, with nothing cut off.
+9. Run `list`, then `view 1` and `view 2`. The sidebar should switch to the indicated student while the list cards stay compact. With the command box empty, press Esc to clear the selection and show the sidebar's prompt. Press Alt+Down twice; the second student's details should appear in the sidebar, with focus still in the command box. Run `find` with one student's name; the sidebar should show their details.
+10. Add a student with a long name, several lessons and a long address, then run `view INDEX` for that student. Shrink the window to its minimum size. The list and sidebar should remain side by side, and the text should wrap. Use Page Down or scroll within the sidebar to reach all the student's information without scrolling the list; long command results should also remain scrollable.
 
 ### Student deletion
 
@@ -730,12 +667,12 @@ For larger or boundary-value data sets, generate a data file with `./gradlew see
 
 ### Lessons and saved data
 
-1. Add a unique test student, then run `lesson-add INDEX subject/Combined   Science slot/Wed 1.00pm 5.00pm rate/45.5`, using three spaces between the words. The student's details should show lesson `1.` with subject `Combined Science`, `Wed 1.00pm-5.00pm` and `SGD 45.50/h`.
+1. Add a unique test student, then run `lesson-add INDEX subject/Combined   Science slot/Wed 1.00pm 5.00pm rate/45.5`, using three spaces between the words. Run `view INDEX`; the sidebar should show lesson `1.` with subject `Combined Science`, `Wed 1.00pm-5.00pm` and `SGD 45.50/h`.
 2. Run `lesson-add INDEX subject/English slot/mon 4.00pm 5.00pm rate/40 mode/virtual location/https://zoom.us/j/123`. The student's details should list both lessons in order, the second with `Virtual` and its location.
 3. Run `lesson-edit INDEX 2 rate/50`, then edit the student's phone with `edit`. Both lessons should stay, and only the rate should change.
 4. Restart the app. Everything above should remain.
 5. Run `lesson-edit INDEX 2 mode/ location/`. The student's details should show the English lesson without mode or location, including after restart.
-6. Run `lesson-delete INDEX 1`. English becomes lesson 1. Delete it too and the card should show `No lessons yet`.
+6. Run `lesson-delete INDEX 1`. English becomes lesson 1. Delete it too and the sidebar's Lessons section should show `No lessons yet`.
 7. Try a duplicate `lesson-add`, a lesson index larger than the list, a missing required field, `mode/hybrid`, a repeated prefix, an unknown prefix such as `x/`, and an empty `mode/` on `lesson-add`. Each should report an error and leave every record unchanged.
 
 ### Name and guardian searches
@@ -795,5 +732,5 @@ Close the app and back up the test data before each case.
 
 * **Missing file:** Move `data/studentbook.json` out of the test folder, then restart. Sample records should appear.
 * **Invalid file:** Replace the test file with invalid JSON, then restart. An empty list should appear and the log should record the load failure. Do not run commands before restoring the backup; a successful command saves over the file.
-* **Old valid file:** Load AB3 data without tuition properties. The contact details should remain and the card should show `No lessons yet`.
+* **Old valid file:** Load AB3 data without tuition properties. Run `view INDEX`; the contact details should remain and the sidebar's Lessons section should show `No lessons yet`.
 * **Pre-lesson file:** Load a file whose students have `subjects`, `weeklyLessonSlot` and `hourlyRate`. The contact details load, but those properties are ignored and removed on the next save.
