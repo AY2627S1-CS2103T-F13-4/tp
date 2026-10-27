@@ -120,6 +120,23 @@ Shows all active students in StudentBook, grouped by schooling level, and select
 
 Format: `list`
 
+This also clears any `sort`, so students return to the order they were added within each level.
+
+### Sort students by rate: `sort`
+
+Orders students by hourly rate **within each schooling level**. The Primary, Secondary, JC and Other groups stay where they are, and only the students inside each group are reordered. Numbers shown on screen still match the `INDEX` used by commands.
+
+Format: `sort rate asc` or `sort rate desc`
+
+* `asc` puts the lowest rate first and `desc` puts the highest rate first.
+* A student with several lessons is ranked by their lowest rate for `asc` and their highest rate for `desc`.
+* Students with no lessons always come last in their group.
+* While a sort is on, the **Rate** column is headed **Min rate** or **Max rate** and shows the rate the sort uses, instead of the next lesson's rate.
+* Students with the same rate stay in the order they were added.
+* The sort stays in place when you edit lessons or use `find`. Type `list` to go back to the order students were added.
+
+Example: `sort rate desc`
+
 ### List archived students: `list-archive`
 
 Shows all archived students in a separate **Archives** tab with the same layout as **Students**. Searches and commands using `INDEX` now use this list. Type `list` to return to active students.
@@ -356,6 +373,7 @@ Lesson numbers in warnings belong to the named student's lesson list; find that 
 | Clear schooling level | `edit INDEX level/` |
 | Find | `find KEYWORD [MORE_KEYWORDS]` or `find [name/TEXT] [guardian/TEXT] [sch/TEXT] [level/TEXT] [subject/TEXT] [day/DAY]` |
 | List | `list` |
+| Sort by rate | `sort rate asc` or `sort rate desc` |
 | This week's lessons | `week` |
 | A student's details | `view INDEX` |
 | Add lesson | `lesson-add STUDENT_INDEX subject/SUBJECT slot/LESSON_SLOT rate/HOURLY_RATE [mode/MODE] [location/LOCATION]` |
