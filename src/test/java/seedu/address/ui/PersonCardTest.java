@@ -4,6 +4,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.math.BigDecimal;
+import java.time.DayOfWeek;
+import java.time.LocalTime;
 import java.util.List;
 
 import org.junit.jupiter.api.BeforeAll;
@@ -20,8 +23,13 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.Region;
 import javafx.scene.text.Text;
+import seedu.address.model.person.HourlyRate;
+import seedu.address.model.person.Lesson;
+import seedu.address.model.person.RateSortOrder;
 import seedu.address.model.person.School;
 import seedu.address.model.person.Student;
+import seedu.address.model.person.Subject;
+import seedu.address.model.person.WeeklyLessonSlot;
 import seedu.address.testutil.FxTestUtil;
 import seedu.address.testutil.PersonBuilder;
 
@@ -106,6 +114,48 @@ public class PersonCardTest {
 
             assertEquals(List.of(StudentCardText.NO_FOLLOW_UPS), sectionTexts(root, "Follow-ups"));
         });
+    }
+
+    @Test
+    public void rate_sortedByRate_showsTheRateTheSortRanksBy() throws Exception {
+        FxTestUtil.runOnFxThread(() -> {
+            Student student = new PersonBuilder().withLessons(lesson("60"), lesson("52.5")).build();
+            assertEquals("$60/h", rateText(new PersonCard(student, 1)));
+            assertEquals("$60/h", rateText(new PersonCard(student, 1, RateSortOrder.NONE)));
+            assertEquals("$52.50/h", rateText(new PersonCard(student, 1, RateSortOrder.ASCENDING)));
+            assertEquals("$60/h", rateText(new PersonCard(student, 1, RateSortOrder.DESCENDING)));
+        });
+    }
+
+    @Test
+    public void setSortOrder_afterCreation_updatesRateInPlace() throws Exception {
+        FxTestUtil.runOnFxThread(() -> {
+            Student student = new PersonBuilder().withLessons(lesson("60"), lesson("52")).build();
+            PersonCard card = new PersonCard(student, 1, RateSortOrder.ASCENDING);
+            prepareCard(card, new SimpleDoubleProperty(320));
+            assertEquals("$52/h", assertInstanceOf(Text.class, card.getRoot().lookup("#rate")).getText());
+            card.setSortOrder(RateSortOrder.DESCENDING);
+            assertEquals("$60/h", assertInstanceOf(Text.class, card.getRoot().lookup("#rate")).getText());
+            card.setSortOrder(RateSortOrder.NONE);
+            assertEquals("$60/h", assertInstanceOf(Text.class, card.getRoot().lookup("#rate")).getText());
+        });
+    }
+
+    @Test
+    public void rate_sortedByRateWithoutLessons_showsPlaceholder() throws Exception {
+        FxTestUtil.runOnFxThread(() -> assertEquals("\u2014",
+                rateText(new PersonCard(new PersonBuilder().build(), 1, RateSortOrder.ASCENDING))));
+    }
+
+    private static Lesson lesson(String rate) {
+        return new Lesson(new Subject("Math"),
+                new WeeklyLessonSlot(DayOfWeek.MONDAY, LocalTime.of(10, 0), LocalTime.of(11, 0)),
+                new HourlyRate(new BigDecimal(rate)));
+    }
+
+    private static String rateText(PersonCard card) {
+        Region root = prepareCard(card, new SimpleDoubleProperty(320));
+        return assertInstanceOf(Text.class, root.lookup("#rate")).getText();
     }
 
     /** Returns the content of the details section with the given caption: the content node and its children. */
