@@ -277,16 +277,18 @@ public class EditCommandTest {
         Student original = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
         Student archived = original.withArchived(true);
         model.setPerson(original, archived);
+        new ListArchiveCommand().execute(model);
         model.updateFilteredPersonList(archived::isSamePerson);
 
         new EditCommand(INDEX_FIRST_PERSON,
                 new EditPersonDescriptorBuilder().withPhone(VALID_PHONE_BOB).build()).execute(model);
 
-        Student edited = model.getAddressBook().getPersonList().stream()
+        Student edited = model.getAddressBook().getArchivedPersonList().stream()
                 .filter(archived::isSamePerson).findFirst().orElseThrow();
         assertEquals(new PersonBuilder(archived).withPhone(VALID_PHONE_BOB).build(), edited);
         assertTrue(edited.isArchived());
-        assertFalse(model.getFilteredPersonList().contains(edited));
+        assertTrue(model.getFilteredPersonList().contains(edited));
+        assertFalse(model.getFilteredActivePersonList().contains(edited));
     }
 
     private PersonBuilder personWithTuitionDetails() {

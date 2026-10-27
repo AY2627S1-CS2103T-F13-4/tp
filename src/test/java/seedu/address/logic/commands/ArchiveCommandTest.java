@@ -1,7 +1,6 @@
 package seedu.address.logic.commands;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandFailure;
 import static seedu.address.logic.commands.CommandTestUtil.showPersonAtIndex;
@@ -21,7 +20,6 @@ import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
-import seedu.address.model.person.Student;
 import seedu.address.testutil.AddressBookBuilder;
 
 /**
@@ -55,9 +53,8 @@ public class ArchiveCommandTest {
         assertEquals(String.format(ArchiveCommand.MESSAGE_ARCHIVE_PERSON_SUCCESS, Messages.format(ALICE)),
                 commandResult.getFeedbackToUser());
         assertEquals(List.of(BENSON), model.getFilteredPersonList());
-        assertEquals(2, model.getAddressBook().getPersonList().size());
-        assertTrue(model.getAddressBook().getPersonList().get(0).isArchived());
-        assertFalse(model.getAddressBook().getPersonList().get(1).isArchived());
+        assertEquals(List.of(BENSON), model.getAddressBook().getPersonList());
+        assertEquals(List.of(ALICE.withArchived(true)), model.getAddressBook().getArchivedPersonList());
     }
 
     @Test
@@ -68,8 +65,8 @@ public class ArchiveCommandTest {
         new ArchiveCommand(INDEX_FIRST_PERSON).execute(model);
 
         assertTrue(model.getFilteredPersonList().isEmpty());
-        assertEquals(1, model.getAddressBook().getPersonList().size());
-        assertTrue(model.getAddressBook().getPersonList().get(0).isArchived());
+        assertTrue(model.getAddressBook().getPersonList().isEmpty());
+        assertEquals(List.of(ALICE.withArchived(true)), model.getAddressBook().getArchivedPersonList());
     }
 
     @Test
@@ -84,8 +81,9 @@ public class ArchiveCommandTest {
         assertEquals(String.format(ArchiveCommand.MESSAGE_ARCHIVE_PERSON_SUCCESS, Messages.format(BENSON)),
                 commandResult.getFeedbackToUser());
         assertTrue(model.getFilteredPersonList().isEmpty());
-        assertEquals(2, model.getAddressBook().getPersonList().size());
-        assertTrue(model.getAddressBook().getPersonList().stream().allMatch(Student::isArchived));
+        assertTrue(model.getAddressBook().getPersonList().isEmpty());
+        assertEquals(List.of(ALICE.withArchived(true), BENSON.withArchived(true)),
+                model.getAddressBook().getArchivedPersonList());
 
         new ListCommand().execute(model);
         assertTrue(model.getFilteredPersonList().isEmpty());

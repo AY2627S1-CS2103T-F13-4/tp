@@ -41,7 +41,7 @@ This development version supports contact details, schools, schooling levels, gu
 
 Type commands in the box at the top and press **Enter**.
 
-* **This week** shows your lessons on a calendar (`week`). **Students** shows your students (`list`).
+* **This week** shows your active students' lessons on a calendar (`week`). **Students** shows your students (`list`), and **Archives** shows archived students (`list-archive`). `find` searches whichever of these two lists is open.
 * A lesson marked `#3.1` is student `3`'s lesson `1`. Edit it with `lesson-edit 3 1 ...`.
 * To see a student's full details, click their row or type `view INDEX`.
 * If a command is wrong, the correct format and an example appear below the box. Press **Tab** to copy the example into the box.
@@ -105,9 +105,21 @@ Examples:
 
 ### List all students: `list`
 
-Shows a list of all students in StudentBook, grouped by schooling level.
+Shows all active students in StudentBook, grouped by schooling level, and selects this list for searches and indexed commands.
 
 Format: `list`
+
+### List archived students: `list-archive`
+
+Shows all archived students in a separate **Archives** tab with the same layout as **Students**. Searches and commands using `INDEX` now use this list. Type `list` to return to active students.
+
+Format: `list-archive`
+
+### Archive or restore a student: `archive`, `unarchive`
+
+`archive INDEX` moves an active student to the archived list, keeping their details, lessons, notes and follow-ups. Archived students do not appear in the active list or weekly calendar.
+
+To restore a student, run `list-archive`, then `unarchive INDEX` using the number shown in that tab. The student moves back to the active list; the archived tab stays open. Run `list` to see the restored student.
 
 ### Edit a student: `edit`
 
@@ -135,7 +147,7 @@ Examples:
 
 ### Show weekly lessons: `week`
 
-Displays all lessons for students in the current list display.
+Displays lessons for active students, retaining the active list's search and lesson filters. Running `week` from the archived tab returns to active students.
 
 Format: `week`
 

@@ -53,7 +53,8 @@
           </VBox>
           <!-- Navigation under the command bar: every item runs the command it shows -->
           <HBox fx:id="navBar" styleClass="nav-bar" alignment="CENTER_LEFT" spacing="4" minHeight="-Infinity">
-            <Button fx:id="weekNav" styleClass="nav-item" onAction="#handleShowWeek" focusTraversable="false">
+            <Button fx:id="weekNav" styleClass="nav-item" onAction="#handleShowWeek" focusTraversable="false"
+                    minWidth="-Infinity">
               <graphic>
                 <HBox alignment="CENTER_LEFT" spacing="8">
                   <Label text="This week" styleClass="nav-label" minWidth="-Infinity" />
@@ -61,11 +62,21 @@
                 </HBox>
               </graphic>
             </Button>
-            <Button fx:id="studentsNav" styleClass="nav-item" onAction="#handleListStudents" focusTraversable="false">
+            <Button fx:id="studentsNav" styleClass="nav-item" onAction="#handleListStudents" focusTraversable="false"
+                    minWidth="-Infinity">
               <graphic>
                 <HBox alignment="CENTER_LEFT" spacing="8">
                   <Label text="Students" styleClass="nav-label" minWidth="-Infinity" />
                   <Label text="list" styleClass="nav-hint" minWidth="-Infinity" />
+                </HBox>
+              </graphic>
+            </Button>
+            <Button fx:id="archiveNav" styleClass="nav-item" onAction="#handleListArchive" focusTraversable="false"
+                    minWidth="-Infinity">
+              <graphic>
+                <HBox alignment="CENTER_LEFT" spacing="8">
+                  <Label text="Archives" styleClass="nav-label" minWidth="-Infinity" />
+                  <Label text="list-archive" styleClass="nav-hint" minWidth="-Infinity" />
                 </HBox>
               </graphic>
             </Button>
@@ -87,7 +98,7 @@
               </graphic>
             </Button>
           </HBox>
-          <!-- Holds both screens, the week's lessons and the student table; one shows at a time -->
+          <!-- Holds the week's lessons and the active and archived student tables; one shows at a time -->
           <StackPane fx:id="personListPanelPlaceholder" VBox.vgrow="ALWAYS" minHeight="0" />
           <StackPane fx:id="statusbarPlaceholder" />
         </VBox>

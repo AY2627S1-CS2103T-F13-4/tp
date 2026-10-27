@@ -14,6 +14,7 @@ import static seedu.address.testutil.TypicalPersons.BENSON;
 import java.math.BigDecimal;
 import java.util.List;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import seedu.address.commons.core.index.Index;
@@ -38,6 +39,11 @@ public class UnarchiveCommandTest {
     private Model model = new ModelManager(
             new AddressBookBuilder().withPerson(ALICE.withArchived(true)).withPerson(BENSON).build(), new UserPrefs());
 
+    @BeforeEach
+    public void setUp() {
+        new ListArchiveCommand().execute(model);
+    }
+
     @Test
     public void execute_nullModel_throwsNullPointerException() {
         assertThrows(NullPointerException.class, () -> new UnarchiveCommand(INDEX_FIRST_PERSON).execute(null));
@@ -49,13 +55,14 @@ public class UnarchiveCommandTest {
         String expectedMessage = String.format(UnarchiveCommand.MESSAGE_UNARCHIVE_PERSON_SUCCESS,
                 Messages.format(personToUnarchive));
         Model expectedModel = new ModelManager(
-                new AddressBookBuilder().withPerson(ALICE).withPerson(BENSON).build(), new UserPrefs());
+                new AddressBookBuilder().withPerson(BENSON).withPerson(ALICE).build(), new UserPrefs());
+        expectedModel.setArchiveView(true);
 
         assertCommandSuccess(new UnarchiveCommand(INDEX_FIRST_PERSON), model, expectedMessage, expectedModel);
     }
 
     @Test
-    public void execute_validIndexFilteredList_restoresPersonAndShowsActiveStudents() {
+    public void execute_validIndexFilteredList_restoresPersonAndKeepsArchiveView() {
         Student archivedBenson = BENSON.withArchived(true);
         model = new ModelManager(new AddressBookBuilder().withPerson(ALICE).withPerson(archivedBenson).build(),
                 new UserPrefs());
@@ -66,11 +73,14 @@ public class UnarchiveCommandTest {
                 Messages.format(archivedBenson));
         Model expectedModel = new ModelManager(
                 new AddressBookBuilder().withPerson(ALICE).withPerson(BENSON).build(), new UserPrefs());
+        expectedModel.setArchiveView(true);
 
         assertCommandSuccess(new UnarchiveCommand(INDEX_FIRST_PERSON), model, expectedMessage, expectedModel);
 
-        new ListArchiveCommand().execute(model);
         assertTrue(model.getFilteredPersonList().isEmpty());
+        assertTrue(model.isArchiveView());
+        new ListCommand().execute(model);
+        assertEquals(List.of(ALICE, BENSON), model.getFilteredPersonList());
     }
 
     @Test
@@ -81,7 +91,9 @@ public class UnarchiveCommandTest {
                         new HourlyRate(new BigDecimal("45.50")))).build();
         Student archived = original.withArchived(true);
         model = new ModelManager(new AddressBookBuilder().withPerson(archived).build(), new UserPrefs());
+        new ListArchiveCommand().execute(model);
         Model expectedModel = new ModelManager(new AddressBookBuilder().withPerson(original).build(), new UserPrefs());
+        expectedModel.setArchiveView(true);
         String expectedMessage = String.format(UnarchiveCommand.MESSAGE_UNARCHIVE_PERSON_SUCCESS,
                 Messages.format(archived));
 
@@ -99,8 +111,11 @@ public class UnarchiveCommandTest {
 
     @Test
     public void execute_invalidIndexFilteredList_throwsCommandException() {
+        model = new ModelManager(new AddressBookBuilder().withPerson(ALICE.withArchived(true))
+                .withPerson(BENSON.withArchived(true)).build(), new UserPrefs());
         new ListArchiveCommand().execute(model);
-        assertTrue(INDEX_SECOND_PERSON.getZeroBased() < model.getAddressBook().getPersonList().size());
+        model.updateFilteredPersonList(ALICE::isSamePerson);
+        assertTrue(INDEX_SECOND_PERSON.getZeroBased() < model.getAddressBook().getArchivedPersonList().size());
 
         assertCommandFailure(new UnarchiveCommand(INDEX_SECOND_PERSON), model,
                 Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);

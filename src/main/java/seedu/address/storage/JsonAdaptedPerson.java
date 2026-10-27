@@ -57,7 +57,7 @@ class JsonAdaptedPerson {
     public JsonAdaptedPerson(String name, String phone, String email, String address, List<JsonAdaptedTag> tags,
             String school, String schoolingLevel, JsonAdaptedGuardian guardianContact,
             List<JsonAdaptedLesson> lessons, boolean isArchived) {
-        this(name, phone, email, address, tags, school, schoolingLevel, guardianContact, lessons, false, null);
+        this(name, phone, email, address, tags, school, schoolingLevel, guardianContact, lessons, isArchived, null);
     }
 
     /** Constructs a {@code JsonAdaptedPerson} with the given person details and no follow-ups. */

@@ -12,7 +12,7 @@
 <VBox minHeight="0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
   <!-- Page header with a full-width rule under it -->
   <HBox styleClass="page-header" alignment="CENTER_LEFT" spacing="10">
-    <Label text="Students" styleClass="view-title" />
+    <Label fx:id="listTitle" text="Students" styleClass="view-title" />
     <Label fx:id="listSummary" styleClass="view-subtitle" />
     <Region HBox.hgrow="ALWAYS" />
     <!-- Fills the add command into the command box; nothing is added until it is completed and entered -->

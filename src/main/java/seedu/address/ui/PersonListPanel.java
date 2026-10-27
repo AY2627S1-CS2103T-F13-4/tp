@@ -56,6 +56,8 @@ public class PersonListPanel extends UiPart<Region> {
     @FXML
     private ListView<Student> personListView;
     @FXML
+    private Label listTitle;
+    @FXML
     private Label listSummary;
     @FXML
     private Label nameHeading;
@@ -77,6 +79,7 @@ public class PersonListPanel extends UiPart<Region> {
     @FXML
     private Label emptyCommand;
     private final Columns columns;
+    private final boolean archived;
     /** The student whose details were open just before the list last changed. */
     private Student openBeforeChange;
 
@@ -85,7 +88,14 @@ public class PersonListPanel extends UiPart<Region> {
      * {@code allPersons} is the unfiltered list, used only to count students and choose the empty-state message.
      */
     public PersonListPanel(ObservableList<Student> personList, ObservableList<Student> allPersons) {
+        this(personList, allPersons, false);
+    }
+
+    /** Creates the same student table for either active or archived students. */
+    public PersonListPanel(ObservableList<Student> personList, ObservableList<Student> allPersons, boolean archived) {
         super(FXML);
+        this.archived = archived;
+        listTitle.setText(archived ? "Archived students" : "Students");
         ReadOnlyDoubleProperty listWidth = personListView.widthProperty();
         BooleanExpression wide = listWidth.greaterThanOrEqualTo(WIDE_TABLE_WIDTH);
         columns = new Columns(column(listWidth, 0.30, 0.50), column(listWidth, 0.22, 0),
@@ -220,9 +230,9 @@ public class PersonListPanel extends UiPart<Region> {
 
     private void updateStatus(int shown, int total) {
         listSummary.setText(StudentListStatus.summary(shown, total));
-        emptyTitle.setText(StudentListStatus.emptyTitle(total));
-        emptyDetail.setText(StudentListStatus.emptyDetail(total));
-        emptyCommand.setText(StudentListStatus.emptyCommand(total));
+        emptyTitle.setText(StudentListStatus.emptyTitle(total, archived));
+        emptyDetail.setText(StudentListStatus.emptyDetail(total, archived));
+        emptyCommand.setText(StudentListStatus.emptyCommand(total, archived));
     }
 
     /** Returns a group heading such as "Primary 2": a dot in the stage's colour, its name and how many it has. */

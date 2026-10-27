@@ -46,6 +46,7 @@ public class FollowUpListCommandTest {
         giveFollowUps(0, 1);
         Student archived = model.getFilteredPersonList().get(1);
         model.setPerson(archived, archived.withArchived(true));
+        new ListArchiveCommand().execute(model);
 
         new FollowUpListCommand().execute(model);
 
