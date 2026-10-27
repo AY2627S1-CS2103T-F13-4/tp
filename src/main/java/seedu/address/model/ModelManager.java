@@ -15,6 +15,7 @@ import javafx.collections.transformation.SortedList;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.commons.core.LogsCenter;
 import seedu.address.model.person.Lesson;
+import seedu.address.model.person.RateSortOrder;
 import seedu.address.model.person.Student;
 
 /**
@@ -29,6 +30,8 @@ public class ModelManager implements Model {
     private final SortedList<Student> shownPersons;
     private final FilteredList<Student> filteredArchivedPersons;
     private final SortedList<Student> shownArchivedPersons;
+    private final ReadOnlyObjectWrapper<RateSortOrder> rateSortOrder =
+            new ReadOnlyObjectWrapper<>(RateSortOrder.NONE);
     private boolean archiveView;
     private final ReadOnlyObjectWrapper<Predicate<Lesson>> lessonPredicate =
             new ReadOnlyObjectWrapper<>(PREDICATE_SHOW_ALL_LESSONS);
@@ -48,17 +51,22 @@ public class ModelManager implements Model {
         // Commands use this list too, so the numbers on screen always match command indices. The tie-break on the
         // stored order matters: without it an edited student can move within its group and change its number.
         ObservableList<Student> stored = this.addressBook.getPersonList();
-        shownPersons = new SortedList<>(filteredPersons,
-                Comparator.comparing(Student::getStage).thenComparingInt(stored::indexOf));
+        shownPersons = new SortedList<>(filteredPersons, shownOrder(stored, RateSortOrder.NONE));
         filteredArchivedPersons = new FilteredList<>(this.addressBook.getArchivedPersonList(),
                 PREDICATE_SHOW_ALL_PERSONS);
         ObservableList<Student> archived = this.addressBook.getArchivedPersonList();
-        shownArchivedPersons = new SortedList<>(filteredArchivedPersons,
-                Comparator.comparing(Student::getStage).thenComparingInt(archived::indexOf));
+        shownArchivedPersons = new SortedList<>(filteredArchivedPersons, shownOrder(archived, RateSortOrder.NONE));
     }
 
     public ModelManager() {
         this(new AddressBook(), new UserPrefs());
+    }
+
+    /** Orders by school stage, then the chosen rate order, then the order added. */
+    private static Comparator<Student> shownOrder(ObservableList<Student> stored, RateSortOrder order) {
+        return Comparator.comparing(Student::getStage)
+                .thenComparing(order.comparator())
+                .thenComparingInt(stored::indexOf);
     }
 
     //=========== UserPrefs ==================================================================================
@@ -149,6 +157,20 @@ public class ModelManager implements Model {
     }
 
     @Override
+    public void setRateSortOrder(RateSortOrder rateSortOrder) {
+        requireNonNull(rateSortOrder);
+        // Re-sort first so a listener told of the new order already sees the lists in that order.
+        shownPersons.setComparator(shownOrder(addressBook.getPersonList(), rateSortOrder));
+        shownArchivedPersons.setComparator(shownOrder(addressBook.getArchivedPersonList(), rateSortOrder));
+        this.rateSortOrder.set(rateSortOrder);
+    }
+
+    @Override
+    public ObservableValue<RateSortOrder> getRateSortOrder() {
+        return rateSortOrder.getReadOnlyProperty();
+    }
+
+    @Override
     public void setArchiveView(boolean archiveView) {
         this.archiveView = archiveView;
     }
@@ -196,6 +218,7 @@ public class ModelManager implements Model {
                 && filteredPersons.equals(otherModelManager.filteredPersons)
                 && filteredArchivedPersons.equals(otherModelManager.filteredArchivedPersons)
                 && archiveView == otherModelManager.archiveView
+                && rateSortOrder.get() == otherModelManager.rateSortOrder.get()
                 && lessonPredicate.get().equals(otherModelManager.lessonPredicate.get());
     }
 
