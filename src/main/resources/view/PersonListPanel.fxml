@@ -9,41 +9,34 @@
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox minHeight="0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
-  <!-- Page header with a full-width rule under it -->
+<VBox minHeight="0" minWidth="0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
   <HBox styleClass="page-header" alignment="CENTER_LEFT" spacing="10">
     <Label fx:id="listTitle" text="Students" styleClass="view-title" />
     <Label fx:id="listSummary" styleClass="view-subtitle" />
     <Region HBox.hgrow="ALWAYS" />
-    <!-- Fills the add command into the command box; nothing is added until it is completed and entered -->
     <Button fx:id="addStudentButton" text="+  Add student" styleClass="primary-button" focusTraversable="false"
             onAction="#handleAddStudent" />
   </HBox>
-  <StackPane styleClass="list-card" minHeight="0" VBox.vgrow="ALWAYS">
+  <HBox fx:id="studentContent" spacing="16" minHeight="0" minWidth="0" VBox.vgrow="ALWAYS">
     <VBox.margin>
       <Insets top="6" right="24" bottom="16" left="24" />
     </VBox.margin>
-    <VBox minHeight="0">
-      <!-- Column headings; their widths are bound to the same columns as each row -->
+    <VBox styleClass="list-card" minHeight="0" minWidth="0" HBox.hgrow="ALWAYS">
       <HBox styleClass="table-header" alignment="CENTER_LEFT">
         <Label text="#" styleClass="table-heading, heading-index" />
-        <Label fx:id="nameHeading" text="Name" styleClass="table-heading" />
-        <Label fx:id="subjectsHeading" text="Subjects" styleClass="table-heading" />
-        <Label fx:id="lessonHeading" text="Next lesson" styleClass="table-heading" />
-        <Label fx:id="rateHeading" text="Rate" styleClass="table-heading, heading-right" />
-        <Label fx:id="guardianHeading" text="Guardian" styleClass="table-heading" />
+        <Label fx:id="nameHeading" text="Student" styleClass="table-heading" />
       </HBox>
       <!-- Not focusable, so clicking a row leaves the cursor in the command box. -->
-      <ListView fx:id="personListView" minHeight="0" VBox.vgrow="ALWAYS" focusTraversable="false">
-        <!-- Shown when no rows are listed; the text says what to type next -->
+      <ListView fx:id="personListView" minHeight="0" minWidth="0" VBox.vgrow="ALWAYS" focusTraversable="false">
         <placeholder>
           <VBox styleClass="empty-state">
-            <Label fx:id="emptyTitle" styleClass="empty-title" />
+            <Label fx:id="emptyTitle" styleClass="empty-title" wrapText="true" />
             <Label fx:id="emptyDetail" styleClass="empty-detail" wrapText="true" />
             <Label fx:id="emptyCommand" styleClass="empty-command" wrapText="true" />
           </VBox>
         </placeholder>
       </ListView>
     </VBox>
-  </StackPane>
+    <StackPane fx:id="personDetailsPlaceholder" minWidth="0" minHeight="0" />
+  </HBox>
 </VBox>

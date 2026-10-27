@@ -2,6 +2,7 @@ package seedu.address.model;
 
 import java.util.function.Predicate;
 
+import javafx.beans.value.ObservableIntegerValue;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
 import seedu.address.commons.core.GuiSettings;
@@ -74,6 +75,15 @@ public interface Model {
      * The person identity of {@code editedPerson} must not be the same as another existing person in the address book.
      */
     void setPerson(Student target, Student editedPerson);
+
+    /** Returns an unmodifiable view of the number of selected active students. */
+    ObservableIntegerValue getActiveStudentCount();
+
+    /** Returns an unmodifiable view of the number of selected archived students. */
+    ObservableIntegerValue getArchivedStudentCount();
+
+    /** Returns an unmodifiable view of the total number of lessons. */
+    ObservableIntegerValue getLessonCount();
 
     /** Returns an unmodifiable view of the selected active or archived student list. */
     ObservableList<Student> getFilteredPersonList();

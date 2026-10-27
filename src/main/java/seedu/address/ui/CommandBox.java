@@ -70,7 +70,7 @@ public class CommandBox extends UiPart<Region> {
     }
 
     /**
-     * Sets what Page Up (-1) and Page Down (1) do while typing, so the list can scroll without leaving the box.
+     * Sets what Page Up (-1) and Page Down (1) do while typing, so content can scroll without leaving the box.
      */
     public void setPageScroller(IntConsumer pageScroller) {
         this.pageScroller = requireNonNull(pageScroller);

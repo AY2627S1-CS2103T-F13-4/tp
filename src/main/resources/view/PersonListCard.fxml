@@ -3,45 +3,22 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.layout.FlowPane?>
 <?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
-<?import javafx.scene.text.Text?>
 
-<!-- One row per student: # | Name | Subjects | Next lesson | Rate | Guardian. Column widths are bound by
-     PersonListPanel. The details below the row show only while the row is open. -->
-<VBox fx:id="cardPane" styleClass="student-row" xmlns="http://javafx.com/javafx/17"
-      xmlns:fx="http://javafx.com/fxml/1">
-  <HBox styleClass="row-line" alignment="CENTER_LEFT">
-    <Label fx:id="id" styleClass="row-index">
-      <minWidth>
-        <!-- Ensures that the label text is never truncated -->
-        <Region fx:constant="USE_PREF_SIZE" />
-      </minWidth>
-    </Label>
-    <HBox fx:id="nameCell" alignment="CENTER_LEFT" spacing="10">
-      <Label fx:id="initials" styleClass="initials-badge">
-        <minWidth>
-          <Region fx:constant="USE_PREF_SIZE" />
-        </minWidth>
-      </Label>
-      <Text fx:id="name" text="\$first" styleClass="row-name" />
-      <Text fx:id="schoolingLevel" text="\$schoolingLevel" styleClass="row-level" />
-    </HBox>
-    <HBox fx:id="subjectsCell" alignment="CENTER_LEFT">
-      <Text fx:id="subjects" styleClass="row-secondary" />
-    </HBox>
-    <HBox fx:id="lessonCell" alignment="CENTER_LEFT" spacing="8">
-      <Text fx:id="nextTime" styleClass="row-value" />
-      <Text fx:id="moreLessons" styleClass="row-muted" />
-    </HBox>
-    <HBox fx:id="rateCell" alignment="CENTER_RIGHT">
-      <Text fx:id="rate" styleClass="row-value" />
-    </HBox>
-    <HBox fx:id="guardianCell" alignment="CENTER_LEFT">
-      <Text fx:id="guardianName" styleClass="row-secondary" />
-    </HBox>
+<!-- Details are shown in the sidebar; selecting a card never expands the list row. -->
+<HBox styleClass="student-row, row-line" alignment="CENTER_LEFT" minWidth="0"
+      xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
+  <Label fx:id="id" styleClass="row-index" minWidth="-Infinity" />
+  <HBox alignment="CENTER_LEFT" spacing="10" minWidth="0">
+    <Label fx:id="initials" styleClass="initials-badge" minWidth="-Infinity" />
+    <VBox fx:id="summary" spacing="4" minWidth="0">
+      <FlowPane hgap="8" vgap="3" minWidth="0" prefWrapLength="0">
+        <Label fx:id="name" styleClass="student-name" wrapText="true" minWidth="0"
+               maxWidth="${summary.width}" />
+        <Label fx:id="schoolingLevel" styleClass="student-level" wrapText="true" minWidth="0"
+               maxWidth="${summary.width}" />
+      </FlowPane>
+      <Label fx:id="subjects" styleClass="student-subjects" wrapText="true" minWidth="0" />
+    </VBox>
   </HBox>
-
-  <!-- Open details: school and contact details together, then guardian, lessons and tags -->
-  <FlowPane fx:id="details" styleClass="row-details" hgap="48" vgap="16" />
-</VBox>
+</HBox>

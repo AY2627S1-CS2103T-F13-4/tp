@@ -14,6 +14,9 @@ import static seedu.address.testutil.TypicalPersons.getTypicalAddressBook;
 import java.util.Collection;
 import java.util.List;
 
+import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.value.ObservableIntegerValue;
+import javafx.collections.ListChangeListener;
 import org.junit.jupiter.api.Test;
 
 import javafx.collections.FXCollections;
@@ -247,15 +250,23 @@ public class AddressBookTest {
     private static class AddressBookStub implements ReadOnlyAddressBook {
         private final ObservableList<Student> persons = FXCollections.observableArrayList();
         private final ObservableList<Student> archivedPersons = FXCollections.observableArrayList();
+        private final SimpleIntegerProperty studentCount = new SimpleIntegerProperty(0);
 
         AddressBookStub(Collection<Student> persons) {
             this(persons, List.of());
         }
 
         AddressBookStub(Collection<Student> persons, Collection<Student> archivedPersons) {
+            ListChangeListener<? super Student> listener = change -> studentCount.set(persons.size() + archivedPersons.size());
+            this.persons.addListener(listener);
+            this.archivedPersons.addListener(listener);
+
             this.persons.setAll(persons);
             this.archivedPersons.setAll(archivedPersons);
         }
+
+        @Override
+        public ObservableIntegerValue getStudentCount() { return studentCount; }
 
         @Override
         public ObservableList<Student> getPersonList() {

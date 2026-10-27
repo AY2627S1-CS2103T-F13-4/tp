@@ -12,7 +12,7 @@ import seedu.address.model.Model;
 import seedu.address.model.person.Student;
 
 /**
- * Shows one student's details in the student table: every lesson with its rate, mode and location, the contact
+ * Shows one student's details in the sidebar: every lesson with its rate, mode and location, the contact
  * details, guardian and tags. The calendar labels lessons "#3.1", so {@code view 3} opens that lesson's student.
  */
 public class ViewCommand extends Command {

@@ -8,6 +8,7 @@ import java.util.function.Predicate;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableIntegerValue;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
@@ -39,8 +40,8 @@ public class WeekPanel extends UiPart<Region> {
     private static final double NOW_POSITION = 0.25;
 
     private final ObservableList<Student> students;
-    private final ObservableList<Student> allStudents;
-    private final ObservableValue<Predicate<Lesson>> lessonPredicate;
+    private final ObservableIntegerValue count;
+    private final ObservableIntegerValue lessonCount;
     private final ScheduleGrid scheduleGrid;
     private final ListChangeListener<Student> summaryUpdater = change -> updateSummary();
     private final ChangeListener<Predicate<Lesson>> filterUpdater = (unused, oldValue, newValue) -> updateSummary();
@@ -59,23 +60,16 @@ public class WeekPanel extends UiPart<Region> {
     private Label emptyCommand;
 
     /**
-     * Creates the screen for the lessons of {@code students}, the list that commands use.
-     */
-    public WeekPanel(ObservableList<Student> students) {
-        this(students, students, new SimpleObjectProperty<>(Model.PREDICATE_SHOW_ALL_LESSONS));
-    }
-
-    /**
      * Creates a week screen that follows both the shown students and the active lesson filter.
      * {@code allStudents} is the unfiltered list, used only to tell a search that matches no lessons apart from
      * having no lessons at all.
      */
-    public WeekPanel(ObservableList<Student> students, ObservableList<Student> allStudents,
-            ObservableValue<Predicate<Lesson>> lessonPredicate) {
+    public WeekPanel(ObservableList<Student> students, ObservableIntegerValue count,
+            ObservableIntegerValue lessonCount, ObservableValue<Predicate<Lesson>> lessonPredicate) {
         super(FXML);
         this.students = requireNonNull(students);
-        this.allStudents = requireNonNull(allStudents);
-        this.lessonPredicate = requireNonNull(lessonPredicate);
+        this.count = requireNonNull(count);
+        this.lessonCount = requireNonNull(lessonCount);
         scheduleGrid = new ScheduleGrid(students, lessonPredicate);
         scheduleScroll.setContent(scheduleGrid.getRoot());
         // Keep the day headings in view while the hours scroll under them.
@@ -84,15 +78,12 @@ public class WeekPanel extends UiPart<Region> {
         scheduleGrid.getRoot().heightProperty().addListener((unused, oldValue, newValue) -> pinHeadings());
         emptyCommand.setStyle(MonospaceFont.style());
         students.addListener(summaryUpdater);
-        allStudents.addListener(summaryUpdater);
-        lessonPredicate.addListener(filterUpdater);
         updateSummary();
     }
 
     private void updateSummary() {
-        long lessons = students.stream().flatMap(student -> student.getLessons().stream())
-                .filter(lessonPredicate.getValue()).count();
-        long total = allStudents.stream().mapToLong(student -> student.getLessons().size()).sum();
+        long lessons = lessonCount.intValue();
+        long total = lessonCount.intValue();
         weekSummary.setText(lessons == total ? lessonCount(total) : "Showing " + lessons + " of " + lessonCount(total));
         // A search can hide every lesson; then the way back is list, not adding a lesson.
         boolean searchHidesAll = lessons == 0 && total > 0;
@@ -148,8 +139,6 @@ public class WeekPanel extends UiPart<Region> {
     /** Stops following the student list. Call when the window closes. */
     public void dispose() {
         students.removeListener(summaryUpdater);
-        allStudents.removeListener(summaryUpdater);
-        lessonPredicate.removeListener(filterUpdater);
         scheduleGrid.dispose();
     }
 }

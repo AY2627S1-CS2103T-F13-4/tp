@@ -199,17 +199,17 @@ public class MainWindow extends UiPart<Stage> {
      */
     void fillInnerParts() {
         personListPanel = new PersonListPanel(logic.getFilteredActivePersonList(),
-                logic.getAddressBook().getPersonList());
+                logic.getActiveStudentCount());
         archivedPersonListPanel = new PersonListPanel(logic.getFilteredArchivedPersonList(),
-                logic.getAddressBook().getArchivedPersonList(), true);
+                logic.getArchivedStudentCount(), true);
         personListPanelPlaceholder.getChildren().setAll(personListPanel.getRoot(), archivedPersonListPanel.getRoot());
 
         resultDisplay = new ResultDisplay();
         resultDisplayPlaceholder.getChildren().add(resultDisplay.getRoot());
 
         disposeWeekPanel();
-        weekPanel = new WeekPanel(logic.getFilteredActivePersonList(), logic.getAddressBook().getPersonList(),
-                logic.getLessonPredicate());
+        weekPanel = new WeekPanel(logic.getFilteredActivePersonList(), logic.getActiveStudentCount(),
+                logic.getLessonCount(), logic.getLessonPredicate());
         personListPanelPlaceholder.getChildren().add(weekPanel.getRoot());
 
         StatusBarFooter statusBarFooter = new StatusBarFooter(dataFilePath);
@@ -270,8 +270,8 @@ public class MainWindow extends UiPart<Stage> {
         for (Button tab : List.of(weekNav, studentsNav, archiveNav, helpNav)) {
             tab.getGraphic().lookup(".nav-hint").setStyle(MonospaceFont.style());
         }
-        for (ObservableList<Student> students : List.of(logic.getAddressBook().getPersonList(),
-                logic.getAddressBook().getArchivedPersonList())) {
+        for (ObservableList<Student> students : List.of(logic.getFilteredPersonList(),
+                logic.getFilteredArchivedPersonList())) {
             students.addListener((ListChangeListener<Student>) change -> fillLevelNav());
         }
         fillLevelNav();
@@ -282,8 +282,8 @@ public class MainWindow extends UiPart<Stage> {
     }
 
     private void fillLevelNav() {
-        List<Student> students = logic.isArchiveView() ? logic.getAddressBook().getArchivedPersonList()
-                : logic.getAddressBook().getPersonList();
+        List<Student> students = logic.isArchiveView() ? logic.getFilteredArchivedPersonList()
+                : logic.getFilteredPersonList();
         levelNav.getChildren().remove(LEVEL_NAV_FIRST_FILTER, levelNav.getChildren().size());
         students.stream()
                 .map(Student::getSchoolingLevel).flatMap(Optional::stream).map(Object::toString)

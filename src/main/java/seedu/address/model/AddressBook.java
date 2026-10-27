@@ -7,6 +7,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import javafx.beans.Observable;
+import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.value.ObservableIntegerValue;
 import javafx.collections.ObservableList;
 import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.model.person.Student;
@@ -22,8 +25,15 @@ public class AddressBook implements ReadOnlyAddressBook {
 
     private final UniquePersonList persons = new UniquePersonList();
     private final UniquePersonList archivedPersons = new UniquePersonList();
+    private final SimpleIntegerProperty size = new SimpleIntegerProperty(0);
+    private final SimpleIntegerProperty lessonCount = new SimpleIntegerProperty(0);
 
-    public AddressBook() {}
+    public AddressBook() {
+        persons.getInternalSize().addListener(this::updateStudentCount);
+        persons.getLessonCount().addListener(this::updateLessonCount);
+        archivedPersons.getInternalSize().addListener(this::updateStudentCount);
+        archivedPersons.getLessonCount().addListener(this::updateLessonCount);
+    }
 
     /**
      * Creates an AddressBook using the Persons in the {@code toBeCopied}
@@ -146,6 +156,29 @@ public class AddressBook implements ReadOnlyAddressBook {
                 .add("persons", persons)
                 .add("archivedPersons", archivedPersons)
                 .toString();
+    }
+
+    @Override
+    public ObservableIntegerValue getActiveStudentCount() {
+        return persons.getInternalSize();
+    }
+
+    @Override
+    public ObservableIntegerValue getArchivedStudentCount() {
+        return archivedPersons.getInternalSize();
+    }
+
+    private void updateStudentCount(Observable change) {
+        size.set(persons.getInternalSize().intValue() + archivedPersons.getInternalSize().intValue());
+    }
+
+    @Override
+    public ObservableIntegerValue getLessonCount() {
+        return lessonCount;
+    }
+
+    private void updateLessonCount(Observable change) {
+        lessonCount.set(persons.getLessonCount().intValue() + archivedPersons.getInternalSize().intValue());
     }
 
     @Override

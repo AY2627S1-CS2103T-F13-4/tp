@@ -6,7 +6,10 @@ import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 import java.util.Iterator;
 import java.util.List;
 
+import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.value.ObservableIntegerValue;
 import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import seedu.address.model.person.exceptions.DuplicatePersonException;
 import seedu.address.model.person.exceptions.PersonNotFoundException;
@@ -27,6 +30,21 @@ public class UniquePersonList implements Iterable<Student> {
     private final ObservableList<Student> internalList = FXCollections.observableArrayList();
     private final ObservableList<Student> internalUnmodifiableList =
             FXCollections.unmodifiableObservableList(internalList);
+    private final SimpleIntegerProperty internalSize = new SimpleIntegerProperty(0);
+    private final SimpleIntegerProperty lessonCount = new SimpleIntegerProperty(0);
+
+    public UniquePersonList() {
+        internalList.addListener(
+                (ListChangeListener<? super Student>) change -> {
+                    internalSize.set(internalList.size());
+                }
+        );
+        internalList.addListener(
+                (ListChangeListener<? super Student>) change -> lessonCount.set(
+                        (int) internalList.stream().mapToLong(student -> student.getLessons().size()).sum()
+                )
+        );
+    }
 
     /**
      * Returns true if the list contains an equivalent person as the given argument.
@@ -34,6 +52,20 @@ public class UniquePersonList implements Iterable<Student> {
     public boolean contains(Student toCheck) {
         requireNonNull(toCheck);
         return internalList.stream().anyMatch(toCheck::isSamePerson);
+    }
+
+    /**
+     * Returns the size of the list
+     */
+    public ObservableIntegerValue getInternalSize() {
+        return internalSize;
+    }
+
+    /**
+     * Returns the number of lessons for students in the list
+     */
+    public ObservableIntegerValue getLessonCount() {
+        return lessonCount;
     }
 
     /**

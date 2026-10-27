@@ -85,9 +85,9 @@ public class LogicManagerTest {
     // The UI counts all students from this list; it must stay the model's live list, not a copy.
     @Test
     public void getAddressBook_reflectsLaterChanges() throws Exception {
-        int before = logic.getAddressBook().getPersonList().size();
+        int before = logic.getStudentCount().intValue();
         logic.execute(AddCommand.COMMAND_WORD + NAME_DESC_AMY + PHONE_DESC_AMY + EMAIL_DESC_AMY + ADDRESS_DESC_AMY);
-        assertEquals(before + 1, logic.getAddressBook().getPersonList().size());
+        assertEquals(before + 1, logic.getStudentCount().intValue());
     }
 
     @Test

@@ -2,6 +2,7 @@ package seedu.address.logic;
 
 import java.util.function.Predicate;
 
+import javafx.beans.value.ObservableIntegerValue;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
 import seedu.address.commons.core.GuiSettings;
@@ -25,12 +26,14 @@ public interface Logic {
      */
     CommandResult execute(String commandText) throws CommandException, ParseException;
 
-    /**
-     * Returns the AddressBook.
-     *
-     * @see seedu.address.model.Model#getAddressBook()
-     */
-    ReadOnlyAddressBook getAddressBook();
+    /** Returns an unmodifiable view of the number of selected active students. */
+    ObservableIntegerValue getActiveStudentCount();
+
+    /** Returns an unmodifiable view of the number of selective inactive students. */
+    ObservableIntegerValue getArchivedStudentCount();
+
+    /** Returns an unmodifiable view of the total number of lessons. */
+    ObservableIntegerValue getLessonCount();
 
     /** Returns an unmodifiable view of the selected active or archived student list. */
     ObservableList<Student> getFilteredPersonList();

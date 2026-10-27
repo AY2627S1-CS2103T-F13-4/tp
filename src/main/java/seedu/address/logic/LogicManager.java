@@ -5,6 +5,7 @@ import java.nio.file.AccessDeniedException;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
 
+import javafx.beans.value.ObservableIntegerValue;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
 import seedu.address.commons.core.GuiSettings;
@@ -64,8 +65,18 @@ public class LogicManager implements Logic {
     }
 
     @Override
-    public ReadOnlyAddressBook getAddressBook() {
-        return model.getAddressBook();
+    public ObservableIntegerValue getActiveStudentCount() {
+        return model.getActiveStudentCount();
+    }
+
+    @Override
+    public ObservableIntegerValue getArchivedStudentCount() {
+        return model.getArchivedStudentCount();
+    }
+
+    @Override
+    public ObservableIntegerValue getLessonCount() {
+        return model.getLessonCount();
     }
 
     @Override

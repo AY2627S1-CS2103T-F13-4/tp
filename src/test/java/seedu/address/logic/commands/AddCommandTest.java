@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
 
+import javafx.beans.value.ObservableIntegerValue;
 import org.junit.jupiter.api.Test;
 
 import javafx.collections.ObservableList;
@@ -164,6 +165,11 @@ public class AddCommandTest {
 
         @Override
         public boolean isArchiveView() {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
+        public ObservableIntegerValue getStudentCount() {
             throw new AssertionError("This method should not be called.");
         }
 

@@ -8,6 +8,7 @@ import java.util.function.Predicate;
 import java.util.logging.Logger;
 
 import javafx.beans.property.ReadOnlyObjectWrapper;
+import javafx.beans.value.ObservableIntegerValue;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
@@ -128,6 +129,21 @@ public class ModelManager implements Model {
     }
 
     //=========== Filtered Student List Accessors =============================================================
+
+    @Override
+    public ObservableIntegerValue getActiveStudentCount() {
+        return addressBook.getActiveStudentCount();
+    }
+
+    @Override
+    public ObservableIntegerValue getArchivedStudentCount() {
+        return addressBook.getArchivedStudentCount();
+    }
+
+    @Override
+    public ObservableIntegerValue getLessonCount() {
+        return addressBook.getLessonCount();
+    }
 
     /**
      * Returns an unmodifiable view of the list of {@code Student} backed by the internal list of

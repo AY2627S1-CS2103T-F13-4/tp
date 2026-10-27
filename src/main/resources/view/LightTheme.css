@@ -222,7 +222,7 @@
 }
 
 .list-cell:filled:selected {
-    -fx-background-color: -sb-surface;
+    -fx-background-color: -sb-accent-tint;
 }
 
 /* A heading above the first student of each school stage, e.g. "Primary 2" */
@@ -299,13 +299,89 @@
     -fx-padding: 11 18 11 14;
 }
 
-.student-row-open {
-    -fx-background-color: #F8F9FB;
+.student-name {
+    -fx-font-family: "Geist Medium";
+    -fx-font-size: 14px;
+    -fx-text-fill: -sb-text;
 }
 
-/* Details start under the Student column: # column (26) plus the gap (20) */
-.row-details {
-    -fx-padding: 14 0 6 46;
+.student-level, .student-subjects {
+    -fx-font-size: 12px;
+    -fx-text-fill: -sb-text-muted;
+}
+
+/* The list stays compact while the selected student's details scroll independently. */
+.person-details-panel {
+    -fx-background-color: -sb-surface;
+    -fx-background-radius: 14;
+    -fx-border-color: -sb-border;
+    -fx-border-radius: 14;
+    -fx-padding: 18 0 8 0;
+}
+
+.detail-panel-title {
+    -fx-font-family: "Geist Medium";
+    -fx-font-size: 12px;
+    -fx-text-fill: -sb-text-muted;
+    -fx-padding: 0 20 12 20;
+}
+
+.details-scroll, .details-scroll > .viewport {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-padding: 0;
+}
+
+.details-content {
+    -fx-padding: 4 20 16 20;
+    -fx-spacing: 20;
+}
+
+.details-name {
+    -fx-font-family: "Geist SemiBold";
+    -fx-font-size: 22px;
+    -fx-text-fill: -sb-text;
+}
+
+.details-level, .detail-secondary, .detail-muted, .detail-number {
+    -fx-text-fill: -sb-text-muted;
+    -fx-font-size: 12px;
+}
+
+.details-header {
+    -fx-spacing: 6;
+    -fx-padding: 0 0 16 0;
+    -fx-border-color: transparent transparent -sb-divider transparent;
+}
+
+.detail-section {
+    -fx-spacing: 8;
+}
+
+.detail-entry {
+    -fx-spacing: 5;
+}
+
+.detail-value {
+    -fx-text-fill: -sb-text;
+    -fx-font-size: 13px;
+}
+
+.detail-entry-title {
+    -fx-font-family: "Geist Medium";
+    -fx-font-size: 13px;
+    -fx-text-fill: -sb-text;
+}
+
+.details-empty {
+    -fx-alignment: center;
+    -fx-spacing: 12;
+    -fx-padding: 24;
+}
+
+.details-hint {
+    -fx-text-fill: -sb-text-muted;
+    -fx-text-alignment: center;
 }
 
 .detail-caption {

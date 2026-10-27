@@ -27,7 +27,7 @@ public class CommandResult {
 
     private final Screen screen;
 
-    /** The student whose details the student table should open, if any. */
+    /** The student whose details the sidebar should show, if any. */
     private final Optional<Index> studentToOpen;
 
     /**
@@ -45,8 +45,8 @@ public class CommandResult {
     }
 
     /**
-     * Constructs a {@code CommandResult} that shows the student table with the details of the student at
-     * {@code studentToOpen} open.
+     * Constructs a {@code CommandResult} that shows the student list with the details of the student at
+     * {@code studentToOpen} in its sidebar.
      */
     public CommandResult(String feedbackToUser, Index studentToOpen) {
         this(feedbackToUser, false, false, Screen.STUDENTS, Optional.of(studentToOpen));

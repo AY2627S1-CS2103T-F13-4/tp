@@ -30,11 +30,10 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
-import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
-import javafx.scene.text.Text;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 import javafx.stage.WindowEvent;
@@ -57,7 +56,7 @@ import seedu.address.testutil.FxTestUtil;
 import seedu.address.testutil.PersonBuilder;
 
 /**
- * Verifies schedule wiring and listener cleanup through the real main-window FXML and lifecycle.
+ * Verifies student details, schedule wiring and listener cleanup through the real main-window FXML and lifecycle.
  */
 public class MainWindowTest {
     @TempDir
@@ -265,14 +264,17 @@ public class MainWindowTest {
 
             submitCommand("view 2");
             assertEquals(1, archive.getSelectionModel().getSelectedIndex());
+            assertEquals("Carol", detailName(archive));
             assertActiveNav("#archiveNav");
             submitCommand("edit 2 name/Caroline");
             assertEquals(List.of("Alice", "Caroline"), tableNames(archive));
             assertEquals(1, archive.getSelectionModel().getSelectedIndex());
+            assertEquals("Caroline", detailName(archive));
             assertActiveNav("#archiveNav");
 
             submitCommand("find Caroline");
             assertEquals(List.of("Caroline"), tableNames(archive));
+            assertEquals("Caroline", detailName(archive));
             assertActiveNav("#archiveNav");
             assertEquals(List.of("Bob"), cardNames(scheduleGrid()));
 
@@ -342,7 +344,7 @@ public class MainWindowTest {
         });
     }
 
-    // Both lists share the same columns and keyboard controls, while keeping their open details independent.
+    // Both lists share the same columns and keyboard controls, while keeping their sidebars independent.
     @Test
     public void archivedTable_sameLayoutAndKeyboardControlsAsStudents() throws Exception {
         runOnFxThread(() -> {
@@ -351,14 +353,18 @@ public class MainWindowTest {
             submitCommand("list-archive");
             ListView<?> archive = archivedStudentTable();
             assertEquals(tableHeadings(studentTable()), tableHeadings(archive));
+            assertEquals(List.of("#", "Student"), tableHeadings(archive));
             assertEquals(studentTable().getStyleClass(), archive.getStyleClass());
 
             pressKey(KeyCode.ESCAPE, false);
             assertEquals(-1, archive.getSelectionModel().getSelectedIndex());
+            assertSidebarCleared(archive);
             pressKey(KeyCode.DOWN, true);
             assertEquals(0, archive.getSelectionModel().getSelectedIndex());
+            assertEquals("Alice", detailName(archive));
             pressKey(KeyCode.DOWN, true);
             assertEquals(1, archive.getSelectionModel().getSelectedIndex());
+            assertEquals("Bob", detailName(archive));
             assertEquals(-1, studentTable().getSelectionModel().getSelectedIndex());
         });
     }
@@ -453,7 +459,7 @@ public class MainWindowTest {
         });
     }
 
-    // Alt+Down opens a student's details in the table; on the calendar it must not change the hidden table.
+    // Alt+Down updates the sidebar; on the calendar it must not change the hidden student list.
     @Test
     public void altDown_onCalendar_leavesStudentTableUnselected() throws Exception {
         runOnFxThread(() -> {
@@ -466,12 +472,113 @@ public class MainWindowTest {
 
     // view INDEX is the keyboard way to see a student's full details, e.g. from a calendar lesson's "#2".
     @Test
-    public void view_index_opensThatStudentInTable() throws Exception {
+    public void view_index_updatesSidebarWithoutExpandingRows() throws Exception {
         runOnFxThread(() -> {
             submitCommand("view 2");
             assertTrue(isShown(studentTable()));
             ListView<?> table = assertInstanceOf(ListView.class, studentTable());
             assertEquals(1, table.getSelectionModel().getSelectedIndex());
+            assertEquals("Bob", detailName(table));
+            assertCompactRows(table);
+
+            submitCommand("view 1");
+            assertEquals("Alice", detailName(table));
+            assertCompactRows(table);
+
+            submitCommand("view 1");
+            assertEquals("Alice", detailName(table));
+            assertCompactRows(table);
+        });
+    }
+
+    @Test
+    public void studentSelectionAndKeyboard_updateSidebarAndEscapeClearsIt() throws Exception {
+        runOnFxThread(() -> {
+            submitCommand("list");
+            ListView<?> table = studentTable();
+            assertSidebarCleared(table);
+
+            table.getSelectionModel().select(1);
+            assertEquals("Bob", detailName(table));
+
+            pressKey(KeyCode.UP, true);
+            assertEquals("Alice", detailName(table));
+            assertCompactRows(table);
+
+            pressKey(KeyCode.ESCAPE, false);
+            assertEquals(-1, table.getSelectionModel().getSelectedIndex());
+            assertSidebarCleared(table);
+        });
+    }
+
+    @Test
+    public void pageKeys_selectedStudent_scrollSidebarWithoutLeavingCommandBox() throws Exception {
+        resizeWindow(1000, 500);
+        runOnFxThread(() -> {
+            for (int i = 1; i <= 4; i++) {
+                submitCommand("note-add 1 date/2000-01-01 text/Note " + i + ": "
+                        + "Practice fractions and explain each step. ".repeat(10));
+            }
+            submitCommand("view 1");
+            stage.getScene().getRoot().applyCss();
+            stage.getScene().getRoot().layout();
+            ScrollPane details = assertInstanceOf(ScrollPane.class,
+                    detailsPanel(studentTable()).lookup("#detailsScroll"));
+            assertTrue(details.getContent().getBoundsInLocal().getHeight() > details.getViewportBounds().getHeight());
+            details.setVvalue(0);
+            commandField().requestFocus();
+
+            pressKey(KeyCode.PAGE_DOWN, false);
+            double scrolledDown = details.getVvalue();
+            assertTrue(scrolledDown > 0, "Page Down should reveal later sidebar sections");
+            assertSame(commandField(), stage.getScene().getFocusOwner());
+            assertEquals("Alice", detailName(studentTable()));
+
+            pressKey(KeyCode.PAGE_UP, false);
+            assertTrue(details.getVvalue() < scrolledDown, "Page Up should return toward the sidebar's start");
+            assertSame(commandField(), stage.getScene().getFocusOwner());
+
+            pressKey(KeyCode.ESCAPE, false);
+            assertSidebarCleared(studentTable());
+            assertEquals(-1, studentTable().getSelectionModel().getSelectedIndex());
+            assertSame(commandField(), stage.getScene().getFocusOwner());
+        });
+    }
+
+    @Test
+    public void studentFilter_showsSingleMatchAndClearsHiddenDetails() throws Exception {
+        runOnFxThread(() -> {
+            submitCommand("view 1");
+            submitCommand("find Bob");
+            assertEquals("Bob", detailName(studentTable()));
+
+            submitCommand("find Nobody");
+            assertSidebarCleared(studentTable());
+
+            submitCommand("list");
+            assertSidebarCleared(studentTable());
+            submitCommand("view 2");
+            assertEquals("Bob", detailName(studentTable()));
+        });
+    }
+
+    @Test
+    public void sidebar_minimumWindowWidth_remainsBesideCompactList() throws Exception {
+        resizeWindow(1000);
+        resizeWindow(FxTestUtil.callOnFxThread(stage::getMinWidth));
+        runOnFxThread(() -> {
+            submitCommand("view 2");
+            assertCompactRows(studentTable());
+            Node sidebar = detailsPanel(studentTable());
+            double listRight = studentTable().localToScene(studentTable().getBoundsInLocal()).getMaxX();
+            double sidebarLeft = sidebar.localToScene(sidebar.getBoundsInLocal()).getMinX();
+            double sidebarRight = sidebar.localToScene(sidebar.getBoundsInLocal()).getMaxX();
+
+            assertEquals("Bob", detailName(studentTable()));
+            assertTrue(studentTable().getWidth() > 0);
+            assertTrue(sidebar.getBoundsInLocal().getWidth() > 0);
+            assertTrue(listRight <= sidebarLeft, "The list should not overlap the details sidebar");
+            assertTrue(sidebarRight <= stage.getScene().getWidth(), "The sidebar should fit in the window");
         });
     }
 
@@ -486,13 +593,27 @@ public class MainWindowTest {
 
             submitCommand("edit 1 name/Alicia");
             assertEquals(0, table.getSelectionModel().getSelectedIndex());
+            assertEquals("Alicia", detailName(table));
 
             submitCommand("delete 1");
             assertEquals(-1, table.getSelectionModel().getSelectedIndex());
+            assertSidebarCleared(table);
         });
     }
 
-    // A school supplied when adding a student must appear in their expanded details.
+    @Test
+    public void openStudent_deletedWithOneRemaining_clearsSidebar() throws Exception {
+        runOnFxThread(() -> {
+            submitCommand("view 1");
+            submitCommand("delete 1");
+
+            assertEquals(List.of("Bob"), tableNames(studentTable()));
+            assertEquals(-1, studentTable().getSelectionModel().getSelectedIndex());
+            assertSidebarCleared(studentTable());
+        });
+    }
+
+    // A school supplied when adding a student must appear in the details sidebar.
     @Test
     public void add_schoolPresent_showsSchoolInStudentDetails() throws Exception {
         runOnFxThread(() -> {
@@ -505,7 +626,7 @@ public class MainWindowTest {
         });
     }
 
-    // School changes rebuild the open row's content, and an absent or cleared school has no section.
+    // School changes refresh the sidebar's content, and an absent or cleared school has no section.
     @Test
     public void openStudent_schoolSetReplacedOrCleared_updatesDetails() throws Exception {
         runOnFxThread(() -> {
@@ -537,6 +658,7 @@ public class MainWindowTest {
             assertEquals(List.of("Bob", "Alice"), model.getFilteredPersonList().stream()
                     .map(student -> student.getName().fullName).toList());
             assertEquals(1, table.getSelectionModel().getSelectedIndex());
+            assertEquals("Alice", detailName(table));
         });
     }
 
@@ -757,17 +879,50 @@ public class MainWindowTest {
                 .sorted().toList();
     }
 
-    /** Reads school sections from the open row after the list has laid out any replacement cells. */
+    /** Reads school sections from the selected student's sidebar. */
     private List<String> openStudentSchools() {
         stage.getScene().getRoot().applyCss();
         stage.getScene().getRoot().layout();
-        FlowPane details = assertInstanceOf(FlowPane.class, studentTable().lookup(".student-row-open #details"));
+        VBox details = assertInstanceOf(VBox.class, detailsPanel(studentTable()).lookup("#details"));
         assertTrue(isShown(details));
         assertTrue(details.isManaged());
         return details.lookupAll(".detail-caption").stream().filter(Label.class::isInstance).map(Label.class::cast)
                 .filter(label -> label.getText().equals("School"))
                 .flatMap(label -> label.getParent().getChildrenUnmodifiable().stream())
-                .filter(Text.class::isInstance).map(Text.class::cast).map(Text::getText).toList();
+                .filter(Label.class::isInstance).map(Label.class::cast)
+                .filter(label -> !label.getStyleClass().contains("detail-caption")).map(Label::getText).toList();
+    }
+
+    /** Finds the sidebar belonging to this list, including the independently selected archive list. */
+    private static Node detailsPanel(ListView<?> table) {
+        for (Node parent = table.getParent(); parent != null; parent = parent.getParent()) {
+            Node panel = parent.lookup("#personDetailsPanel");
+            if (panel != null) {
+                return panel;
+            }
+        }
+        throw new AssertionError("Student list should have a details sidebar");
+    }
+
+    private static String detailName(ListView<?> table) {
+        Node panel = detailsPanel(table);
+        assertTrue(isShown(panel));
+        assertTrue(isShown(panel.lookup("#details")));
+        return assertInstanceOf(Label.class, panel.lookup("#detailName")).getText();
+    }
+
+    private static void assertSidebarCleared(ListView<?> table) {
+        Node panel = detailsPanel(table);
+        assertTrue(isShown(panel), "The sidebar stays visible when no student is selected");
+        assertFalse(isShown(panel.lookup("#details")), "Clearing selection hides the previous student's details");
+    }
+
+    private void assertCompactRows(ListView<?> table) {
+        stage.getScene().getRoot().applyCss();
+        stage.getScene().getRoot().layout();
+        assertFalse(table.lookupAll(".student-row").isEmpty(), "Visible students should have compact cards");
+        assertTrue(table.lookupAll("#details").isEmpty(), "Detailed information belongs in the sidebar");
+        assertTrue(table.lookupAll(".detail-caption").isEmpty(), "List cards never expand into details");
     }
 
     /** Returns true if {@code node} and every container around it are visible. */
