@@ -54,7 +54,7 @@ Diagram sources are in `docs/diagrams`. See the [PlantUML tutorial](https://se-e
 
 The UI sends commands to `Logic` and observes two lists:
 
-* **Filtered list** (`Logic#getFilteredPersonList()`): the rows on screen. `ModelManager` sorts the filtered list by school stage (Primary, Secondary, JC, then others), then by stored order, so editing a student never moves it within its group. `PersonListPanel` shows them in the same order as the model, so the number on each card is the `INDEX` that commands use. The UI never sorts or groups its own copy.
+* **Filtered list** (`Logic#getFilteredPersonList()`): the rows on screen. `ModelManager` sorts the filtered list by school stage (Primary, Secondary, JC, then others), then by level (`P1` before `P2`), then alphabetically by name, with stored order as the final tie-break. Editing a student's name or level can therefore move it, changing its index. `PersonListPanel` shows them in the same order as the model, so the number on each card is the `INDEX` that commands use. The UI never sorts or groups its own copy.
 * **Full list** (`Logic#getAddressBook()`): used only to count students and lessons. `StudentListStatus` uses both counts to choose the header text, such as `Showing 1 of 8`. It also chooses the empty-state message: `add` when there are no students, `list` when a search matches no one. `WeekPanel` does the same for lessons: `Showing 3 of 12 lessons`, and `list` instead of `lesson-add` when a search hides every lesson.
 
 The UI also observes the lesson filter (`Logic#getLessonPredicate()`), set by `find subject/` and `day/`. `ScheduleGrid` places only the lessons it accepts, keeping each lesson's position in the student's full list as its number.

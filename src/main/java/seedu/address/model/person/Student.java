@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -132,8 +133,8 @@ public class Student extends Person {
                 .thenComparing(student -> student.schoolingLevel.isEmpty())
                 .thenComparing(student -> student.schoolingLevel
                         .filter(level -> level.number() == Integer.MAX_VALUE)
-                        .map(level -> level.value.toLowerCase()).orElse(""))
-                .thenComparing(student -> student.getName().fullName.toLowerCase());
+                        .map(level -> level.value.toLowerCase(Locale.ROOT)).orElse(""))
+                .thenComparing(student -> student.getName().fullName.toLowerCase(Locale.ROOT));
     }
 
     public Optional<Guardian> getGuardian() {
