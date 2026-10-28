@@ -112,7 +112,10 @@ public class LessonCommandParserTest {
         assertParseFailure(addParser, "1 subject/Math" + LESSON_SLOT_DESC + " rate/45 x/y", invalidFormat(ADD_USAGE));
         assertParseFailure(addParser, "1 extra subject/Math" + LESSON_SLOT_DESC + " rate/45", invalidFormat(ADD_USAGE));
         assertParseFailure(addParser, "1 subject/123" + LESSON_SLOT_DESC + " rate/45", Subject.MESSAGE_CONSTRAINTS);
-        assertParseFailure(addParser, "1 subject/Math slot/nope rate/45", WeeklyLessonSlot.MESSAGE_CONSTRAINTS);
+        assertParseFailure(addParser, "1 subject/Math slot/nope rate/45", WeeklyLessonSlot.MESSAGE_INVALID_FORMAT);
+        assertParseFailure(addParser, "1 subject/Math slot/ rate/45", WeeklyLessonSlot.MESSAGE_INVALID_FORMAT);
+        assertParseFailure(addParser, "1 subject/Math slot/Wed 5.00pm 1.00pm rate/45",
+                WeeklyLessonSlot.MESSAGE_END_NOT_AFTER_START);
         assertParseFailure(addParser, "1 subject/Math" + LESSON_SLOT_DESC + " rate/-1", HourlyRate.MESSAGE_CONSTRAINTS);
         assertParseFailure(addParser, "1 subject/Math" + LESSON_SLOT_DESC + " rate/45 rate/50",
                 Messages.getErrorMessageForDuplicatePrefixes(PREFIX_RATE));
@@ -137,6 +140,8 @@ public class LessonCommandParserTest {
         assertParseFailure(editParser, "1 a rate/50", invalidFormat(EDIT_USAGE));
         assertParseFailure(editParser, "1 0 rate/50", invalidFormat(EDIT_USAGE));
         assertParseFailure(editParser, "1 2 subject/", Subject.MESSAGE_CONSTRAINTS);
+        assertParseFailure(editParser, "1 2 slot/Wednesday 1.00pm 5.00pm", WeeklyLessonSlot.MESSAGE_INVALID_FORMAT);
+        assertParseFailure(editParser, "1 2 slot/Wed 1.00pm 1.00pm", WeeklyLessonSlot.MESSAGE_END_NOT_AFTER_START);
         assertParseFailure(editParser, "1 2 rate/1e2", HourlyRate.MESSAGE_CONSTRAINTS);
     }
 

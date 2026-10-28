@@ -78,6 +78,25 @@ public class WeeklyLessonSlotTest {
     }
 
     @Test
+    public void isValidFormat_issueExamples_returnsFalse() {
+        for (String input : List.of("", "Wed 1pm 5pm", "Wednesday 1.00pm 5.00pm", "Wed 1.00pm-5.00pm",
+                "Wed 13.00 17.00", "Wed 1:00pm 5:00pm", "Xyz 1.00pm 5.00pm")) {
+            assertFalse(WeeklyLessonSlot.isValidFormat(input), input);
+        }
+    }
+
+    @Test
+    public void isValidFormat_endNotAfterStart_returnsTrueButSlotIsInvalid() {
+        // Well-formed but out of order, so callers can report the order instead of the format.
+        for (String input : List.of(LESSON_DAY + " " + LESSON_START + " " + LESSON_START,
+                LESSON_DAY + " " + LESSON_END + " " + LESSON_START)) {
+            assertTrue(WeeklyLessonSlot.isValidFormat(input), input);
+            assertFalse(WeeklyLessonSlot.isValidWeeklyLessonSlot(input), input);
+        }
+        assertTrue(WeeklyLessonSlot.isValidFormat(VALID_LESSON_SLOT_TEXT));
+    }
+
+    @Test
     public void constructor_midnightAndNoon_interpretsAmAndPm() {
         DateTimeFormatter timeFormat = DateTimeFormatter.ofPattern("h.mma", new Locale("EN", "SG"));
         String midnight = LocalTime.MIDNIGHT.format(timeFormat);
