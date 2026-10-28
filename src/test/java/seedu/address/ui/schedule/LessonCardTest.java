@@ -15,6 +15,7 @@ import java.util.Optional;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import javafx.geometry.Bounds;
 import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
@@ -43,7 +44,7 @@ public class LessonCardTest {
 
     @Test
     public void constructor_nullEntry_throwsNullPointerException() throws Exception {
-        FxTestUtil.runOnFxThread(() -> assertThrows(NullPointerException.class, () -> new LessonCard(null)));
+        FxTestUtil.runOnFxThread(() -> assertThrows(NullPointerException.class, () -> new LessonCard(null, 3)));
     }
 
     @Test
@@ -173,6 +174,45 @@ public class LessonCardTest {
         });
     }
 
+    // A block too short for three lines shows the number and the student on one line; the number never
+    // shrinks, so even a narrow block keeps what commands need.
+    @Test
+    public void constructor_oneLine_showsNumberThenStudentOnOneLine() throws Exception {
+        FxTestUtil.runOnFxThread(() -> {
+            Lesson lesson = createLesson("Math", Optional.empty(), Optional.empty());
+            Student student = new PersonBuilder().withName("Alice Tan").withLessons(lesson).build();
+            Region root = prepareCard(new LessonCard(new ScheduleEntry(student, lesson, 1, 1), 1));
+
+            for (double width : new double[] {200, 30}) {
+                resizeAndLayout(root, width, 15);
+                List<Label> labels = root.lookupAll(".label").stream().map(Label.class::cast).toList();
+                assertEquals(List.of("#1.1", "Alice Tan"), labels.stream().map(Label::getText).toList());
+                Label number = labels.get(0);
+                assertTrue(number.getWidth() >= number.prefWidth(-1));
+                assertEquals(number.localToScene(0, 0).getY(), labels.get(1).localToScene(0, 0).getY(), 0.001);
+            }
+            assertEquals("#1.1 Alice Tan\nMath, Monday 9.00am-10.00am, SGD 45.50/hour", root.getAccessibleText());
+        });
+    }
+
+    @Test
+    public void constructor_twoLines_addsTimeUnderNumberAndStudent() throws Exception {
+        FxTestUtil.runOnFxThread(() -> {
+            Lesson lesson = createLesson("Math", Optional.empty(), Optional.empty());
+            Student student = new PersonBuilder().withName("Alice Tan").withLessons(lesson).build();
+            Region root = prepareCard(new LessonCard(new ScheduleEntry(student, lesson, 1, 1), 2));
+            resizeAndLayout(root, 200, 30);
+
+            List<Label> labels = root.lookupAll(".label").stream().map(Label.class::cast).toList();
+            assertEquals(List.of("#1.1", "Alice Tan", "9.00am-10.00am"), labels.stream().map(Label::getText).toList());
+            // The time sits below the number's line and inside the 30px block.
+            Bounds number = labels.get(0).localToScene(labels.get(0).getLayoutBounds());
+            Bounds time = root.sceneToLocal(labels.get(2).localToScene(labels.get(2).getLayoutBounds()));
+            assertTrue(root.sceneToLocal(number).getMaxY() <= time.getMinY());
+            assertTrue(time.getMaxY() <= 30);
+        });
+    }
+
     // Blocks use the same school-stage colours as the student table; any other level, or none, stays neutral.
     @Test
     public void constructor_schoolingLevel_coloursCardByStage() throws Exception {
@@ -191,12 +231,12 @@ public class LessonCardTest {
     private static LessonCard cardForLevel(String level, Lesson lesson) {
         Student student = new PersonBuilder().withName("Alice Tan").withSchoolingLevel(new SchoolingLevel(level))
                 .withLessons(lesson).build();
-        return new LessonCard(new ScheduleEntry(student, lesson, 1, 1));
+        return new LessonCard(new ScheduleEntry(student, lesson, 1, 1), 3);
     }
 
     private static LessonCard createCard(String name, Lesson lesson) {
         Student student = new PersonBuilder().withName(name).withLessons(lesson).build();
-        return new LessonCard(new ScheduleEntry(student, lesson, 1, 1));
+        return new LessonCard(new ScheduleEntry(student, lesson, 1, 1), 3);
     }
 
     private static Lesson createLesson(String subject, Optional<LessonLocation> location, Optional<LessonMode> mode) {

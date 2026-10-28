@@ -61,6 +61,13 @@ public class ScheduleGrid extends UiPart<GridPane> {
     private static final int INTERVAL_MINUTE = 60;
     private static final double TIME_ROW_HEIGHT = 60;
     private static final double PIXELS_PER_MINUTE = TIME_ROW_HEIGHT / INTERVAL_MINUTE;
+    /** The shortest block, tall enough for one line; shorter lessons are drawn this long. */
+    private static final int MIN_BLOCK_MINUTES = 15;
+    /** Blocks this long fit the time under the number and student; keep in step with .lesson-card-compact. */
+    private static final int TWO_LINE_CARD_MINUTES = 30;
+    /** Blocks this long fit all three lines of a lesson card. */
+    private static final int FULL_CARD_MINUTES = 60;
+    private static final int MINUTES_PER_DAY = 24 * 60;
     /** The hours always shown, so a light week still reads as a working day; lessons outside extend it. */
     private static final LocalTime DAY_START = LocalTime.of(9, 0);
     private static final LocalTime DAY_END = LocalTime.of(20, 0);
@@ -92,7 +99,8 @@ public class ScheduleGrid extends UiPart<GridPane> {
     /** The date the headings and today's shading were drawn for; a new day redraws them. */
     private LocalDate renderedDate;
     private LocalTime earliestTime;
-    private LocalTime latestTime;
+    /** The latest minute of the day any block reaches; 1440 is the next midnight. */
+    private int latestMinute;
     private int gridStartMinute;
     private int gridEndMinute;
     private boolean disposed;
@@ -236,7 +244,7 @@ public class ScheduleGrid extends UiPart<GridPane> {
 
     private void registerStudentLessons(ObservableList<Student> personList) {
         earliestTime = DAY_START;
-        latestTime = DAY_END;
+        latestMinute = toMinuteOfDay(DAY_END);
 
         for (int studentIndex = 0; studentIndex < personList.size(); studentIndex++) {
             Student student = personList.get(studentIndex);
@@ -247,9 +255,10 @@ public class ScheduleGrid extends UiPart<GridPane> {
                     continue;
                 }
                 earliestTime = lesson.getStart().isBefore(earliestTime) ? lesson.getStart() : earliestTime;
-                latestTime = lesson.getEnd().isAfter(latestTime) ? lesson.getEnd() : latestTime;
-                entriesByDay.get(lesson.getDay())
-                        .add(new ScheduleEntry(student, lesson, studentIndex + 1, lessonIndex + 1));
+                ScheduleEntry entry = new ScheduleEntry(student, lesson, studentIndex + 1, lessonIndex + 1);
+                // A lengthened short lesson can reach past its own end, so the grid grows to fit its block.
+                latestMinute = Math.max(latestMinute, blockEnd(entry));
+                entriesByDay.get(lesson.getDay()).add(entry);
             }
         }
     }
@@ -378,11 +387,14 @@ public class ScheduleGrid extends UiPart<GridPane> {
         int currColumn = startColumn;
 
         dayEntries.sort(null);
-        PriorityQueue<ScheduleEntry> activeEntries = new PriorityQueue<>(Comparator.comparing(ScheduleEntry::getEnd));
+        // Lessons share a column only if their drawn blocks do not overlap, so a lengthened short lesson
+        // never covers the next one.
+        PriorityQueue<ScheduleEntry> activeEntries =
+                new PriorityQueue<>(Comparator.comparingInt(ScheduleGrid::blockEnd));
         PriorityQueue<Integer> availableColumns = new PriorityQueue<>();
 
         for (ScheduleEntry entry : dayEntries) {
-            while (!activeEntries.isEmpty() && !activeEntries.peek().getEnd().isAfter(entry.getStart())) {
+            while (!activeEntries.isEmpty() && blockEnd(activeEntries.peek()) <= blockStart(entry)) {
                 availableColumns.add(activeEntries.remove().getDisplayColumn());
             }
             int column;
@@ -403,7 +415,7 @@ public class ScheduleGrid extends UiPart<GridPane> {
     private int generateRowsOfInterval(int minuteInterval) {
         gridStartMinute = toMinuteOfDay(earliestTime) / minuteInterval * minuteInterval;
         // Keep the rounded end as minutes so 1440 represents the next midnight without wrapping to zero.
-        gridEndMinute = (toMinuteOfDay(latestTime) + minuteInterval - 1) / minuteInterval * minuteInterval;
+        gridEndMinute = (latestMinute + minuteInterval - 1) / minuteInterval * minuteInterval;
 
         int rowCount = (gridEndMinute - gridStartMinute) / minuteInterval;
 
@@ -422,17 +434,32 @@ public class ScheduleGrid extends UiPart<GridPane> {
         return rowCount;
     }
 
+    /**
+     * Returns the minute of the day where {@code entry}'s block starts: the lesson's start, except that a short
+     * lesson just before midnight starts early enough for its block to end by midnight.
+     */
+    private static int blockStart(ScheduleEntry entry) {
+        return Math.min(toMinuteOfDay(entry.getStart()), MINUTES_PER_DAY - MIN_BLOCK_MINUTES);
+    }
+
+    /** Returns the minute of the day where {@code entry}'s block ends, at least the shortest block after its start. */
+    private static int blockEnd(ScheduleEntry entry) {
+        return Math.max(toMinuteOfDay(entry.getEnd()), blockStart(entry) + MIN_BLOCK_MINUTES);
+    }
+
     private void makeLessonCard(ScheduleEntry entry) {
-        int startMinute = toMinuteOfDay(entry.getStart()) - gridStartMinute;
-        int endMinute = toMinuteOfDay(entry.getEnd()) - gridStartMinute;
+        int startMinute = blockStart(entry) - gridStartMinute;
+        int endMinute = blockEnd(entry) - gridStartMinute;
         int startRow = startMinute / INTERVAL_MINUTE;
         int endRowExclusive = (endMinute + INTERVAL_MINUTE - 1) / INTERVAL_MINUTE;
 
-        // Span enclosing intervals, then inset to the exact times, even for a one-minute lesson.
+        // Span enclosing intervals, then inset to the block's exact times.
         double topMargin = (startMinute - startRow * INTERVAL_MINUTE) * PIXELS_PER_MINUTE;
         double bottomMargin = (endRowExclusive * INTERVAL_MINUTE - endMinute) * PIXELS_PER_MINUTE;
 
-        LessonCard lessonCard = new LessonCard(entry);
+        int blockMinutes = endMinute - startMinute;
+        int lineCount = blockMinutes >= FULL_CARD_MINUTES ? 3 : blockMinutes >= TWO_LINE_CARD_MINUTES ? 2 : 1;
+        LessonCard lessonCard = new LessonCard(entry, lineCount);
         GridPane.setMargin(lessonCard.getRoot(), new Insets(topMargin, CARD_SIDE_GAP, bottomMargin, CARD_SIDE_GAP));
         scheduleGrid.add(lessonCard.getRoot(), entry.getDisplayColumn(), 1 + startRow, 1, endRowExclusive - startRow);
     }
