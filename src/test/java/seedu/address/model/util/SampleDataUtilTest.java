@@ -26,12 +26,13 @@ public class SampleDataUtilTest {
     @Test
     public void getSampleAddressBook_containsAllSamplePersons() {
         ReadOnlyAddressBook addressBook = SampleDataUtil.getSampleAddressBook();
-        Student[] samples = SampleDataUtil.getSamplePersons();
+        List<Student> active = Arrays.stream(SampleDataUtil.getSamplePersons())
+                .filter(student -> !student.isArchived()).toList();
+        List<Student> archived = Arrays.stream(SampleDataUtil.getSamplePersons())
+                .filter(Student::isArchived).toList();
 
-        assertEquals(samples.length, addressBook.getPersonList().size());
-        for (Student sample : samples) {
-            assertTrue(addressBook.getPersonList().contains(sample));
-        }
+        assertEquals(active, addressBook.getPersonList());
+        assertEquals(archived, addressBook.getArchivedPersonList());
     }
 
     @Test
