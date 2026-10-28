@@ -3,7 +3,6 @@ package seedu.address.model;
 import static java.util.Objects.requireNonNull;
 import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 
-import java.util.Comparator;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
 
@@ -44,17 +43,18 @@ public class ModelManager implements Model {
         this.addressBook = new AddressBook(addressBook);
         this.userPrefs = new UserPrefs(userPrefs);
         filteredPersons = new FilteredList<>(this.addressBook.getPersonList(), PREDICATE_SHOW_ALL_PERSONS);
-        // Shown grouped by school stage (Primary, Secondary, JC, then others), keeping the order added within each.
+        // Shown grouped by school stage (Primary, Secondary, JC, then others), then by level,
+        // then alphabetically by name.
         // Commands use this list too, so the numbers on screen always match command indices. The tie-break on the
-        // stored order matters: without it an edited student can move within its group and change its number.
+        // stored order matters: it keeps the order stable for students with the same level and name.
         ObservableList<Student> stored = this.addressBook.getPersonList();
         shownPersons = new SortedList<>(filteredPersons,
-                Comparator.comparing(Student::getStage).thenComparingInt(stored::indexOf));
+                Student.byLevelThenName().thenComparingInt(stored::indexOf));
         filteredArchivedPersons = new FilteredList<>(this.addressBook.getArchivedPersonList(),
                 PREDICATE_SHOW_ALL_PERSONS);
         ObservableList<Student> archived = this.addressBook.getArchivedPersonList();
         shownArchivedPersons = new SortedList<>(filteredArchivedPersons,
-                Comparator.comparing(Student::getStage).thenComparingInt(archived::indexOf));
+                Student.byLevelThenName().thenComparingInt(archived::indexOf));
     }
 
     public ModelManager() {
