@@ -29,6 +29,22 @@ public class ArgumentTokenizer {
     }
 
     /**
+     * Tokenizes like {@link #tokenize(String, Prefix...)}, except that everything after the first
+     * {@code trailingPrefix} is its value, even text that looks like another prefix.
+     */
+    public static ArgumentMultimap tokenizeWithTrailingValue(String argsString, Prefix trailingPrefix,
+                                                             Prefix... prefixes) {
+        int trailingPosition = findPrefixPosition(argsString, trailingPrefix.getPrefix(), 0);
+        if (trailingPosition == -1) {
+            return tokenize(argsString, prefixes);
+        }
+        ArgumentMultimap argMultimap = tokenize(argsString.substring(0, trailingPosition), prefixes);
+        argMultimap.put(trailingPrefix,
+                argsString.substring(trailingPosition + trailingPrefix.getPrefix().length()).trim());
+        return argMultimap;
+    }
+
+    /**
      * Finds all zero-based prefix positions in the given arguments string.
      *
      * @param argsString Arguments string of the form: {@code preamble <prefix>value <prefix>value ...}

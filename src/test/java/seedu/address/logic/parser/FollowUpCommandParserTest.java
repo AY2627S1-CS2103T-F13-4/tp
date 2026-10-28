@@ -10,7 +10,6 @@ import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
 
-import seedu.address.logic.Messages;
 import seedu.address.logic.commands.FollowUpCommand;
 import seedu.address.logic.commands.FollowUpCommand.Operation;
 import seedu.address.model.person.FollowUp;
@@ -41,6 +40,14 @@ public class FollowUpCommandParserTest {
     }
 
     @Test
+    public void parseAdd_prefixWordsInText_keptAsText() {
+        assertParseSuccess(addParser, " 1 text/Ask mum to buy the text/workbook bundle",
+                addFirst("Ask mum to buy the text/workbook bundle"));
+        assertParseSuccess(addParser, " 1 text/Confirm date/time of mock exam",
+                addFirst("Confirm date/time of mock exam"));
+    }
+
+    @Test
     public void parseAdd_invalidArgs_failure() {
         for (String args : new String[] {"", " 1", " text/Send report", " 0 text/Send report",
             " a text/Send report", " 1 2 text/Send report"}) {
@@ -49,8 +56,6 @@ public class FollowUpCommandParserTest {
         assertParseFailure(addParser, " 1 text/   ", FollowUp.MESSAGE_TEXT_CONSTRAINTS);
         assertParseFailure(addParser, " 1 text/" + "a".repeat(FollowUp.MAX_TEXT_LENGTH + 1),
                 FollowUp.MESSAGE_TEXT_CONSTRAINTS);
-        assertParseFailure(addParser, " 1 text/Send report text/Call",
-                Messages.getErrorMessageForDuplicatePrefixes(CliSyntax.PREFIX_TEXT));
     }
 
     @Test
@@ -59,6 +64,13 @@ public class FollowUpCommandParserTest {
                 Optional.of(INDEX_SECOND_PERSON), Optional.of(new FollowUp("Call on Saturday")));
         assertParseSuccess(editParser, " 1 2 text/Call on Saturday", expected);
         assertParseSuccess(editParser, " 1\t2  text/Call on Saturday ", expected);
+    }
+
+    @Test
+    public void parseEdit_prefixWordsInText_keptAsText() {
+        FollowUpCommand expected = new FollowUpCommand(INDEX_FIRST_PERSON, Operation.EDIT,
+                Optional.of(INDEX_SECOND_PERSON), Optional.of(new FollowUp("Buy the text/workbook; date/time TBC")));
+        assertParseSuccess(editParser, " 1 2 text/Buy the text/workbook; date/time TBC", expected);
     }
 
     @Test
