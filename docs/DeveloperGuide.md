@@ -643,7 +643,7 @@ For larger or boundary-value data sets, generate a data file with `./gradlew see
 ### Launch and shutdown
 
 1. Build the JAR using the [Quick start](UserGuide.md#quick-start), copy it into the test folder and run `java -jar studentbook.jar` there.
-2. Check that the window opens with eight sample students, starting with Chloe Lim and Ethan Lim, who share a guardian.
+2. Check that the window opens with eight sample students, starting with Chloe Lim and Ethan Lim, who share a guardian. Run `week`; no lessons should overlap. Run `list-archive`; it should show one past student, Tan Wei Jie.
 3. Resize and move the window, then close and reopen the app. Check that it keeps the new size and position.
 
 ### Main window
