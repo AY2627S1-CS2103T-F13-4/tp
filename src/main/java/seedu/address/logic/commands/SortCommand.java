@@ -11,13 +11,13 @@ public class SortCommand extends Command {
     public static final String COMMAND_WORD = "sort";
 
     public static final String MESSAGE_USAGE = COMMAND_WORD
-            + ": Sorts students by hourly rate within each schooling level.\n"
+            + ": Sorts students by hourly rate within each group (Primary, Secondary, JC, Other).\n"
             + "Parameters: rate asc | rate desc\n"
             + "Example: " + COMMAND_WORD + " rate desc";
 
-    public static final String MESSAGE_ASCENDING = "Sorted by rate (low to high) within each level. "
+    public static final String MESSAGE_ASCENDING = "Sorted by rate (low to high) within each group. "
             + "A student with several lessons is ranked by their lowest rate; students without lessons come last.";
-    public static final String MESSAGE_DESCENDING = "Sorted by rate (high to low) within each level. "
+    public static final String MESSAGE_DESCENDING = "Sorted by rate (high to low) within each group. "
             + "A student with several lessons is ranked by their highest rate; students without lessons come last.";
 
     private final RateSortOrder order;

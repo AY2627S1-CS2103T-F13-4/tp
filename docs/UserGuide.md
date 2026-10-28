@@ -33,7 +33,7 @@ This development version supports contact details, schools, schooling levels, gu
    lesson-add 1 subject/Math slot/Wed 1.00pm 5.00pm rate/45.50
    ```
 
-   The first command adds Alex, who appears at the bottom of the list. Replace `1` in the second command with Alex's number in the list. It gives that student a Math lesson on Wednesdays from 1pm to 5pm at SGD 45.50 per hour. Type `exit` to close the app.
+   The first command adds Alex, who has no level yet, so he appears in the Other group, the last group in the list. Replace `1` in the second command with Alex's number in the list. It gives that student a Math lesson on Wednesdays from 1pm to 5pm at SGD 45.50 per hour. Type `exit` to close the app.
 
 ## Main Window
 
@@ -105,7 +105,7 @@ Examples:
 
 ### List all students: `list`
 
-Shows all active students in StudentBook, grouped by schooling level, and selects this list for searches and indexed commands.
+Shows all active students in StudentBook, grouped by school stage (Primary, Secondary, JC, Other), and selects this list for searches and indexed commands.
 
 Format: `list`
 
@@ -115,7 +115,7 @@ This also clears any `sort`, so students return to this order.
 
 ### Sort students by rate: `sort`
 
-Orders students by hourly rate **within each schooling level**. The Primary, Secondary, JC and Other groups stay where they are, and only the students inside each group are reordered. Numbers shown on screen still match the `INDEX` used by commands.
+Orders students by hourly rate **within each group**. The Primary, Secondary, JC and Other groups stay where they are, and only the students inside each group are reordered. Numbers shown on screen still match the `INDEX` used by commands.
 
 Format: `sort rate asc` or `sort rate desc`
 

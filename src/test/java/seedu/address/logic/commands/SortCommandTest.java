@@ -1,7 +1,9 @@
 package seedu.address.logic.commands;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.testutil.Assert.assertThrows;
 
 import java.math.BigDecimal;
@@ -113,5 +115,16 @@ public class SortCommandTest {
         assertNotEquals(asc, new SortCommand(RateSortOrder.DESCENDING));
         assertNotEquals(asc, new ListCommand());
         assertNotEquals(asc, null);
+    }
+
+    // The sort keeps the Primary, Secondary, JC and Other groups, so levels within a group mix. The messages must
+    // say "group": "within each level" would tell a user that a Sec 1 student can't rank above a Sec 3 one.
+    @Test
+    public void messages_describeSortWithinGroups() {
+        for (String message : List.of(SortCommand.MESSAGE_USAGE, SortCommand.MESSAGE_ASCENDING,
+                SortCommand.MESSAGE_DESCENDING)) {
+            assertFalse(message.contains("level"), message);
+            assertTrue(message.contains("within each group"), message);
+        }
     }
 }
