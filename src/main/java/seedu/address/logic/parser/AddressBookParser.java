@@ -16,17 +16,21 @@ import seedu.address.logic.commands.DeleteCommand;
 import seedu.address.logic.commands.EditCommand;
 import seedu.address.logic.commands.ExitCommand;
 import seedu.address.logic.commands.FindCommand;
-import seedu.address.logic.commands.FollowUpCommand;
+import seedu.address.logic.commands.FollowUpAddCommand;
+import seedu.address.logic.commands.FollowUpDoneCommand;
+import seedu.address.logic.commands.FollowUpEditCommand;
 import seedu.address.logic.commands.FollowUpListCommand;
-import seedu.address.logic.commands.GuardianCommand;
-import seedu.address.logic.commands.GuardianCommand.Operation;
+import seedu.address.logic.commands.GuardianAddCommand;
+import seedu.address.logic.commands.GuardianDeleteCommand;
+import seedu.address.logic.commands.GuardianEditCommand;
 import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.LessonAddCommand;
 import seedu.address.logic.commands.LessonDeleteCommand;
 import seedu.address.logic.commands.LessonEditCommand;
 import seedu.address.logic.commands.ListArchiveCommand;
 import seedu.address.logic.commands.ListCommand;
-import seedu.address.logic.commands.NoteCommand;
+import seedu.address.logic.commands.NoteAddCommand;
+import seedu.address.logic.commands.NoteDeleteCommand;
 import seedu.address.logic.commands.UnarchiveCommand;
 import seedu.address.logic.commands.ViewCommand;
 import seedu.address.logic.commands.WeekCommand;
@@ -65,21 +69,17 @@ public class AddressBookParser {
         logger.fine("Command word: " + commandWord + "; Arguments: " + arguments);
 
         return switch (commandWord) {
-            case GuardianCommand.ADD_COMMAND_WORD -> new GuardianCommandParser(Operation.ADD).parse(arguments);
-            case GuardianCommand.EDIT_COMMAND_WORD -> new GuardianCommandParser(Operation.EDIT).parse(arguments);
-            case GuardianCommand.DELETE_COMMAND_WORD -> new GuardianCommandParser(Operation.DELETE).parse(arguments);
+            case GuardianAddCommand.COMMAND_WORD -> new GuardianAddCommandParser().parse(arguments);
+            case GuardianEditCommand.COMMAND_WORD -> new GuardianEditCommandParser().parse(arguments);
+            case GuardianDeleteCommand.COMMAND_WORD -> new GuardianDeleteCommandParser().parse(arguments);
             case LessonAddCommand.COMMAND_WORD -> new LessonAddCommandParser().parse(arguments);
             case LessonEditCommand.COMMAND_WORD -> new LessonEditCommandParser().parse(arguments);
             case LessonDeleteCommand.COMMAND_WORD -> new LessonDeleteCommandParser().parse(arguments);
-            case NoteCommand.ADD_COMMAND_WORD -> new NoteCommandParser(NoteCommand.Operation.ADD).parse(arguments);
-            case NoteCommand.DELETE_COMMAND_WORD ->
-                new NoteCommandParser(NoteCommand.Operation.DELETE).parse(arguments);
-            case FollowUpCommand.ADD_COMMAND_WORD ->
-                new FollowUpCommandParser(FollowUpCommand.Operation.ADD).parse(arguments);
-            case FollowUpCommand.EDIT_COMMAND_WORD ->
-                new FollowUpCommandParser(FollowUpCommand.Operation.EDIT).parse(arguments);
-            case FollowUpCommand.DONE_COMMAND_WORD ->
-                new FollowUpCommandParser(FollowUpCommand.Operation.DONE).parse(arguments);
+            case NoteAddCommand.COMMAND_WORD -> new NoteAddCommandParser().parse(arguments);
+            case NoteDeleteCommand.COMMAND_WORD -> new NoteDeleteCommandParser().parse(arguments);
+            case FollowUpAddCommand.COMMAND_WORD -> new FollowUpAddCommandParser().parse(arguments);
+            case FollowUpEditCommand.COMMAND_WORD -> new FollowUpEditCommandParser().parse(arguments);
+            case FollowUpDoneCommand.COMMAND_WORD -> new FollowUpDoneCommandParser().parse(arguments);
             case FollowUpListCommand.COMMAND_WORD -> new FollowUpListCommand();
             case AddCommand.COMMAND_WORD -> new AddCommandParser().parse(arguments);
             case EditCommand.COMMAND_WORD -> new EditCommandParser().parse(arguments);

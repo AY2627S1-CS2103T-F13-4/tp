@@ -4,52 +4,29 @@ import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseFailure;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseSuccess;
 import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
-import static seedu.address.testutil.TypicalIndexes.INDEX_SECOND_PERSON;
 
 import java.time.LocalDate;
-import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
 
 import seedu.address.logic.Messages;
-import seedu.address.logic.commands.NoteCommand;
-import seedu.address.logic.commands.NoteCommand.Operation;
+import seedu.address.logic.commands.NoteAddCommand;
 import seedu.address.model.person.ProgressNote;
 
-public class NoteCommandParserTest {
+public class NoteAddCommandParserTest {
     private static final String INVALID_FORMAT =
-            String.format(MESSAGE_INVALID_COMMAND_FORMAT, NoteCommand.MESSAGE_ADD_USAGE);
-    private static final String INVALID_DELETE_FORMAT =
-            String.format(MESSAGE_INVALID_COMMAND_FORMAT, NoteCommand.MESSAGE_DELETE_USAGE);
+            String.format(MESSAGE_INVALID_COMMAND_FORMAT, NoteAddCommand.MESSAGE_USAGE);
     private static final LocalDate DATE = LocalDate.of(2026, 10, 15);
 
-    private final NoteCommandParser parser = new NoteCommandParser(Operation.ADD);
-    private final NoteCommandParser deleteParser = new NoteCommandParser(Operation.DELETE);
+    private final NoteAddCommandParser parser = new NoteAddCommandParser();
 
-    private static NoteCommand addFirst(LocalDate date, String text) {
-        return new NoteCommand(INDEX_FIRST_PERSON, Operation.ADD, Optional.empty(),
-                Optional.of(new ProgressNote(date, text)));
-    }
-
-    @Test
-    public void parseDelete_validArgs_success() {
-        NoteCommand expected = new NoteCommand(INDEX_FIRST_PERSON, Operation.DELETE,
-                Optional.of(INDEX_SECOND_PERSON), Optional.empty());
-        assertParseSuccess(deleteParser, " 1 2", expected);
-        assertParseSuccess(deleteParser, "  1   2  ", expected);
-    }
-
-    @Test
-    public void parseDelete_invalidArgs_failure() {
-        for (String args : new String[] {"", " 1", " 1 2 3", " 0 1", " 1 0", " a 1", " 1 -2",
-            " 1 2 date/2026-10-15", " 1 text/Fractions"}) {
-            assertParseFailure(deleteParser, args, INVALID_DELETE_FORMAT);
-        }
+    private static NoteAddCommand addFirst(LocalDate date, String text) {
+        return new NoteAddCommand(INDEX_FIRST_PERSON, new ProgressNote(date, text));
     }
 
     @Test
     public void parse_validArgs_success() {
-        NoteCommand expected = addFirst(DATE, "Finished fractions");
+        NoteAddCommand expected = addFirst(DATE, "Finished fractions");
         assertParseSuccess(parser, " 1 date/2026-10-15 text/Finished fractions", expected);
         // any order, extra spaces trimmed
         assertParseSuccess(parser, " 1  text/  Finished fractions  date/ 2026-10-15 ", expected);
