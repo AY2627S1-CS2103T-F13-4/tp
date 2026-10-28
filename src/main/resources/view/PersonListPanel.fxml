@@ -8,6 +8,7 @@
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.shape.Rectangle?>
 
 <VBox minHeight="0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
   <!-- Page header with a full-width rule under it -->
@@ -23,7 +24,14 @@
     <VBox.margin>
       <Insets top="6" right="24" bottom="16" left="24" />
     </VBox.margin>
-    <VBox minHeight="0">
+    <!-- minWidth 0: the headings' widths follow the list's width, so their total would otherwise keep the
+         table from getting narrower than it last was when the window shrinks -->
+    <VBox fx:id="tableContent" minWidth="0" minHeight="0">
+      <!-- Keeps rows, open details and the scroll bar inside the card's rounded corners. The clip is on the
+           content, not the card, so the card's shadow still shows. Arcs are twice the .list-card radius. -->
+      <clip>
+        <Rectangle width="${tableContent.width}" height="${tableContent.height}" arcWidth="28" arcHeight="28" />
+      </clip>
       <!-- Column headings; their widths are bound to the same columns as each row -->
       <HBox styleClass="table-header" alignment="CENTER_LEFT">
         <Label text="#" styleClass="table-heading, heading-index" />
