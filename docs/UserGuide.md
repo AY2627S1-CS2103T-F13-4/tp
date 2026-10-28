@@ -109,6 +109,25 @@ Shows all active students in StudentBook, grouped by schooling level, and select
 
 Format: `list`
 
+Within each group, students are ordered by level (P1 before P2), then alphabetically by name. `P5` and `Primary 5` count as the same level. Levels StudentBook does not recognise come after the numbered ones, and students with no level come last.
+
+This also clears any `sort`, so students return to this order.
+
+### Sort students by rate: `sort`
+
+Orders students by hourly rate **within each schooling level**. The Primary, Secondary, JC and Other groups stay where they are, and only the students inside each group are reordered. Numbers shown on screen still match the `INDEX` used by commands.
+
+Format: `sort rate asc` or `sort rate desc`
+
+* `asc` puts the lowest rate first and `desc` puts the highest rate first.
+* A student with several lessons is ranked by their lowest rate for `asc` and their highest rate for `desc`.
+* Students with no lessons always come last in their group.
+* While a sort is on, the **Rate** column is headed **Min rate** or **Max rate** and shows the rate the sort uses, instead of the next lesson's rate.
+* Students with the same rate are ordered by level, then name, as in `list`.
+* The sort stays in place when you edit lessons or use `find`. Type `list` to go back to the usual order by level, then name.
+
+Example: `sort rate desc`
+
 ### List archived students: `list-archive`
 
 Shows all archived students in a separate **Archives** tab with the same layout as **Students**. Searches and commands using `INDEX` now use this list. Type `list` to return to active students.
@@ -405,6 +424,7 @@ If a lesson overlaps another lesson, StudentBook still saves it but warns you wh
 | Clear schooling level | `edit INDEX level/` |
 | Find | `find KEYWORD [MORE_KEYWORDS]` or `find [name/TEXT] [guardian/TEXT] [sch/TEXT] [level/TEXT] [subject/TEXT] [day/DAY]` |
 | List | `list` |
+| Sort by rate | `sort rate asc` or `sort rate desc` |
 | List archived students | `list-archive` |
 | Archive | `archive INDEX` |
 | Restore from archive | `unarchive INDEX` |

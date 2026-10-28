@@ -26,6 +26,7 @@ import javafx.scene.layout.Region;
 import javafx.scene.text.Text;
 import seedu.address.model.person.HourlyRate;
 import seedu.address.model.person.Lesson;
+import seedu.address.model.person.RateSortOrder;
 import seedu.address.model.person.School;
 import seedu.address.model.person.SchoolingLevel;
 import seedu.address.model.person.Student;
@@ -213,6 +214,74 @@ public class PersonCardTest {
 
             assertEquals(0, assertInstanceOf(Text.class, root.lookup("#name")).getWrappingWidth());
             assertEquals(0, assertInstanceOf(Text.class, root.lookup("#schoolingLevel")).getWrappingWidth());
+        });
+    }
+
+    @Test
+    public void rate_sortedByRate_showsTheRateTheSortRanksBy() throws Exception {
+        FxTestUtil.runOnFxThread(() -> {
+            Student student = new PersonBuilder().withLessons(lesson("60"), lesson("52.5")).build();
+            assertEquals("$60/h", rateText(new PersonCard(student, 1)));
+            assertEquals("$60/h", rateText(new PersonCard(student, 1, RateSortOrder.NONE)));
+            assertEquals("$52.50/h", rateText(new PersonCard(student, 1, RateSortOrder.ASCENDING)));
+            assertEquals("$60/h", rateText(new PersonCard(student, 1, RateSortOrder.DESCENDING)));
+        });
+    }
+
+    @Test
+    public void setSortOrder_afterCreation_updatesRateInPlace() throws Exception {
+        FxTestUtil.runOnFxThread(() -> {
+            Student student = new PersonBuilder().withLessons(lesson("60"), lesson("52")).build();
+            PersonCard card = new PersonCard(student, 1, RateSortOrder.ASCENDING);
+            prepareCard(card, new SimpleDoubleProperty(320));
+            assertEquals("$52/h", assertInstanceOf(Text.class, card.getRoot().lookup("#rate")).getText());
+            card.setSortOrder(RateSortOrder.DESCENDING);
+            assertEquals("$60/h", assertInstanceOf(Text.class, card.getRoot().lookup("#rate")).getText());
+            card.setSortOrder(RateSortOrder.NONE);
+            assertEquals("$60/h", assertInstanceOf(Text.class, card.getRoot().lookup("#rate")).getText());
+        });
+    }
+
+    @Test
+    public void rate_sortedByRateWithoutLessons_showsPlaceholder() throws Exception {
+        FxTestUtil.runOnFxThread(() -> assertEquals("\u2014",
+                rateText(new PersonCard(new PersonBuilder().build(), 1, RateSortOrder.ASCENDING))));
+    }
+
+    private static Lesson lesson(String rate) {
+        return new Lesson(new Subject("Math"),
+                new WeeklyLessonSlot(DayOfWeek.MONDAY, LocalTime.of(10, 0), LocalTime.of(11, 0)),
+                new HourlyRate(new BigDecimal(rate)));
+    }
+
+    private static String rateText(PersonCard card) {
+        Region root = prepareCard(card, new SimpleDoubleProperty(320));
+        return assertInstanceOf(Text.class, root.lookup("#rate")).getText();
+    }
+
+    @Test
+    public void setSortOrder_studentWithoutLessons_keepsDash() throws Exception {
+        FxTestUtil.runOnFxThread(() -> {
+            PersonCard card = new PersonCard(new PersonBuilder().withLessons().build(), 1, RateSortOrder.ASCENDING);
+            Region root = prepareCard(card, new SimpleDoubleProperty(240));
+            card.setSortOrder(RateSortOrder.DESCENDING);
+            assertEquals("\u2014", assertInstanceOf(Text.class, root.lookup("#rate")).getText());
+        });
+    }
+
+    @Test
+    public void setSortOrder_severalLessons_showsLowestThenHighestThenNextLesson() throws Exception {
+        FxTestUtil.runOnFxThread(() -> {
+            Student student = new PersonBuilder().withLessons(lesson("60"), lesson("52")).build();
+            PersonCard card = new PersonCard(student, 1);
+            Region root = prepareCard(card, new SimpleDoubleProperty(240));
+            Text rate = assertInstanceOf(Text.class, root.lookup("#rate"));
+            card.setSortOrder(RateSortOrder.ASCENDING);
+            assertEquals("$52/h", rate.getText());
+            card.setSortOrder(RateSortOrder.DESCENDING);
+            assertEquals("$60/h", rate.getText());
+            card.setSortOrder(RateSortOrder.NONE);
+            assertEquals("$60/h", rate.getText());
         });
     }
 

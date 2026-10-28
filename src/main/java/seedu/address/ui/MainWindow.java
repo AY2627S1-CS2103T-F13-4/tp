@@ -199,9 +199,9 @@ public class MainWindow extends UiPart<Stage> {
      */
     void fillInnerParts() {
         personListPanel = new PersonListPanel(logic.getFilteredActivePersonList(),
-                logic.getAddressBook().getPersonList());
+                logic.getAddressBook().getPersonList(), false, logic.getRateSortOrder());
         archivedPersonListPanel = new PersonListPanel(logic.getFilteredArchivedPersonList(),
-                logic.getAddressBook().getArchivedPersonList(), true);
+                logic.getAddressBook().getArchivedPersonList(), true, logic.getRateSortOrder());
         personListPanelPlaceholder.getChildren().setAll(personListPanel.getRoot(), archivedPersonListPanel.getRoot());
 
         resultDisplay = new ResultDisplay();
