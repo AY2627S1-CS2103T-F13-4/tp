@@ -3,6 +3,7 @@ package seedu.address.model;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.model.Model.PREDICATE_SHOW_ALL_PERSONS;
 import static seedu.address.testutil.Assert.assertThrows;
@@ -11,12 +12,14 @@ import static seedu.address.testutil.TypicalPersons.BENSON;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Predicate;
 
 import org.junit.jupiter.api.Test;
 
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import seedu.address.commons.core.GuiSettings;
+import seedu.address.model.person.Lesson;
 import seedu.address.model.person.NameContainsKeywordsPredicate;
 import seedu.address.model.person.SchoolingLevel;
 import seedu.address.model.person.Student;
@@ -106,8 +109,8 @@ public class ModelManagerTest {
 
         assertEquals(List.of(BENSON), displayedPersons);
         assertEquals(List.of(ALICE), removedPersons);
-        assertEquals(2, modelManager.getAddressBook().getPersonList().size());
-        Student archivedPerson = modelManager.getAddressBook().getPersonList().get(0);
+        assertEquals(List.of(BENSON), modelManager.getAddressBook().getPersonList());
+        Student archivedPerson = modelManager.getAddressBook().getArchivedPersonList().get(0);
         assertNotSame(ALICE, archivedPerson);
         assertTrue(archivedPerson.isSamePerson(ALICE));
         assertTrue(archivedPerson.isArchived());
@@ -115,15 +118,21 @@ public class ModelManagerTest {
     }
 
     @Test
-    public void unarchivePerson_archivePredicateInstalled_notifiesDisplayedListAndShowsActivePersons() {
+    public void unarchivePerson_archiveView_notifiesBothListsAndKeepsArchiveView() {
         Student archivedAlice = ALICE.withArchived(true);
         Student archivedBenson = BENSON.withArchived(true);
         modelManager = new ModelManager(new AddressBookBuilder().withPerson(archivedAlice).withPerson(archivedBenson)
                 .build(), new UserPrefs());
-        modelManager.updateFilteredPersonList(Student::isArchived);
+        modelManager.setArchiveView(true);
         ObservableList<Student> displayedPersons = modelManager.getFilteredPersonList();
+        List<Student> removedPersons = new ArrayList<>();
         List<Student> addedPersons = new ArrayList<>();
         displayedPersons.addListener((ListChangeListener<Student>) change -> {
+            while (change.next()) {
+                removedPersons.addAll(change.getRemoved());
+            }
+        });
+        modelManager.getFilteredActivePersonList().addListener((ListChangeListener<Student>) change -> {
             while (change.next()) {
                 addedPersons.addAll(change.getAddedSubList());
             }
@@ -131,11 +140,81 @@ public class ModelManagerTest {
 
         modelManager.unarchivePerson(archivedAlice);
 
-        assertEquals(List.of(ALICE), displayedPersons);
+        assertEquals(List.of(archivedBenson), displayedPersons);
+        assertEquals(List.of(archivedAlice), removedPersons);
         assertEquals(List.of(ALICE), addedPersons);
-        assertEquals(List.of(ALICE, archivedBenson), modelManager.getAddressBook().getPersonList());
-        assertNotSame(archivedAlice, displayedPersons.get(0));
+        assertEquals(List.of(ALICE), modelManager.getAddressBook().getPersonList());
+        assertEquals(List.of(archivedBenson), modelManager.getAddressBook().getArchivedPersonList());
+        assertTrue(modelManager.isArchiveView());
         assertTrue(archivedAlice.isArchived());
+    }
+
+    @Test
+    public void constructor_archivedStudents_keepsSeparateObservableLists() {
+        Student archivedBenson = BENSON.withArchived(true);
+        modelManager = new ModelManager(new AddressBookBuilder().withPerson(ALICE).withPerson(archivedBenson)
+                .build(), new UserPrefs());
+
+        assertEquals(List.of(ALICE), modelManager.getFilteredPersonList());
+        assertSame(modelManager.getFilteredActivePersonList(), modelManager.getFilteredPersonList());
+        assertEquals(List.of(archivedBenson), modelManager.getFilteredArchivedPersonList());
+        modelManager.setArchiveView(true);
+        assertSame(modelManager.getFilteredArchivedPersonList(), modelManager.getFilteredPersonList());
+        assertThrows(UnsupportedOperationException.class, () -> modelManager.getFilteredPersonList().remove(0));
+    }
+
+    @Test
+    public void updateFilteredPersonList_switchViews_retainsIndependentStudentAndLessonFilters() {
+        Student archivedBenson = BENSON.withArchived(true);
+        modelManager = new ModelManager(new AddressBookBuilder().withPerson(ALICE).withPerson(archivedBenson)
+                .build(), new UserPrefs());
+        modelManager.updateFilteredPersonList(student -> false, lesson -> false);
+        Predicate<Lesson> activeLessonPredicate = modelManager.getLessonPredicate().getValue();
+
+        modelManager.setArchiveView(true);
+        assertEquals(List.of(archivedBenson), modelManager.getFilteredPersonList());
+        modelManager.updateFilteredPersonList(student -> false);
+        assertTrue(modelManager.getFilteredPersonList().isEmpty());
+        assertSame(activeLessonPredicate, modelManager.getLessonPredicate().getValue());
+
+        modelManager.setArchiveView(false);
+        assertTrue(modelManager.getFilteredPersonList().isEmpty());
+        modelManager.updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS);
+        assertEquals(List.of(ALICE), modelManager.getFilteredPersonList());
+        assertTrue(modelManager.getFilteredArchivedPersonList().isEmpty());
+    }
+
+    @Test
+    public void getFilteredArchivedPersonList_groupedByStageInArchivedOrder() {
+        Student jc = new PersonBuilder(ALICE).withSchoolingLevel(new SchoolingLevel("JC1")).build().withArchived(true);
+        Student primary = new PersonBuilder(BENSON).withSchoolingLevel(new SchoolingLevel("P5"))
+                .build().withArchived(true);
+        modelManager = new ModelManager(new AddressBookBuilder().withPerson(jc).withPerson(primary)
+                .build(), new UserPrefs());
+
+        assertEquals(List.of(primary, jc), modelManager.getFilteredArchivedPersonList());
+        Student edited = new PersonBuilder(primary).withPhone("99999999").build();
+        modelManager.setPerson(primary, edited);
+        assertEquals(List.of(edited, jc), modelManager.getFilteredArchivedPersonList());
+        assertTrue(modelManager.getFilteredActivePersonList().isEmpty());
+    }
+
+    @Test
+    public void setAddressBook_replacement_keepsBothObservableViewsAndSelectedList() {
+        modelManager = new ModelManager(new AddressBookBuilder().withPerson(ALICE).withPerson(BENSON.withArchived(true))
+                .build(), new UserPrefs());
+        ObservableList<Student> activePersons = modelManager.getFilteredActivePersonList();
+        ObservableList<Student> archivedPersons = modelManager.getFilteredArchivedPersonList();
+        modelManager.setArchiveView(true);
+
+        modelManager.setAddressBook(new AddressBookBuilder().withPerson(BENSON).withPerson(ALICE.withArchived(true))
+                .build());
+
+        assertEquals(List.of(BENSON), activePersons);
+        assertEquals(List.of(ALICE.withArchived(true)), archivedPersons);
+        assertSame(activePersons, modelManager.getFilteredActivePersonList());
+        assertSame(archivedPersons, modelManager.getFilteredPersonList());
+        assertTrue(modelManager.isArchiveView());
     }
 
     // Students are listed by school stage so the table can show Primary, Secondary and JC groups, and the numbers on
@@ -174,6 +253,10 @@ public class ModelManagerTest {
         modelManager = new ModelManager(addressBook, userPrefs);
         ModelManager modelManagerCopy = new ModelManager(addressBook, userPrefs);
         assertTrue(modelManager.equals(modelManagerCopy));
+
+        modelManager.setArchiveView(true);
+        assertFalse(modelManager.equals(modelManagerCopy));
+        modelManager.setArchiveView(false);
 
         // same object -> returns true
         assertTrue(modelManager.equals(modelManager));

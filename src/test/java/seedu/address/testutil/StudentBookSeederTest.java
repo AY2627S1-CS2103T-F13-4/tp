@@ -20,6 +20,7 @@ import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import seedu.address.model.ReadOnlyAddressBook;
 import seedu.address.model.person.FollowUp;
 import seedu.address.model.person.Guardian;
 import seedu.address.model.person.HourlyRate;
@@ -218,7 +219,9 @@ public class StudentBookSeederTest {
         Path out = tempDir.resolve("studentbook.json");
         StudentBookSeeder.save(STUDENTS, out);
 
-        assertEquals(STUDENTS, new JsonAddressBookStorage(out).readAddressBook().orElseThrow().getPersonList());
+        ReadOnlyAddressBook loaded = new JsonAddressBookStorage(out).readAddressBook().orElseThrow();
+        assertEquals(STUDENTS.stream().filter(student -> !student.isArchived()).toList(), loaded.getPersonList());
+        assertEquals(STUDENTS.stream().filter(Student::isArchived).toList(), loaded.getArchivedPersonList());
     }
 
     @Test
@@ -303,7 +306,9 @@ public class StudentBookSeederTest {
         Path out = tempDir.resolve("edge.json");
         StudentBookSeeder.save(students, out);
 
-        assertEquals(students, new JsonAddressBookStorage(out).readAddressBook().orElseThrow().getPersonList());
+        ReadOnlyAddressBook loaded = new JsonAddressBookStorage(out).readAddressBook().orElseThrow();
+        assertEquals(students.stream().filter(student -> !student.isArchived()).toList(), loaded.getPersonList());
+        assertEquals(students.stream().filter(Student::isArchived).toList(), loaded.getArchivedPersonList());
     }
 
     private static Student edgeCase(String name) {

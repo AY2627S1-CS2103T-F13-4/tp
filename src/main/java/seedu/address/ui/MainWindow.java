@@ -42,6 +42,7 @@ import seedu.address.logic.Logic;
 import seedu.address.logic.commands.AddCommand;
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.FindCommand;
+import seedu.address.logic.commands.ListArchiveCommand;
 import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.commands.WeekCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
@@ -78,6 +79,7 @@ public class MainWindow extends UiPart<Stage> {
 
     // Independent Ui parts residing in this Ui container
     private PersonListPanel personListPanel;
+    private PersonListPanel archivedPersonListPanel;
     private WeekPanel weekPanel;
     private ResultDisplay resultDisplay;
     private CommandBox commandBox;
@@ -109,6 +111,9 @@ public class MainWindow extends UiPart<Stage> {
 
     @FXML
     private Button studentsNav;
+
+    @FXML
+    private Button archiveNav;
 
     @FXML
     private HBox brand;
@@ -193,14 +198,17 @@ public class MainWindow extends UiPart<Stage> {
      * Fills up all the placeholders of this window.
      */
     void fillInnerParts() {
-        personListPanel = new PersonListPanel(logic.getFilteredPersonList(), logic.getAddressBook().getPersonList());
-        personListPanelPlaceholder.getChildren().setAll(personListPanel.getRoot());
+        personListPanel = new PersonListPanel(logic.getFilteredActivePersonList(),
+                logic.getAddressBook().getPersonList());
+        archivedPersonListPanel = new PersonListPanel(logic.getFilteredArchivedPersonList(),
+                logic.getAddressBook().getArchivedPersonList(), true);
+        personListPanelPlaceholder.getChildren().setAll(personListPanel.getRoot(), archivedPersonListPanel.getRoot());
 
         resultDisplay = new ResultDisplay();
         resultDisplayPlaceholder.getChildren().add(resultDisplay.getRoot());
 
         disposeWeekPanel();
-        weekPanel = new WeekPanel(logic.getFilteredPersonList(), logic.getAddressBook().getPersonList(),
+        weekPanel = new WeekPanel(logic.getFilteredActivePersonList(), logic.getAddressBook().getPersonList(),
                 logic.getLessonPredicate());
         personListPanelPlaceholder.getChildren().add(weekPanel.getRoot());
 
@@ -212,7 +220,7 @@ public class MainWindow extends UiPart<Stage> {
             if (weekPanel.getRoot().isVisible()) {
                 weekPanel.scrollPage(direction);
             } else {
-                personListPanel.scrollPage(direction);
+                visiblePersonListPanel().scrollPage(direction);
             }
         });
         // Alt+Up/Down step through students' details on the table and scroll the calendar, so neither screen
@@ -221,11 +229,11 @@ public class MainWindow extends UiPart<Stage> {
             if (weekPanel.getRoot().isVisible()) {
                 weekPanel.scrollPage(direction);
             } else {
-                personListPanel.moveDetails(direction);
+                visiblePersonListPanel().moveDetails(direction);
             }
         }, () -> {
             if (!weekPanel.getRoot().isVisible()) {
-                personListPanel.closeDetails();
+                visiblePersonListPanel().closeDetails();
             }
         });
         commandBox.setExampleSupplier(resultDisplay::getExample);
@@ -237,6 +245,7 @@ public class MainWindow extends UiPart<Stage> {
             }
         });
         personListPanel.setOnAddStudent(() -> commandBox.prefill(ADD_TEMPLATE));
+        archivedPersonListPanel.setOnAddStudent(() -> commandBox.prefill(ADD_TEMPLATE));
         resultDisplay.setOnRecentPicked(commandBox::prefill);
         fillNavigation();
         Region content = (Region) brand.getParent();
@@ -258,19 +267,23 @@ public class MainWindow extends UiPart<Stage> {
      * students change.
      */
     private void fillNavigation() {
-        for (Button tab : List.of(weekNav, studentsNav, helpNav)) {
+        for (Button tab : List.of(weekNav, studentsNav, archiveNav, helpNav)) {
             tab.getGraphic().lookup(".nav-hint").setStyle(MonospaceFont.style());
         }
-        ObservableList<Student> students = logic.getAddressBook().getPersonList();
-        students.addListener((ListChangeListener<Student>) change -> fillLevelNav(students));
-        fillLevelNav(students);
+        for (ObservableList<Student> students : List.of(logic.getAddressBook().getPersonList(),
+                logic.getAddressBook().getArchivedPersonList())) {
+            students.addListener((ListChangeListener<Student>) change -> fillLevelNav());
+        }
+        fillLevelNav();
         levelNav.widthProperty().addListener((unused, oldWidth, newWidth) -> hideCutOffFilters());
         levelNav.visibleProperty().bind(Bindings.size(levelNav.getChildren()).greaterThan(LEVEL_NAV_FIRST_FILTER)
                 .and(navBar.widthProperty().greaterThanOrEqualTo(LEVEL_NAV_MIN_WIDTH)));
         levelNav.managedProperty().bind(levelNav.visibleProperty());
     }
 
-    private void fillLevelNav(List<Student> students) {
+    private void fillLevelNav() {
+        List<Student> students = logic.isArchiveView() ? logic.getAddressBook().getArchivedPersonList()
+                : logic.getAddressBook().getPersonList();
         levelNav.getChildren().remove(LEVEL_NAV_FIRST_FILTER, levelNav.getChildren().size());
         students.stream()
                 .map(Student::getSchoolingLevel).flatMap(Optional::stream).map(Object::toString)
@@ -278,6 +291,8 @@ public class MainWindow extends UiPart<Stage> {
                 .sorted(Comparator.comparing(SchoolingLevel::stageOf).thenComparing(String.CASE_INSENSITIVE_ORDER))
                 .forEach(level -> {
                     Button item = new Button();
+                    // Hide a whole chip when it does not fit, rather than shrinking its label first.
+                    item.setMinWidth(Region.USE_PREF_SIZE);
                     item.getStyleClass().addAll("nav-item", "level-chip");
                     String command = FindCommand.COMMAND_WORD + " " + PREFIX_LEVEL + level;
                     // Chips stay short, so the command they run shows on hover instead
@@ -319,20 +334,29 @@ public class MainWindow extends UiPart<Stage> {
     }
 
     @FXML
+    private void handleListArchive() {
+        commandBox.submit(ListArchiveCommand.COMMAND_WORD);
+    }
+
+    @FXML
     private void handleShowWeek() {
         commandBox.submit(WeekCommand.COMMAND_WORD);
     }
 
-    /** Shows the week's lessons or the student table, and marks the matching tab. */
+    /** Shows the week's lessons or the selected student table, and marks the matching tab. */
     private void showScreen(CommandResult.Screen screen) {
         if (screen == CommandResult.Screen.UNCHANGED) {
             return;
         }
         boolean week = screen == CommandResult.Screen.WEEK;
+        boolean archive = !week && logic.isArchiveView();
         weekPanel.getRoot().setVisible(week);
-        personListPanel.getRoot().setVisible(!week);
+        personListPanel.getRoot().setVisible(!week && !archive);
+        archivedPersonListPanel.getRoot().setVisible(archive);
         setActive(weekNav, week);
-        setActive(studentsNav, !week);
+        setActive(studentsNav, !week && !archive);
+        setActive(archiveNav, archive);
+        fillLevelNav();
         commandBox.setAltHint(week ? "Scroll" : "Details");
         if (week) {
             weekPanel.scrollToCurrentTime();
@@ -410,6 +434,10 @@ public class MainWindow extends UiPart<Stage> {
         return personListPanel;
     }
 
+    private PersonListPanel visiblePersonListPanel() {
+        return archivedPersonListPanel.getRoot().isVisible() ? archivedPersonListPanel : personListPanel;
+    }
+
     /**
      * Executes the command and returns the result.
      *
@@ -426,7 +454,8 @@ public class MainWindow extends UiPart<Stage> {
                 resultDisplay.setFeedbackToUser(commandResult.getFeedbackToUser());
             }
             showScreen(commandResult.getScreen());
-            commandResult.getStudentToOpen().ifPresent(index -> personListPanel.openStudent(index.getZeroBased()));
+            commandResult.getStudentToOpen().ifPresent(index ->
+                    visiblePersonListPanel().openStudent(index.getZeroBased()));
 
             if (commandResult.isShowHelp()) {
                 handleHelp();
@@ -439,6 +468,11 @@ public class MainWindow extends UiPart<Stage> {
             return commandResult;
         } catch (CommandException | ParseException e) {
             logger.info("An error occurred while executing command: " + commandText);
+            // A save can fail after a command switches the model's list. Keep the visible rows consistent
+            // with the indices the next command will use, without changing screens for ordinary errors.
+            if (logic.isArchiveView() != archivedPersonListPanel.getRoot().isVisible()) {
+                showScreen(logic.isArchiveView() ? CommandResult.Screen.ARCHIVE : CommandResult.Screen.STUDENTS);
+            }
             resultDisplay.setErrorToUser(e.getMessage());
             throw e;
         }

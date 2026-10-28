@@ -14,7 +14,7 @@ import seedu.address.commons.util.ToStringBuilder;
 public class CommandResult {
 
     /** Which screen the main window should show after the command. */
-    public enum Screen { UNCHANGED, STUDENTS, WEEK }
+    public enum Screen { UNCHANGED, STUDENTS, ARCHIVE, WEEK }
 
     private final String feedbackToUser;
     private final boolean warning;

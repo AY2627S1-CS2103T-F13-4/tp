@@ -39,30 +39,19 @@ This development version supports contact details, schools, schooling levels, gu
 
 ![StudentBook main window](images/Ui.png)
 
-The command box sits at the top of the window, under the StudentBook name, since you use the app by typing. The app opens on **This week**, a calendar of every student's lessons. `list` and `find` show the **Students** table instead, and `week` brings the calendar back.
+Type commands in the box at the top and press **Enter**.
 
-* **This week:** The calendar shows Monday to Sunday of the current week, with today's date circled and a red line at the current time. It always shows 9.00am to 8.00pm, and stretches to fit any lesson outside those hours. Each lesson shows the student, the time, and then its number, level and subject, such as `#3.1 · Sec 3 · A-Math`. The number means student `3`, lesson `1`, so `lesson-edit 3 1` changes that lesson. Lessons are coloured by school stage, as shown in the key at the top right. Lessons at the same time sit side by side, and that day widens to fit them. To see a lesson's rate, mode and location, type `view` with its student's number (e.g. `view 3` for `#3.1`), or point at the lesson. The calendar opens scrolled to the current time.
-* **Tabs:** The row under the command box has **This week**, which runs `week`, and **Students**, which runs `list`; each tab shows the command it runs. After them, each schooling level in use runs `find level/LEVEL` (point at one to see the command). **All commands** at the right opens help. The levels are hidden in windows narrower than 900px, and any that do not fit are left out. In windows shorter than 560px, the StudentBook name and the data file path at the bottom are hidden to leave room for your students.
-* **Header:** The page header shows how many students there are. **+ Add student** puts the `add` format in the command box for you to fill in.
-* **Student list:** The list is a table with one row per student and the columns **#**, **Name**, **Subjects**, **Next lesson**, **Rate** and **Guardian**. **Next lesson** is the lesson that comes next in the week, with `+2 more` when the student has others; **Rate** is that lesson's rate. Use the number in the **#** column as `INDEX`. In narrow windows the Subjects and Guardian columns are hidden.
-* **Student details:** On the **Students** table, a student's details open under their row: school, phone, email and address together, followed by guardian information, lessons and tags. Each lesson shows its number, subject, day and time, rate, mode and location. Details open when a search leaves one student (e.g. `find hafiz`), when you press **Alt+Down** or **Alt+Up** to step through students, or when you click a row. Press **Esc** in an empty command box to close them. Use a lesson's number in the details as `LESSON_INDEX`.
-* **Colours:** The initials badge and the level dots under the command box are amber for primary (`P5`, `Primary 5`), blue for secondary (`Sec 3`, `Secondary 4 Express`) and violet for JC (`JC1`). Levels written another way, such as `Poly Y1`, stay grey. In a student's details, a lesson's mode shows in green for `Physical` and teal for `Virtual`. Tags are grey.
-* **Count:** The count beside the title shows how many students there are. After `find`, it shows how many match, such as `Showing 1 of 8`.
-* **Empty list:** When the list is empty, the app suggests the next step. With no students, it shows an example `add` command you can type as shown. When a search matches no one, it suggests `list`. The This week screen does the same: with no lessons it shows an example `lesson-add` command, and when a search hides every lesson it suggests `list`.
-* **Result:** The row under the command box shows the result of your last command. After a one-line success, it also shows your last few commands; click one to put it back in the command box, or press Up to step through all your earlier commands. A green tick marks a success. A red `!` on a pink background marks an error, such as an invalid index or format. When you get a command's format wrong, the row shows what the command does, its **Format** and an **Example**, so you can fix the command without opening help. Press **Tab** to put the Example in the command box, then edit it; you can also click a Format or Example line to copy it. Long messages take up to 40% of the window, so they can be read without scrolling.
-* **Command box:** It is focused when the app starts and stays focused, so you can use the whole app from the keyboard: clicking elsewhere and closing the help window leave the cursor in the box, which is outlined in blue. Press Enter to run a command. After a successful command, the box clears. After an error, your text stays, shown in red, so you can fix it.
+* **This week** shows your active students' lessons on a calendar (`week`). **Students** shows your students (`list`), and **Archives** shows archived students (`list-archive`). `find` searches whichever of these two lists is open.
+* A lesson marked `#3.1` is student `3`'s lesson `1`. Edit it with `lesson-edit 3 1 ...`.
+* To see a student's full details, click their row or type `view INDEX`.
+* If a command is wrong, the correct format and an example appear below the box. Press **Tab** to copy the example into the box.
 
 | Key | Action |
 |---|---|
-| Enter | Run the command |
-| Up / Down | Show earlier commands from this session. Down past the newest brings back what you were typing. |
-| Esc | Clear the command box. In an empty box, close a student's details. Also closes the help window. |
-| Alt+Down / Alt+Up | On **This week**, scroll the calendar. On **Students**, open the next or previous student's details. (On a Mac, Alt is the Option key.) |
-| Tab | When the result shows an Example (e.g. after a format error), put that Example in the command box |
-| Page Up / Page Down | Also scroll, if your keyboard has these keys (on a Mac laptop: Fn+Up / Fn+Down) |
-| F1 | Open help, as the `help` command does (on a Mac laptop you may need Fn+F1) |
-
-Every shortcut is optional: each one has a command that does the same, such as `week`, `list`, `view INDEX` and `help`.
+| Up / Down | Previous commands |
+| Esc | Clear the box |
+| Alt+Up / Alt+Down | Scroll the calendar, or move between students |
+| F1 | Help |
 
 ## Features
 
@@ -108,7 +97,7 @@ Examples:
 <div markdown="block" class="alert alert-primary">
 
 :bulb: **Tips:**<br>
-* A new student has no lessons or guardians. Add them with [`lesson-add`](#manage-a-students-lessons) and [`guardian-add`](#manage-a-students-guardian-contact) respectively.
+* A new student has no lessons or guardians. Add them with [`lesson-add`](#add-a-lesson-lesson-add) and [`guardian-add`](#add-a-guardian-guardian-add) respectively.
 * The added student cannot share a name with an existing one (case-sensitive).
 
 </div>
@@ -116,9 +105,21 @@ Examples:
 
 ### List all students: `list`
 
-Shows a list of all students in StudentBook, grouped by schooling level.
+Shows all active students in StudentBook, grouped by schooling level, and selects this list for searches and indexed commands.
 
 Format: `list`
+
+### List archived students: `list-archive`
+
+Shows all archived students in a separate **Archives** tab with the same layout as **Students**. Searches and commands using `INDEX` now use this list. Type `list` to return to active students.
+
+Format: `list-archive`
+
+### Archive or restore a student: `archive`, `unarchive`
+
+`archive INDEX` moves an active student to the archived list, keeping their details, lessons, notes and follow-ups. Archived students do not appear in the active list or weekly calendar.
+
+To restore a student, run `list-archive`, then `unarchive INDEX` using the number shown in that tab. The student moves back to the active list; the archived tab stays open. Run `list` to see the restored student.
 
 ### Edit a student: `edit`
 
@@ -140,13 +141,13 @@ Examples:
 <div markdown="block" class="alert alert-primary">
 
 :bulb: **Tips:**<br>
-* To edit a student's lessons or guardians, use [`lesson-edit`](#manage-a-students-lessons) and [`guardian-edit`](#manage-a-students-guardian-contact) respectively.
+* To edit a student's lessons or guardians, use [`lesson-edit`](#edit-a-lesson-lesson-edit) and [`guardian-edit`](#edit-a-guardian-guardian-edit) respectively.
 
 </div>
 
 ### Show weekly lessons: `week`
 
-Displays all lessons for students in the current list display.
+Displays lessons for active students, retaining the active list's search and lesson filters. Running `week` from the archived tab returns to active students.
 
 Format: `week`
 
@@ -186,7 +187,9 @@ Examples:
 * `find day/Mon` matches students with a lesson on Monday.
 * `find level/Secondary subject/math day/wednesday` matches secondary students with a Math lesson on Wednesday.
 
-![Name search results](images/findAlexDavidResult.png)
+The result of `find subject/math day/wed`: students with a Math lesson on Wednesday.
+
+![Result of find subject/math day/wed](images/findResult.png)
 
 ### Delete a student: `delete`
 
@@ -289,8 +292,8 @@ Format: `guardian-edit INDEX [name/NAME] [phone/PHONE]`
 * Existing values will be updated to the input values.
 
 Examples:
-* `edit 1 name/Jane Doe`
-* `edit 1 name/81234567`
+* `guardian-edit 1 name/Jane Doe` changes the first displayed student's guardian name.
+* `guardian-edit 1 phone/81234567` changes the first displayed student's guardian phone.
 
 ### Delete a guardian: `guardian-delete`
 
@@ -298,23 +301,90 @@ Delete a guardian for a given student.
 
 Format: `guardian-delete INDEX`
 
+### Add a progress note: `note-add`
+
+Adds a dated progress note to a student, such as what you covered in a lesson or what to revise next.
+
+Format: `note-add STUDENT_INDEX date/DATE text/TEXT`
+
+* Both `date/` and `text/` are required.
+* `DATE` is a real date in `YYYY-MM-DD` format, such as `2026-10-15`. It cannot be later than today.
+* `TEXT` is 1 to 500 characters on one line. Spaces at the start and end are removed.
+* Notes are listed oldest first in the student's details, each with its number, date and text. A note dated earlier than existing notes is placed before them, and notes on the same date stay in the order you added them.
+* Adding a note with the same date and text as an existing note of that student is rejected.
+
+Examples:
+* `note-add 1 date/2026-10-15 text/Finished the fractions worksheet; revise decimals next`
+* `note-add 1 date/2026-10-08 text/Struggled with word problems` is placed before the first note and becomes note 1.
+
+### Delete a progress note: `note-delete`
+
+Deletes one progress note from a student.
+
+Format: `note-delete STUDENT_INDEX NOTE_INDEX`
+
+* `NOTE_INDEX` is the note's number in the student's details. Later notes move up by one.
+* The message shows the deleted note's text, so you can check it was the right one.
+
+Example: `note-delete 1 1`
+
+### Add a guardian follow-up: `followup-add`
+
+Adds something you still need to do for a student's guardian, such as sending a progress report or confirming a make-up lesson.
+
+Format: `followup-add STUDENT_INDEX text/TEXT`
+
+* `TEXT` is 1 to 200 characters on one line. Spaces at the start and end are removed.
+* The follow-up is added at the end of the student's list. Follow-ups appear in the student's details, under the guardian, with their numbers.
+* A follow-up that reads the same as another one of that student (ignoring letter case) is rejected.
+* A student does not need a guardian to have follow-ups, and `guardian-delete` keeps them.
+
+Example: `followup-add 1 text/Send the term 4 progress report`
+
+### Edit a guardian follow-up: `followup-edit`
+
+Replaces the text of a follow-up. Its number stays the same.
+
+Format: `followup-edit STUDENT_INDEX FOLLOW_UP_INDEX text/TEXT`
+
+* `FOLLOW_UP_INDEX` is the follow-up's number in the student's details.
+* The same rules for `TEXT` as in `followup-add` apply, including rejecting duplicates.
+
+Example: `followup-edit 1 2 text/Confirm the make-up lesson on Saturday`
+
+### Complete a guardian follow-up: `followup-done`
+
+Marks a follow-up as done by removing it from the student's list.
+
+Format: `followup-done STUDENT_INDEX FOLLOW_UP_INDEX`
+
+* The message shows the removed follow-up's text. Later follow-ups move up by one.
+
+Example: `followup-done 1 1`
+
+### List students with outstanding follow-ups: `followups`
+
+Shows only active students who have at least one outstanding follow-up. Archived students are left out and keep their follow-ups. Type `list` to see every student again.
+
+Format: `followups`
+
+<div markdown="block" class="alert alert-primary">
+
+:bulb: **Tips:**<br>
+* After `followups`, a student whose last follow-up you complete leaves the list, so the students after them move up a number. Check the number before the next command.
+* Notes and follow-ups are saved automatically. Older data files without them still load, with none recorded.
+
+</div>
+
 ## Saving and transferring records
 
-The app saves automatically after each successfully executed command. Schools, schooling levels, guardian contacts and lessons are saved with the contact details. A student's school is stored as an optional `school` string; files without it still load with no school recorded. Each student's lessons are stored as a `lessons` array, where every lesson has a `subject`, a `weeklyLessonSlot` and an `hourlyRate`, plus an optional `mode` (`PHYSICAL` or `VIRTUAL`) and `location`. Files without these two fields still load.
+StudentBook saves automatically to `data/studentbook.json`, in the folder you start it from.
 
-Older files that stored a student's `subject`, `subjects`, `weeklyLessonSlot` or `hourlyRate` directly on the student still load, but those values are ignored and are lost the next time the app saves. Re-enter them with `lesson-add` or copy them into a `lessons` array first.
+To move to another computer, copy that file into the same place on the new computer.
 
-If saving fails, the app reports an error. The change may still appear on screen without being saved to disk.
-
-Records are stored in `data/studentbook.json` under the folder where you start the app.
-
-To transfer records, close the app on both computers. Copy the data file to the corresponding location on the new computer, then start the app there.
-
-### Edit the data file manually
-
-Close the app and back up the JSON file before editing it. Keep the existing file structure and valid field values.
-
-If the file is invalid, the app starts with an empty list. The invalid file remains until a successful command saves over it. Restore your backup before running more commands.
+<div markdown="span" class="alert alert-warning">
+:warning: Back up the file before editing it by hand. If the file is invalid, StudentBook starts empty.
+</div>
 
 ## Known issues
 
@@ -323,16 +393,7 @@ If the file is invalid, the app starts with an empty list. The invalid file rema
 
 ### Lesson clash warnings
 
-Adding or editing a lesson warns when it overlaps another lesson on the same weekday. The change is still applied
-and saved normally. Warnings identify each conflicting student by name and their lesson number, subject and time.
-Checks include all students, even those hidden by a filter, and other lessons of the same student.
-Warnings show the number of conflicting lessons and list each on a separate line.
-Clashes appear in an amber feedback panel with an exclamation icon and a bold
-"Lesson saved - scheduling clash detected" heading. The warning stays until the next command result.
-Every successful lesson edit
-checks for clashes, including a rate-only or subject-only edit; an existing clash will therefore warn again.
-Back-to-back lessons do not clash. Deleting a lesson does not produce a warning.
-Lesson numbers in warnings belong to the named student's lesson list; find that student before editing their lesson.
+If a lesson overlaps another lesson, StudentBook still saves it but warns you which lessons clash. Use `lesson-edit` to move one of them.
 
 ## Command summary
 
@@ -344,6 +405,9 @@ Lesson numbers in warnings belong to the named student's lesson list; find that 
 | Clear schooling level | `edit INDEX level/` |
 | Find | `find KEYWORD [MORE_KEYWORDS]` or `find [name/TEXT] [guardian/TEXT] [sch/TEXT] [level/TEXT] [subject/TEXT] [day/DAY]` |
 | List | `list` |
+| List archived students | `list-archive` |
+| Archive | `archive INDEX` |
+| Restore from archive | `unarchive INDEX` |
 | This week's lessons | `week` |
 | A student's details | `view INDEX` |
 | Add lesson | `lesson-add STUDENT_INDEX subject/SUBJECT slot/LESSON_SLOT rate/HOURLY_RATE [mode/MODE] [location/LOCATION]` |

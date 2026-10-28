@@ -694,7 +694,8 @@ public class StudentBookSeeder {
         JsonAddressBookStorage storage = new JsonAddressBookStorage(out);
         storage.saveAddressBook(addressBook);
         Optional<ReadOnlyAddressBook> loaded = storage.readAddressBook();
-        if (loaded.isEmpty() || !loaded.get().getPersonList().equals(addressBook.getPersonList())) {
+        if (loaded.isEmpty() || !loaded.get().getPersonList().equals(addressBook.getPersonList())
+                || !loaded.get().getArchivedPersonList().equals(addressBook.getArchivedPersonList())) {
             throw new IOException("The file written to " + out + " does not load back as the same students.");
         }
     }

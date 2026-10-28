@@ -119,8 +119,9 @@ public class LessonCommand extends Command {
             case EDIT -> "updated";
             case DELETE -> "removed";
         };
-        String warning = operation == Operation.DELETE ? "" : LessonClashes.warning(
-                model.getAddressBook().getPersonList(), replacement,
+        List<Student> students = replacement.isArchived() ? model.getAddressBook().getArchivedPersonList()
+                : model.getAddressBook().getPersonList();
+        String warning = operation == Operation.DELETE ? "" : LessonClashes.warning(students, replacement,
                 operation == Operation.ADD ? lessons.size() - 1 : lessonIndex.orElseThrow().getZeroBased());
         if (!warning.isEmpty()) {
             return CommandResult.warning("Lesson saved - scheduling clash detected" + warning);

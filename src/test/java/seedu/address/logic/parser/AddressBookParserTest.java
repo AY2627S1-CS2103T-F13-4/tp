@@ -160,7 +160,7 @@ public class AddressBookParserTest {
 
     @Test
     public void parseCommand_unarchive() throws Exception {
-        UnarchiveCommand command = (UnarchiveCommand) parser.parseCommand(UnarchiveCommand.COMMAND_WORD + " 2");
+        UnarchiveCommand command = (UnarchiveCommand) parser.parseCommand(UnarchiveCommand.COMMAND_WORD + " 1");
         Model model = new ModelManager(
                 new AddressBookBuilder().withPerson(ALICE).withPerson(BENSON.withArchived(true)).build(),
                 new UserPrefs());
@@ -168,6 +168,8 @@ public class AddressBookParserTest {
                 new AddressBookBuilder().withPerson(ALICE).withPerson(BENSON).build(), new UserPrefs());
         String expectedMessage = String.format(UnarchiveCommand.MESSAGE_UNARCHIVE_PERSON_SUCCESS,
                 Messages.format(BENSON.withArchived(true)));
+        model.setArchiveView(true);
+        expectedModel.setArchiveView(true);
 
         assertCommandSuccess(command, model, expectedMessage, expectedModel);
     }
