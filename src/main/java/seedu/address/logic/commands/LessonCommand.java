@@ -97,7 +97,7 @@ public class LessonCommand extends Command {
                 int position = requireLessonPosition(lessons);
                 Lesson existing = lessons.get(position);
                 lessons.set(position, new Lesson(subject.orElse(existing.getSubject()),
-                        weeklyLessonSlot.orElse(existing.getWeeklyLessonSlot()),
+                        weeklyLessonSlot.orElse(existing.getLessonSlot()),
                         hourlyRate.orElse(existing.getHourlyRate()),
                         clearLocation ? Optional.empty() : location.or(existing::getLocation),
                         clearMode ? Optional.empty() : mode.or(existing::getMode)));

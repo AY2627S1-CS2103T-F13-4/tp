@@ -43,7 +43,7 @@ final class StudentCardText {
         List<Lesson> lessons = student.getLessons();
         for (int i = 0; i < lessons.size(); i++) {
             Lesson lesson = lessons.get(i);
-            lines.add(new LessonLine(i + 1, lesson.getSubject().toString(), shortSlot(lesson.getWeeklyLessonSlot()),
+            lines.add(new LessonLine(i + 1, lesson.getSubject().toString(), shortSlot(lesson.getLessonSlot()),
                     shortRate(lesson.getHourlyRate()), lesson.getLocation().map(Object::toString),
                     lesson.getMode()));
         }
@@ -70,7 +70,7 @@ final class StudentCardText {
 
     /** Returns the student's lesson slots, in the same order as {@link #lessons(Student)}. */
     static List<WeeklyLessonSlot> slots(Student student) {
-        return student.getLessons().stream().map(Lesson::getWeeklyLessonSlot).toList();
+        return student.getLessons().stream().map(Lesson::getLessonSlot).toList();
     }
 
     private static long minutesUntil(DayOfWeek day, LocalTime start, LocalDateTime now) {

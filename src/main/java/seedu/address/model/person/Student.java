@@ -142,6 +142,12 @@ public class Student extends Person {
         return this.isArchived;
     }
 
+    /** Returns a copy of this student with the given lessons and all other details unchanged. */
+    public Student withLessons(List<Lesson> lessons) {
+        return new Student(getName(), getPhone(), email, address, tags, school, schoolingLevel, guardian, lessons,
+                isArchived, notes, followUps);
+    }
+
     /** Returns a copy of this student with the given archive status and all other details unchanged. */
     public Student withArchived(boolean isArchived) {
         return new Student(getName(), getPhone(), email, address, tags, school, schoolingLevel, guardian, lessons,

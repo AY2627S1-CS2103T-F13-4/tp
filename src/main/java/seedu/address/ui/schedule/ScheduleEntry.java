@@ -17,7 +17,7 @@ import seedu.address.model.person.Student;
 public final class ScheduleEntry implements Comparable<ScheduleEntry> {
     // Earlier lessons first; a tie keeps the list order, so each entry has one place.
     private static final Comparator<ScheduleEntry> ORDER =
-            Comparator.comparing((ScheduleEntry entry) -> entry.lesson.getWeeklyLessonSlot())
+            Comparator.comparing((ScheduleEntry entry) -> entry.lesson.getLessonSlot())
                     .thenComparingInt(entry -> entry.studentNumber)
                     .thenComparingInt(entry -> entry.lessonNumber);
 

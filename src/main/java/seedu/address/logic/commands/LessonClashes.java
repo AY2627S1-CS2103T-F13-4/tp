@@ -23,7 +23,7 @@ public final class LessonClashes {
                 if (changed.getDay() == other.getDay() && changed.getStart().isBefore(other.getEnd())
                         && other.getStart().isBefore(changed.getEnd())) {
                     conflicts.add(student.getName() + ", lesson " + (i + 1) + " (" + other.getSubject()
-                            + ", " + other.getWeeklyLessonSlot() + ")");
+                            + ", " + other.getLessonSlot() + ")");
                 }
             }
         }
