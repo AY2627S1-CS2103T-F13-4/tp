@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
 
+import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanExpression;
 import javafx.beans.binding.DoubleExpression;
@@ -14,6 +15,8 @@ import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
+import javafx.scene.Scene;
+import javafx.scene.control.IndexedCell;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
@@ -34,6 +37,8 @@ public class PersonListPanel extends UiPart<Region> {
     static final double PAGE_FRACTION = 0.85;
 
     private static final String FXML = "PersonListPanel.fxml";
+    /** Most scrolls opening a student makes at once to put its row in place, so it can never loop. */
+    private static final int ALIGN_ATTEMPTS = 4;
     /** Below this list width the Subjects and Guardian columns are hidden; the details still show them. */
     private static final double WIDE_TABLE_WIDTH = 900;
     /**
@@ -153,7 +158,57 @@ public class PersonListPanel extends UiPart<Region> {
      */
     public void openStudent(int zeroBasedIndex) {
         personListView.getSelectionModel().select(zeroBasedIndex);
-        withFlow(flow -> flow.scrollTo(zeroBasedIndex));
+        withFlow(flow -> {
+            flow.scrollTo(zeroBasedIndex);
+            afterNextLayout(() -> showOpenRow(flow, zeroBasedIndex));
+            // The details grow open over a short animation, so check again once they have their full height.
+            Motion.afterResize(() -> afterNextLayout(() -> showOpenRow(flow, zeroBasedIndex)));
+        });
+    }
+
+    /**
+     * Scrolls the open row at {@code index} just into view, or, if it is taller than the list, lines up its top with
+     * the list's top, where {@code scrollTo} would line up its bottom and hide the student's name.
+     * The list places rows from estimated heights, which go stale as rows open and close, so this measures where the
+     * row really is after each scroll and corrects again, at most {@code ALIGN_ATTEMPTS} times.
+     */
+    private <T extends IndexedCell<?>> void showOpenRow(VirtualFlow<T> flow, int index) {
+        if (personListView.getSelectionModel().getSelectedIndex() != index) {
+            return;
+        }
+        for (int attempt = 0; attempt < ALIGN_ATTEMPTS; attempt++) {
+            T cell = flow.getVisibleCell(index);
+            if (cell == null) {
+                flow.scrollTo(index);
+            } else if (cell.getHeight() > flow.getHeight()) {
+                if (Math.abs(cell.getLayoutY()) < 1) {
+                    return;
+                }
+                flow.scrollToTop(cell);
+            } else {
+                if (cell.getLayoutY() > -1 && cell.getLayoutY() + cell.getHeight() < flow.getHeight() + 1) {
+                    return;
+                }
+                flow.scrollTo(cell);
+            }
+            // Lay the rows out now: after a scroll the list rebuilds them from its estimates, possibly elsewhere,
+            // and leaving that to the next frame could show the wrong rows or none.
+            flow.requestLayout();
+            flow.layout();
+        }
+    }
+
+    /** Runs {@code action} once, right after the window next lays itself out, when rows have their real heights. */
+    private void afterNextLayout(Runnable action) {
+        Scene scene = personListView.getScene();
+        scene.addPostLayoutPulseListener(new Runnable() {
+            @Override
+            public void run() {
+                scene.removePostLayoutPulseListener(this);
+                action.run();
+            }
+        });
+        Platform.requestNextPulse();
     }
 
     /** Sets what the Add student button does. */
