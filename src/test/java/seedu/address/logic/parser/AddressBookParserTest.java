@@ -33,6 +33,7 @@ import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.ListArchiveCommand;
 import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.commands.NoteCommand;
+import seedu.address.logic.commands.SortCommand;
 import seedu.address.logic.commands.UnarchiveCommand;
 import seedu.address.logic.commands.ViewCommand;
 import seedu.address.logic.commands.WeekCommand;
@@ -43,6 +44,7 @@ import seedu.address.model.UserPrefs;
 import seedu.address.model.person.FollowUp;
 import seedu.address.model.person.NameContainsKeywordsPredicate;
 import seedu.address.model.person.ProgressNote;
+import seedu.address.model.person.RateSortOrder;
 import seedu.address.model.person.Student;
 import seedu.address.testutil.AddressBookBuilder;
 import seedu.address.testutil.EditPersonDescriptorBuilder;
@@ -148,6 +150,8 @@ public class AddressBookParserTest {
 
     @Test
     public void parseCommand_list() throws Exception {
+        assertEquals(new SortCommand(RateSortOrder.DESCENDING),
+                parser.parseCommand(SortCommand.COMMAND_WORD + " rate desc"));
         assertTrue(parser.parseCommand(ListCommand.COMMAND_WORD) instanceof ListCommand);
         assertTrue(parser.parseCommand(ListCommand.COMMAND_WORD + " 3") instanceof ListCommand);
     }

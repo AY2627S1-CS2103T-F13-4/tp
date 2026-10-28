@@ -17,6 +17,7 @@ import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.Model;
 import seedu.address.model.ReadOnlyAddressBook;
 import seedu.address.model.person.Lesson;
+import seedu.address.model.person.RateSortOrder;
 import seedu.address.model.person.Student;
 import seedu.address.storage.Storage;
 
@@ -86,6 +87,11 @@ public class LogicManager implements Logic {
     @Override
     public boolean isArchiveView() {
         return model.isArchiveView();
+    }
+
+    @Override
+    public ObservableValue<RateSortOrder> getRateSortOrder() {
+        return model.getRateSortOrder();
     }
 
     @Override
