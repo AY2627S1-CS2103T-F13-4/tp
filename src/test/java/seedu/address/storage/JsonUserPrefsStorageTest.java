@@ -43,6 +43,18 @@ public class JsonUserPrefsStorageTest {
         assertThrows(DataLoadingException.class, () -> readUserPrefs("NotJsonFormatUserPrefs.json"));
     }
 
+    @Test
+    public void readUserPrefs_nullGuiSettings_exceptionThrown() {
+        // Without this, the null reaches UserPrefs#setGuiSettings at startup and crashes the app.
+        assertThrows(DataLoadingException.class, () -> readUserPrefs("NullGuiSettingsUserPrefs.json"));
+    }
+
+    @Test
+    public void readUserPrefs_nullFile_exceptionThrown() {
+        // A file of just "null" must fall back to default preferences, not crash startup.
+        assertThrows(DataLoadingException.class, () -> readUserPrefs("NullUserPrefs.json"));
+    }
+
     private Path addToTestDataPathIfNotNull(String userPrefsFileInTestDataFolder) {
         return userPrefsFileInTestDataFolder != null
                 ? TEST_DATA_FOLDER.resolve(userPrefsFileInTestDataFolder)

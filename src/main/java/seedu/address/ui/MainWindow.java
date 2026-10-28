@@ -161,6 +161,11 @@ public class MainWindow extends UiPart<Stage> {
         return primaryStage;
     }
 
+    /** Shows {@code message} as a warning in the result display, e.g. a problem found at startup. */
+    void showWarning(String message) {
+        resultDisplay.setWarningToUser(message);
+    }
+
     private void setAccelerators() {
         setAccelerator(helpMenuItem, KeyCombination.valueOf("F1"));
     }

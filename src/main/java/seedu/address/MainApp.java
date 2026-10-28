@@ -1,8 +1,11 @@
 package seedu.address;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Optional;
 import java.util.logging.Logger;
 
@@ -37,11 +40,16 @@ public class MainApp extends Application {
     private static final Logger logger = LogsCenter.getLogger(MainApp.class);
     private static final Path USER_PREFS_FILE_PATH = Paths.get("preferences.json");
     private static final Path ADDRESS_BOOK_FILE_PATH = Paths.get("data", "studentbook.json");
+    private static final DateTimeFormatter BACKUP_TIME_FORMAT = DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss");
 
     protected Ui ui;
     protected Logic logic;
     protected Storage storage;
     protected Model model;
+    /** Tells the user at startup why the data file was not loaded, or null if it loaded. */
+    protected String dataFileWarning;
+    /** True if the data file could neither be loaded nor backed up, so StudentBook must close before saving. */
+    protected boolean isDataFileAtRisk;
 
     @Override
     public void init() throws Exception {
@@ -57,15 +65,27 @@ public class MainApp extends Application {
 
         logic = new LogicManager(model, storage);
 
-        ui = new UiManager(logic, storage.getAddressBookFilePath());
+        ui = createUi();
+    }
+
+    /**
+     * Returns the UI to start: an error that closes StudentBook if the data file could not be backed up,
+     * so nothing saves over it, or else the main window.
+     */
+    Ui createUi() {
+        if (isDataFileAtRisk) {
+            return primaryStage -> UiManager.showStartupErrorAndExit(dataFileWarning);
+        }
+        return new UiManager(logic, storage.getAddressBookFilePath(), dataFileWarning);
     }
 
     /**
      * Returns a {@code ModelManager} with the data from {@code storage}'s address book and {@code userPrefs}. <br>
      * The data from the sample address book will be used instead if {@code storage}'s address book is not found,
      * or an empty address book will be used instead if errors occur when reading {@code storage}'s address book.
+     * The unreadable file is copied to a backup first, since the next command saves over it.
      */
-    private Model initModelManager(Storage storage, ReadOnlyUserPrefs userPrefs) {
+    Model initModelManager(Storage storage, ReadOnlyUserPrefs userPrefs) {
         logger.info("Using data file : " + storage.getAddressBookFilePath());
 
         Optional<ReadOnlyAddressBook> addressBookOptional;
@@ -78,12 +98,49 @@ public class MainApp extends Application {
             }
             initialData = addressBookOptional.orElseGet(SampleDataUtil::getSampleAddressBook);
         } catch (DataLoadingException e) {
-            logger.warning("Data file at " + storage.getAddressBookFilePath() + " could not be loaded."
+            Path dataFile = storage.getAddressBookFilePath();
+            logger.warning("Data file at " + dataFile + " could not be loaded."
                     + " Will be starting with an empty StudentBook.");
             initialData = new AddressBook();
+            try {
+                Path backup = backUpDataFile(dataFile, LocalDateTime.now());
+                logger.info("Backed up the data file to " + backup);
+                dataFileWarning = "Could not read " + dataFile + ", so StudentBook started with no students.\n"
+                        + "Your old file is kept at " + backup + ". "
+                        + "Your next command saves over " + dataFile + ".\n"
+                        + "To restore it, close StudentBook, fix the backup and rename it to "
+                        + dataFile.getFileName() + ".";
+            } catch (IOException backupError) {
+                logger.severe("Failed to back up the data file : " + StringUtil.getDetails(backupError));
+                isDataFileAtRisk = true;
+                dataFileWarning = "Could not read " + dataFile + ", and could not make a backup copy of it.\n"
+                        + "StudentBook will close so that the file is not changed. "
+                        + "Check that you can open the file and save to the folder that holds it, "
+                        + "or move the file somewhere else, then open StudentBook again.";
+            }
         }
 
         return new ModelManager(initialData, userPrefs);
+    }
+
+    /**
+     * Copies {@code dataFile} to a new file beside it whose name has {@code time}, such as
+     * {@code studentbook-backup-20261028-143005.json}, and returns the copy's path.
+     * The time keeps each backup separate, and an existing file is never replaced.
+     *
+     * @throws IOException if {@code dataFile} is not a file, e.g. a folder, or the copy fails.
+     */
+    static Path backUpDataFile(Path dataFile, LocalDateTime time) throws IOException {
+        if (!Files.isRegularFile(dataFile)) {
+            // Copying a folder would only make an empty folder, not a backup.
+            throw new IOException(dataFile + " is not a file");
+        }
+        String fileName = dataFile.getFileName().toString();
+        int dot = fileName.lastIndexOf('.');
+        int extensionStart = dot > 0 ? dot : fileName.length();
+        String backupName = fileName.substring(0, extensionStart) + "-backup-" + time.format(BACKUP_TIME_FORMAT)
+                + fileName.substring(extensionStart);
+        return Files.copy(dataFile, dataFile.resolveSibling(backupName));
     }
 
     /**
