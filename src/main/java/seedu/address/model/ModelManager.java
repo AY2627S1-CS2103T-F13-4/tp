@@ -47,9 +47,10 @@ public class ModelManager implements Model {
         this.addressBook = new AddressBook(addressBook);
         this.userPrefs = new UserPrefs(userPrefs);
         filteredPersons = new FilteredList<>(this.addressBook.getPersonList(), PREDICATE_SHOW_ALL_PERSONS);
-        // Shown grouped by school stage (Primary, Secondary, JC, then others), keeping the order added within each.
+        // Shown grouped by school stage (Primary, Secondary, JC, then others), then by level,
+        // then alphabetically by name.
         // Commands use this list too, so the numbers on screen always match command indices. The tie-break on the
-        // stored order matters: without it an edited student can move within its group and change its number.
+        // stored order matters: it keeps the order stable for students with the same level and name.
         ObservableList<Student> stored = this.addressBook.getPersonList();
         shownPersons = new SortedList<>(filteredPersons, shownOrder(stored, RateSortOrder.NONE));
         filteredArchivedPersons = new FilteredList<>(this.addressBook.getArchivedPersonList(),
@@ -62,10 +63,11 @@ public class ModelManager implements Model {
         this(new AddressBook(), new UserPrefs());
     }
 
-    /** Orders by school stage, then the chosen rate order, then the order added. */
+    /** Orders by school stage, then the chosen rate order, then level and name, then the order added. */
     private static Comparator<Student> shownOrder(ObservableList<Student> stored, RateSortOrder order) {
         return Comparator.comparing(Student::getStage)
                 .thenComparing(order.comparator())
+                .thenComparing(Student.byLevelThenName())
                 .thenComparingInt(stored::indexOf);
     }
 

@@ -7,7 +7,7 @@ import seedu.address.model.Model;
 import seedu.address.model.person.RateSortOrder;
 
 /**
- * Lists all persons in the address book to the user, in the order they were added within each stage.
+ * Lists all persons in the address book to the user, by level then name within each stage.
  */
 public class ListCommand extends Command {
 

@@ -6,7 +6,7 @@ import java.util.Optional;
 
 /** How students are ordered by hourly rate within their school stage. */
 public enum RateSortOrder {
-    /** No rate ordering: students stay in the order they were added. */
+    /** No rate ordering: students keep the default order by level, then name. */
     NONE,
     /** Lowest rate first, comparing each student's lowest lesson rate. */
     ASCENDING,

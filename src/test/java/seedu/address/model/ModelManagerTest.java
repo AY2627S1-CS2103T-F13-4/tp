@@ -218,30 +218,39 @@ public class ModelManagerTest {
         assertTrue(modelManager.isArchiveView());
     }
 
-    // Students are listed by school stage so the table can show Primary, Secondary and JC groups, and the numbers on
-    // screen must stay the command indices: an edit must never move a student to another place in its group.
+    // Students are listed by school stage, then level, then name, so the table can show Primary, Secondary and JC
+    // groups, and the numbers on screen must stay the command indices of the shown order.
     @Test
-    public void getFilteredPersonList_groupedByStageInAddedOrder() {
+    public void getFilteredPersonList_sortedByStageThenLevelThenName() {
         Student jc = new PersonBuilder().withName("Jay").withSchoolingLevel(new SchoolingLevel("JC1")).build();
         Student pri1 = new PersonBuilder().withName("Pat").withSchoolingLevel(new SchoolingLevel("P5")).build();
         Student noLevel = new PersonBuilder().withName("Nia").build();
         Student pri2 = new PersonBuilder().withName("Pia").withSchoolingLevel(new SchoolingLevel("P6")).build();
         Student pri3 = new PersonBuilder().withName("Poh").withSchoolingLevel(new SchoolingLevel("P4")).build();
+        Student pri4 = new PersonBuilder().withName("Amy").withSchoolingLevel(new SchoolingLevel("Primary 5")).build();
+        Student otherB = new PersonBuilder().withName("Bob").withSchoolingLevel(new SchoolingLevel("Poly Y1")).build();
+        Student otherA = new PersonBuilder().withName("Zed").withSchoolingLevel(new SchoolingLevel("IB")).build();
         modelManager = new ModelManager(new AddressBookBuilder().withPerson(jc).withPerson(pri1).withPerson(noLevel)
-                .withPerson(pri2).withPerson(pri3).build(), new UserPrefs());
-        assertEquals(List.of(pri1, pri2, pri3, jc, noLevel), modelManager.getFilteredPersonList());
+                .withPerson(pri2).withPerson(pri3).withPerson(pri4).withPerson(otherB)
+                .withPerson(otherA).build(), new UserPrefs());
+        // P5 and "Primary 5" are one level, so Amy comes before Pat. Unrecognised levels follow JC by level text.
+        assertEquals(List.of(pri3, pri4, pri1, pri2, jc, otherA, otherB, noLevel),
+                modelManager.getFilteredPersonList());
 
-        // Editing the first of a group keeps it first.
+        // Editing a student without changing their level or name keeps their place.
         Student editedPri1 = new PersonBuilder(pri1).withPhone("99999999").build();
         modelManager.setPerson(pri1, editedPri1);
-        assertEquals(List.of(editedPri1, pri2, pri3, jc, noLevel), modelManager.getFilteredPersonList());
+        assertEquals(List.of(pri3, pri4, editedPri1, pri2, jc, otherA, otherB, noLevel),
+                modelManager.getFilteredPersonList());
 
-        // Moving a student to another group and back returns it to its old place.
+        // Moving a student to another stage and back returns it to its old place.
         Student secPri2 = new PersonBuilder(pri2).withSchoolingLevel(new SchoolingLevel("Sec 1")).build();
         modelManager.setPerson(pri2, secPri2);
-        assertEquals(List.of(editedPri1, pri3, secPri2, jc, noLevel), modelManager.getFilteredPersonList());
+        assertEquals(List.of(pri3, pri4, editedPri1, secPri2, jc, otherA, otherB, noLevel),
+                modelManager.getFilteredPersonList());
         modelManager.setPerson(secPri2, pri2);
-        assertEquals(List.of(editedPri1, pri2, pri3, jc, noLevel), modelManager.getFilteredPersonList());
+        assertEquals(List.of(pri3, pri4, editedPri1, pri2, jc, otherA, otherB, noLevel),
+                modelManager.getFilteredPersonList());
     }
 
     @Test

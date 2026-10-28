@@ -35,4 +35,18 @@ public class SchoolingLevelTest {
         assertEquals(Stage.SECONDARY, new SchoolingLevel("Sec 3 Express").stage());
         assertEquals(Stage.OTHER, new SchoolingLevel("Poly Y1").stage());
     }
+
+    @Test
+    public void number_recognisedForms_isTheYear() {
+        assertEquals(5, new SchoolingLevel("P5").number());
+        assertEquals(5, new SchoolingLevel("Primary 5").number());
+        assertEquals(3, new SchoolingLevel("Sec 3 Express").number());
+        assertEquals(2, new SchoolingLevel("JC2").number());
+    }
+
+    @Test
+    public void number_unclearForms_isMaxValue() {
+        assertEquals(Integer.MAX_VALUE, new SchoolingLevel("Poly Y1").number());
+        assertEquals(Integer.MAX_VALUE, new SchoolingLevel("IB").number());
+    }
 }

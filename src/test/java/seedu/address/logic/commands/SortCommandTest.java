@@ -60,8 +60,8 @@ public class SortCommandTest {
     public void execute_ascending_sortsWithinStageUsingLowestRate() {
         Model model = modelWithStudents();
         CommandResult result = new SortCommand(RateSortOrder.ASCENDING).execute(model);
-        // Primary: Cy 30, Fay 30 (added order breaks the tie), Eve 40, Ann 50, Di (no lessons) last.
-        assertEquals(List.of("Cy", "Fay", "Eve", "Ann", "Di", "Bob"), names(model));
+        // Primary: Fay 30, Cy 30 (level breaks the tie: P1 before P4), Eve 40, Ann 50, Di (no lessons) last.
+        assertEquals(List.of("Fay", "Cy", "Eve", "Ann", "Di", "Bob"), names(model));
         assertEquals(SortCommand.MESSAGE_ASCENDING, result.getFeedbackToUser());
     }
 
@@ -69,18 +69,18 @@ public class SortCommandTest {
     public void execute_descending_sortsWithinStageUsingHighestRate() {
         Model model = modelWithStudents();
         CommandResult result = new SortCommand(RateSortOrder.DESCENDING).execute(model);
-        // Primary: Eve 80, Ann 50, Cy 30, Fay 30, Di (no lessons) still last.
-        assertEquals(List.of("Eve", "Ann", "Cy", "Fay", "Di", "Bob"), names(model));
+        // Primary: Eve 80, Ann 50, Fay 30, Cy 30 (still P1 before P4), Di (no lessons) still last.
+        assertEquals(List.of("Eve", "Ann", "Fay", "Cy", "Di", "Bob"), names(model));
         assertEquals(SortCommand.MESSAGE_DESCENDING, result.getFeedbackToUser());
     }
 
     @Test
-    public void execute_afterListCommand_restoresAddedOrderWithinStage() {
+    public void execute_afterListCommand_restoresLevelThenNameOrderWithinStage() {
         Model model = modelWithStudents();
         new SortCommand(RateSortOrder.DESCENDING).execute(model);
         new ListCommand().execute(model);
         assertEquals(RateSortOrder.NONE, model.getRateSortOrder().getValue());
-        assertEquals(List.of("Ann", "Cy", "Di", "Eve", "Fay", "Bob"), names(model));
+        assertEquals(List.of("Fay", "Ann", "Cy", "Di", "Eve", "Bob"), names(model));
     }
 
     @Test

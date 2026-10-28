@@ -60,6 +60,15 @@ public final class SchoolingLevel {
         return Stage.OTHER;
     }
 
+    /** Returns the year number in this level, e.g. 5 for "P5", or {@code Integer.MAX_VALUE} if it has none. */
+    public int number() {
+        if (stage() == Stage.OTHER) {
+            return Integer.MAX_VALUE;
+        }
+        // A recognised form always has its year as the first digit, e.g. "Sec 3 Express".
+        return Character.getNumericValue(value.chars().filter(Character::isDigit).findFirst().getAsInt());
+    }
+
     private static String normalize(String text) {
         return text.replaceAll("^[ \t]+|[ \t]+$", "").replaceAll("[ \t]+", " ");
     }

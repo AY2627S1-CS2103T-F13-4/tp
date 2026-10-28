@@ -109,7 +109,9 @@ Shows all active students in StudentBook, grouped by schooling level, and select
 
 Format: `list`
 
-This also clears any `sort`, so students return to the order they were added within each level.
+Within each group, students are ordered by level (P1 before P2), then alphabetically by name. `P5` and `Primary 5` count as the same level. Levels StudentBook does not recognise come after the numbered ones, and students with no level come last.
+
+This also clears any `sort`, so students return to this order.
 
 ### Sort students by rate: `sort`
 
@@ -121,8 +123,8 @@ Format: `sort rate asc` or `sort rate desc`
 * A student with several lessons is ranked by their lowest rate for `asc` and their highest rate for `desc`.
 * Students with no lessons always come last in their group.
 * While a sort is on, the **Rate** column is headed **Min rate** or **Max rate** and shows the rate the sort uses, instead of the next lesson's rate.
-* Students with the same rate stay in the order they were added.
-* The sort stays in place when you edit lessons or use `find`. Type `list` to go back to the order students were added.
+* Students with the same rate are ordered by level, then name, as in `list`.
+* The sort stays in place when you edit lessons or use `find`. Type `list` to go back to the usual order by level, then name.
 
 Example: `sort rate desc`
 
