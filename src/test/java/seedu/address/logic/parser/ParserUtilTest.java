@@ -170,11 +170,20 @@ public class ParserUtilTest {
     }
 
     @Test
-    public void parseWeeklyLessonSlot_invalidValue_throwsParseException() {
+    public void parseWeeklyLessonSlot_invalidFormat_throwsFormatMessage() {
         for (String input : List.of("", WHITESPACE, "not a slot", LESSON_DAY + " " + LESSON_START,
-                VALID_LESSON_SLOT_TEXT + " extra", LESSON_DAY + " " + LESSON_START + " " + LESSON_START,
+                VALID_LESSON_SLOT_TEXT + " extra", "Wed 1pm 5pm", "Wednesday 1.00pm 5.00pm", "Wed 1.00pm-5.00pm",
+                "Wed 13.00 17.00", "Wed 1:00pm 5:00pm", "Xyz 1.00pm 5.00pm")) {
+            assertThrows(ParseException.class, WeeklyLessonSlot.MESSAGE_INVALID_FORMAT, () ->
+                    ParserUtil.parseWeeklyLessonSlot(input));
+        }
+    }
+
+    @Test
+    public void parseWeeklyLessonSlot_endNotAfterStart_throwsOrderMessage() {
+        for (String input : List.of(LESSON_DAY + " " + LESSON_START + " " + LESSON_START,
                 LESSON_DAY + " " + LESSON_END + " " + LESSON_START)) {
-            assertThrows(ParseException.class, WeeklyLessonSlot.MESSAGE_CONSTRAINTS, () ->
+            assertThrows(ParseException.class, WeeklyLessonSlot.MESSAGE_END_NOT_AFTER_START, () ->
                     ParserUtil.parseWeeklyLessonSlot(input));
         }
     }
