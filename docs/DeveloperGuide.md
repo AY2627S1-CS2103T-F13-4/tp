@@ -134,11 +134,11 @@ by their archive status when loading, so existing files remain compatible.
 
 ### Lesson clash detection
 
-After a valid lesson addition or edit, `LessonCommand` calls `LessonClashes.warning` with the complete active or archived
+After a valid lesson addition or edit, `LessonAddCommand` or `LessonEditCommand` calls `LessonClashes.warning` with the complete active or archived
 student list matching the edited student and the changed lesson's position. Search filters do not limit clash checks.
 The helper excludes that lesson itself and checks every other lesson in that list.
 Intervals clash when their weekdays match and each starts strictly before the other ends. Thus touching endpoints
-are allowed. The warning is appended to normal success feedback; existing validation and persistence still apply.
+are allowed. The warning confirms the lesson was saved and lists the clashes; existing validation and persistence still apply.
 Deleting a lesson requires no clash warning. No clash state is stored, so each warning reflects current records.
 Clashing changes return `CommandResult.warning`. `MainWindow` routes these successful results to
 `ResultDisplay#setWarningToUser`, which applies an amber warning style and an exclamation icon.
@@ -223,7 +223,8 @@ Tests cover loading, save/reload and invalid values (`TuitionStorageTest`). A fa
 
 ### Lesson workflow
 
-`lesson-add`, `lesson-edit` and `lesson-delete` are routed by `AddressBookParser` to `LessonCommandParser`, parameterized by `LessonCommand.Operation`.
+`lesson-add`, `lesson-edit` and `lesson-delete` are routed by `AddressBookParser` to `LessonAddCommandParser`,
+`LessonEditCommandParser` and `LessonDeleteCommandParser`, respectively. Each parser creates its corresponding command.
 
 | Command | Format |
 |---|---|
@@ -233,14 +234,14 @@ Tests cover loading, save/reload and invalid values (`TuitionStorageTest`). A fa
 
 | Step | Code and behavior |
 |---|---|
-| Parse | `LessonCommandParser` rejects unknown and repeated prefixes, then validates each value with `ParserUtil` (`parseSubject`, `parseWeeklyLessonSlot`, `parseHourlyRate`, `parseLessonMode`, `parseLessonLocation`). Add requires subject, slot and rate; edit requires at least one field; delete takes none. An empty `mode/` or `location/` is valid only in `lesson-edit`, where it clears that field. |
-| Execute | `LessonCommand` resolves the student from the current filtered list, copies the lesson list, then adds, replaces or removes one entry. Edit keeps any lesson field that was not supplied. |
+| Parse | The add and edit parsers use `LessonCommandParserUtil` to reject unknown and repeated prefixes, then validate each value with `ParserUtil` (`parseSubject`, `parseWeeklyLessonSlot`, `parseHourlyRate`, `parseLessonMode`, `parseLessonLocation`). Add requires subject, slot and rate; edit requires at least one field; delete takes only two indexes. An empty `mode/` or `location/` is valid only in `lesson-edit`, where it clears that field. |
+| Execute | `LessonAddCommand`, `LessonEditCommand` and `LessonDeleteCommand` resolve the student from the current filtered list, copy the lesson list, then add, replace or remove one entry. Edit keeps any lesson field that was not supplied, using `EditLessonDescriptor` to distinguish unchanged fields from cleared fields. |
 | Validate | A result containing duplicate lessons fails with `MESSAGE_DUPLICATE_LESSON`. A bad student or lesson index fails with `MESSAGE_INVALID_PERSON_DISPLAYED_INDEX` or `MESSAGE_INVALID_LESSON_DISPLAYED_INDEX`. Failures leave the model unchanged. |
 | Update | The command builds a replacement `Student` with the new lesson list and every other field copied, then calls `Model#setPerson`. The active filter stays, so after `find subject/` or `day/` a lesson that no longer matches is hidden, and a student with no matching lesson leaves the list. |
 | Display | A row shows the student's next lesson; its details list every lesson from `StudentCardText#lessons`: number, subject, short day and time, and short rate in fixed-width columns, with the mode chip and location underneath when recorded. The number is the lesson's `LESSON_INDEX`. |
 | Save | `LogicManager` saves through the existing storage workflow; `JsonAdaptedLesson` persists each lesson. |
 
-Tests: `LessonCommandParserTest`, `LessonWorkflowTest` (add, edit, clear, delete, filtered indices, invalid input, duplicates and save/reload), `LessonTest`, `StudentTest` and `WeeklyLessonSlotTest`.
+Tests: `LessonAddCommandParserTest`, `LessonEditCommandParserTest`, `LessonDeleteCommandParserTest`, `LessonAddCommandTest`, `LessonEditCommandTest`, `LessonDeleteCommandTest`, `LessonWorkflowTest` (add, edit, clear, delete, filtered indices, invalid input, duplicates and save/reload), `LessonTest`, `StudentTest` and `WeeklyLessonSlotTest`.
 
 ### Student search
 

@@ -22,7 +22,6 @@ import seedu.address.logic.commands.GuardianCommand;
 import seedu.address.logic.commands.GuardianCommand.Operation;
 import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.LessonAddCommand;
-import seedu.address.logic.commands.LessonCommand;
 import seedu.address.logic.commands.LessonDeleteCommand;
 import seedu.address.logic.commands.LessonEditCommand;
 import seedu.address.logic.commands.ListArchiveCommand;

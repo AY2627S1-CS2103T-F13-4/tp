@@ -1,15 +1,5 @@
 package seedu.address.logic.commands;
 
-import seedu.address.commons.core.index.Index;
-import seedu.address.logic.Messages;
-import seedu.address.logic.commands.exceptions.CommandException;
-import seedu.address.model.Model;
-import seedu.address.model.person.Lesson;
-import seedu.address.model.person.Student;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import static java.util.Objects.requireNonNull;
 import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 import static seedu.address.logic.Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX;
@@ -18,6 +8,17 @@ import static seedu.address.logic.parser.CliSyntax.PREFIX_LOCATION;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_MODE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_RATE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_SUBJECT;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+
+import seedu.address.commons.core.index.Index;
+import seedu.address.commons.util.ToStringBuilder;
+import seedu.address.logic.commands.exceptions.CommandException;
+import seedu.address.model.Model;
+import seedu.address.model.person.Lesson;
+import seedu.address.model.person.Student;
 
 /**
  * Adds a lesson to the address book.
@@ -28,15 +29,16 @@ public class LessonAddCommand extends Command {
     public static final String MESSAGE_DUPLICATE_LESSON = "This student already has an identical lesson.";
 
     public static final String MESSAGE_USAGE = COMMAND_WORD + ": Adds a lesson to a student. "
-            + "Parameters: INDEX (must be a positive integer) "
+            + "Parameters: STUDENT_INDEX (must be a positive integer) "
             + PREFIX_SUBJECT + "SUBJECT "
             + PREFIX_LESSON_SLOT + "LESSON_SLOT "
             + PREFIX_RATE + "HOURLY_RATE "
             + "[" + PREFIX_MODE + "MODE] "
-            + "[" + PREFIX_LOCATION + "LOCATION]";
+            + "[" + PREFIX_LOCATION + "LOCATION]\n"
+            + "Example: " + COMMAND_WORD + " 1 " + PREFIX_SUBJECT + "Math "
+            + PREFIX_LESSON_SLOT + "Mon 2.00pm 3.00pm " + PREFIX_RATE + "45";
 
-    public static final String MESSAGE_SUCCESS = "New lesson added: %1$s";
-    public static final String MESSAGE_DUPLICATE_PERSON = "This student already has an identical lesson.";
+    public static final String MESSAGE_SUCCESS = "Lesson added for %1$s.";
 
     private final Index index;
     private final Lesson toAdd;
@@ -62,6 +64,7 @@ public class LessonAddCommand extends Command {
         Student student = lastShownList.get(index.getZeroBased());
         List<Lesson> lessons = new ArrayList<>(student.getLessons());
 
+        int addedLessonPosition = lessons.size();
         lessons.add(toAdd);
 
         if (lessons.stream().distinct().count() != lessons.size()) {
@@ -73,10 +76,26 @@ public class LessonAddCommand extends Command {
 
         List<Student> students = updatedStudent.isArchived() ? model.getAddressBook().getArchivedPersonList()
                 : model.getAddressBook().getPersonList();
-        String warning = LessonClashes.warning(students, updatedStudent, lessons.size() - 1);
+        String warning = LessonClashes.warning(students, updatedStudent, addedLessonPosition);
         if (!warning.isEmpty()) {
-            return CommandResult.warning("New lesson clashes with existing lessons: " + warning);
+            return CommandResult.warning(LessonClashes.MESSAGE_CLASH_WARNING + warning);
         }
-        return new CommandResult("Lesson added for" + student.getName() + ".");
+        return new CommandResult(String.format(MESSAGE_SUCCESS, student.getName()));
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        return other == this || other instanceof LessonAddCommand command
+                && index.equals(command.index) && toAdd.equals(command.toAdd);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(index, toAdd);
+    }
+
+    @Override
+    public String toString() {
+        return new ToStringBuilder(this).add("index", index).add("toAdd", toAdd).toString();
     }
 }

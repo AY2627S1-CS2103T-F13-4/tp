@@ -16,7 +16,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import seedu.address.logic.commands.LessonCommand;
+import seedu.address.logic.commands.LessonAddCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.AddressBook;
@@ -133,7 +133,7 @@ public class LessonWorkflowTest {
                 VALID_LESSON_SLOT, MATH.getHourlyRate())).build();
 
         CommandException e = assertThrows(CommandException.class, () -> logic.execute("lesson-edit 1 2 subject/Math"));
-        assertEquals(LessonCommand.MESSAGE_DUPLICATE_LESSON, e.getMessage());
+        assertEquals(LessonAddCommand.MESSAGE_DUPLICATE_LESSON, e.getMessage());
         assertStudent(expected);
     }
 

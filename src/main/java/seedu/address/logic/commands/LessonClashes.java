@@ -8,6 +8,8 @@ import seedu.address.model.person.Student;
 
 /** Finds conflicts in the complete student list without changing records. */
 public final class LessonClashes {
+    public static final String MESSAGE_CLASH_WARNING = "Lesson saved - scheduling clash detected";
+
     private LessonClashes() {}
 
     /** Returns a warning for the changed lesson, excluding that lesson itself. */

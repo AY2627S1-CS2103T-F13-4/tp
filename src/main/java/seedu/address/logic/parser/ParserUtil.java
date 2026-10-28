@@ -60,21 +60,17 @@ public class ParserUtil {
      */
     public static List<Index> parseIndexes(String oneBasedIndexes, int length) throws ParseException {
         ArrayList<Index> indexes = new ArrayList<>();
-        for (String oneBasedIndex : oneBasedIndexes.split(" ")) {
+        for (String oneBasedIndex : oneBasedIndexes.trim().split("\\s+")) {
             String trimmedIndex = oneBasedIndex.trim();
             if (trimmedIndex.isEmpty()) {
                 continue;
             }
 
-            if (!StringUtil.isNonZeroUnsignedInteger(trimmedIndex)) {
-                throw new ParseException(MESSAGE_INVALID_INDEX);
-            }
-            Index nextIndex = Index.fromOneBased(Integer.parseInt(trimmedIndex));
-            indexes.add(nextIndex);
+            indexes.add(parseIndex(trimmedIndex));
         }
 
         if (indexes.size() != length) {
-            throw new ParseException(MESSAGE_INVALID_INDEX_COUNT);
+            throw new ParseException(String.format(MESSAGE_INVALID_INDEX_COUNT, length, indexes.size()));
         }
 
         return indexes;

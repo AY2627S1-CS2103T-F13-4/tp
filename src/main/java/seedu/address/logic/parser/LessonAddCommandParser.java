@@ -1,5 +1,16 @@
 package seedu.address.logic.parser;
 
+import static java.util.Objects.requireNonNull;
+import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_LESSON_SLOT;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_LOCATION;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_MODE;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_RATE;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_SUBJECT;
+
+import java.util.Optional;
+import java.util.stream.Stream;
+
 import seedu.address.commons.core.index.Index;
 import seedu.address.logic.commands.LessonAddCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
@@ -10,17 +21,6 @@ import seedu.address.model.person.LessonMode;
 import seedu.address.model.person.Subject;
 import seedu.address.model.person.WeeklyLessonSlot;
 
-import java.util.Optional;
-import java.util.stream.Stream;
-
-import static java.util.Objects.requireNonNull;
-import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
-import static seedu.address.logic.parser.CliSyntax.PREFIX_LESSON_SLOT;
-import static seedu.address.logic.parser.CliSyntax.PREFIX_LOCATION;
-import static seedu.address.logic.parser.CliSyntax.PREFIX_MODE;
-import static seedu.address.logic.parser.CliSyntax.PREFIX_RATE;
-import static seedu.address.logic.parser.CliSyntax.PREFIX_SUBJECT;
-
 /**
  * Parses input arguments and creates a new LessonAddCommand object
  */
@@ -30,10 +30,10 @@ public class LessonAddCommandParser implements Parser<LessonAddCommand> {
      * and returns a LessonAddCommand object for execution.
      * @throws ParseException if the user input does not conform to the expected format
      */
+    @Override
     public LessonAddCommand parse(String args) throws ParseException {
         requireNonNull(args);
-        ArgumentMultimap argMultimap = ArgumentTokenizer.tokenize(args,
-                        PREFIX_SUBJECT, PREFIX_LESSON_SLOT, PREFIX_RATE, PREFIX_MODE, PREFIX_LOCATION);
+        ArgumentMultimap argMultimap = LessonCommandParserUtil.tokenize(args, LessonAddCommand.MESSAGE_USAGE);
         Index index;
 
         try {
@@ -45,8 +45,6 @@ public class LessonAddCommandParser implements Parser<LessonAddCommand> {
         if (!arePrefixesPresent(argMultimap, PREFIX_SUBJECT, PREFIX_LESSON_SLOT, PREFIX_RATE)) {
             throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, LessonAddCommand.MESSAGE_USAGE));
         }
-
-        argMultimap.verifyNoDuplicatePrefixesFor(PREFIX_SUBJECT, PREFIX_LESSON_SLOT, PREFIX_RATE);
 
         Subject subject = ParserUtil.parseSubject(argMultimap.getValue(PREFIX_SUBJECT).get());
         WeeklyLessonSlot lessonSlot = ParserUtil.parseWeeklyLessonSlot(argMultimap.getValue(PREFIX_LESSON_SLOT).get());

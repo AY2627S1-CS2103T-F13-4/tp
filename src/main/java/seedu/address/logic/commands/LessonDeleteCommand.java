@@ -1,33 +1,42 @@
 package seedu.address.logic.commands;
 
+import static java.util.Objects.requireNonNull;
+import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+
 import seedu.address.commons.core.index.Index;
+import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.logic.Messages;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.Model;
 import seedu.address.model.person.Lesson;
 import seedu.address.model.person.Student;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import static java.util.Objects.requireNonNull;
-import static seedu.address.logic.commands.DeleteCommand.MESSAGE_DELETE_PERSON_SUCCESS;
-
+/**
+ * Deletes a lesson identified by its student and lesson indexes.
+ */
 public class LessonDeleteCommand extends Command {
     public static final String COMMAND_WORD = "lesson-delete";
 
     public static final String MESSAGE_USAGE = COMMAND_WORD
-            + ": Deletes the lesson from the person identified by the respective index numbers used in the displayed"
+            + ": Deletes the lesson from the person identified by the respective index numbers used in the displayed "
             + "person list.\n"
-            + "Parameters: INDEX (must be a positive integer)\n"
+            + "Parameters: STUDENT_INDEX LESSON_INDEX (both must be positive integers)\n"
             + "Example: " + COMMAND_WORD + " 1 1";
 
-    public static final String MESSAGE_DELETE_LESSON_SUCCESS = "Deleted lesson: %1$s";
+    public static final String MESSAGE_DELETE_LESSON_SUCCESS = "Lesson removed for %1$s.";
 
     private final Index studentIndex;
     private final Index lessonIndex;
 
+    /**
+     * Creates a command to delete the lesson at the given displayed student and lesson indexes.
+     */
     public LessonDeleteCommand(Index studentIndex, Index lessonIndex) {
+        requireAllNonNull(studentIndex, lessonIndex);
         this.studentIndex = studentIndex;
         this.lessonIndex = lessonIndex;
     }
@@ -53,6 +62,22 @@ public class LessonDeleteCommand extends Command {
         Student updatedStudent = student.withLessons(lessons);
         model.setPerson(student, updatedStudent);
 
-        return new CommandResult("Lesson deleted for " + student.getName() + ".");
+        return new CommandResult(String.format(MESSAGE_DELETE_LESSON_SUCCESS, student.getName()));
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        return other == this || other instanceof LessonDeleteCommand command
+                && studentIndex.equals(command.studentIndex) && lessonIndex.equals(command.lessonIndex);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(studentIndex, lessonIndex);
+    }
+
+    @Override
+    public String toString() {
+        return new ToStringBuilder(this).add("studentIndex", studentIndex).add("lessonIndex", lessonIndex).toString();
     }
 }

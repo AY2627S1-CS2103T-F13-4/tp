@@ -1,7 +1,23 @@
 package seedu.address.logic.commands;
 
+import static java.util.Objects.requireNonNull;
+import static seedu.address.commons.util.AppUtil.checkArgument;
+import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
+import static seedu.address.logic.commands.LessonAddCommand.MESSAGE_DUPLICATE_LESSON;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_LESSON_SLOT;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_LOCATION;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_MODE;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_RATE;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_SUBJECT;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+
 import seedu.address.commons.core.index.Index;
 import seedu.address.commons.util.CollectionUtil;
+import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.logic.Messages;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.Model;
@@ -13,34 +29,24 @@ import seedu.address.model.person.Student;
 import seedu.address.model.person.Subject;
 import seedu.address.model.person.WeeklyLessonSlot;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-
-import static java.util.Objects.requireNonNull;
-import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
-import static seedu.address.logic.commands.LessonAddCommand.MESSAGE_DUPLICATE_LESSON;
-import static seedu.address.logic.parser.CliSyntax.PREFIX_LESSON_SLOT;
-import static seedu.address.logic.parser.CliSyntax.PREFIX_LOCATION;
-import static seedu.address.logic.parser.CliSyntax.PREFIX_MODE;
-import static seedu.address.logic.parser.CliSyntax.PREFIX_RATE;
-import static seedu.address.logic.parser.CliSyntax.PREFIX_SUBJECT;
-
+/**
+ * Edits a lesson identified by its student and lesson indexes.
+ */
 public class LessonEditCommand extends Command {
     public static final String COMMAND_WORD = "lesson-edit";
 
     public static final String MESSAGE_USAGE = COMMAND_WORD + ": Edits the details of the lesson of the person "
-        + "identified by the respective index numbers used in the displayed person list. "
-        + "Existing values will be overwritten by the input values. "
-        + "\n"
-        + "Parameters: INDEX (must be a positive integer) "
-        + "[" + PREFIX_SUBJECT + "SUBJECT] "
-        + "[" + PREFIX_LESSON_SLOT + "LESSON_SLOT] "
-        + "[" + PREFIX_RATE + "HOURLY_RATE] "
-        + "[" + PREFIX_MODE + "MODE] "
-        + "[" + PREFIX_LOCATION + "LOCATION]";
+            + "identified by the respective index numbers used in the displayed person list. "
+            + "At least one field is required. Empty mode/ or location/ clears that field.\n"
+            + "Parameters: STUDENT_INDEX LESSON_INDEX (both must be positive integers) "
+            + "[" + PREFIX_SUBJECT + "SUBJECT] "
+            + "[" + PREFIX_LESSON_SLOT + "LESSON_SLOT] "
+            + "[" + PREFIX_RATE + "HOURLY_RATE] "
+            + "[" + PREFIX_MODE + "MODE] "
+            + "[" + PREFIX_LOCATION + "LOCATION]\n"
+            + "Example: " + COMMAND_WORD + " 1 1 " + PREFIX_RATE + "50";
 
-    public static final String MESSAGE_EDIT_LESSON_SUCCESS = "Edited lesson: %1$s";
+    public static final String MESSAGE_EDIT_LESSON_SUCCESS = "Lesson updated for %1$s.";
     public static final String MESSAGE_NOT_EDITED = "At least one field to edit must be provided.";
 
     private final Index studentIndex;
@@ -54,6 +60,7 @@ public class LessonEditCommand extends Command {
      */
     public LessonEditCommand(Index studentIndex, Index lessonIndex, EditLessonDescriptor editLessonDescriptor) {
         requireAllNonNull(studentIndex, lessonIndex, editLessonDescriptor);
+        checkArgument(editLessonDescriptor.isAnyFieldEdited(), MESSAGE_NOT_EDITED);
 
         this.studentIndex = studentIndex;
         this.lessonIndex = lessonIndex;
@@ -90,12 +97,11 @@ public class LessonEditCommand extends Command {
 
         List<Student> students = updatedStudent.isArchived() ? model.getAddressBook().getArchivedPersonList()
                 : model.getAddressBook().getPersonList();
-        String warning = LessonClashes.warning(students, updatedStudent, lessons.size() - 1);
+        String warning = LessonClashes.warning(students, updatedStudent, lessonIndex.getZeroBased());
         if (!warning.isEmpty()) {
-            return CommandResult.warning("New lesson clashes with existing lessons: " + warning);
+            return CommandResult.warning(LessonClashes.MESSAGE_CLASH_WARNING + warning);
         }
-        return new CommandResult("Lesson updated for " + student.getName() + ".");
-
+        return new CommandResult(String.format(MESSAGE_EDIT_LESSON_SUCCESS, student.getName()));
     }
 
     /**
@@ -116,9 +122,28 @@ public class LessonEditCommand extends Command {
                 updatedLessonMode);
     }
 
+    @Override
+    public boolean equals(Object other) {
+        return other == this || other instanceof LessonEditCommand command
+                && studentIndex.equals(command.studentIndex) && lessonIndex.equals(command.lessonIndex)
+                && editLessonDescriptor.equals(command.editLessonDescriptor);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(studentIndex, lessonIndex, editLessonDescriptor);
+    }
+
+    @Override
+    public String toString() {
+        return new ToStringBuilder(this).add("studentIndex", studentIndex).add("lessonIndex", lessonIndex)
+                .add("editLessonDescriptor", editLessonDescriptor).toString();
+    }
+
     /**
      * Stores the details to edit the lesson with. Each non-empty field value will replace the
-     * corresponding field value of the lesson.
+     * corresponding field value of the lesson. Null leaves a field unchanged; an empty
+     * optional clears the mode or location.
      */
     public static class EditLessonDescriptor {
         private Subject subject;
@@ -185,6 +210,28 @@ public class LessonEditCommand extends Command {
 
         public Optional<Optional<LessonLocation>> getLessonLocation() {
             return Optional.ofNullable(lessonLocation);
+        }
+
+        @Override
+        public boolean equals(Object other) {
+            return other == this || other instanceof EditLessonDescriptor descriptor
+                    && Objects.equals(subject, descriptor.subject)
+                    && Objects.equals(lessonSlot, descriptor.lessonSlot)
+                    && Objects.equals(hourlyRate, descriptor.hourlyRate)
+                    && Objects.equals(lessonMode, descriptor.lessonMode)
+                    && Objects.equals(lessonLocation, descriptor.lessonLocation);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(subject, lessonSlot, hourlyRate, lessonMode, lessonLocation);
+        }
+
+        @Override
+        public String toString() {
+            return new ToStringBuilder(this).add("subject", subject).add("lessonSlot", lessonSlot)
+                    .add("hourlyRate", hourlyRate).add("lessonMode", lessonMode)
+                    .add("lessonLocation", lessonLocation).toString();
         }
     }
 }
