@@ -9,6 +9,7 @@ import java.math.BigDecimal;
 import java.nio.file.Path;
 import java.time.DayOfWeek;
 import java.time.LocalTime;
+import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
@@ -24,6 +25,7 @@ import seedu.address.model.person.FollowUp;
 import seedu.address.model.person.Guardian;
 import seedu.address.model.person.HourlyRate;
 import seedu.address.model.person.Lesson;
+import seedu.address.model.person.LessonMode;
 import seedu.address.model.person.ProgressNote;
 import seedu.address.model.person.SchoolingLevel;
 import seedu.address.model.person.Student;
@@ -33,7 +35,10 @@ import seedu.address.storage.JsonAddressBookStorage;
 
 public class StudentBookSeederTest {
 
-    private static final List<Student> STUDENTS = new StudentBookSeeder(StudentBookSeeder.DEFAULT_SEED).generate(200);
+    private static final List<Student> STUDENTS =
+            new StudentBookSeeder(StudentBookSeeder.DEFAULT_SEED).generate(StudentBookSeeder.DEFAULT_STUDENTS);
+    private static final List<Student> MANY_STUDENTS =
+            new StudentBookSeeder(StudentBookSeeder.DEFAULT_SEED).generate(200);
     private static final List<Student> EDGE_CASES = new StudentBookSeeder(1).generate(0, true);
 
     @TempDir
@@ -47,8 +52,8 @@ public class StudentBookSeederTest {
     @Test
     public void generate_returnsRequestedCountWithUniqueNames() {
         assertEquals(0, new StudentBookSeeder(1).generate(0).size());
-        assertEquals(200, STUDENTS.size());
-        assertEquals(200, STUDENTS.stream().map(Student::getName).distinct().count());
+        assertEquals(200, MANY_STUDENTS.size());
+        assertEquals(200, MANY_STUDENTS.stream().map(Student::getName).distinct().count());
     }
 
     @Test
@@ -66,24 +71,31 @@ public class StudentBookSeederTest {
 
     @Test
     public void generate_schoolStudentsHaveSchoolsAndOthersDoNot() {
-        for (Student student : STUDENTS) {
+        for (Student student : MANY_STUDENTS) {
             assertEquals(student.getSchoolingLevel().isPresent(), student.getSchool().isPresent(),
                     student.getName().fullName);
         }
     }
 
     @Test
-    public void generate_someStudentsArchivedOrWithNotesAndFollowUps() {
-        long archived = STUDENTS.stream().filter(Student::isArchived).count();
+    public void generate_defaultCoversEveryUseCase() {
+        List<Student> current = STUDENTS.stream().filter(student -> !student.isArchived()).toList();
+        long archived = STUDENTS.size() - current.size();
 
-        assertTrue(archived > 0 && archived < STUDENTS.size() / 5, "archived: " + archived);
+        assertTrue(archived > 0 && archived < STUDENTS.size() / 3, "archived: " + archived);
+        assertTrue(current.size() >= 15, "current students: " + current.size());
         assertTrue(STUDENTS.stream().anyMatch(student -> !student.getNotes().isEmpty()));
-        assertTrue(STUDENTS.stream().anyMatch(student -> !student.getFollowUps().isEmpty()));
+        assertTrue(current.stream().anyMatch(student -> !student.getFollowUps().isEmpty()));
+        // A current student without a guardian, so one can be attached.
+        assertTrue(current.stream().anyMatch(student -> student.getGuardian().isEmpty()));
+        assertTrue(current.stream().anyMatch(student -> !student.getTags().isEmpty()));
+        assertTrue(current.stream().anyMatch(student -> student.getLessons().size() > 1));
     }
 
     @Test
-    public void generate_coversEveryLevelGroup() {
-        Set<SchoolingLevel.Stage> stages = STUDENTS.stream().map(Student::getStage).collect(Collectors.toSet());
+    public void generate_coversEveryLevelGroupAmongCurrentStudents() {
+        Set<SchoolingLevel.Stage> stages = STUDENTS.stream().filter(student -> !student.isArchived())
+                .map(Student::getStage).collect(Collectors.toSet());
         assertEquals(EnumSet.allOf(SchoolingLevel.Stage.class), stages);
     }
 
@@ -99,7 +111,7 @@ public class StudentBookSeederTest {
 
     @Test
     public void generate_hasSiblingsSharingGuardianAndAddress() {
-        Map<Optional<Guardian>, List<Student>> byGuardian = STUDENTS.stream()
+        Map<Optional<Guardian>, List<Student>> byGuardian = MANY_STUDENTS.stream()
                 .filter(student -> student.getGuardian().isPresent())
                 .collect(Collectors.groupingBy(Student::getGuardian));
         List<List<Student>> families = byGuardian.values().stream().filter(family -> family.size() > 1).toList();
@@ -111,18 +123,95 @@ public class StudentBookSeederTest {
     }
 
     @Test
-    public void generate_ownLessonsNeverOverlap() {
-        for (Student student : STUDENTS) {
-            assertEquals(0, StudentBookSeeder.countClashes(List.of(student)), student.getName().fullName);
+    public void generate_noLessonsOverlap() {
+        assertEquals(0, StudentBookSeeder.countClashes(STUDENTS));
+        assertEquals(0, StudentBookSeeder.countClashes(MANY_STUDENTS));
+        assertEquals(0, StudentBookSeeder.countClashes(new StudentBookSeeder(7).generate(500)));
+    }
+
+    @Test
+    public void generateWithClashes_addsExactlyThatManyClashesBetweenDifferentStudents() {
+        List<Student> clean = new StudentBookSeeder(StudentBookSeeder.DEFAULT_SEED)
+                .generate(StudentBookSeeder.DEFAULT_STUDENTS);
+        List<Student> clashing = new StudentBookSeeder(StudentBookSeeder.DEFAULT_SEED)
+                .generate(StudentBookSeeder.DEFAULT_STUDENTS, false, StudentBookSeeder.DEFAULT_CLASHES);
+
+        assertEquals(StudentBookSeeder.DEFAULT_CLASHES, StudentBookSeeder.countClashes(clashing));
+        // Only the moved students differ, each keeps its lesson count and none clashes with itself.
+        long changed = 0;
+        for (int i = 0; i < clean.size(); i++) {
+            Student student = clashing.get(i);
+            assertEquals(clean.get(i).getLessons().size(), student.getLessons().size());
+            assertEquals(0, StudentBookSeeder.countClashes(List.of(student)));
+            changed += clean.get(i).equals(student) ? 0 : 1;
+        }
+        assertEquals(StudentBookSeeder.DEFAULT_CLASHES, changed);
+        assertEquals(5, StudentBookSeeder.countClashes(new StudentBookSeeder(3).generate(200, true, 2)));
+    }
+
+    @Test
+    public void generate_lessonsLeaveTimeToTravelBetweenPlaces() {
+        for (List<Student> students : List.of(STUDENTS, MANY_STUDENTS)) {
+            Map<DayOfWeek, List<Map.Entry<Lesson, String>>> byDay = students.stream()
+                    .flatMap(student -> student.getLessons().stream().map(lesson -> Map.entry(lesson, place(student,
+                            lesson))))
+                    .collect(Collectors.groupingBy(entry -> entry.getKey().getDay()));
+            byDay.forEach((day, lessons) -> {
+                assertTrue(lessons.size() <= StudentBookSeeder.maxLessons(day), day + ": " + lessons.size());
+                List<Map.Entry<Lesson, String>> sorted = lessons.stream()
+                        .sorted(Comparator.comparing(entry -> entry.getKey().getStart())).toList();
+                for (int i = 1; i < sorted.size(); i++) {
+                    Map.Entry<Lesson, String> before = sorted.get(i - 1);
+                    Map.Entry<Lesson, String> after = sorted.get(i);
+                    int gap = before.getValue().equals(after.getValue()) ? 0 : StudentBookSeeder.TRAVEL_MINUTES;
+                    assertFalse(after.getKey().getStart().isBefore(before.getKey().getEnd().plusMinutes(gap)),
+                            day + " " + before.getKey().getWeeklyLessonSlot() + " then "
+                                    + after.getKey().getWeeklyLessonSlot());
+                }
+            });
+        }
+    }
+
+    @Test
+    public void generate_lessonsFitTutorsWorkingHours() {
+        MANY_STUDENTS.stream().flatMap(student -> student.getLessons().stream()).forEach(lesson -> {
+            LocalTime earliest = switch (lesson.getDay()) {
+                case SATURDAY, SUNDAY -> LocalTime.of(9, 0);
+                default -> LocalTime.of(14, 0);
+            };
+            LocalTime latest = switch (lesson.getDay()) {
+                case SATURDAY -> LocalTime.of(18, 0);
+                case SUNDAY -> LocalTime.of(13, 0);
+                default -> LocalTime.of(22, 0);
+            };
+            assertFalse(lesson.getStart().isBefore(earliest) || lesson.getEnd().isAfter(latest),
+                    lesson.getWeeklyLessonSlot().toString());
+        });
+    }
+
+    @Test
+    public void generate_currentStudentsHaveLessonsAndPastStudentsDoNot() {
+        for (Student student : MANY_STUDENTS) {
+            assertEquals(student.isArchived(), student.getLessons().isEmpty(), student.getName().fullName);
         }
     }
 
     @Test
     public void generate_mostlyOneLessonPerStudent() {
-        double average = STUDENTS.stream().mapToInt(student -> student.getLessons().size()).average().orElse(0);
+        double average = STUDENTS.stream().filter(student -> !student.isArchived())
+                .mapToInt(student -> student.getLessons().size()).average().orElse(0);
         assertTrue(average >= 1 && average < 2, "average lessons: " + average);
         assertEquals(2, STUDENTS.stream().map(Student::getLessons).flatMap(List::stream).map(Lesson::getMode)
                 .distinct().count());
+    }
+
+    /** Returns where the tutor teaches {@code lesson}, matching how the seeder decides travel breaks. */
+    private static String place(Student student, Lesson lesson) {
+        String location = lesson.getLocation().orElseThrow().value;
+        if (lesson.getMode().orElseThrow() == LessonMode.VIRTUAL || location.equals("Tutor's home")) {
+            return "tutor";
+        }
+        return location.equals("Student's home") ? student.getAddress().value : location;
     }
 
     @Test
@@ -186,6 +275,14 @@ public class StudentBookSeederTest {
         assertEquals(2, StudentBookSeeder.countClashes(List.of(edgeCase("Kavitha Nair"), edgeCase("Haikal bin Osman"),
                 edgeCase("Gwendolyn Teo"))));
         assertEquals(1, StudentBookSeeder.countClashes(List.of(edgeCase("Bryan Koh"), edgeCase("Clement Chua"))));
+    }
+
+    @Test
+    public void generateWithEdgeCases_onlyDeliberateClashes() {
+        // Edge-case lessons are on weekday mornings, outside the tutor's generated week.
+        assertEquals(3, StudentBookSeeder.countClashes(EDGE_CASES));
+        assertEquals(3, StudentBookSeeder.countClashes(new StudentBookSeeder(StudentBookSeeder.DEFAULT_SEED)
+                .generate(200, true)));
     }
 
     @Test

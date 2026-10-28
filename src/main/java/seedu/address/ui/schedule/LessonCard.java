@@ -7,6 +7,7 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.Rectangle;
+import javafx.util.Duration;
 import seedu.address.model.person.Lesson;
 import seedu.address.model.person.WeeklyLessonSlot;
 import seedu.address.ui.PersonCard;
@@ -58,6 +59,8 @@ public class LessonCard extends UiPart<Region> {
         Tooltip tooltip = new Tooltip(fullDetails);
         tooltip.setWrapText(true);
         tooltip.setMaxWidth(TOOLTIP_MAX_WIDTH);
+        // JavaFX hides tooltips after 5s by default; keep it up until the cursor leaves the card.
+        tooltip.setShowDuration(Duration.INDEFINITE);
         Tooltip.install(card, tooltip);
         card.setAccessibleText(fullDetails);
     }
