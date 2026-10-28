@@ -41,13 +41,18 @@ public class PersonCard extends UiPart<Region> {
 
     private static final String FXML = "PersonListCard.fxml";
     private static final String EMPTY_VALUE_STYLE_CLASS = "row-empty";
-    /** Font sizes used in LightTheme.css, used to measure text before layout. */
+    /** Fonts used in LightTheme.css, used to measure text before layout. */
+    private static final String BODY_FONT_FAMILY = "Geist";
+    private static final String NAME_FONT_FAMILY = "Geist Medium";
     private static final double BODY_FONT_SIZE = 13;
     private static final double NAME_FONT_SIZE = 14;
+    private static final double LEVEL_FONT_SIZE = 12.5;
     /** The gap before the level, which follows the name. */
     private static final double LEVEL_GAP = 10;
     /** Width of the initials badge and the gap after it, beside the name. */
     private static final double BADGE_WIDTH = 38;
+    /** Share of the name column, after the badge, the name keeps before a long level wraps beside it. */
+    private static final double NAME_SHARE = 0.6;
     /** Fixed widths of the lesson columns in the details (number, subject, day and time, rate). */
     private static final double[] LESSON_COLUMN_WIDTHS = {20, 110, 148, 76};
     private static final double LESSON_COLUMN_GAP = 14;
@@ -324,8 +329,13 @@ public class PersonCard extends UiPart<Region> {
         table.setVgap(4);
         int row = 0;
         for (StudentCardText.LessonLine line : lines) {
-            table.addRow(row++, text(line.number() + ".", "lesson-number"), text(line.subject(), "lesson-subject"),
+            Text subject = text(line.subject(), "lesson-subject");
+            subject.setWrappingWidth(LESSON_COLUMN_WIDTHS[1]);
+            List<Text> cells = List.of(text(line.number() + ".", "lesson-number"), subject,
                     text(line.slot(), "row-value"), text(line.rate(), "row-value"));
+            // A long subject wraps in its column; the other cells stay level with its first line.
+            cells.forEach(cell -> GridPane.setValignment(cell, VPos.TOP));
+            table.addRow(row++, cells.toArray(Node[]::new));
             if (line.mode().isEmpty() && line.location().isEmpty()) {
                 continue;
             }
@@ -362,9 +372,25 @@ public class PersonCard extends UiPart<Region> {
             optional.visibleProperty().bind(columns.wide());
             optional.managedProperty().bind(columns.wide());
         }
-        double levelWidth = schoolingLevel.isManaged()
-                ? textWidth(schoolingLevel.getText(), BODY_FONT_SIZE) + LEVEL_GAP : 0;
-        wrapWhenLonger(name, columns.name().subtract(BADGE_WIDTH + levelWidth), NAME_FONT_SIZE);
+        // The name keeps most of the cell and its longest word, and the level keeps its longest word beside it.
+        // When both cannot fit, the name keeps its share and the level the rest; neither leaves the cell.
+        String nameText = name.getText();
+        double nameWidth = textWidth(nameText, NAME_FONT_FAMILY, NAME_FONT_SIZE);
+        double nameWord = longestWordWidth(nameText, NAME_FONT_FAMILY, NAME_FONT_SIZE);
+        boolean hasLevel = schoolingLevel.isManaged();
+        double levelWidth = hasLevel
+                ? textWidth(schoolingLevel.getText(), BODY_FONT_FAMILY, LEVEL_FONT_SIZE) + LEVEL_GAP : 0;
+        double levelFloor = hasLevel
+                ? longestWordWidth(schoolingLevel.getText(), BODY_FONT_FAMILY, LEVEL_FONT_SIZE) + LEVEL_GAP : 0;
+        DoubleExpression room = columns.name().subtract(BADGE_WIDTH);
+        DoubleExpression nameLimit = Bindings.createDoubleBinding(() -> {
+            double share = room.get() * NAME_SHARE;
+            double wanted = Math.max(room.get() - levelWidth, Math.min(nameWidth, Math.max(share, nameWord)));
+            return Math.min(wanted, Math.max(room.get() - levelFloor, share));
+        }, room);
+        wrapWhenWider(name, nameLimit, nameWidth);
+        wrapWhenWider(schoolingLevel, room.subtract(LEVEL_GAP).subtract(Bindings.min(nameLimit, nameWidth)),
+                levelWidth - LEVEL_GAP);
         wrapWhenLonger(subjects, columns.subjects(), BODY_FONT_SIZE);
         wrapWhenLonger(guardianName, columns.guardian(), BODY_FONT_SIZE);
         detailsWidth = columns.details();
@@ -408,20 +434,29 @@ public class PersonCard extends UiPart<Region> {
         cell.maxWidthProperty().bind(width);
     }
 
+    /** Wraps {@code text}, in the body font at {@code fontSize}, as {@link #wrapWhenWider} does. */
+    private static void wrapWhenLonger(Text text, DoubleExpression limit, double fontSize) {
+        wrapWhenWider(text, limit, textWidth(text.getText(), BODY_FONT_FAMILY, fontSize));
+    }
+
     /**
-     * Wraps {@code text} at {@code limit} only when it is wider than that.
+     * Wraps {@code text} at {@code limit} only when its {@code natural} width is wider than that.
      * A {@code Text} with a wrapping width always takes that whole width, which would spread short values apart.
      */
-    private static void wrapWhenLonger(Text text, DoubleExpression limit, double fontSize) {
-        double natural = textWidth(text.getText(), fontSize);
+    private static void wrapWhenWider(Text text, DoubleExpression limit, double natural) {
         text.wrappingWidthProperty().bind(Bindings.createDoubleBinding(() ->
                 natural > limit.get() ? limit.get() : 0, limit));
     }
 
-    /** Returns the width of {@code value} in the bundled body font at {@code size}, as styled in LightTheme.css. */
-    private static double textWidth(String value, double size) {
+    /** Returns the width of the widest word of {@code value}, measured as {@link #textWidth} does. */
+    private static double longestWordWidth(String value, String family, double size) {
+        return Arrays.stream(value.split(" ")).mapToDouble(word -> textWidth(word, family, size)).max().orElse(0);
+    }
+
+    /** Returns the width of {@code value} in a bundled font at {@code size}, as styled in LightTheme.css. */
+    private static double textWidth(String value, String family, double size) {
         Text measure = new Text(value);
-        measure.setFont(Font.font("Geist", size));
+        measure.setFont(Font.font(family, size));
         return measure.getLayoutBounds().getWidth();
     }
 
