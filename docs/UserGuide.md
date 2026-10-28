@@ -51,6 +51,7 @@ Type commands in the box at the top and press **Enter**.
 | Up / Down | Previous commands |
 | Esc | Clear the box |
 | Alt+Up / Alt+Down | Scroll the calendar, or move between students |
+| Ctrl+L (Cmd+L on macOS) | Move the cursor to the command box |
 | F1 | Help |
 
 ## Features
