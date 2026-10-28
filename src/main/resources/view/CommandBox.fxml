@@ -17,9 +17,10 @@
     </minWidth>
     <Label text="↑↓" styleClass="keycap" />
     <Label text="History" styleClass="key-hint" />
-    <Label text="Alt ↑↓" styleClass="keycap" />
-    <!-- What Alt+Up/Down does on the current screen, set by MainWindow -->
-    <Label fx:id="altHint" text="Details" styleClass="key-hint" />
+    <!-- The Alt keys that work on the current screen, and what they do, set by MainWindow. Each is as wide
+         as its widest text, "Alt ↑↓←→" and "Details", so the hints and the box keep their place on every screen -->
+    <Label fx:id="altKeys" text="Alt ↑↓" styleClass="keycap" alignment="CENTER" minWidth="66" />
+    <Label fx:id="altHint" text="Details" styleClass="key-hint" minWidth="35" />
     <Label text="Esc" styleClass="keycap" />
     <Label text="Clear" styleClass="key-hint" />
     <Label text="F1" styleClass="keycap" />

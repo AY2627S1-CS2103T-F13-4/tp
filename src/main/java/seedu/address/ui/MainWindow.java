@@ -21,6 +21,7 @@ import javafx.fxml.FXML;
 import javafx.geometry.Pos;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Node;
+import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuBar;
@@ -211,6 +212,10 @@ public class MainWindow extends UiPart<Stage> {
         weekPanel = new WeekPanel(logic.getFilteredActivePersonList(), logic.getAddressBook().getPersonList(),
                 logic.getLessonPredicate());
         personListPanelPlaceholder.getChildren().add(weekPanel.getRoot());
+        // Only the shown screen takes part in layout, so a hidden one can never make the shown one wider than
+        // the window.
+        personListPanelPlaceholder.getChildren()
+                .forEach(screen -> screen.managedProperty().bind(screen.visibleProperty()));
 
         StatusBarFooter statusBarFooter = new StatusBarFooter(dataFilePath);
         statusbarPlaceholder.getChildren().add(statusBarFooter.getRoot());
@@ -234,6 +239,11 @@ public class MainWindow extends UiPart<Stage> {
         }, () -> {
             if (!weekPanel.getRoot().isVisible()) {
                 visiblePersonListPanel().closeDetails();
+            }
+        });
+        commandBox.setSideScroller(direction -> {
+            if (weekPanel.getRoot().isVisible()) {
+                weekPanel.scrollSideways(direction);
             }
         });
         commandBox.setExampleSupplier(resultDisplay::getExample);
@@ -357,8 +367,17 @@ public class MainWindow extends UiPart<Stage> {
         setActive(studentsNav, !week && !archive);
         setActive(archiveNav, archive);
         fillLevelNav();
-        commandBox.setAltHint(week ? "Scroll" : "Details");
+        // On the calendar, Alt+Left/Right also scroll sideways.
+        commandBox.setAltHint(week ? "Alt ↑↓←→" : "Alt ↑↓", week ? "Scroll" : "Details");
         if (week) {
+            // The calendar is out of layout while hidden, and the scroll to the current time can run before the
+            // next layout pass, so size it now, with the styles of everything changed above. Before the window
+            // first shows there is nothing to do: showing it lays everything out for the screen it is on.
+            if (primaryStage.isShowing()) {
+                Parent root = primaryStage.getScene().getRoot();
+                root.applyCss();
+                root.layout();
+            }
             weekPanel.scrollToCurrentTime();
         }
     }
