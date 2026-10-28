@@ -14,8 +14,8 @@ import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.person.FollowUp;
 
 /**
- * Parses guardian follow-up commands. Follow-up text is free text: a word such as {@code and/or} inside it is kept,
- * and only {@code text/} is read as a prefix.
+ * Parses guardian follow-up commands. Follow-up text is free text: everything after {@code text/} is the text,
+ * including words such as {@code and/or} or {@code text/}.
  */
 public class FollowUpCommandParser implements Parser<FollowUpCommand> {
     private static final Pattern WHITESPACE = Pattern.compile("\\s+");
@@ -39,13 +39,12 @@ public class FollowUpCommandParser implements Parser<FollowUpCommand> {
     private static FollowUpCommand parseWithText(String args, Operation operation, String usage, int indexCount)
             throws ParseException {
         String formatError = String.format(MESSAGE_INVALID_COMMAND_FORMAT, usage);
-        ArgumentMultimap arguments = ArgumentTokenizer.tokenize(args, PREFIX_TEXT);
+        ArgumentMultimap arguments = ArgumentTokenizer.tokenizeWithTrailingValue(args, PREFIX_TEXT);
         Index[] indexes = parseIndexes(arguments.getPreamble(), indexCount, formatError);
         Optional<String> text = arguments.getValue(PREFIX_TEXT);
         if (text.isEmpty()) {
             throw new ParseException(formatError);
         }
-        arguments.verifyNoDuplicatePrefixesFor(PREFIX_TEXT);
         FollowUp followUp = ParserUtil.parseFollowUp(text.get());
         Optional<Index> followUpIndex = indexCount == 2 ? Optional.of(indexes[1]) : Optional.empty();
         return new FollowUpCommand(indexes[0], operation, followUpIndex, Optional.of(followUp));
