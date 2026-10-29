@@ -61,6 +61,7 @@ public class MainWindow extends UiPart<Stage> {
 
     public static final String USERGUIDE_URL = "https://ay2627s1-cs2103t-f13-4.github.io/tp/UserGuide.html";
     private static final String FXML = "MainWindow.fxml";
+    private static final Logger logger = LogsCenter.getLogger(MainWindow.class);
     /** Index of the first level filter; the divider before them is child 0 of their row. */
     private static final int LEVEL_NAV_FIRST_FILTER = 1;
     /** Below this height the brand and the footer are hidden, leaving the screen room for a few rows. */
@@ -78,7 +79,6 @@ public class MainWindow extends UiPart<Stage> {
     private static final String ADD_TEMPLATE = AddCommand.COMMAND_WORD + " " + PREFIX_NAME + " " + PREFIX_PHONE
             + " " + PREFIX_EMAIL + " " + PREFIX_ADDRESS;
 
-    private final Logger logger = LogsCenter.getLogger(getClass());
 
     private Stage primaryStage;
     private Logic logic;
@@ -458,7 +458,6 @@ public class MainWindow extends UiPart<Stage> {
     private CommandResult executeCommand(String commandText) throws CommandException, ParseException {
         try {
             CommandResult commandResult = logic.execute(commandText);
-            logger.info("Result: " + commandResult.getFeedbackToUser());
             resultDisplay.setRecent(commandBox.recent(RECENT_COMMANDS));
             if (commandResult.isWarning()) {
                 resultDisplay.setWarningToUser(commandResult.getFeedbackToUser());
@@ -479,7 +478,6 @@ public class MainWindow extends UiPart<Stage> {
 
             return commandResult;
         } catch (CommandException | ParseException e) {
-            logger.info("An error occurred while executing command: " + commandText);
             // A save can fail after a command switches the model's list. Keep the visible rows consistent
             // with the indices the next command will use, without changing screens for ordinary errors.
             if (logic.isArchiveView() != archivedPersonListPanel.getRoot().isVisible()) {

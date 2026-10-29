@@ -13,8 +13,10 @@ import java.util.function.Predicate;
 
 import org.junit.jupiter.api.Test;
 
+import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import seedu.address.commons.core.GuiSettings;
+import seedu.address.commons.core.index.Index;
 import seedu.address.logic.Messages;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.AddressBook;
@@ -41,6 +43,8 @@ public class AddCommandTest {
         assertEquals(String.format(AddCommand.MESSAGE_SUCCESS, Messages.format(validPerson)),
                 commandResult.getFeedbackToUser());
         assertEquals(List.of(validPerson), modelStub.personsAdded);
+        assertEquals(CommandResult.Screen.STUDENTS, commandResult.getScreen());
+        assertEquals(Index.fromZeroBased(0), commandResult.getStudentToOpen().orElseThrow());
     }
 
     @Test
@@ -217,6 +221,16 @@ public class AddCommandTest {
      */
     private class ModelStubAcceptingPersonAdded extends ModelStub {
         final ArrayList<Student> personsAdded = new ArrayList<>();
+
+        @Override
+        public void setArchiveView(boolean archiveView) {
+            assertFalse(archiveView);
+        }
+
+        @Override
+        public ObservableList<Student> getFilteredPersonList() {
+            return FXCollections.observableList(personsAdded);
+        }
 
         @Override
         public boolean hasPerson(Student person) {

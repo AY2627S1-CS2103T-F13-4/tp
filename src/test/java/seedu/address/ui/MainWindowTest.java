@@ -57,6 +57,7 @@ import seedu.address.storage.JsonAddressBookStorage;
 import seedu.address.storage.JsonUserPrefsStorage;
 import seedu.address.storage.StorageManager;
 import seedu.address.testutil.FxTestUtil;
+import seedu.address.testutil.LogCapture;
 import seedu.address.testutil.PersonBuilder;
 
 /**
@@ -123,6 +124,26 @@ public class MainWindowTest {
                     if (!existingWindows.contains(window)) {
                         window.hide();
                     }
+                }
+            }
+        });
+    }
+
+    @Test
+    public void commandLogging_omitsContactDetailsFromResultsAndRejectedInput() throws Exception {
+        runOnFxThread(() -> {
+            try (LogCapture logs = new LogCapture()) {
+                submitCommand("add name/Private Student phone/93456789 email/private@example.com"
+                        + " address/Secret Road");
+                submitCommand("guardian-add 1 name/Private Guardian phone/98765432");
+                submitFailedCommand("guardian-add 999 name/Private Guardian phone/98765432");
+                submitFailedCommand("private@example.com 93456789");
+
+                assertTrue(logs.text().contains("Command completed: AddCommand (success)"));
+                assertTrue(logs.text().contains("Command failed: GuardianAddCommand"));
+                for (String value : List.of("Private Student", "93456789", "private@example.com",
+                        "Secret Road", "Private Guardian", "98765432")) {
+                    assertFalse(logs.text().contains(value), "Diagnostic logs must omit " + value);
                 }
             }
         });
@@ -329,6 +350,45 @@ public class MainWindowTest {
             assertTrue(isShown(studentTable()));
             assertFalse(isShown(archive));
             assertActiveNav("#studentsNav");
+        });
+    }
+
+    @Test
+    public void addFromArchives_showsAndSelectsNewStudentInActiveTable() throws Exception {
+        runOnFxThread(() -> {
+            submitCommand("archive 1");
+            submitCommand("find missing");
+            submitCommand("list-archive");
+            submitCommand("find Alice");
+
+            submitCommand("add name/Aaron phone/91234567 email/aaron@example.com address/1");
+
+            assertFalse(model.isArchiveView());
+            assertTrue(isShown(studentTable()));
+            assertFalse(isShown(archivedStudentTable()));
+            assertActiveNav("#studentsNav");
+            assertEquals(List.of("Aaron", "Bob"), tableNames(studentTable()));
+            Student selected = (Student) studentTable().getSelectionModel().getSelectedItem();
+            assertEquals("Aaron", selected.getName().fullName);
+            assertEquals(List.of("Alice"), tableNames(archivedStudentTable()));
+        });
+    }
+
+    @Test
+    public void duplicateAddFromArchives_keepsArchiveTableAndSelection() throws Exception {
+        runOnFxThread(() -> {
+            submitCommand("archive 1");
+            submitCommand("list-archive");
+            submitCommand("view 1");
+
+            submitFailedCommand("add name/Alice phone/91234567 email/alice@example.com address/1");
+
+            assertTrue(model.isArchiveView());
+            assertTrue(isShown(archivedStudentTable()));
+            assertActiveNav("#archiveNav");
+            assertEquals(List.of("Alice"), tableNames(archivedStudentTable()));
+            assertEquals(0, archivedStudentTable().getSelectionModel().getSelectedIndex());
+            assertEquals(List.of("Bob"), tableNames(studentTable()));
         });
     }
 
