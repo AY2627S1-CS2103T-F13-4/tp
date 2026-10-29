@@ -1327,7 +1327,12 @@ public class MainWindowTest {
             Bounds flowBounds = flow.localToScene(flow.getLayoutBounds());
             Bounds rowBounds = row.localToScene(row.getLayoutBounds());
             assertTrue(rowBounds.getMinY() > flowBounds.getMinY() - 1, message + ": top at "
-                    + (rowBounds.getMinY() - flowBounds.getMinY()));
+                    + (rowBounds.getMinY() - flowBounds.getMinY()) + " DIAG row h=" + row.getHeight()
+                    + " flow h=" + flow.getHeight() + " flow w=" + flow.getWidth()
+                    + " scene=" + stage.getScene().getWidth() + "x" + stage.getScene().getHeight()
+                    + " stage=" + stage.getWidth() + "x" + stage.getHeight()
+                    + " screen=" + javafx.stage.Screen.getPrimary().getVisualBounds()
+                    + " scale=" + stage.getOutputScaleY());
             assertTrue(rowBounds.getMaxY() < flowBounds.getMaxY() + 1, message + ": bottom below the list");
         });
     }
