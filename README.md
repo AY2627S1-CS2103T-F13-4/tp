@@ -5,19 +5,13 @@
 
 StudentBook helps private tutors keep student contacts and tuition details in one place. It runs on your computer and uses typed commands.
 
-StudentBook supports student contacts, optional schooling levels and guardian contacts. Each student can have multiple lessons; each lesson records a subject, weekly time slot and hourly rate, with optional mode and location. Use `lesson-add`, `lesson-edit` and `lesson-delete` to manage lessons, and `guardian-add`, `guardian-edit` and `guardian-delete` to manage a student's guardian contact. `find` can search by name or combine filters for name (`name/`), guardian (`guardian/`), school (`sch/`), schooling level, lesson subject and day; the lesson filters also apply to the weekly calendar. Changes are saved automatically.
-
 Tutors can:
 
 * Add, list, edit and delete student records.
 * Record an optional schooling level and guardian contact, plus multiple lessons with subjects, weekly time slots and hourly rates.
 * Save records locally and reopen them later.
 
-All five tuition features are part of the MVP. Payment processing and sending messages are out of scope. Other brainstormed ideas are backlog candidates, not promised additions.
-
 ![StudentBook interface](docs/images/Ui.png)
-
-This screenshot shows sample students. The User Guide describes the available commands. See the [Developer Guide](docs/DeveloperGuide.md#product-scope) for feature owners and decisions still to confirm.
 
 Start with the [User Guide](docs/UserGuide.md) to use the app or the [Developer Guide](docs/DeveloperGuide.md) to contribute. The [project website](https://ay2627s1-cs2103t-f13-4.github.io/tp/) publishes the merged documentation.
 

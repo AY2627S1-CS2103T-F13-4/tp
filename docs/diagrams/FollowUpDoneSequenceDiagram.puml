@@ -2,93 +2,58 @@
 !include style.puml
 skinparam ArrowFontStyle plain
 
-box Logic LOGIC_COLOR_T1
-participant ":LogicManager" as LogicManager LOGIC_COLOR
-participant ":AddressBookParser" as AddressBookParser LOGIC_COLOR
-participant ":FollowUpDoneCommandParser" as FollowUpDoneCommandParser LOGIC_COLOR
-participant "c:FollowUpDoneCommand" as FollowUpDoneCommand LOGIC_COLOR
-participant "r:CommandResult" as CommandResult LOGIC_COLOR
-end box
-
-box Model MODEL_COLOR_T1
+participant "c:FollowUpDoneCommand" as Command LOGIC_COLOR
 participant "m:Model" as Model MODEL_COLOR
-participant "updated:Student" as Student MODEL_COLOR
-end box
+participant "student:Student" as Student MODEL_COLOR
+participant "r:CommandResult" as Result LOGIC_COLOR
 
-[-> LogicManager : execute("followup-done 1 2")
-activate LogicManager
+[-> Command : execute(m)
+activate Command
 
-LogicManager -> AddressBookParser : parseCommand("followup-done 1 2")
-activate AddressBookParser
-
-create FollowUpDoneCommandParser
-AddressBookParser -> FollowUpDoneCommandParser : FollowUpDoneCommandParser()
-activate FollowUpDoneCommandParser
-FollowUpDoneCommandParser --> AddressBookParser
-deactivate FollowUpDoneCommandParser
-
-AddressBookParser -> FollowUpDoneCommandParser : parse(" 1 2")
-activate FollowUpDoneCommandParser
-
-create FollowUpDoneCommand
-FollowUpDoneCommandParser -> FollowUpDoneCommand : FollowUpDoneCommand(1, 2)
-activate FollowUpDoneCommand
-FollowUpDoneCommand --> FollowUpDoneCommandParser
-deactivate FollowUpDoneCommand
-
-FollowUpDoneCommandParser --> AddressBookParser : c
-deactivate FollowUpDoneCommandParser
-'Hidden arrow to position the destroy marker below the end of the activation bar.
-FollowUpDoneCommandParser -[hidden]-> AddressBookParser
-destroy FollowUpDoneCommandParser
-
-AddressBookParser --> LogicManager : c
-deactivate AddressBookParser
-
-LogicManager -> FollowUpDoneCommand : execute(m)
-activate FollowUpDoneCommand
-
-FollowUpDoneCommand -> Model : getFilteredPersonList()
+Command -> Model : getFilteredPersonList()
 activate Model
-Model --> FollowUpDoneCommand : student 1
+Model --> Command : students
 deactivate Model
 
-note right of FollowUpDoneCommand
-  Removes item 2 from a copy
-  of student 1's follow-ups
+note over Command
+  Resolve student by studentIndex;
+  copy follow-ups and remove item 2
 end note
 
-create Student
-FollowUpDoneCommand -> Student : Student(..., remaining follow-ups)
+Command -> Student : withFollowUps(followUps)
 activate Student
-Student --> FollowUpDoneCommand
+Student --> Command : updated (a new Student)
 deactivate Student
 
-FollowUpDoneCommand -> Model : setPerson(student 1, updated)
+Command -> Model : setPerson(student, updated)
 activate Model
-Model --> FollowUpDoneCommand
+Model --> Command
 deactivate Model
 
-FollowUpDoneCommand -> Model : getFilteredPersonList()
+Command -> Model : getFilteredPersonList()
 activate Model
-Model --> FollowUpDoneCommand : list
+Model --> Command : students
 deactivate Model
 
-alt updated is still in list
-    FollowUpDoneCommand -> FollowUpDoneCommand : open its details\nat its new position
-else updated left the list (its last item is done after followups)
-    FollowUpDoneCommand -> FollowUpDoneCommand : open no details
+note over Command
+  Find updated's new position
+  in the filtered students
+end note
+
+alt updated is still in students
+    create Result
+    Command -> Result : CommandResult(feedback,\nupdatedIndex)
+    activate Result
+    Result --> Command : r
+    deactivate Result
+else updated left the filtered students
+    create Result
+    Command -> Result : CommandResult(feedback,\nScreen.STUDENTS)
+    activate Result
+    Result --> Command : r
+    deactivate Result
 end
 
-create CommandResult
-FollowUpDoneCommand -> CommandResult : CommandResult("Completed follow-up 2 ...", ...)
-activate CommandResult
-CommandResult --> FollowUpDoneCommand
-deactivate CommandResult
-
-FollowUpDoneCommand --> LogicManager : r
-deactivate FollowUpDoneCommand
-
-[<-- LogicManager : r
-deactivate LogicManager
+[<-- Command : r
+deactivate Command
 @enduml

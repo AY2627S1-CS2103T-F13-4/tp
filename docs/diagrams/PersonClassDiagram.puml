@@ -4,7 +4,7 @@ skinparam arrowThickness 1.1
 skinparam arrowColor MODEL_COLOR
 skinparam classBackgroundColor MODEL_COLOR
 
-abstract class Person
+class "{abstract}\nPerson" as Person
 class Student
 class Guardian
 class Name
@@ -16,15 +16,16 @@ class SchoolingLevel
 class Tag
 class Lesson
 class ProgressNote
+class FollowUp
 
 ' Person sits at the head; its identity fields hang off to the sides.
-Person -left-> "1" Name : name
-Person -down-> "1" Phone : phone
+Person -left-> "1 name" Name
+Person -right-> "1 phone" Phone
 
 ' Both students and guardians inherit their identity fields from Person.
 Student -up-|> Person
 Guardian -up-|> Person
-Student -right-> "0..1" Guardian : guardian
+Student -right-> "0..1" Guardian
 
 ' Referenced immutable model objects may be shared between student instances.
 Student -down-> "1" Email
@@ -32,18 +33,21 @@ Student -down-> "1" Address
 Student -down-> "0..1" School
 Student -down-> "0..1" SchoolingLevel
 
-Student ---down-> "*" Tag
-Student ---down-> "*" ProgressNote
-Student ---down-> "*" Lesson
+Student --down-> "~* tags" Tag
+Student --down-> "~* notes\n{ordered}" ProgressNote
+Student --down-> "~* lessons\n{ordered}" Lesson
+Student --down-> "~* followUps\n{ordered}" FollowUp
 
 ' Keep the student-specific field types in readable groups.
-Name -[hidden]down- Phone
-
 Email -[hidden]right- Address
 Address -[hidden]right- School
 School -[hidden]right- SchoolingLevel
 
 Email -[hidden]down- Tag
+Address -[hidden]down- ProgressNote
+School -[hidden]down- Lesson
+SchoolingLevel -[hidden]down- FollowUp
 Tag -[hidden]right- ProgressNote
 ProgressNote -[hidden]right- Lesson
+Lesson -[hidden]right- FollowUp
 @enduml
