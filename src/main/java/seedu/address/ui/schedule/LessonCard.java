@@ -49,13 +49,13 @@ public class LessonCard extends UiPart<Region> {
 
         Label time = createLabel(WeeklyLessonSlot.formatTime(entry.getStart()) + "-"
                 + WeeklyLessonSlot.formatTime(entry.getEnd()));
+        Label name = createLabel(studentName);
+        name.getStyleClass().add("lesson-card-name");
         if (lineCount < 3) {
             // The number comes first and never shrinks, so a narrow block cuts the name, not the number.
             Label number = new Label(entry.getCommandLabel());
             number.setMinWidth(Region.USE_PREF_SIZE);
-            Label name = createLabel(studentName);
             number.getStyleClass().add("lesson-card-name");
-            name.getStyleClass().add("lesson-card-name");
             card.getStyleClass().add("lesson-card-compact");
             card.getChildren().add(new HBox(COMPACT_SPACING, number, name));
             if (lineCount == 2) {
@@ -63,8 +63,6 @@ public class LessonCard extends UiPart<Region> {
             }
         } else {
             // Name, then time, then the details, which include the number.
-            Label name = createLabel(studentName);
-            name.getStyleClass().add("lesson-card-name");
             Label details = createLabel(detailLine(lesson));
             card.getChildren().addAll(name, time, details);
         }
