@@ -3,7 +3,7 @@ layout: page
 title: Developer Guide
 ---
 
-StudentBook builds on AddressBook Level 3, or AB3. The architecture below describes the inherited application. The shared tuition model, school, schooling-level, guardian and lesson workflows are implemented; other tuition commands are planned.
+StudentBook builds on AddressBook Level 3 (AB3). The diagrams below describe its current architecture and tuition features.
 
 * Table of Contents
 {:toc}
@@ -23,6 +23,8 @@ Refer to the guide [*Setting up and getting started*](SettingUp.md)
 ### Architecture
 
 <img src="images/ArchitectureDiagram.png" width="280" />
+
+Solid arrows show associations; dashed arrows show dependencies. The icons represent the tutor and local files.
 
 #### Overview
 
@@ -62,7 +64,10 @@ Other components interact with a component through its interface (rather than it
 
 ### UI component
 
-![UI structure](images/UiClassDiagram.png)
+<img src="images/UiClassDiagram.png" width="800" alt="UI class diagram" />
+
+`MainWindow` contains separate active and archived student panels. Its `WeekPanel` uses `ScheduleGrid` to display
+`LessonCard`s, each backed by a `ScheduleEntry` linking a student to a lesson.
 
 **API Specification**: `Ui.java`
 **Interacts with**: `Model`, `Logic`
@@ -119,13 +124,7 @@ Above is a (partial) class diagram of the `Logic` component.
 #### Command Execution
 The sequence diagram below illustrates the interactions within the `Logic` component (API call `execute("delete 1")` is used as an example).
 
-![Delete command sequence](images/DeleteSequenceDiagram.png)
-
-<div markdown="span" class="alert alert-info">
-
-:information_source: **Note:** The lifeline for `DeleteCommandParser` should end at the destroy marker (X), but due to a limitation of PlantUML, it continues to the end of the diagram.
-
-</div>
+<img src="images/DeleteSequenceDiagram.png" width="800" alt="Delete command sequence" />
 
 Command execution works as follows:
 1. `Logic` is called to execute a command.
@@ -133,7 +132,7 @@ Command execution works as follows:
 1. `AddressBookParser` creates a parser matching the command (e.g. `DeleteCommandParser`).
 1. The created parser is used to parse the command into a `Command` object (e.g. `DeleteCommand`).
 1. The `Command` object is executed by `LogicManager`
-1. The `Command` object communicates with `Model` when executed (e.g. deleting a person). This may require several interactions between `Command` and `Model`, but is represented as one interaction above for simplicity.
+1. The `Command` object communicates with `Model` when executed. For deletion, it resolves the displayed index to a `Student` before calling `deletePerson(student)`.
 1. The result of the command is encapsulated as a `CommandResult` object when returned from `Logic`.
 
 #### Command Parsing
@@ -154,27 +153,31 @@ Command parsing works as follows:
 **Interacts with**: `Ui`, `Logic`
 **Depends on**: `None`
 
-<img src="images/ModelClassDiagram.png" width="450" />
+<img src="images/ModelClassDiagram.png" width="600" />
 
 The `Model` component stores:
-* all students in one of two `UniquePersonList`s, depending on if they are active or archived
-* current filtered list of `Student`s, as a separate unmodifiable `ObservableList<Person>`
-* the filter for `Lesson`s
+* active and archived students in separate `UniquePersonList`s
+* filtered and sorted views of both lists, exposed as unmodifiable `ObservableList<Student>`s
+* the lesson filter, rate sort order and selected archive view
 * user preferences in `UserPrefs`
 
 <div markdown="span" class="alert alert-info">
 
-:information_source: An alternative, more object-oriented design keeps a list of unique tags in `AddressBook`, then each `Student` references tags in that list, allowing `AddressBook` to maintain one `Tag` object per unique tag instead of each `Student` holding its own `Tag` object.
+:information_source: An alternative design keeps a list of unique tags in `AddressBook`, then each `Student` references tags in that list, allowing `AddressBook` to maintain one `Tag` object per unique tag instead of each `Student` holding its own `Tag` object.
 
-<img src="images/BetterModelClassDiagram.png" width="450" />
+<img src="images/BetterModelClassDiagram.png" width="400" />
 
 This alternative is not the current implementation.
 </div>
 <br>
 
-`Student`'s fields and its relationship to `Person` and `Guardian` are shown in the following diagram.
+`Student` extends `Person` and references its contact details, guardian, lessons, progress notes and follow-ups.
 
-<img src="images/PersonClassDiagram.png" width="500" />
+<img src="images/PersonClassDiagram.png" width="650" />
+
+Each `Lesson` combines a required subject, weekly slot and hourly rate with an optional location and mode.
+
+<img src="images/LessonClassDiagram.png" width="650" alt="Lesson class diagram" />
 
 ### Storage component
 
@@ -182,11 +185,12 @@ This alternative is not the current implementation.
 **Interacts with**: `Model`
 **Depends on**: `Model`
 
-<img src="images/StorageClassDiagram.png" width="550" />
+<img src="images/StorageClassDiagram.png" width="650" />
 
 The `Storage` component:
 * Saves address book data and user preference data in JSON format, and reads them back into corresponding objects
 * Delegates JSON file access to `JsonAddressBookStorage` and `JsonUserPrefsStorage` (one class per data file)
+* Uses JSON adapters for students, tags, guardians, lessons, weekly slots, progress notes and follow-ups
 
 ### Common classes
 Classes used by multiple components are in the `seedu.address.commons package`.
@@ -270,17 +274,15 @@ and calendar filtering, bare-name compatibility, explicit filter resets, filter 
 school edits through `EditCommand`, invalid
 input, prefix ordering, equality, defensive checks and logging.
 
-### Guardian follow-ups <!-- Move to model...? -->
+### Guardian follow-ups
 
 A `FollowUp` holds 1–200 characters of single-line text, trimmed, and counted in code points like note text. `Student`
 keeps its outstanding follow-ups in an unmodifiable list in the order they were added; a follow-up's position in that
 list is the `FOLLOW_UP_INDEX` shown in the details. Completing an item removes it, so the model has no "done" state:
 every stored item is outstanding. Follow-ups belong to the student rather than the `Guardian`, so they survive
 `guardian-delete` and can be recorded for a student with no guardian (for example, while waiting for contact details).
-The 11-argument `Student` constructor (ending `isArchived, notes`) still creates a student with no follow-ups; the
-12-argument form appends `followUps` after `notes`.
 
-<img src="images/FollowUpClassDiagram.png" width="550" />
+<img src="images/FollowUpClassDiagram.png" width="760" />
 
 `followup-add`, `followup-edit` and `followup-done` are routed by `AddressBookParser` to `FollowUpAddCommandParser`,
 `FollowUpEditCommandParser` and `FollowUpDoneCommandParser`, respectively. The add and edit parsers read only
@@ -289,20 +291,20 @@ require two. `ParserUtil#parseFollowUp` checks the text.
 
 The follow-up commands resolve the student from the current filtered list, reject a follow-up index past the end, and
 reject text that matches another of the student's items ignoring case (an item may be edited to change only its
-case). They then replace the student with a copy whose follow-ups have changed. The success message includes the
-item's text, so a wrong index on `followup-done` is visible straight away.
+case). They call `Student#withFollowUps` to replace the student with a copy whose follow-ups have changed.
+The success message includes the item's text, so a wrong index on `followup-done` is visible straight away.
 
 `followups` (`FollowUpListCommand`) sets the student filter to active (not archived) students with at least one
 item, matching `list`, which hides archived students. It also resets the lesson filter.
 Because the filtered list re-applies its predicate after `Model#setPerson`, completing a student's last item while
 this filter is active removes the student from the list and renumbers the students after them. Each follow-up command
-therefore opens the student's details at the student's new position, and opens none if the student is no longer shown,
-so the details never show the wrong student.
+returns a `CommandResult` selecting the student's new position, or no student if they are no longer shown.
+`MainWindow` applies that selection after execution.
 
-The sequence diagram below shows how `followup-done 1 2` completes a student's second follow-up. Storage then saves
-the updated address book, as for any other command.
+The sequence diagram below focuses on executing `followup-done 1 2`. Parsing follows the
+[Logic component](#logic-component) workflow; `LogicManager` saves the updated address book before returning the result.
 
-![followup-done command sequence](images/FollowUpDoneSequenceDiagram.png)
+<img src="images/FollowUpDoneSequenceDiagram.png" width="680" alt="Follow-up completion sequence" />
 
 Every command that rebuilds a `Student` (`edit`, the guardian, lesson and note commands, and `Student#withArchived`
 for `archive` and `unarchive`) passes the existing follow-ups on. `FollowUpWorkflowTest` checks each of them, so a later
@@ -317,7 +319,7 @@ Tests: `FollowUpTest`, `FollowUpAddCommandTest`, `FollowUpEditCommandTest`, `Fol
 `FollowUpDoneCommandParserTest`, `FollowUpWorkflowTest`,
 `FollowUpStorageTest` and the routing cases in `AddressBookParserTest`.
 
-### Progress notes <!-- Move to model -->
+### Progress notes
 
 A `ProgressNote` holds a `LocalDate` and 1–500 characters of single-line text. `Student` keeps its notes in an
 unmodifiable list sorted oldest first; the sort is stable, so notes on the same date keep the order they were added.
@@ -332,16 +334,16 @@ future-date check is in the parser rather than the model, so a saved file still 
 wrong.
 
 `NoteAddCommand` and `NoteDeleteCommand` resolve the student from the current filtered list. Adding rejects an identical note on the same
-date; deleting rejects a note number past the end. Either way, it replaces the student with a copy whose notes
-have changed. It returns a `CommandResult` that opens that student's
+date; deleting rejects a note number past the end. Either command calls `Student#withNotes` to replace the student
+with a copy whose notes have changed, then returns a `CommandResult` that opens that student's
 details, where `PersonCard` lists the notes. Every command that rebuilds a `Student` (`edit`, archiving, and the
 guardian, lesson and follow-up commands) passes the existing notes on. `NoteWorkflowTest` checks `edit` and the guardian
 and lesson commands, so a later field change cannot silently drop notes there.
 
-The sequence diagram below shows how `note-add 1 date/2026-10-15 text/Fractions` adds a note. Storage then saves the
-updated address book, as for any other command.
+The sequence diagram below focuses on executing `note-add 1 date/2026-10-15 text/Fractions`. Parsing follows the
+[Logic component](#logic-component) workflow; `LogicManager` saves the updated address book before returning the result.
 
-![note-add command sequence](images/NoteAddSequenceDiagram.png)
+<img src="images/NoteAddSequenceDiagram.png" width="660" alt="Note addition sequence" />
 
 `JsonAdaptedProgressNote` stores each note as `{"date": "YYYY-MM-DD", "text": "..."}` in the person's `notes`
 array. A missing or `null` `notes` key loads as no notes, so older data files still load.
