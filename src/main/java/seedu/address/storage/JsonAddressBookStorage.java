@@ -121,10 +121,17 @@ public class JsonAddressBookStorage {
         if (!Files.exists(source)) {
             return;
         }
-        PosixFileAttributeView sourcePosix = Files.getFileAttributeView(source, PosixFileAttributeView.class);
+        copyPermissions(Files.getFileAttributeView(source, PosixFileAttributeView.class),
+                Files.getFileAttributeView(destination, PosixFileAttributeView.class),
+                Files.getFileAttributeView(source, AclFileAttributeView.class),
+                Files.getFileAttributeView(destination, AclFileAttributeView.class));
+    }
+
+    /** Copies the supported permissions without depending on the host's filesystem type. */
+    static void copyPermissions(PosixFileAttributeView sourcePosix, PosixFileAttributeView targetPosix,
+            AclFileAttributeView sourceAcl, AclFileAttributeView targetAcl) throws IOException {
         if (sourcePosix != null) {
             PosixFileAttributes attributes = sourcePosix.readAttributes();
-            PosixFileAttributeView targetPosix = Files.getFileAttributeView(destination, PosixFileAttributeView.class);
             if (!targetPosix.readAttributes().owner().equals(attributes.owner())) {
                 targetPosix.setOwner(attributes.owner());
             }
@@ -132,15 +139,16 @@ public class JsonAddressBookStorage {
                 targetPosix.setGroup(attributes.group());
             }
             targetPosix.setPermissions(attributes.permissions());
-        } else {
-            AclFileAttributeView sourceAcl = Files.getFileAttributeView(source, AclFileAttributeView.class);
-            if (sourceAcl != null) {
-                AclFileAttributeView targetAcl = Files.getFileAttributeView(destination, AclFileAttributeView.class);
-                if (!targetAcl.getOwner().equals(sourceAcl.getOwner())) {
-                    targetAcl.setOwner(sourceAcl.getOwner());
-                }
-                targetAcl.setAcl(sourceAcl.getAcl());
-            }
+        } else if (sourceAcl != null) {
+            copyAclPermissions(sourceAcl, targetAcl);
         }
+    }
+
+    /** Copies ACL permissions independently of the host filesystem's attribute support. */
+    static void copyAclPermissions(AclFileAttributeView source, AclFileAttributeView destination) throws IOException {
+        if (!destination.getOwner().equals(source.getOwner())) {
+            destination.setOwner(source.getOwner());
+        }
+        destination.setAcl(source.getAcl());
     }
 }

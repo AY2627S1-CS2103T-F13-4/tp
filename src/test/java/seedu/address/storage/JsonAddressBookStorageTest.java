@@ -3,6 +3,7 @@ package seedu.address.storage;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalPersons.ALICE;
@@ -16,9 +17,18 @@ import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.attribute.AclEntry;
+import java.nio.file.attribute.AclEntryPermission;
+import java.nio.file.attribute.AclEntryType;
 import java.nio.file.attribute.AclFileAttributeView;
+import java.nio.file.attribute.FileTime;
+import java.nio.file.attribute.GroupPrincipal;
 import java.nio.file.attribute.PosixFileAttributeView;
+import java.nio.file.attribute.PosixFileAttributes;
+import java.nio.file.attribute.PosixFilePermission;
+import java.nio.file.attribute.UserPrincipal;
 import java.util.List;
+import java.util.Set;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -213,6 +223,203 @@ public class JsonAddressBookStorageTest {
     private void assertOnlyTargetRemains(Path target) throws IOException {
         try (var files = Files.list(testFolder)) {
             assertEquals(List.of(target), files.toList());
+        }
+    }
+
+    @Test
+    public void save_symbolicLink_updatesTargetWithoutReplacingLink() throws Exception {
+        Path target = testFolder.resolve("students.json");
+        new JsonAddressBookStorage(target).saveAddressBook(getTypicalAddressBook());
+        Path link = testFolder.resolve("linked.json");
+        try {
+            Files.createSymbolicLink(link, target.getFileName());
+        } catch (IOException | UnsupportedOperationException e) {
+            org.junit.jupiter.api.Assumptions.abort("Symbolic links are unavailable: " + e.getClass().getSimpleName());
+        }
+
+        new JsonAddressBookStorage(link).saveAddressBook(new AddressBook());
+
+        assertTrue(Files.isSymbolicLink(link));
+        assertTrue(new JsonAddressBookStorage(target).readAddressBook().orElseThrow().getPersonList().isEmpty());
+        try (var files = Files.list(testFolder)) {
+            assertEquals(2, files.count());
+        }
+    }
+
+    @Test
+    public void copyAclPermissions_preservesEntriesAndChangesOwnerOnlyWhenNeeded() throws Exception {
+        UserPrincipal owner = () -> "record-owner";
+        UserPrincipal otherOwner = () -> "temporary-file-owner";
+        AclEntry entry = AclEntry.newBuilder().setType(AclEntryType.ALLOW).setPrincipal(owner)
+                .setPermissions(AclEntryPermission.READ_DATA, AclEntryPermission.WRITE_DATA).build();
+        TestAclView source = new TestAclView(owner, List.of(entry));
+        for (UserPrincipal originalOwner : List.of(owner, otherOwner)) {
+            TestAclView destination = new TestAclView(originalOwner, List.of());
+
+            JsonAddressBookStorage.copyPermissions(null, null, source, destination);
+
+            assertSame(owner, destination.getOwner());
+            assertEquals(List.of(entry), destination.getAcl());
+            assertEquals(originalOwner == owner ? 0 : 1, destination.ownerChanges);
+            assertEquals(List.of(entry), source.getAcl());
+        }
+    }
+
+    @Test
+    public void copyPermissions_posix_preservesOwnerGroupAndMode() throws Exception {
+        UserPrincipal owner = () -> "record-owner";
+        GroupPrincipal group = () -> "record-group";
+        UserPrincipal otherOwner = () -> "temporary-file-owner";
+        GroupPrincipal otherGroup = () -> "temporary-file-group";
+        Set<PosixFilePermission> mode = Set.of(PosixFilePermission.OWNER_READ, PosixFilePermission.OWNER_WRITE);
+        TestPosixView source = new TestPosixView(new TestPosixAttributes(owner, group, mode));
+        for (boolean sameIdentity : new boolean[] {true, false}) {
+            TestPosixView destination = new TestPosixView(new TestPosixAttributes(
+                    sameIdentity ? owner : otherOwner, sameIdentity ? group : otherGroup, Set.of()));
+
+            JsonAddressBookStorage.copyPermissions(source, destination, null, null);
+
+            assertEquals(source.readAttributes(), destination.readAttributes());
+            assertEquals(sameIdentity ? 0 : 1, destination.ownerChanges);
+            assertEquals(sameIdentity ? 0 : 1, destination.groupChanges);
+        }
+    }
+
+    @Test
+    public void copyPermissions_noAttributeViews_doesNotRequireUnsupportedAttributes() throws Exception {
+        JsonAddressBookStorage.copyPermissions(null, null, null, null);
+    }
+
+    private record TestPosixAttributes(UserPrincipal owner, GroupPrincipal group, Set<PosixFilePermission> permissions)
+            implements PosixFileAttributes {
+        @Override
+        public FileTime lastModifiedTime() {
+            return FileTime.fromMillis(0);
+        }
+
+        @Override
+        public FileTime lastAccessTime() {
+            return FileTime.fromMillis(0);
+        }
+
+        @Override
+        public FileTime creationTime() {
+            return FileTime.fromMillis(0);
+        }
+
+        @Override
+        public boolean isRegularFile() {
+            return true;
+        }
+
+        @Override
+        public boolean isDirectory() {
+            return false;
+        }
+
+        @Override
+        public boolean isSymbolicLink() {
+            return false;
+        }
+
+        @Override
+        public boolean isOther() {
+            return false;
+        }
+
+        @Override
+        public long size() {
+            return 0;
+        }
+
+        @Override
+        public Object fileKey() {
+            return null;
+        }
+    }
+
+    private static class TestPosixView implements PosixFileAttributeView {
+        private TestPosixAttributes attributes;
+        private int ownerChanges;
+        private int groupChanges;
+
+        TestPosixView(TestPosixAttributes attributes) {
+            this.attributes = attributes;
+        }
+
+        @Override
+        public String name() {
+            return "posix";
+        }
+
+        @Override
+        public PosixFileAttributes readAttributes() {
+            return attributes;
+        }
+
+        @Override
+        public UserPrincipal getOwner() {
+            return attributes.owner();
+        }
+
+        @Override
+        public void setOwner(UserPrincipal owner) {
+            attributes = new TestPosixAttributes(owner, attributes.group(), attributes.permissions());
+            ownerChanges++;
+        }
+
+        @Override
+        public void setGroup(GroupPrincipal group) {
+            attributes = new TestPosixAttributes(attributes.owner(), group, attributes.permissions());
+            groupChanges++;
+        }
+
+        @Override
+        public void setPermissions(Set<PosixFilePermission> permissions) {
+            attributes = new TestPosixAttributes(attributes.owner(), attributes.group(), Set.copyOf(permissions));
+        }
+
+        @Override
+        public void setTimes(FileTime modified, FileTime accessed, FileTime created) {
+            throw new AssertionError("Permission copying must not change timestamps.");
+        }
+    }
+
+    /** Allows ACL preservation to be checked on CI systems whose filesystems expose only POSIX permissions. */
+    private static class TestAclView implements AclFileAttributeView {
+        private UserPrincipal owner;
+        private List<AclEntry> entries;
+        private int ownerChanges;
+
+        TestAclView(UserPrincipal owner, List<AclEntry> entries) {
+            this.owner = owner;
+            this.entries = List.copyOf(entries);
+        }
+
+        @Override
+        public String name() {
+            return "acl";
+        }
+
+        @Override
+        public UserPrincipal getOwner() {
+            return owner;
+        }
+
+        @Override
+        public void setOwner(UserPrincipal owner) {
+            this.owner = owner;
+            ownerChanges++;
+        }
+
+        @Override
+        public List<AclEntry> getAcl() {
+            return entries;
+        }
+
+        @Override
+        public void setAcl(List<AclEntry> entries) {
+            this.entries = List.copyOf(entries);
         }
     }
 }

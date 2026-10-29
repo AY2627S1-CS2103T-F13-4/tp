@@ -432,6 +432,22 @@ public class MainWindowTest {
         });
     }
 
+    @Test
+    public void failedDelete_previouslyClosedDetails_remainClosed() throws Exception {
+        runOnFxThread(() -> {
+            submitCommand("find Alice");
+            mainWindow.getPersonListPanel().closeDetails();
+            assertTrue(studentTable().getSelectionModel().isEmpty());
+            failSaves = true;
+
+            submitFailedCommand("delete 1");
+
+            assertEquals(List.of("Alice"), tableNames(studentTable()));
+            assertTrue(studentTable().getSelectionModel().isEmpty());
+            assertActiveNav("#studentsNav");
+        });
+    }
+
     // Viewing records remains available even when the data file cannot be written.
     @Test
     public void listSwitch_readOnlyDataFile_visibleRowsMatchNextCommandIndices() throws Exception {
