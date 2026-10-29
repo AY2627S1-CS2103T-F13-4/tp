@@ -234,7 +234,9 @@ both `s` and `f`. Prefix validation and the parser's own creation and lifetime a
 to the model, reads the matching students to form the result summary, and returns a `CommandResult`
 that selects the students screen. The model is shown through its interface; internal filtering, logging
 and UI observation are omitted. The repeated list lookup used by logging is also omitted.
-`LogicManager` performs the existing storage save after execution, outside this diagram's scope.
+`LogicManager` saves only record changes and rolls back records, filters and sorting on failure; the UI restores open details.
+`JsonAddressBookStorage` atomically replaces the file from a temporary file, preserving permissions.
+Failures retain the original and remove the temporary file. Unsupported atomic replacement fails without a fallback.
 
 ![Execution of a combined student search](images/FindSequenceDiagram.png)
 
@@ -384,7 +386,7 @@ The earlier Google specification and the current code differ on the rules below.
 | Contact fields | Name required on creation | Name, phone, email and address required; confirm whether all four contact fields are needed |
 | Duplicate names | Normalized, case-insensitive comparison | Exact, case-sensitive name comparison |
 | Names and phones | Punctuation in names; optional `+` and 7–15 digits in phones | AB3 alphanumeric names; optional `+` and 7–15 digits in phones, with single spaces or hyphens allowed between digits |
-| Save/load failures | Roll back failed saves; block commands after a failed load | In-memory changes can remain after a failed save; commands remain available after a failed load |
+| Save/load failures | Roll back failed saves; block commands after a failed load | Failed saves roll back; failed loads use backup recovery |
 
 The pre-chat Git and Google documents also differed on registration and guardian attachment. The current plan adds the guardian separately. Confirm the remaining rules with the team before treating the earlier draft as superseded.
 
@@ -483,7 +485,7 @@ Use case ends.
   * 1b1. StudentBook reports the duplicate without adding a record.
   * Use case ends.
 * 2a. StudentBook cannot save the change.
-  * 2a1. StudentBook reports the save failure. The student may still appear on screen without being saved.
+  * 2a1. StudentBook reports the save failure without adding the student.
   * Use case ends.
 
 #### UC02: Retrieve a guardian's contact details
@@ -602,7 +604,7 @@ Use case ends.
   * 1a2. Tutor corrects and resubmits the request.
   * Use case resumes at step 1.
 * 2a. StudentBook cannot save the change.
-  * 2a1. StudentBook reports the save failure. The contact may still appear on screen without being saved.
+  * 2a1. StudentBook reports the save failure without adding the guardian.
   * Use case ends.
 
 ### Non-functional requirements
@@ -733,6 +735,6 @@ For larger or boundary-value data sets, generate a data file with `./gradlew see
 Close the app and back up the test data before each case.
 
 * **Missing file:** Move `data/studentbook.json` out of the test folder, then restart. Sample records should appear.
-* **Invalid file:** Replace the test file with invalid JSON, then restart. An empty list should appear and the log should record the load failure. Do not run commands before restoring the backup; a successful command saves over the file.
+* **Invalid file:** Restart with invalid JSON. Expect an empty list, a recovery warning and a backup. Only record changes overwrite the original file.
 * **Old valid file:** Load AB3 data without tuition properties. Run `view INDEX`; the contact details should remain and the sidebar's Lessons section should show `No lessons yet`.
 * **Pre-lesson file:** Load a file whose students have `subjects`, `weeklyLessonSlot` and `hourlyRate`. The contact details load, but those properties are ignored and removed on the next save.

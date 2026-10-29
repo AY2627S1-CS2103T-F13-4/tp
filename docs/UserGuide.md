@@ -105,7 +105,8 @@ Examples:
 * Each student needs a unique name. StudentBook rejects a name that is already used by an active or archived student.
 * Extra spaces in a name are removed, so `Alex   Tan` is saved as `Alex Tan`.
 * Capitalisation is kept as typed, so `Alex Tan` and `alex tan` count as different names. Avoid relying on this, as such students are easy to mix up.
-* Names may only contain letters, numbers and spaces. If two of your students share a name, add something that tells them apart, e.g. `Alex Tan Wei Ming`, `Alex Tan Sec 2` or `Alex Tan 2`.
+* Names must start with a letter or number. They can contain Unicode letters and accents, numbers, spaces, apostrophes, hyphens and periods, e.g. `Mary-Ann O'Brien` or `Zoë Ng`. Slashes are supported in the relationship terms `s/o` and `d/o`, e.g. `Ravi s/o Kumar`. Guardian names follow the same rules.
+* If two of your students share a name, add something that tells them apart, e.g. `Alex Tan Wei Ming`, `Alex Tan Sec 2` or `Alex Tan 2`.
 
 </div>
 
@@ -229,6 +230,8 @@ Format: `delete INDEX`
 Deletes all students from StudentBook.
 
 Format: `clear`
+
+* In **Archives** (after `list-archive`), `clear` deletes only the archived students and keeps your active students.
 
 ### View help: `help`
 
@@ -403,7 +406,10 @@ Format: `followups`
 
 ## Saving and transferring records
 
-StudentBook saves automatically to `data/studentbook.json`, in the folder you start it from.
+StudentBook saves record changes automatically to `data/studentbook.json`, in the folder you start it from.
+
+If saving fails, your records stay unchanged. Fix the reported problem and retry the command.
+Viewing and searching do not save.
 
 To move to another computer, copy that file into the same place on the new computer.
 

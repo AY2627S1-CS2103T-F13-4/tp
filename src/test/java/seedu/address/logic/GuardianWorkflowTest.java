@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.nio.file.Path;
 import java.time.DayOfWeek;
@@ -45,7 +46,7 @@ public class GuardianWorkflowTest {
     private Student original;
 
     @BeforeEach
-    public void setUp() {
+    public void setUp() throws IOException {
         original = new PersonBuilder().withSchoolingLevel(new SchoolingLevel("Primary 5"))
                 .withLessons(new Lesson(new Subject("Math"),
                         new WeeklyLessonSlot(DayOfWeek.MONDAY, LocalTime.of(16, 0), LocalTime.of(17, 0)),
@@ -55,6 +56,7 @@ public class GuardianWorkflowTest {
         book.addPerson(original);
         model = new ModelManager(book, new UserPrefs());
         storage = new JsonAddressBookStorage(temporaryFolder.resolve("students.json"));
+        storage.saveAddressBook(model.getAddressBook());
         logic = new LogicManager(model, new StorageManager(storage,
                 new JsonUserPrefsStorage(temporaryFolder.resolve("preferences.json"))));
     }
