@@ -5,9 +5,9 @@ skinparam ArrowFontStyle plain
 box Logic LOGIC_COLOR_T1
 participant ":LogicManager" as LogicManager LOGIC_COLOR
 participant ":AddressBookParser" as AddressBookParser LOGIC_COLOR
-participant ":NoteCommandParser" as NoteCommandParser LOGIC_COLOR
+participant ":NoteAddCommandParser" as NoteAddCommandParser LOGIC_COLOR
 participant "<<class>>\nParserUtil" as ParserUtil LOGIC_COLOR
-participant "c:NoteCommand" as NoteCommand LOGIC_COLOR
+participant "c:NoteAddCommand" as NoteAddCommand LOGIC_COLOR
 participant "r:CommandResult" as CommandResult LOGIC_COLOR
 end box
 
@@ -23,16 +23,16 @@ activate LogicManager
 LogicManager -> AddressBookParser : parseCommand(...)
 activate AddressBookParser
 
-create NoteCommandParser
-AddressBookParser -> NoteCommandParser : NoteCommandParser(ADD)
-activate NoteCommandParser
-NoteCommandParser --> AddressBookParser
-deactivate NoteCommandParser
+create NoteAddCommandParser
+AddressBookParser -> NoteAddCommandParser : NoteAddCommandParser()
+activate NoteAddCommandParser
+NoteAddCommandParser --> AddressBookParser
+deactivate NoteAddCommandParser
 
-AddressBookParser -> NoteCommandParser : parse("1 date/2026-10-15 text/Fractions")
-activate NoteCommandParser
+AddressBookParser -> NoteAddCommandParser : parse("1 date/2026-10-15 text/Fractions")
+activate NoteAddCommandParser
 
-NoteCommandParser -> ParserUtil : parseProgressNote("2026-10-15", "Fractions", today)
+NoteAddCommandParser -> ParserUtil : parseProgressNote("2026-10-15", "Fractions", today)
 activate ParserUtil
 note right of ParserUtil
   Rejects dates that are not
@@ -45,55 +45,55 @@ activate ProgressNote
 ProgressNote --> ParserUtil
 deactivate ProgressNote
 
-ParserUtil --> NoteCommandParser : n
+ParserUtil --> NoteAddCommandParser : n
 deactivate ParserUtil
 
-create NoteCommand
-NoteCommandParser -> NoteCommand : NoteCommand(1, ADD, empty, n)
-activate NoteCommand
-NoteCommand --> NoteCommandParser
-deactivate NoteCommand
+create NoteAddCommand
+NoteAddCommandParser -> NoteAddCommand : NoteAddCommand(1, n)
+activate NoteAddCommand
+NoteAddCommand --> NoteAddCommandParser
+deactivate NoteAddCommand
 
-NoteCommandParser --> AddressBookParser : c
-deactivate NoteCommandParser
+NoteAddCommandParser --> AddressBookParser : c
+deactivate NoteAddCommandParser
 'Hidden arrow to position the destroy marker below the end of the activation bar.
-NoteCommandParser -[hidden]-> AddressBookParser
-destroy NoteCommandParser
+NoteAddCommandParser -[hidden]-> AddressBookParser
+destroy NoteAddCommandParser
 
 AddressBookParser --> LogicManager : c
 deactivate AddressBookParser
 
-LogicManager -> NoteCommand : execute(m)
-activate NoteCommand
+LogicManager -> NoteAddCommand : execute(m)
+activate NoteAddCommand
 
-NoteCommand -> Model : getFilteredPersonList()
+NoteAddCommand -> Model : getFilteredPersonList()
 activate Model
-Model --> NoteCommand : student 1
+Model --> NoteAddCommand : student 1
 deactivate Model
 
 create Student
-NoteCommand -> Student : Student(..., notes + n)
+NoteAddCommand -> Student : Student(..., notes + n)
 activate Student
-Student --> NoteCommand
+Student --> NoteAddCommand
 deactivate Student
 note left of Student
   Sorts its notes
   oldest first
 end note
 
-NoteCommand -> Model : setPerson(student 1, updated)
+NoteAddCommand -> Model : setPerson(student 1, updated)
 activate Model
-Model --> NoteCommand
+Model --> NoteAddCommand
 deactivate Model
 
 create CommandResult
-NoteCommand -> CommandResult : CommandResult("Added note 1 ...", 1)
+NoteAddCommand -> CommandResult : CommandResult("Added note 1 ...", 1)
 activate CommandResult
-CommandResult --> NoteCommand
+CommandResult --> NoteAddCommand
 deactivate CommandResult
 
-NoteCommand --> LogicManager : r
-deactivate NoteCommand
+NoteAddCommand --> LogicManager : r
+deactivate NoteAddCommand
 
 [<-- LogicManager : r
 deactivate LogicManager

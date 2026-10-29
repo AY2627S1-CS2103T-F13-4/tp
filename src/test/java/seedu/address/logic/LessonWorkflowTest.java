@@ -16,7 +16,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import seedu.address.logic.commands.LessonCommand;
+import seedu.address.logic.commands.LessonAddCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.AddressBook;
@@ -78,12 +78,12 @@ public class LessonWorkflowTest {
         assertTrue(Messages.format(both).contains("Lessons: " + MATH + " | " + ENGLISH));
 
         logic.execute("lesson-edit 1 2 rate/50");
-        Lesson repriced = new Lesson(new Subject("English"), ENGLISH.getWeeklyLessonSlot(),
+        Lesson repriced = new Lesson(new Subject("English"), ENGLISH.getLessonSlot(),
                 new HourlyRate(new BigDecimal("50")));
         assertStudent(new PersonBuilder(original).withLessons(MATH, repriced).build());
 
         logic.execute("lesson-edit 1 1 subject/Science");
-        Lesson renamed = new Lesson(new Subject("Science"), MATH.getWeeklyLessonSlot(), MATH.getHourlyRate());
+        Lesson renamed = new Lesson(new Subject("Science"), MATH.getLessonSlot(), MATH.getHourlyRate());
         assertStudent(new PersonBuilder(original).withLessons(renamed, repriced).build());
 
         logic.execute("lesson-delete 1 1");
@@ -95,17 +95,17 @@ public class LessonWorkflowTest {
     @Test
     public void execute_editWithEmptyModeOrLocation_clearsThemAndSaves() throws Exception {
         logic.execute("lesson-add 1 subject/Math" + LESSON_SLOT_DESC + " rate/45.5 mode/virtual location/Zoom");
-        Lesson full = new Lesson(MATH.getSubject(), MATH.getWeeklyLessonSlot(), MATH.getHourlyRate(),
+        Lesson full = new Lesson(MATH.getSubject(), MATH.getLessonSlot(), MATH.getHourlyRate(),
                 Optional.of(new LessonLocation("Zoom")), Optional.of(LessonMode.VIRTUAL));
         assertStudent(new PersonBuilder(original).withLessons(full).build());
 
         logic.execute("lesson-edit 1 1 location/");
-        Lesson noLocation = new Lesson(MATH.getSubject(), MATH.getWeeklyLessonSlot(), MATH.getHourlyRate(),
+        Lesson noLocation = new Lesson(MATH.getSubject(), MATH.getLessonSlot(), MATH.getHourlyRate(),
                 Optional.empty(), Optional.of(LessonMode.VIRTUAL));
         assertStudent(new PersonBuilder(original).withLessons(noLocation).build());
 
         logic.execute("lesson-edit 1 1 mode/ location/Library");
-        Lesson swapped = new Lesson(MATH.getSubject(), MATH.getWeeklyLessonSlot(), MATH.getHourlyRate(),
+        Lesson swapped = new Lesson(MATH.getSubject(), MATH.getLessonSlot(), MATH.getHourlyRate(),
                 Optional.of(new LessonLocation("Library")), Optional.empty());
         assertStudent(new PersonBuilder(original).withLessons(swapped).build());
 
@@ -133,7 +133,7 @@ public class LessonWorkflowTest {
                 VALID_LESSON_SLOT, MATH.getHourlyRate())).build();
 
         CommandException e = assertThrows(CommandException.class, () -> logic.execute("lesson-edit 1 2 subject/Math"));
-        assertEquals(LessonCommand.MESSAGE_DUPLICATE_LESSON, e.getMessage());
+        assertEquals(LessonAddCommand.MESSAGE_DUPLICATE_LESSON, e.getMessage());
         assertStudent(expected);
     }
 
