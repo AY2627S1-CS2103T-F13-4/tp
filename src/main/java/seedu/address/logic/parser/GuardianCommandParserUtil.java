@@ -13,7 +13,9 @@ import seedu.address.logic.parser.exceptions.ParseException;
  * Shared argument validation for guardian add and edit parsers.
  */
 final class GuardianCommandParserUtil {
-    private static final Pattern UNKNOWN_PREFIX = Pattern.compile("(?:^|\\s)(?!(?:name|phone)/)[^\\s/]+/");
+    // Relationship terms in names are not command prefixes; other unknown fields still report a format error.
+    private static final Pattern UNKNOWN_PREFIX = Pattern.compile(
+            "(?:^|\\s)(?!(?:name|phone)/|[sSdD]/[oO](?:\\s|$))[^\\s/]+/");
 
     private GuardianCommandParserUtil() {}
 
