@@ -4,6 +4,7 @@
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
 
 <HBox styleClass="command-row" alignment="CENTER_LEFT" xmlns="http://javafx.com/javafx/17"
       xmlns:fx="http://javafx.com/fxml/1">
@@ -17,10 +18,17 @@
     </minWidth>
     <Label text="↑↓" styleClass="keycap" />
     <Label text="History" styleClass="key-hint" />
-    <!-- The Alt keys that work on the current screen, and what they do, set by MainWindow. Each is as wide
-         as its widest text, "Alt ↑↓←→" and "Details", so the hints and the box keep their place on every screen -->
-    <Label fx:id="altKeys" text="Alt ↑↓" styleClass="keycap" alignment="CENTER" minWidth="66" />
-    <Label fx:id="altHint" text="Details" styleClass="key-hint" minWidth="35" />
+    <!-- The Alt keys that work on the current screen, and what they do, set by MainWindow. A hidden copy of
+         each widest text, "Alt ↑↓←→" and "Details", sizes its slot in whatever font the system uses, so the
+         hints and the box keep their place on every screen -->
+    <StackPane>
+      <Label text="Alt ↑↓←→" styleClass="keycap" visible="false" />
+      <Label fx:id="altKeys" text="Alt ↑↓" styleClass="keycap" alignment="CENTER" maxWidth="Infinity" />
+    </StackPane>
+    <StackPane>
+      <Label text="Details" styleClass="key-hint" visible="false" />
+      <Label fx:id="altHint" text="Details" styleClass="key-hint" maxWidth="Infinity" />
+    </StackPane>
     <Label text="Esc" styleClass="keycap" />
     <Label text="Clear" styleClass="key-hint" />
     <Label text="F1" styleClass="keycap" />
