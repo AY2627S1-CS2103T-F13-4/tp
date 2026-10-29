@@ -68,10 +68,10 @@ Type commands in the box at the top and press **Enter**.
   E.g. `name/NAME [tag/TAG]` &rarr; `name/John Doe tag/friend` or `name/John Doe`.
 
 * `…`​ means a field can be repeated.<br>
-  E.g. `[t/TAG]…​` &rarr; ` ` or `t/friend` or `t/friend t/family`. 
+  E.g. `[tag/TAG]…​` &rarr; ` ` or `tag/friend` or `tag/friend tag/family`.
 
 * Parameters can be in any order.<br>
-  E.g. `name/NAME p/PHONE_NUMBER` &rarr; `name/John Doe phone/87654321` or `phone/87654321 name/John Doe`
+  E.g. `name/NAME phone/PHONE_NUMBER` &rarr; `name/John Doe phone/87654321` or `phone/87654321 name/John Doe`
 
 * `INDEX` is the number beside a student in the current list display.
 
