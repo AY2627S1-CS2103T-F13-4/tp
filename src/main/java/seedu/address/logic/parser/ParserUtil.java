@@ -5,9 +5,11 @@ import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 
 import seedu.address.commons.core.index.Index;
@@ -34,6 +36,8 @@ import seedu.address.model.tag.Tag;
 public class ParserUtil {
 
     public static final String MESSAGE_INVALID_INDEX = "Index must be a positive integer.";
+    public static final String MESSAGE_INVALID_INDEX_COUNT = "Incorrect number of indexes supplied, "
+            + "expected %1$s, got %2$s";
     public static final String MESSAGE_FUTURE_NOTE_DATE = "Note dates cannot be later than today.";
 
     /**
@@ -47,6 +51,29 @@ public class ParserUtil {
             throw new ParseException(MESSAGE_INVALID_INDEX);
         }
         return Index.fromOneBased(Integer.parseInt(trimmedIndex));
+    }
+
+    /**
+     * Parses {@code oneBasedIndexes} into a list of {@code Index}es of expected length {@code length} and returns it.
+     * Leading and trailing whitespaces will be trimmed.
+     * @throws ParseException if any of the specified indexes are invalid (not a non-zero unsigned integer).
+     */
+    public static List<Index> parseIndexes(String oneBasedIndexes, int length) throws ParseException {
+        ArrayList<Index> indexes = new ArrayList<>();
+        for (String oneBasedIndex : oneBasedIndexes.trim().split("\\s+")) {
+            String trimmedIndex = oneBasedIndex.trim();
+            if (trimmedIndex.isEmpty()) {
+                continue;
+            }
+
+            indexes.add(parseIndex(trimmedIndex));
+        }
+
+        if (indexes.size() != length) {
+            throw new ParseException(String.format(MESSAGE_INVALID_INDEX_COUNT, length, indexes.size()));
+        }
+
+        return indexes;
     }
 
     /**
@@ -195,8 +222,11 @@ public class ParserUtil {
         requireNonNull(weeklyLessonSlot);
         String trimmedWeeklyLessonSlot = weeklyLessonSlot.trim();
 
+        if (!WeeklyLessonSlot.isValidFormat(trimmedWeeklyLessonSlot)) {
+            throw new ParseException(WeeklyLessonSlot.MESSAGE_INVALID_FORMAT);
+        }
         if (!WeeklyLessonSlot.isValidWeeklyLessonSlot(trimmedWeeklyLessonSlot)) {
-            throw new ParseException(WeeklyLessonSlot.MESSAGE_CONSTRAINTS);
+            throw new ParseException(WeeklyLessonSlot.MESSAGE_END_NOT_AFTER_START);
         }
 
         return new WeeklyLessonSlot(trimmedWeeklyLessonSlot);

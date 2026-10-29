@@ -83,7 +83,6 @@ Abstract class `UiPart` captures common behaviour among classes representing vis
 |`CommandBox`|Command input box|
 |`StatusBarFooter`|Status bar footer|
 |`ResultDisplay`|Result display|
-|`HelpWindow`|Help window|
 |`PersonListPanel`|Student list display|
 |`PersonCard`|Individual student display|
 |`WeekPanel`|Weekly schedule header|
@@ -98,7 +97,7 @@ Abstract class `UiPart` captures common behaviour among classes representing vis
 User commands received by the UI component are sent to `Logic` for execution.
 
 Additionally, `Logic` supplies the following data:
-* The list of students to display, from `Logic#getFilteredPersonList()`
+* The list of students to display, from `Logic#getFilteredPersonList()`. `ModelManager` sorts it by school stage (Primary, Secondary, JC, then others), then by level (`P1` before `P2`), then alphabetically by name, with stored order as the final tie-break. `PersonListPanel` shows it in this order, so the number on each card is the `INDEX` that commands use. Editing a student's name or level can therefore move it, changing its index.
 * The total number of students and lessons, from `Logic#getAddressBook()`
 * Empty-state message, also from `Logic#getAddressBook()`
 * Lesson filter, to determine total number of students and lessons, from `Logic#getLessonPredicate()`
@@ -200,11 +199,11 @@ This section describes noteworthy details on how certain features are implemente
 
 
 
-After a valid lesson addition or edit, `LessonCommand` calls `LessonClashes.warning` with the complete active or archived
+After a valid lesson addition or edit, `LessonAddCommand` or `LessonEditCommand` calls `LessonClashes.warning` with the complete active or archived
 student list matching the edited student and the changed lesson's position. Search filters do not limit clash checks.
 The helper excludes that lesson itself and checks every other lesson in that list.
 Intervals clash when their weekdays match and each starts strictly before the other ends. Thus touching endpoints
-are allowed. The warning is appended to normal success feedback; existing validation and persistence still apply.
+are allowed. The warning confirms the lesson was saved and lists the clashes; existing validation and persistence still apply.
 Deleting a lesson requires no clash warning. No clash state is stored, so each warning reflects current records.
 Clashing changes return `CommandResult.warning`. `MainWindow` routes these successful results to
 `ResultDisplay#setWarningToUser`, which applies an amber warning style and an exclamation icon.
@@ -274,20 +273,20 @@ The 11-argument `Student` constructor (ending `isArchived, notes`) still creates
 
 <img src="images/FollowUpClassDiagram.png" width="550" />
 
-`followup-add`, `followup-edit` and `followup-done` are routed by `AddressBookParser` to `FollowUpCommandParser`,
-parameterized by `FollowUpCommand.Operation` like the lesson, guardian and note parsers. The parser reads only
-`text/`, so a word such as `and/or` stays in the text, and requires exactly one index for adding and two for editing
-and completing. `ParserUtil#parseFollowUp` checks the text.
+`followup-add`, `followup-edit` and `followup-done` are routed by `AddressBookParser` to `FollowUpAddCommandParser`,
+`FollowUpEditCommandParser` and `FollowUpDoneCommandParser`, respectively. The add and edit parsers read only
+`text/`, so a word such as `and/or` stays in the text. Adding requires exactly one index; editing and completing
+require two. `ParserUtil#parseFollowUp` checks the text.
 
-`FollowUpCommand` resolves the student from the current filtered list, rejects a follow-up index past the end, and
-rejects text that matches another of the student's items ignoring case (an item may be edited to change only its
-case). It then replaces the student with a copy whose follow-ups have changed. The success message includes the
+The follow-up commands resolve the student from the current filtered list, reject a follow-up index past the end, and
+reject text that matches another of the student's items ignoring case (an item may be edited to change only its
+case). They then replace the student with a copy whose follow-ups have changed. The success message includes the
 item's text, so a wrong index on `followup-done` is visible straight away.
 
 `followups` (`FollowUpListCommand`) sets the student filter to active (not archived) students with at least one
 item, matching `list`, which hides archived students. It also resets the lesson filter.
 Because the filtered list re-applies its predicate after `Model#setPerson`, completing a student's last item while
-this filter is active removes the student from the list and renumbers the students after them. `FollowUpCommand`
+this filter is active removes the student from the list and renumbers the students after them. Each follow-up command
 therefore opens the student's details at the student's new position, and opens none if the student is no longer shown,
 so the details never show the wrong student.
 
@@ -297,14 +296,16 @@ the updated address book, as for any other command.
 ![followup-done command sequence](images/FollowUpDoneSequenceDiagram.png)
 
 Every command that rebuilds a `Student` (`edit`, the guardian, lesson and note commands, and `Student#withArchived`
-for `archive` and `unarchive`) passes the existing follow-ups on. `FollowUpCommandTest` checks each of them, so a later
+for `archive` and `unarchive`) passes the existing follow-ups on. `FollowUpWorkflowTest` checks each of them, so a later
 field change cannot silently drop follow-ups. `PersonCard` shows the items in a **Follow-ups** section under the guardian.
 
 `JsonAdaptedFollowUp` stores each item as `{"text": "..."}` in the person's `followUps` array. A missing or `null`
 `followUps` key loads as no follow-ups, so older data files still load; a `null` item, a non-string `text` or text
 that fails validation makes the file invalid.
 
-Tests: `FollowUpTest`, `FollowUpCommandTest`, `FollowUpListCommandTest`, `FollowUpCommandParserTest`,
+Tests: `FollowUpTest`, `FollowUpAddCommandTest`, `FollowUpEditCommandTest`, `FollowUpDoneCommandTest`,
+`FollowUpListCommandTest`, `FollowUpAddCommandParserTest`, `FollowUpEditCommandParserTest`,
+`FollowUpDoneCommandParserTest`, `FollowUpWorkflowTest`,
 `FollowUpStorageTest` and the routing cases in `AddressBookParserTest`.
 
 ### Progress notes <!-- Move to model -->
@@ -315,17 +316,17 @@ A note's position in that list is the `NOTE_INDEX` shown in the details. New stu
 
 <img src="images/ProgressNoteClassDiagram.png" width="450" />
 
-`note-add` and `note-delete` are routed by `AddressBookParser` to `NoteCommandParser`, parameterized by the
-operation like the lesson and guardian parsers. Deleting takes only the student index and the note's number. The parser reads only `date/` and `text/`, so a word such as `and/or` stays in the note text.
+`note-add` and `note-delete` are routed by `AddressBookParser` to `NoteAddCommandParser` and
+`NoteDeleteCommandParser`, respectively. Deleting takes only the student index and the note's number. The parser reads only `date/` and `text/`, so a word such as `and/or` stays in the note text.
 `ParserUtil#parseProgressNote` rejects dates that are not real `YYYY-MM-DD` dates or are later than today. The
 future-date check is in the parser rather than the model, so a saved file still loads if the computer's clock is
 wrong.
 
-`NoteCommand` resolves the student from the current filtered list. Adding rejects an identical note on the same
+`NoteAddCommand` and `NoteDeleteCommand` resolve the student from the current filtered list. Adding rejects an identical note on the same
 date; deleting rejects a note number past the end. Either way, it replaces the student with a copy whose notes
 have changed. It returns a `CommandResult` that opens that student's
 details, where `PersonCard` lists the notes. Every command that rebuilds a `Student` (`edit`, archiving, and the
-guardian, lesson and follow-up commands) passes the existing notes on. `NoteCommandTest` checks `edit` and the guardian
+guardian, lesson and follow-up commands) passes the existing notes on. `NoteWorkflowTest` checks `edit` and the guardian
 and lesson commands, so a later field change cannot silently drop notes there.
 
 The sequence diagram below shows how `note-add 1 date/2026-10-15 text/Fractions` adds a note. Storage then saves the
@@ -655,7 +656,7 @@ For larger or boundary-value data sets, generate a data file with `./gradlew see
 5. Run `add name/Ryan`. The result row should show the description, a **Format** line and an **Example** line in a monospace font.
 6. Run two commands, then press Up twice and Down twice. The box should show the earlier commands, then what you had typed. Press Esc; the box should clear.
 7. With more students than fit, press Esc in the empty command box to clear the selected student, then press Page Down and Page Up. The list should scroll, and typing should still go into the box. Run `view INDEX` for a student with long details, then press Page Down and Page Up again; the sidebar should scroll while the list and selection stay in place.
-8. Press F1, then Esc. The help window should close.
+8. Press F1 with the window focused. The user guide should open in the default browser. Check that clicking **All commands**, choosing **Help → Help**, and running `help` open the same guide without an extra app window.
 9. Run `list`, then `view 1` and `view 2`. The sidebar should switch to the indicated student while the list cards stay compact. With the command box empty, press Esc to clear the selection and show the sidebar's prompt. Press Alt+Down twice; the second student's details should appear in the sidebar, with focus still in the command box. Run `find` with one student's name; the sidebar should show their details.
 10. Add a student with a long name, several lessons and a long address, then run `view INDEX` for that student. Shrink the window to its minimum size. The list and sidebar should remain side by side, and the text should wrap. Use Page Down or scroll within the sidebar to reach all the student's information without scrolling the list; long command results should also remain scrollable.
 

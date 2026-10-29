@@ -3,8 +3,10 @@ package seedu.address.model.person;
 import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -118,6 +120,23 @@ public class Student extends Person {
         return schoolingLevel.map(SchoolingLevel::stage).orElse(SchoolingLevel.Stage.OTHER);
     }
 
+    /**
+     * Returns the order students are listed in: by stage, then by level (P1 before P2), then alphabetically by name.
+     * "P5" and "Primary 5" are the same level.
+     * Unrecognised levels sort alphabetically after the numbered ones; students with no level
+     * come last.
+     */
+    public static Comparator<Student> byLevelThenName() {
+        return Comparator.comparing(Student::getStage)
+                .thenComparingInt(student ->
+                        student.schoolingLevel.map(SchoolingLevel::number).orElse(Integer.MAX_VALUE))
+                .thenComparing(student -> student.schoolingLevel.isEmpty())
+                .thenComparing(student -> student.schoolingLevel
+                        .filter(level -> level.number() == Integer.MAX_VALUE)
+                        .map(level -> level.value.toLowerCase(Locale.ROOT)).orElse(""))
+                .thenComparing(student -> student.getName().fullName.toLowerCase(Locale.ROOT));
+    }
+
     public Optional<Guardian> getGuardian() {
         return guardian;
     }
@@ -140,6 +159,30 @@ public class Student extends Person {
 
     public boolean isArchived() {
         return this.isArchived;
+    }
+
+    /** Returns a copy of this student with the given lessons and all other details unchanged. */
+    public Student withLessons(List<Lesson> lessons) {
+        return new Student(getName(), getPhone(), email, address, tags, school, schoolingLevel, guardian, lessons,
+                isArchived, notes, followUps);
+    }
+
+    /** Returns a copy of this student with the given guardian and all other details unchanged. */
+    public Student withGuardian(Optional<Guardian> guardian) {
+        return new Student(getName(), getPhone(), email, address, tags, school, schoolingLevel, guardian, lessons,
+                isArchived, notes, followUps);
+    }
+
+    /** Returns a copy of this student with the given notes and all other details unchanged. */
+    public Student withNotes(List<ProgressNote> notes) {
+        return new Student(getName(), getPhone(), email, address, tags, school, schoolingLevel, guardian, lessons,
+                isArchived, notes, followUps);
+    }
+
+    /** Returns a copy of this student with the given follow-ups and all other details unchanged. */
+    public Student withFollowUps(List<FollowUp> followUps) {
+        return new Student(getName(), getPhone(), email, address, tags, school, schoolingLevel, guardian, lessons,
+                isArchived, notes, followUps);
     }
 
     /** Returns a copy of this student with the given archive status and all other details unchanged. */

@@ -39,7 +39,7 @@ public final class Lesson {
         return subject;
     }
 
-    public WeeklyLessonSlot getWeeklyLessonSlot() {
+    public WeeklyLessonSlot getLessonSlot() {
         return weeklyLessonSlot;
     }
 
