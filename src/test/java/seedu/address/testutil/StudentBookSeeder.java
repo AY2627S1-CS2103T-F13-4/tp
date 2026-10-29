@@ -652,7 +652,7 @@ public class StudentBookSeeder {
     public static int countClashes(List<Student> students) {
         List<WeeklyLessonSlot> slots = students.stream()
                 .flatMap(student -> student.getLessons().stream())
-                .map(Lesson::getWeeklyLessonSlot)
+                .map(Lesson::getLessonSlot)
                 .toList();
         int clashes = 0;
         for (int i = 0; i < slots.size(); i++) {
