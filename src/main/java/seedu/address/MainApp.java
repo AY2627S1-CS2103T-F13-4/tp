@@ -76,7 +76,8 @@ public class MainApp extends Application {
         if (isDataFileAtRisk) {
             return primaryStage -> UiManager.showStartupErrorAndExit(dataFileWarning);
         }
-        return new UiManager(logic, storage.getAddressBookFilePath(), dataFileWarning);
+        return new UiManager(logic, storage.getAddressBookFilePath(), dataFileWarning,
+                getHostServices()::showDocument);
     }
 
     /**

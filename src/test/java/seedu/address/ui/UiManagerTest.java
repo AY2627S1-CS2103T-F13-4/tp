@@ -77,7 +77,7 @@ public class UiManagerTest {
                 new JsonUserPrefsStorage(temporaryFolder.resolve("preferences.json"))));
         stage = new Stage();
         stage.setOpacity(0);
-        new UiManager(logic, dataFile, startupWarning).start(stage);
+        new UiManager(logic, dataFile, startupWarning, url -> { }).start(stage);
     }
 
     private Node resultContent() {
