@@ -186,7 +186,7 @@ public class FindCommandParserTest {
     }
 
     @Test
-    public void parse_editSchoolAfterSearch_clearsStudentAndLessonFilters() throws Exception {
+    public void parse_editSchoolAfterSearch_preservesStudentAndLessonFilters() throws Exception {
         Lesson mondayMath = lesson("Math", DayOfWeek.MONDAY);
         Lesson tuesdayEnglish = lesson("English", DayOfWeek.TUESDAY);
         Student alex = new PersonBuilder().withName("Alex Tan").withSchool(new School("Raffles Institution"))
@@ -207,8 +207,10 @@ public class FindCommandParserTest {
 
             Student edited = new PersonBuilder(alex)
                     .withSchool(schoolText.isEmpty() ? null : new School(schoolText)).build();
-            assertEquals(List.of(edited, other), model.getFilteredPersonList());
-            assertTrue(model.getLessonPredicate().getValue().test(tuesdayEnglish));
+            assertTrue(model.getAddressBook().getPersonList().contains(edited));
+            assertTrue(model.getFilteredPersonList().isEmpty());
+            assertTrue(model.getLessonPredicate().getValue().test(mondayMath));
+            assertFalse(model.getLessonPredicate().getValue().test(tuesdayEnglish));
             commandParser.parseCommand("find sch/raffles").execute(model);
             assertTrue(model.getFilteredPersonList().isEmpty());
         }

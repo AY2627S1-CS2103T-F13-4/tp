@@ -210,6 +210,13 @@ Format: `find [name/TEXT] [guardian/TEXT] [sch/TEXT] [level/TEXT] [subject/TEXT]
 * When multiple lesson-related criteria are specified, the same lesson must match all criteria
 * Day may be specified with three-letter or full names
 
+Search filters stay in place when you edit, delete, archive or restore students, or change their lessons
+and other details. A student who no longer matches disappears from the results, and remaining students are
+renumbered. Restored students appear in the active results only if they match the active search. Adding a
+student clears the active search and the calendar's lesson filter so that the new student is shown.
+The active and archived lists retain separate searches, and the weekly calendar retains the active lesson
+filter. Run `list` or `list-archive` to show all students in that list, or `find` to replace its search.
+
 Examples:
 * `find level/prim` matches `Primary 5`.
 * `find day/Mon` matches students with a lesson on Monday.

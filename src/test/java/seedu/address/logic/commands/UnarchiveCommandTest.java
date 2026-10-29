@@ -10,6 +10,8 @@ import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
 import static seedu.address.testutil.TypicalIndexes.INDEX_SECOND_PERSON;
 import static seedu.address.testutil.TypicalPersons.ALICE;
 import static seedu.address.testutil.TypicalPersons.BENSON;
+import static seedu.address.testutil.TypicalPersons.CARL;
+import static seedu.address.testutil.TypicalPersons.DANIEL;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -81,6 +83,22 @@ public class UnarchiveCommandTest {
         assertTrue(model.isArchiveView());
         new ListCommand().execute(model);
         assertEquals(List.of(ALICE, BENSON), model.getFilteredPersonList());
+    }
+
+    @Test
+    public void execute_afterArchivedAndActiveSearches_keepsBothSearches() throws Exception {
+        model = new ModelManager(new AddressBookBuilder().withPerson(ALICE).withPerson(BENSON.withArchived(true))
+                .withPerson(CARL.withArchived(true)).withPerson(DANIEL.withArchived(true)).build(), new UserPrefs());
+        model.updateFilteredPersonList(student -> student.equals(ALICE));
+        new ListArchiveCommand().execute(model);
+        model.updateFilteredPersonList(student -> !student.equals(DANIEL.withArchived(true)));
+
+        new UnarchiveCommand(INDEX_FIRST_PERSON).execute(model);
+
+        assertTrue(model.isArchiveView());
+        assertEquals(List.of(CARL.withArchived(true)), model.getFilteredPersonList());
+        model.setArchiveView(false);
+        assertEquals(List.of(ALICE), model.getFilteredPersonList());
     }
 
     @Test
