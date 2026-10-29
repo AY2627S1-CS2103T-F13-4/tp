@@ -68,7 +68,7 @@ public class FeedbackLinesTest {
     @Test
     public void realUsageErrors_allShowAFormat() {
         String[] incompleteCommands = {"add", "edit", "delete", "find", "lesson-add", "lesson-edit", "lesson-delete",
-            "guardian-add", "guardian-edit", "guardian-delete"};
+            "guardian-add", "guardian-edit", "guardian-delete", "note-edit"};
         for (String command : incompleteCommands) {
             List<Line> lines = FeedbackLines.split(usageError(command));
             assertTrue(lines.stream().anyMatch(line -> line.kind() == Kind.FORMAT
@@ -79,7 +79,7 @@ public class FeedbackLinesTest {
     // Commands whose usage includes an example must show it as an Example line.
     @Test
     public void realUsageErrors_withExamples_showExample() {
-        for (String command : new String[] {"add", "edit", "delete", "find"}) {
+        for (String command : new String[] {"add", "edit", "delete", "find", "note-edit"}) {
             List<Line> lines = FeedbackLines.split(usageError(command));
             assertTrue(lines.stream().anyMatch(line -> line.kind() == Kind.EXAMPLE
                     && line.text().startsWith(command)), command + " has no example line: " + lines);

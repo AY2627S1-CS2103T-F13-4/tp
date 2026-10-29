@@ -4,6 +4,7 @@ import static java.util.Objects.requireNonNull;
 
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.Rectangle;
@@ -20,16 +21,21 @@ public class LessonCard extends UiPart<Region> {
     private static final String FXML = "LessonCard.fxml";
     private static final double TOOLTIP_MAX_WIDTH = 320;
     private static final String DETAIL_SEPARATOR = " \u00b7 ";
+    private static final double COMPACT_SPACING = 4;
 
     private final ScheduleEntry entry;
+    private final int lineCount;
 
     /**
      * Creates a card showing the lesson's number (e.g. "#3.2"), student, subject and time,
-     * with full lesson details on hover.
+     * with full lesson details on hover. A block too short for that has a {@code lineCount} under 3:
+     * one line shows the number and the student, and two lines add the time.
      */
-    LessonCard(ScheduleEntry entry) {
+    LessonCard(ScheduleEntry entry, int lineCount) {
         super(FXML);
+        assert lineCount >= 1 && lineCount <= 3;
         this.entry = requireNonNull(entry);
+        this.lineCount = lineCount;
         populateCard();
     }
 
@@ -41,13 +47,25 @@ public class LessonCard extends UiPart<Region> {
         card.setMinSize(0, 0);
         card.setPrefSize(0, 0);
 
-        // Name, then time, then the details, so even a 30-minute block shows whose lesson it is and when.
-        Label name = createLabel(studentName);
-        name.getStyleClass().add("lesson-card-name");
         Label time = createLabel(WeeklyLessonSlot.formatTime(entry.getStart()) + "-"
                 + WeeklyLessonSlot.formatTime(entry.getEnd()));
-        Label details = createLabel(detailLine(lesson));
-        card.getChildren().addAll(name, time, details);
+        Label name = createLabel(studentName);
+        name.getStyleClass().add("lesson-card-name");
+        if (lineCount < 3) {
+            // The number comes first and never shrinks, so a narrow block cuts the name, not the number.
+            Label number = new Label(entry.getCommandLabel());
+            number.setMinWidth(Region.USE_PREF_SIZE);
+            number.getStyleClass().add("lesson-card-name");
+            card.getStyleClass().add("lesson-card-compact");
+            card.getChildren().add(new HBox(COMPACT_SPACING, number, name));
+            if (lineCount == 2) {
+                card.getChildren().add(time);
+            }
+        } else {
+            // Name, then time, then the details, which include the number.
+            Label details = createLabel(detailLine(lesson));
+            card.getChildren().addAll(name, time, details);
+        }
 
         // Keep short lessons within their grid cells without expanding the schedule's rows.
         Rectangle clip = new Rectangle();
