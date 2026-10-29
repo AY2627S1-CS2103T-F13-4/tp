@@ -22,4 +22,8 @@ public class CliSyntax {
     public static final Prefix PREFIX_LOCATION = new Prefix("location/");
     public static final Prefix PREFIX_DATE = new Prefix("date/");
     public static final Prefix PREFIX_TEXT = new Prefix("text/");
+
+    /* Prefixes of other commands, which add and edit reject instead of reading them into a student field */
+    public static final Prefix[] OTHER_COMMAND_PREFIXES = {PREFIX_GUARDIAN, PREFIX_SUBJECT, PREFIX_DAY,
+        PREFIX_LESSON_SLOT, PREFIX_RATE, PREFIX_MODE, PREFIX_LOCATION, PREFIX_DATE, PREFIX_TEXT};
 }
