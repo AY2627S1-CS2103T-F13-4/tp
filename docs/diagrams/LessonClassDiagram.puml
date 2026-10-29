@@ -20,12 +20,12 @@ enum LessonMode <<enumeration>> {
 show LessonMode members
 
 ' These immutable objects may be shared, so the relationships are associations.
-Student "1" -down-> "*" Lesson : lessons
-Lesson -down-> "1" Subject : subject
-Lesson -down-> "1" WeeklyLessonSlot : weeklyLessonSlot
-Lesson -down-> "1" HourlyRate : hourlyRate
-Lesson -down-> "0..1" LessonLocation : location
-Lesson -down-> "0..1" LessonMode : mode
+Student "1" -down-> "~* lessons" Lesson
+Lesson -down-> "subject\n1" Subject
+Lesson -down-> "weeklyLessonSlot\n1" WeeklyLessonSlot
+Lesson -down-> "hourlyRate\n1" HourlyRate
+Lesson -down-> "location\n0..1" LessonLocation
+Lesson -down-> "mode\n0..1" LessonMode
 
 ' Keep required fields together, followed by the optional fields.
 Subject -[hidden]right- WeeklyLessonSlot

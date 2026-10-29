@@ -29,8 +29,8 @@ ModelManager -left-> "1" AddressBook
 ModelManager -right-> "1" UserPrefs
 UserPrefs .up.|> ReadOnlyUserPrefs
 
-AddressBook *--> "1" UniquePersonList
-UniquePersonList -right-> "~*" Student : all
+AddressBook *--> "2" UniquePersonList
+UniquePersonList -right-> "~* all" Student
 
 ModelManager --> "~* filtered" Student
 @enduml

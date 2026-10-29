@@ -80,7 +80,6 @@ These are places where PlantUML or our `style.puml` disagree with the course. Ea
 - Association class: `(Tutor, Student) .. Enrolment`.
 - A label starting with `*` is read as a list bullet. Escape it: `"~* items"`, as `ModelClassDiagram.puml` does.
 - Generic classes: with the house white class font, PlantUML's corner box for `<T>` renders white on white. `LessonClassDiagram.puml` uses `skinparam genericDisplay old`, which prints `UniqueList<T>` inline instead. That is a readable deviation from the course's corner-box notation; use it knowingly, and check the PNG.
-- Existing diagram to fix: `LessonClassDiagram.puml` writes field names as mid-line labels (`Lesson --> "1" Subject : subject`). By the course's rules those are role names and belong at the `Subject` end (`"1 subject"`). Flagged here for cleanup; not changed by this guide.
 
 ## Example
 

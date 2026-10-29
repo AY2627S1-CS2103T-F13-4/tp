@@ -12,6 +12,7 @@ end box
 
 box Model MODEL_COLOR_T1
 participant "m:Model" as Model MODEL_COLOR
+participant "s:Student" as OldStudent MODEL_COLOR
 participant "updated:Student" as Student MODEL_COLOR
 end box
 
@@ -50,21 +51,25 @@ activate FollowUpDoneCommand
 
 FollowUpDoneCommand -> Model : getFilteredPersonList()
 activate Model
-Model --> FollowUpDoneCommand : student 1
+Model --> FollowUpDoneCommand : s
 deactivate Model
 
 note right of FollowUpDoneCommand
   Removes item 2 from a copy
-  of student 1's follow-ups
+  of s's follow-ups
 end note
 
+FollowUpDoneCommand -> OldStudent : withFollowUps(remaining)
+activate OldStudent
 create Student
-FollowUpDoneCommand -> Student : Student(..., remaining follow-ups)
+OldStudent -> Student : Student(..., remaining)
 activate Student
-Student --> FollowUpDoneCommand
+Student --> OldStudent
 deactivate Student
+OldStudent --> FollowUpDoneCommand : updated
+deactivate OldStudent
 
-FollowUpDoneCommand -> Model : setPerson(student 1, updated)
+FollowUpDoneCommand -> Model : setPerson(s, updated)
 activate Model
 Model --> FollowUpDoneCommand
 deactivate Model
@@ -74,11 +79,11 @@ activate Model
 Model --> FollowUpDoneCommand : list
 deactivate Model
 
-alt updated is still in list
-    FollowUpDoneCommand -> FollowUpDoneCommand : open its details\nat its new position
-else updated left the list (its last item is done after followups)
-    FollowUpDoneCommand -> FollowUpDoneCommand : open no details
-end
+note right of FollowUpDoneCommand
+  If updated is still in the list, the result
+  opens it at its new position; otherwise the
+  result shows the student list
+end note
 
 create CommandResult
 FollowUpDoneCommand -> CommandResult : CommandResult("Completed follow-up 2 ...", ...)

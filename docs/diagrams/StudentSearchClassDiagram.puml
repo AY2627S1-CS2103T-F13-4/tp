@@ -28,6 +28,9 @@ StudentSearchPredicate .up.|> PS
 NameContainsKeywordsPredicate .up.|> PS
 SchoolingLevelContainsKeywordPredicate .up.|> PS
 LessonMatchesPredicate .up.|> PL
-StudentSearchPredicate -right-> "level\n0..1" SchoolingLevelContainsKeywordPredicate
+StudentSearchPredicate -down-> "level\n0..1" SchoolingLevelContainsKeywordPredicate
 StudentSearchPredicate --> "lesson\n0..1" LessonMatchesPredicate
+' Keep the realization lines clear of the role labels and of each other.
+LessonMatchesPredicate -[hidden]right- SchoolingLevelContainsKeywordPredicate
+StudentSearchPredicate -[hidden]right- NameContainsKeywordsPredicate
 @enduml

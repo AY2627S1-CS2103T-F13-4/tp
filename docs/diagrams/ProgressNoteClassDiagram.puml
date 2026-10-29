@@ -12,9 +12,9 @@ Class Lesson
 Class Guardian
 show ProgressNote fields
 
-Student *--> "*" Lesson
-Student *--> "0..1" Guardian
-Student *--> "*" ProgressNote
+Student --> "*" Lesson
+Student --> "0..1" Guardian
+Student --> "*\n{ordered}" ProgressNote
 
 note right of Student
   Keeps its notes oldest first;

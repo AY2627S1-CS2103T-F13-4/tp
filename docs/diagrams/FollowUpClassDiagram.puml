@@ -15,9 +15,9 @@ Class ProgressNote
 show Student methods
 show FollowUp members
 
-Student *--> "0..1" Guardian
-Student *--> "*" ProgressNote
-Student *--> "*\n{ordered}" FollowUp
+Student --> "0..1" Guardian
+Student --> "*" ProgressNote
+Student --> "*\n{ordered}" FollowUp
 
 note right of FollowUp
   1-200 characters on one line.

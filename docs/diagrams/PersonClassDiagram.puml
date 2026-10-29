@@ -16,15 +16,17 @@ class SchoolingLevel
 class Tag
 class Lesson
 class ProgressNote
+class FollowUp
 
 ' Person sits at the head; its identity fields hang off to the sides.
-Person -left-> "1" Name : name
-Person -down-> "1" Phone : phone
+' Blank labels lengthen the short sideways links so multiplicities clear the arrowheads.
+Person -left-> "1" Name : \t\t
+Person -down-> "1" Phone
 
 ' Both students and guardians inherit their identity fields from Person.
 Student -up-|> Person
 Guardian -up-|> Person
-Student -right-> "0..1" Guardian : guardian
+Student -right-> "0..1" Guardian : \t\t
 
 ' Referenced immutable model objects may be shared between student instances.
 Student -down-> "1" Email
@@ -35,6 +37,7 @@ Student -down-> "0..1" SchoolingLevel
 Student ---down-> "*" Tag
 Student ---down-> "*" ProgressNote
 Student ---down-> "*" Lesson
+Student ---down-> "*" FollowUp
 
 ' Keep the student-specific field types in readable groups.
 Name -[hidden]down- Phone
@@ -46,4 +49,5 @@ School -[hidden]right- SchoolingLevel
 Email -[hidden]down- Tag
 Tag -[hidden]right- ProgressNote
 ProgressNote -[hidden]right- Lesson
+Lesson -[hidden]right- FollowUp
 @enduml

@@ -134,6 +134,7 @@ Command execution works as follows:
 1. The created parser is used to parse the command into a `Command` object (e.g. `DeleteCommand`).
 1. The `Command` object is executed by `LogicManager`
 1. The `Command` object communicates with `Model` when executed (e.g. deleting a person). This may require several interactions between `Command` and `Model`, but is represented as one interaction above for simplicity.
+1. `LogicManager` saves only record changes. If saving fails, it rolls back records, filters and sorting, and the UI restores open details.
 1. The result of the command is encapsulated as a `CommandResult` object when returned from `Logic`.
 
 #### Command Parsing
@@ -158,7 +159,7 @@ Command parsing works as follows:
 
 The `Model` component stores:
 * all students in one of two `UniquePersonList`s, depending on if they are active or archived
-* current filtered list of `Student`s, as a separate unmodifiable `ObservableList<Person>`
+* current filtered list of `Student`s, as a separate unmodifiable `ObservableList<Student>`
 * the filter for `Lesson`s
 * user preferences in `UserPrefs`
 
@@ -176,17 +177,24 @@ This alternative is not the current implementation.
 
 <img src="images/PersonClassDiagram.png" width="500" />
 
+Each `Lesson` groups a required subject, weekly slot and hourly rate with an optional location and mode.
+
+<img src="images/LessonClassDiagram.png" width="450" />
+
 ### Storage component
 
 **API Specification**: `Storage.java`
 **Interacts with**: `Model`
 **Depends on**: `Model`
 
-<img src="images/StorageClassDiagram.png" width="550" />
+<img src="images/StorageClassDiagram.png" width="650" />
 
 The `Storage` component:
 * Saves address book data and user preference data in JSON format, and reads them back into corresponding objects
 * Delegates JSON file access to `JsonAddressBookStorage` and `JsonUserPrefsStorage` (one class per data file)
+
+`JsonAddressBookStorage` atomically replaces the file from a temporary file, preserving permissions.
+Failures retain the original and remove the temporary file. Unsupported atomic replacement fails without a fallback.
 
 ### Common classes
 Classes used by multiple components are in the `seedu.address.commons package`.
@@ -234,9 +242,7 @@ both `s` and `f`. Prefix validation and the parser's own creation and lifetime a
 to the model, reads the matching students to form the result summary, and returns a `CommandResult`
 that selects the students screen. The model is shown through its interface; internal filtering, logging
 and UI observation are omitted. The repeated list lookup used by logging is also omitted.
-`LogicManager` saves only record changes and rolls back records, filters and sorting on failure; the UI restores open details.
-`JsonAddressBookStorage` atomically replaces the file from a temporary file, preserving permissions.
-Failures retain the original and remove the temporary file. Unsupported atomic replacement fails without a fallback.
+`LogicManager` saves any record changes after execution, outside this diagram's scope.
 
 ![Execution of a combined student search](images/FindSequenceDiagram.png)
 

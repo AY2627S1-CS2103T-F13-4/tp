@@ -21,17 +21,17 @@ LogicManager -> AddressBookParser : parseCommand("delete 1")
 activate AddressBookParser
 
 create DeleteCommandParser
-AddressBookParser -> DeleteCommandParser
+AddressBookParser -> DeleteCommandParser : DeleteCommandParser()
 activate DeleteCommandParser
 
 DeleteCommandParser --> AddressBookParser
 deactivate DeleteCommandParser
 
-AddressBookParser -> DeleteCommandParser : parse("1")
+AddressBookParser -> DeleteCommandParser : parse(" 1")
 activate DeleteCommandParser
 
 create DeleteCommand
-DeleteCommandParser -> DeleteCommand
+DeleteCommandParser -> DeleteCommand : DeleteCommand(1)
 activate DeleteCommand
 
 DeleteCommand --> DeleteCommandParser :
@@ -49,14 +49,14 @@ deactivate AddressBookParser
 LogicManager -> DeleteCommand : execute(m)
 activate DeleteCommand
 
-DeleteCommand -> Model : deletePerson(1)
+DeleteCommand -> Model : deletePerson(student 1)
 activate Model
 
 Model --> DeleteCommand
 deactivate Model
 
 create CommandResult
-DeleteCommand -> CommandResult
+DeleteCommand -> CommandResult : CommandResult(...)
 activate CommandResult
 
 CommandResult --> DeleteCommand

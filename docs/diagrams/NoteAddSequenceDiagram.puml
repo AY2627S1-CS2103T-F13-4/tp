@@ -14,6 +14,7 @@ end box
 box Model MODEL_COLOR_T1
 participant "n:ProgressNote" as ProgressNote MODEL_COLOR
 participant "m:Model" as Model MODEL_COLOR
+participant "s:Student" as OldStudent MODEL_COLOR
 participant "updated:Student" as Student MODEL_COLOR
 end box
 
@@ -29,14 +30,14 @@ activate NoteAddCommandParser
 NoteAddCommandParser --> AddressBookParser
 deactivate NoteAddCommandParser
 
-AddressBookParser -> NoteAddCommandParser : parse("1 date/2026-10-15 text/Fractions")
+AddressBookParser -> NoteAddCommandParser : parse(" 1 date/2026-10-15 text/Fractions")
 activate NoteAddCommandParser
 
 NoteAddCommandParser -> ParserUtil : parseProgressNote("2026-10-15", "Fractions", today)
 activate ParserUtil
 note right of ParserUtil
-  Rejects dates that are not
-  real or are later than today
+  Rejects dates that are not real,
+  before 2000 or later than today
 end note
 
 create ProgressNote
@@ -68,26 +69,30 @@ activate NoteAddCommand
 
 NoteAddCommand -> Model : getFilteredPersonList()
 activate Model
-Model --> NoteAddCommand : student 1
+Model --> NoteAddCommand : s
 deactivate Model
 
+NoteAddCommand -> OldStudent : withNotes(notes + n)
+activate OldStudent
 create Student
-NoteAddCommand -> Student : Student(..., notes + n)
+OldStudent -> Student : Student(..., notes + n)
 activate Student
-Student --> NoteAddCommand
+Student --> OldStudent
 deactivate Student
 note left of Student
   Sorts its notes
   oldest first
 end note
+OldStudent --> NoteAddCommand : updated
+deactivate OldStudent
 
-NoteAddCommand -> Model : setPerson(student 1, updated)
+NoteAddCommand -> Model : setPerson(s, updated)
 activate Model
 Model --> NoteAddCommand
 deactivate Model
 
 create CommandResult
-NoteAddCommand -> CommandResult : CommandResult("Added note 1 ...", 1)
+NoteAddCommand -> CommandResult : CommandResult("Added note for ...: 1", 1)
 activate CommandResult
 CommandResult --> NoteAddCommand
 deactivate CommandResult
