@@ -96,7 +96,7 @@ public class ClashWorkflowTest {
         CommandResult unarchived = parser.parseCommand("unarchive 1").execute(model);
         assertTrue(unarchived.isWarning());
         assertTrue(unarchived.getFeedbackToUser().startsWith("Unarchived student: Carl"));
-        assertTrue(unarchived.getFeedbackToUser().contains("Warning: Lesson 1 for Carl overlaps with 1 lesson(s):"
+        assertTrue(unarchived.getFeedbackToUser().contains("Warning: Lesson 1 for Carl overlaps with 1 lesson(s): "
                 + "\n- Alice, lesson 1 (Math, Monday 1.00pm-2.00pm)"));
         assertEquals(2, model.getAddressBook().getPersonList().size());
 

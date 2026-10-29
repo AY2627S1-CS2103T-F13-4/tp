@@ -122,6 +122,15 @@ public final class WeeklyLessonSlot implements Comparable<WeeklyLessonSlot> {
         return end;
     }
 
+    /** Returns whether the slots overlap on the same day; touching endpoints do not overlap. */
+    public boolean overlapsWith(WeeklyLessonSlot other) {
+        if (!day.equals(other.day)) {
+            return false;
+        }
+
+        return start.isBefore(other.end) && other.start.isBefore(end);
+    }
+
     /**
      * Compares slots by day (Monday to Sunday), then start time, then end time.
      */
