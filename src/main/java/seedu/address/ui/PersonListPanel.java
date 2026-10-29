@@ -11,6 +11,10 @@ import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanExpression;
 import javafx.beans.binding.DoubleExpression;
 import javafx.beans.property.ReadOnlyDoubleProperty;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
+import javafx.beans.value.WeakChangeListener;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -26,6 +30,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import seedu.address.commons.core.LogsCenter;
+import seedu.address.model.person.RateSortOrder;
 import seedu.address.model.person.SchoolingLevel.Stage;
 import seedu.address.model.person.Student;
 
@@ -85,6 +90,7 @@ public class PersonListPanel extends UiPart<Region> {
     private Label emptyCommand;
     private final Columns columns;
     private final boolean archived;
+    private final ObservableValue<RateSortOrder> sortOrder;
     /** The student whose details were open just before the list last changed. */
     private Student openBeforeChange;
 
@@ -98,8 +104,23 @@ public class PersonListPanel extends UiPart<Region> {
 
     /** Creates the same student table for either active or archived students. */
     public PersonListPanel(ObservableList<Student> personList, ObservableList<Student> allPersons, boolean archived) {
+        this(personList, allPersons, archived, new SimpleObjectProperty<>(RateSortOrder.NONE));
+    }
+
+    /**
+     * Creates the student table. While {@code sortOrder} is not {@code NONE} the Rate column shows the rate each
+     * student is ranked by, and the table redraws when the order changes.
+     */
+    public PersonListPanel(ObservableList<Student> personList, ObservableList<Student> allPersons, boolean archived,
+            ObservableValue<RateSortOrder> sortOrder) {
         super(FXML);
         this.archived = archived;
+        this.sortOrder = sortOrder;
+        rateHeading.setText(StudentCardText.rateHeading(sortOrder.getValue()));
+        sortOrder.addListener((observable, oldOrder, newOrder) -> {
+            rateHeading.setText(StudentCardText.rateHeading(newOrder));
+            personListView.refresh();
+        });
         listTitle.setText(archived ? "Archived students" : "Students");
         ReadOnlyDoubleProperty listWidth = personListView.widthProperty();
         BooleanExpression wide = listWidth.greaterThanOrEqualTo(WIDE_TABLE_WIDTH);
@@ -313,8 +334,17 @@ public class PersonListPanel extends UiPart<Region> {
         private Student shownPerson;
         private int shownIndex = -1;
         private String shownHeading = "";
+        private RateSortOrder shownSortOrder = RateSortOrder.NONE;
+
+        /** Held so the weak listener below lives as long as this cell; discarded cells are then collected. */
+        private final ChangeListener<RateSortOrder> sortOrderListener = (observable, oldOrder, newOrder) -> {
+            if (card != null) {
+                card.setSortOrder(newOrder);
+            }
+        };
 
         PersonListViewCell() {
+            sortOrder.addListener(new WeakChangeListener<>(sortOrderListener));
             // Clicking the open row closes it, the mouse version of Esc.
             addEventFilter(MouseEvent.MOUSE_PRESSED, event -> {
                 if (!isEmpty() && isSelected()) {
@@ -333,6 +363,7 @@ public class PersonListPanel extends UiPart<Region> {
                 shownPerson = null;
                 shownIndex = -1;
                 shownHeading = "";
+                shownSortOrder = RateSortOrder.NONE;
                 setGraphic(null);
                 setText(null);
             } else {
@@ -344,18 +375,20 @@ public class PersonListPanel extends UiPart<Region> {
                 long groupSize = startsGroup
                         ? shown.stream().filter(student -> student.getStage() == stage).count() : 0;
                 String heading = startsGroup ? STAGE_NAMES.get(stage) + " " + groupSize : "";
-                if (person == shownPerson && getIndex() == shownIndex && heading.equals(shownHeading)) {
+                if (person == shownPerson && getIndex() == shownIndex && heading.equals(shownHeading)
+                        && shownSortOrder == sortOrder.getValue()) {
                     // The list also redraws a row that has not changed, e.g. right after it opens.
                     // Keeping its card then lets an open or close animation finish.
                     return;
                 }
-                card = new PersonCard(person, getIndex() + 1);
+                card = new PersonCard(person, getIndex() + 1, sortOrder.getValue());
                 card.bindColumns(columns);
                 // Read the selection for this index: the cell's own flag may still be for the row it showed before.
                 card.setOpen(getListView().getSelectionModel().isSelected(getIndex()));
                 shownPerson = person;
                 shownIndex = getIndex();
                 shownHeading = heading;
+                shownSortOrder = sortOrder.getValue();
                 setGraphic(startsGroup ? new VBox(groupHeading(stage, groupSize), card.getRoot()) : card.getRoot());
             }
         }

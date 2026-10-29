@@ -34,6 +34,43 @@ public class StudentTest {
             new WeeklyLessonSlot(DayOfWeek.TUESDAY, LocalTime.of(16, 0), LocalTime.of(17, 30)),
             new HourlyRate(new BigDecimal("45.50")));
 
+    private Student studentWithAllDetails() {
+        return new PersonBuilder(ALICE).withSchool(new School("Nanyang Primary School"))
+                .withSchoolingLevel(new SchoolingLevel("Primary 5"))
+                .withGuardian(new Guardian(new Name("Janet Tan"), new Phone("91234567")))
+                .withLessons(MONDAY_MATH)
+                .withNotes(new ProgressNote(LocalDate.of(2020, 1, 15), "Fractions"))
+                .withFollowUps("Send progress report").build().withArchived(true);
+    }
+
+    @Test
+    public void withGuardian_preservesOtherDetailsAndOriginal() {
+        Student original = studentWithAllDetails();
+        Guardian replacement = new Guardian(new Name("John Tan"), new Phone("98765432"));
+        assertEquals(new PersonBuilder(original).withGuardian(replacement).build(),
+                original.withGuardian(Optional.of(replacement)));
+        assertEquals(new PersonBuilder(original).withGuardian(null).build(), original.withGuardian(Optional.empty()));
+        assertEquals(studentWithAllDetails(), original);
+    }
+
+    @Test
+    public void withNotes_preservesOtherDetailsAndOriginal() {
+        Student original = studentWithAllDetails();
+        ProgressNote replacement = new ProgressNote(LocalDate.of(2020, 2, 1), "Decimals");
+        assertEquals(new PersonBuilder(original).withNotes(replacement).build(),
+                original.withNotes(List.of(replacement)));
+        assertEquals(studentWithAllDetails(), original);
+    }
+
+    @Test
+    public void withFollowUps_preservesOtherDetailsAndOriginal() {
+        Student original = studentWithAllDetails();
+        FollowUp replacement = new FollowUp("Call about next term");
+        assertEquals(new PersonBuilder(original).withFollowUps(replacement.getText()).build(),
+                original.withFollowUps(List.of(replacement)));
+        assertEquals(studentWithAllDetails(), original);
+    }
+
     @Test
     public void asObservableList_modifyList_throwsUnsupportedOperationException() {
         Student person = new PersonBuilder().build();
