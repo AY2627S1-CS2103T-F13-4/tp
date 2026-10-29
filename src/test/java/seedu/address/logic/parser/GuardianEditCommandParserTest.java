@@ -30,6 +30,12 @@ public class GuardianEditCommandParserTest {
     }
 
     @Test
+    public void parse_nameWithExtraInnerSpaces_collapsesSpaces() {
+        assertParseSuccess(parser, "1 name/John   Tan", new GuardianEditCommand(INDEX_FIRST_PERSON,
+                new EditGuardianDescriptorBuilder().withName(new Name("John Tan")).build()));
+    }
+
+    @Test
     public void parse_invalidOrRepeatedFields_failure() {
         assertParseFailure(parser, "1", INVALID_FORMAT);
         assertParseFailure(parser, "1 rate/50", INVALID_FORMAT);

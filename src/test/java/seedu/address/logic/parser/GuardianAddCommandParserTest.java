@@ -27,6 +27,13 @@ public class GuardianAddCommandParserTest {
     }
 
     @Test
+    public void parse_nameWithExtraInnerSpaces_collapsesSpaces() {
+        Guardian contact = new Guardian(new Name("Janet Tan"), new Phone("91234567"));
+        assertParseSuccess(parser, "1 name/Janet   Tan phone/91234567",
+                new GuardianAddCommand(INDEX_FIRST_PERSON, contact));
+    }
+
+    @Test
     public void parse_missingOrUnknownFields_failure() {
         for (String args : new String[] {"", "0 name/Janet phone/91234567", "1 name/Janet", "1 phone/91234567",
             "1 name/Janet phone/91234567 rate/50", "1 name/Janet phone/91234567 x1/y"}) {
