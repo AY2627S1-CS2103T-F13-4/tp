@@ -91,6 +91,17 @@ public class NoteAddCommandParserTest {
     }
 
     @Test
+    public void parse_dateBefore2000_failure() {
+        assertParseFailure(parser, " 1 date/0026-10-15 text/Quiz", ParserUtil.MESSAGE_EARLY_NOTE_DATE);
+        assertParseFailure(parser, " 1 date/1999-12-31 text/Quiz", ParserUtil.MESSAGE_EARLY_NOTE_DATE);
+    }
+
+    @Test
+    public void parse_earliestDate_success() {
+        assertParseSuccess(parser, " 1 date/2000-01-01 text/Quiz", addFirst(LocalDate.of(2000, 1, 1), "Quiz"));
+    }
+
+    @Test
     public void parse_repeatedPrefix_failure() {
         assertParseFailure(parser, " 1 date/2026-10-15 date/2026-10-16 text/Fractions",
                 Messages.getErrorMessageForDuplicatePrefixes(CliSyntax.PREFIX_DATE));

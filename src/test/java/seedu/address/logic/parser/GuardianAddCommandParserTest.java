@@ -27,11 +27,25 @@ public class GuardianAddCommandParserTest {
     }
 
     @Test
-    public void parse_missingOrUnknownFields_failure() {
-        for (String args : new String[] {"", "0 name/Janet phone/91234567", "1 name/Janet", "1 phone/91234567",
-            "1 name/Janet phone/91234567 rate/50", "1 name/Janet phone/91234567 x1/y"}) {
+    public void parse_nameWithExtraInnerSpaces_collapsesSpaces() {
+        Guardian contact = new Guardian(new Name("Janet Tan"), new Phone("91234567"));
+        assertParseSuccess(parser, "1 name/Janet   Tan phone/91234567",
+                new GuardianAddCommand(INDEX_FIRST_PERSON, contact));
+    }
+
+    @Test
+    public void parse_missingFieldsOrInvalidIndex_failure() {
+        for (String args : new String[] {"", "0 name/Janet phone/91234567", "1 name/Janet", "1 phone/91234567"}) {
             assertParseFailure(parser, args, INVALID_FORMAT);
         }
+    }
+
+    @Test
+    public void parse_unknownFields_rejectedByFieldValidation() {
+        assertParseFailure(parser, "1 name/Janet phone/91234567 rate/50", Phone.MESSAGE_CONSTRAINTS);
+        assertParseFailure(parser, "1 name/Janet phone/91234567 x1/y", Phone.MESSAGE_CONSTRAINTS);
+        assertParseFailure(parser, "1 name/Janet rate/50 phone/91234567", Name.MESSAGE_CONSTRAINTS);
+        assertParseFailure(parser, "1 rate/50 name/Janet phone/91234567", INVALID_FORMAT);
     }
 
     @Test

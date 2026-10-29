@@ -34,8 +34,9 @@
     <VBox.margin>
       <Insets top="6" right="24" bottom="16" left="24" />
     </VBox.margin>
-    <!-- Fits the width, so all seven days show at once; long days scroll down -->
-    <ScrollPane fx:id="scheduleScroll" fitToWidth="true" hbarPolicy="NEVER" styleClass="schedule-scroll"
+    <!-- Fits the width, so all seven days show at once; long days scroll down, and a week too wide to show
+         readably scrolls sideways. Its size comes from the window, so a wide week never widens the page -->
+    <ScrollPane fx:id="scheduleScroll" fitToWidth="true" minWidth="0" prefWidth="0" styleClass="schedule-scroll"
                 focusTraversable="false" />
     <VBox fx:id="emptyState" styleClass="empty-state">
       <Label fx:id="emptyTitle" styleClass="empty-title" />

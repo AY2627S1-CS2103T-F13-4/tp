@@ -9,6 +9,7 @@ import java.nio.file.Path;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.parser.AddressBookParser;
 import seedu.address.model.ModelManager;
 import seedu.address.storage.JsonAddressBookStorage;
@@ -75,5 +76,35 @@ public class ClashWorkflowTest {
         assertTrue(result.contains("Bob, lesson 1"));
         result = parser.parseCommand("lesson-delete 1 2").execute(model).getFeedbackToUser();
         assertFalse(result.contains("Warning"));
+    }
+
+    // Archived students' lessons don't clash with active ones, so bringing a student back can double-book the
+    // tutor. Unarchive must warn then, as lesson-add would, but still bring the student back.
+    @Test
+    public void unarchive_lessonsClashWithActiveStudents_warnsAndUnarchives() throws Exception {
+        ModelManager model = new ModelManager();
+        model.addPerson(new PersonBuilder().withName("Alice").build());
+        model.addPerson(new PersonBuilder().withName("Carl").build());
+        AddressBookParser parser = new AddressBookParser();
+        parser.parseCommand("lesson-add 1 subject/Math slot/Mon 1.00pm 2.00pm rate/40").execute(model);
+        parser.parseCommand("archive 2").execute(model);
+        parser.parseCommand("list-archive").execute(model);
+        String result = parser.parseCommand("lesson-add 1 subject/Science slot/Mon 1.00pm 2.00pm rate/41")
+                .execute(model).getFeedbackToUser();
+        assertFalse(result.contains("Warning"));
+
+        CommandResult unarchived = parser.parseCommand("unarchive 1").execute(model);
+        assertTrue(unarchived.isWarning());
+        assertTrue(unarchived.getFeedbackToUser().startsWith("Unarchived student: Carl"));
+        assertTrue(unarchived.getFeedbackToUser().contains("Warning: Lesson 1 for Carl overlaps with 1 lesson(s):"
+                + "\n- Alice, lesson 1 (Math, Monday 1.00pm-2.00pm)"));
+        assertEquals(2, model.getAddressBook().getPersonList().size());
+
+        // Without a clash, unarchive stays a plain success.
+        parser.parseCommand("list").execute(model);
+        parser.parseCommand("archive 2").execute(model);
+        parser.parseCommand("lesson-edit 1 1 slot/Tue 1.00pm 2.00pm").execute(model);
+        parser.parseCommand("list-archive").execute(model);
+        assertFalse(parser.parseCommand("unarchive 1").execute(model).isWarning());
     }
 }

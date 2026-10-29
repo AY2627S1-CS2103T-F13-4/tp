@@ -83,6 +83,38 @@ public class MainAppTest {
     }
 
     @Test
+    public void initModelManager_nullListEntries_backsUpWholeFileAndStartsEmpty() throws Exception {
+        String validPerson = "{\"name\":\"Test Student\",\"phone\":\"91234567\","
+                + "\"email\":\"test@example.com\",\"address\":\"Test Road\"}";
+        for (String field : List.of("persons", "tags", "lessons", "notes", "followUps")) {
+            for (boolean archived : new boolean[] {false, true}) {
+                Path folder = Files.createDirectory(testFolder.resolve(field + archived));
+                Path dataFile = folder.resolve("studentbook.json");
+                String invalidPerson = field.equals("persons") ? "null"
+                        : validPerson.substring(0, validPerson.length() - 1)
+                                + ",\"isArchived\":" + archived + ",\"" + field + "\":[null]}";
+                String data = "{\"persons\":[" + validPerson + "," + invalidPerson + "]}";
+                Files.writeString(dataFile, data);
+                MainApp app = appWithData(dataFile);
+
+                assertTrue(app.model.getAddressBook().getPersonList().isEmpty());
+                assertTrue(app.model.getAddressBook().getArchivedPersonList().isEmpty());
+                List<Path> backups = backupsIn(folder);
+                assertEquals(1, backups.size());
+                byte[] originalBytes = Files.readAllBytes(dataFile);
+                assertArrayEquals(originalBytes, Files.readAllBytes(backups.get(0)));
+                assertFalse(app.isDataFileAtRisk);
+                assertTrue(app.dataFileWarning.contains(backups.get(0).toString()));
+                assertTrue(app.createUi() instanceof UiManager);
+
+                // A later successful command may save an empty book; the original must remain recoverable.
+                app.logic.execute("list");
+                assertArrayEquals(originalBytes, Files.readAllBytes(backups.get(0)));
+            }
+        }
+    }
+
+    @Test
     public void initModelManager_backupFails_closesWithoutChangingFile() throws IOException {
         // A folder in place of the data file cannot be read or backed up, like a file in a read-only folder.
         Path dataFile = Files.createDirectory(testFolder.resolve("studentbook.json"));
