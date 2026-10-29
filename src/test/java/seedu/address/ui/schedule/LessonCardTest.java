@@ -48,6 +48,17 @@ public class LessonCardTest {
     }
 
     @Test
+    public void constructor_lineCountOutsideOneToThree_throwsAssertionError() throws Exception {
+        FxTestUtil.runOnFxThread(() -> {
+            Lesson lesson = createLesson("Math", Optional.empty(), Optional.empty());
+            ScheduleEntry entry = new ScheduleEntry(new PersonBuilder().withLessons(lesson).build(), lesson, 1, 1);
+            // The card has layouts for one, two or three lines only; any other count is a caller bug.
+            assertThrows(AssertionError.class, () -> new LessonCard(entry, 0));
+            assertThrows(AssertionError.class, () -> new LessonCard(entry, 4));
+        });
+    }
+
+    @Test
     public void constructor_standardLesson_showsStudentExactTimesAndCommandNumber() throws Exception {
         FxTestUtil.runOnFxThread(() -> {
             Lesson lesson = new Lesson(new Subject("Math"),
