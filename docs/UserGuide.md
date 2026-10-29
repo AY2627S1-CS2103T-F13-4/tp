@@ -99,7 +99,8 @@ Examples:
 :bulb: **Tips:**<br>
 * A new student has no lessons or guardians. Add them with [`lesson-add`](#add-a-lesson-lesson-add) and [`guardian-add`](#add-a-guardian-guardian-add) respectively.
 * Each student needs a unique name. StudentBook rejects a name that is already used by an active or archived student.
-* Names are compared exactly as typed, so `Alex Tan` and `alex tan` count as different names. Avoid relying on this, as such students are easy to mix up.
+* Extra spaces in a name are removed, so `Alex   Tan` is saved as `Alex Tan`.
+* Capitalisation is kept as typed, so `Alex Tan` and `alex tan` count as different names. Avoid relying on this, as such students are easy to mix up.
 * Names may only contain letters, numbers and spaces. If two of your students share a name, add something that tells them apart, e.g. `Alex Tan Wei Ming`, `Alex Tan Sec 2` or `Alex Tan 2`.
 
 </div>
