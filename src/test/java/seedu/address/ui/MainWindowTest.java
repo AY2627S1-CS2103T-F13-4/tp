@@ -1333,7 +1333,12 @@ public class MainWindowTest {
                     + " stage=" + stage.getWidth() + "x" + stage.getHeight()
                     + " screen=" + javafx.stage.Screen.getPrimary().getVisualBounds()
                     + " scale=" + stage.getOutputScaleY());
-            assertTrue(rowBounds.getMaxY() < flowBounds.getMaxY() + 1, message + ": bottom below the list");
+            assertTrue(rowBounds.getMaxY() < flowBounds.getMaxY() + 1, message + ": bottom below the list DIAG top="
+                    + (rowBounds.getMinY() - flowBounds.getMinY()) + " row h=" + row.getHeight()
+                    + " flow h=" + flow.getHeight() + " flow w=" + flow.getWidth()
+                    + " scene=" + stage.getScene().getWidth() + "x" + stage.getScene().getHeight()
+                    + " stage=" + stage.getWidth() + "x" + stage.getHeight()
+                    + " screen=" + javafx.stage.Screen.getPrimary().getVisualBounds());
         });
     }
 
