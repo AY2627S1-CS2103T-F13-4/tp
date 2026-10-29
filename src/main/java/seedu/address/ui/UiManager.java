@@ -1,6 +1,7 @@
 package seedu.address.ui;
 
 import java.nio.file.Path;
+import java.util.function.Consumer;
 import java.util.logging.Logger;
 
 import javafx.application.Platform;
@@ -27,15 +28,17 @@ public class UiManager implements Ui {
     private Path dataFilePath;
     private String startupWarning;
     private MainWindow mainWindow;
+    private final Consumer<String> openDocument;
 
     /**
      * Creates a {@code UiManager} with the given {@code Logic}, the data file path
      * to show in the status bar, and a warning to show once the window opens, or null for none.
      */
-    public UiManager(Logic logic, Path dataFilePath, String startupWarning) {
+    public UiManager(Logic logic, Path dataFilePath, String startupWarning, Consumer<String> openDocument) {
         this.logic = logic;
         this.dataFilePath = dataFilePath;
         this.startupWarning = startupWarning;
+        this.openDocument = openDocument;
     }
 
     @Override
@@ -47,7 +50,7 @@ public class UiManager implements Ui {
 
         try {
             AppFonts.load();
-            mainWindow = new MainWindow(primaryStage, logic, dataFilePath);
+            mainWindow = new MainWindow(primaryStage, logic, dataFilePath, openDocument);
             mainWindow.show(); //This should be called before creating other UI parts
             mainWindow.fillInnerParts();
             if (startupWarning != null) {

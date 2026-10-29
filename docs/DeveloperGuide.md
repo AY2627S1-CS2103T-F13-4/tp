@@ -83,7 +83,6 @@ Abstract class `UiPart` captures common behaviour among classes representing vis
 |`CommandBox`|Command input box|
 |`StatusBarFooter`|Status bar footer|
 |`ResultDisplay`|Result display|
-|`HelpWindow`|Help window|
 |`PersonListPanel`|Student list display|
 |`PersonCard`|Individual student display|
 |`WeekPanel`|Weekly schedule header|
@@ -657,7 +656,7 @@ For larger or boundary-value data sets, generate a data file with `./gradlew see
 5. Run `add name/Ryan`. The result row should show the description, a **Format** line and an **Example** line in a monospace font.
 6. Run two commands, then press Up twice and Down twice. The box should show the earlier commands, then what you had typed. Press Esc; the box should clear.
 7. With more students than fit, press Esc in the empty command box to clear the selected student, then press Page Down and Page Up. The list should scroll, and typing should still go into the box. Run `view INDEX` for a student with long details, then press Page Down and Page Up again; the sidebar should scroll while the list and selection stay in place.
-8. Press F1, then Esc. The help window should close.
+8. Press F1 with the window focused. The user guide should open in the default browser. Check that clicking **All commands**, choosing **Help → Help**, and running `help` open the same guide without an extra app window.
 9. Run `list`, then `view 1` and `view 2`. The sidebar should switch to the indicated student while the list cards stay compact. With the command box empty, press Esc to clear the selection and show the sidebar's prompt. Press Alt+Down twice; the second student's details should appear in the sidebar, with focus still in the command box. Run `find` with one student's name; the sidebar should show their details.
 10. Add a student with a long name, several lessons and a long address, then run `view INDEX` for that student. Shrink the window to its minimum size. The list and sidebar should remain side by side, and the text should wrap. Use Page Down or scroll within the sidebar to reach all the student's information without scrolling the list; long command results should also remain scrollable.
 
