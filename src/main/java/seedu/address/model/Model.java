@@ -11,6 +11,8 @@ import seedu.address.model.person.Student;
 
 /**
  * The API of the Model component.
+ * Data mutations preserve the active and archived student filters, the calendar lesson filter,
+ * and the selected archive view. Observable lists reflect the updated data using the existing filters.
  */
 public interface Model {
     /** {@code Predicate} that always evaluates to true */

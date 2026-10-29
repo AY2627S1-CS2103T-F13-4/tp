@@ -247,18 +247,23 @@ Bare name keywords retain whole-word, case-insensitive OR matching through `Name
 
 `LessonMatchesPredicate` stays separate: subject and day must match the same lesson. The student predicate
 requires at least one such lesson, and `FindCommand` passes that same lesson filter to the model for `week`.
-A later search without lesson criteria
-resets the lesson filter; `list` clears the entire search. `EditCommand`, including school changes and
-clearing a school, clears both student and lesson filters and displays all students after a successful edit.
+A later search without lesson criteria resets the lesson filter; `list` clears the active search and
+`list-archive` clears the archived search. Data mutations, including adding, editing, archiving and
+unarchiving students, preserve both student lists' filters, the active calendar lesson filter and the
+selected archive view. The observable lists automatically apply their existing predicates to changed data.
+An edited student who no longer matches disappears from the results; a newly added or transferred student
+appears only if they match the destination list's filter. Remaining students are renumbered.
 
 Search logging uses the existing `LogsCenter` framework. The parser logs selected prefix names and rejection
 reasons at `FINE`; the command logs the result count at `INFO`. These search-specific diagnostics omit search
 values. Existing command-level logging in `LogicManager` still records raw commands. Logs go to the console
 and rotating `studentbook.log.*` files; set `LOG_LEVEL` in `LogsCenter` to `Level.FINE` for parser diagnostics.
 
-Tests: `StudentSearchPredicateTest`, `LessonFilterPredicateTest`, `FindCommandParserTest` and `FindLoggingTest`
+Tests: `StudentSearchPredicateTest`, `LessonFilterPredicateTest`, `FindCommandParserTest`,
+`FilterPreservationTest` and `FindLoggingTest`
 cover contact and school substrings, absent fields, searches without lessons, all criteria combined, same-lesson
-and calendar filtering, bare-name compatibility, filter resets, school edits through `EditCommand`, invalid
+and calendar filtering, bare-name compatibility, explicit filter resets, filter preservation during mutations,
+school edits through `EditCommand`, invalid
 input, prefix ordering, equality, defensive checks and logging.
 
 ### Guardian follow-ups <!-- Move to model...? -->

@@ -115,19 +115,16 @@ public class ModelManager implements Model {
     @Override
     public void archivePerson(Student target) {
         addressBook.archivePerson(target);
-        updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS);
     }
 
     @Override
     public void unarchivePerson(Student target) {
         addressBook.unarchivePerson(target);
-        updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS);
     }
 
     @Override
     public void addPerson(Student person) {
         addressBook.addPerson(person);
-        updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS);
     }
 
     @Override
