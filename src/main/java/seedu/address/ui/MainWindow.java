@@ -475,6 +475,8 @@ public class MainWindow extends UiPart<Stage> {
      * @see seedu.address.logic.Logic#execute(String)
      */
     private CommandResult executeCommand(String commandText) throws CommandException, ParseException {
+        Student activeDetails = personListPanel.getOpenStudent();
+        Student archivedDetails = archivedPersonListPanel.getOpenStudent();
         try {
             CommandResult commandResult = logic.execute(commandText);
             resultDisplay.setRecent(commandBox.recent(RECENT_COMMANDS));
@@ -497,11 +499,9 @@ public class MainWindow extends UiPart<Stage> {
 
             return commandResult;
         } catch (CommandException | ParseException e) {
-            // A save can fail after a command switches the model's list. Keep the visible rows consistent
-            // with the indices the next command will use, without changing screens for ordinary errors.
-            if (logic.isArchiveView() != archivedPersonListPanel.getRoot().isVisible()) {
-                showScreen(logic.isArchiveView() ? CommandResult.Screen.ARCHIVE : CommandResult.Screen.STUDENTS);
-            }
+            personListPanel.restoreOpenStudent(activeDetails);
+            archivedPersonListPanel.restoreOpenStudent(archivedDetails);
+            // Failed saves restore the model's list selection; keep the screen that was visible before the command.
             resultDisplay.setErrorToUser(e.getMessage());
             throw e;
         }

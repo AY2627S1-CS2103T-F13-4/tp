@@ -84,7 +84,7 @@ public class MainApp extends Application {
      * Returns a {@code ModelManager} with the data from {@code storage}'s address book and {@code userPrefs}. <br>
      * The data from the sample address book will be used instead if {@code storage}'s address book is not found,
      * or an empty address book will be used instead if errors occur when reading {@code storage}'s address book.
-     * The unreadable file is copied to a backup first, since the next command saves over it.
+     * The unreadable file is copied to a backup first, since the next record change saves over it.
      */
     Model initModelManager(Storage storage, ReadOnlyUserPrefs userPrefs) {
         logger.info("Using data file : " + storage.getAddressBookFilePath());
@@ -108,7 +108,7 @@ public class MainApp extends Application {
                 logger.info("Backed up the data file to " + backup);
                 dataFileWarning = "Could not read " + dataFile + ", so StudentBook started with no students.\n"
                         + "Your old file is kept at " + backup + ". "
-                        + "Your next command saves over " + dataFile + ".\n"
+                        + "Your next record change saves over " + dataFile + ".\n"
                         + "To restore it, close StudentBook, fix the backup and rename it to "
                         + dataFile.getFileName() + ".";
             } catch (IOException backupError) {
