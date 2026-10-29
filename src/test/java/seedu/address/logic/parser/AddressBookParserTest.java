@@ -13,7 +13,6 @@ import static seedu.address.testutil.TypicalPersons.BENSON;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.Test;
@@ -27,12 +26,15 @@ import seedu.address.logic.commands.EditCommand;
 import seedu.address.logic.commands.EditCommand.EditPersonDescriptor;
 import seedu.address.logic.commands.ExitCommand;
 import seedu.address.logic.commands.FindCommand;
-import seedu.address.logic.commands.FollowUpCommand;
+import seedu.address.logic.commands.FollowUpAddCommand;
+import seedu.address.logic.commands.FollowUpDoneCommand;
+import seedu.address.logic.commands.FollowUpEditCommand;
 import seedu.address.logic.commands.FollowUpListCommand;
 import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.ListArchiveCommand;
 import seedu.address.logic.commands.ListCommand;
-import seedu.address.logic.commands.NoteCommand;
+import seedu.address.logic.commands.NoteAddCommand;
+import seedu.address.logic.commands.NoteDeleteCommand;
 import seedu.address.logic.commands.SortCommand;
 import seedu.address.logic.commands.UnarchiveCommand;
 import seedu.address.logic.commands.ViewCommand;
@@ -106,30 +108,26 @@ public class AddressBookParserTest {
 
     @Test
     public void parseCommand_noteAdd() throws Exception {
-        NoteCommand command = (NoteCommand) parser.parseCommand(
-                NoteCommand.ADD_COMMAND_WORD + " 1 date/2026-10-15 text/Fractions");
-        assertEquals(new NoteCommand(INDEX_FIRST_PERSON, NoteCommand.Operation.ADD, Optional.empty(),
-                Optional.of(new ProgressNote(LocalDate.of(2026, 10, 15), "Fractions"))), command);
+        NoteAddCommand command = (NoteAddCommand) parser.parseCommand(
+                NoteAddCommand.COMMAND_WORD + " 1 date/2026-10-15 text/Fractions");
+        assertEquals(new NoteAddCommand(INDEX_FIRST_PERSON,
+                new ProgressNote(LocalDate.of(2026, 10, 15), "Fractions")), command);
     }
 
     @Test
     public void parseCommand_noteDelete() throws Exception {
-        NoteCommand command = (NoteCommand) parser.parseCommand(NoteCommand.DELETE_COMMAND_WORD + " 1 1");
-        assertEquals(new NoteCommand(INDEX_FIRST_PERSON, NoteCommand.Operation.DELETE,
-                Optional.of(INDEX_FIRST_PERSON), Optional.empty()), command);
+        NoteDeleteCommand command = (NoteDeleteCommand) parser.parseCommand(NoteDeleteCommand.COMMAND_WORD + " 1 1");
+        assertEquals(new NoteDeleteCommand(INDEX_FIRST_PERSON, INDEX_FIRST_PERSON), command);
     }
 
     @Test
     public void parseCommand_followUpCommands() throws Exception {
-        assertEquals(new FollowUpCommand(INDEX_FIRST_PERSON, FollowUpCommand.Operation.ADD, Optional.empty(),
-                Optional.of(new FollowUp("Send report"))),
-                parser.parseCommand(FollowUpCommand.ADD_COMMAND_WORD + " 1 text/Send report"));
-        assertEquals(new FollowUpCommand(INDEX_FIRST_PERSON, FollowUpCommand.Operation.EDIT,
-                Optional.of(INDEX_FIRST_PERSON), Optional.of(new FollowUp("Call"))),
-                parser.parseCommand(FollowUpCommand.EDIT_COMMAND_WORD + " 1 1 text/Call"));
-        assertEquals(new FollowUpCommand(INDEX_FIRST_PERSON, FollowUpCommand.Operation.DONE,
-                Optional.of(INDEX_FIRST_PERSON), Optional.empty()),
-                parser.parseCommand(FollowUpCommand.DONE_COMMAND_WORD + " 1 1"));
+        assertEquals(new FollowUpAddCommand(INDEX_FIRST_PERSON, new FollowUp("Send report")),
+                parser.parseCommand(FollowUpAddCommand.COMMAND_WORD + " 1 text/Send report"));
+        assertEquals(new FollowUpEditCommand(INDEX_FIRST_PERSON, INDEX_FIRST_PERSON, new FollowUp("Call")),
+                parser.parseCommand(FollowUpEditCommand.COMMAND_WORD + " 1 1 text/Call"));
+        assertEquals(new FollowUpDoneCommand(INDEX_FIRST_PERSON, INDEX_FIRST_PERSON),
+                parser.parseCommand(FollowUpDoneCommand.COMMAND_WORD + " 1 1"));
         assertTrue(parser.parseCommand(FollowUpListCommand.COMMAND_WORD) instanceof FollowUpListCommand);
         assertTrue(parser.parseCommand(FollowUpListCommand.COMMAND_WORD + " 3") instanceof FollowUpListCommand);
     }

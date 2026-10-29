@@ -3,11 +3,9 @@ package seedu.address.logic.parser;
 import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 import static seedu.address.logic.Messages.MESSAGE_UNKNOWN_COMMAND;
 
-import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import seedu.address.commons.core.LogsCenter;
 import seedu.address.logic.commands.AddCommand;
 import seedu.address.logic.commands.ArchiveCommand;
 import seedu.address.logic.commands.ClearCommand;
@@ -16,15 +14,21 @@ import seedu.address.logic.commands.DeleteCommand;
 import seedu.address.logic.commands.EditCommand;
 import seedu.address.logic.commands.ExitCommand;
 import seedu.address.logic.commands.FindCommand;
-import seedu.address.logic.commands.FollowUpCommand;
+import seedu.address.logic.commands.FollowUpAddCommand;
+import seedu.address.logic.commands.FollowUpDoneCommand;
+import seedu.address.logic.commands.FollowUpEditCommand;
 import seedu.address.logic.commands.FollowUpListCommand;
-import seedu.address.logic.commands.GuardianCommand;
-import seedu.address.logic.commands.GuardianCommand.Operation;
+import seedu.address.logic.commands.GuardianAddCommand;
+import seedu.address.logic.commands.GuardianDeleteCommand;
+import seedu.address.logic.commands.GuardianEditCommand;
 import seedu.address.logic.commands.HelpCommand;
-import seedu.address.logic.commands.LessonCommand;
+import seedu.address.logic.commands.LessonAddCommand;
+import seedu.address.logic.commands.LessonDeleteCommand;
+import seedu.address.logic.commands.LessonEditCommand;
 import seedu.address.logic.commands.ListArchiveCommand;
 import seedu.address.logic.commands.ListCommand;
-import seedu.address.logic.commands.NoteCommand;
+import seedu.address.logic.commands.NoteAddCommand;
+import seedu.address.logic.commands.NoteDeleteCommand;
 import seedu.address.logic.commands.SortCommand;
 import seedu.address.logic.commands.UnarchiveCommand;
 import seedu.address.logic.commands.ViewCommand;
@@ -40,7 +44,6 @@ public class AddressBookParser {
      * Used for initial separation of command word and args.
      */
     private static final Pattern BASIC_COMMAND_FORMAT = Pattern.compile("(?<commandWord>\\S+)(?<arguments>.*)");
-    private static final Logger logger = LogsCenter.getLogger(AddressBookParser.class);
 
     /**
      * Parses user input into command for execution.
@@ -58,30 +61,18 @@ public class AddressBookParser {
         final String commandWord = matcher.group("commandWord");
         final String arguments = matcher.group("arguments");
 
-        // Note to developers: Change LOG_LEVEL in LogsCenter to enable lower level (i.e., FINE, FINER and lower)
-        // log messages such as the one below.
-        // Lower level log messages are used sparingly to minimize noise in the code.
-        logger.fine("Command word: " + commandWord + "; Arguments: " + arguments);
-
         return switch (commandWord) {
-            case GuardianCommand.ADD_COMMAND_WORD -> new GuardianCommandParser(Operation.ADD).parse(arguments);
-            case GuardianCommand.EDIT_COMMAND_WORD -> new GuardianCommandParser(Operation.EDIT).parse(arguments);
-            case GuardianCommand.DELETE_COMMAND_WORD -> new GuardianCommandParser(Operation.DELETE).parse(arguments);
-            case LessonCommand.ADD_COMMAND_WORD ->
-                new LessonCommandParser(LessonCommand.Operation.ADD).parse(arguments);
-            case LessonCommand.EDIT_COMMAND_WORD ->
-                new LessonCommandParser(LessonCommand.Operation.EDIT).parse(arguments);
-            case LessonCommand.DELETE_COMMAND_WORD ->
-                new LessonCommandParser(LessonCommand.Operation.DELETE).parse(arguments);
-            case NoteCommand.ADD_COMMAND_WORD -> new NoteCommandParser(NoteCommand.Operation.ADD).parse(arguments);
-            case NoteCommand.DELETE_COMMAND_WORD ->
-                new NoteCommandParser(NoteCommand.Operation.DELETE).parse(arguments);
-            case FollowUpCommand.ADD_COMMAND_WORD ->
-                new FollowUpCommandParser(FollowUpCommand.Operation.ADD).parse(arguments);
-            case FollowUpCommand.EDIT_COMMAND_WORD ->
-                new FollowUpCommandParser(FollowUpCommand.Operation.EDIT).parse(arguments);
-            case FollowUpCommand.DONE_COMMAND_WORD ->
-                new FollowUpCommandParser(FollowUpCommand.Operation.DONE).parse(arguments);
+            case GuardianAddCommand.COMMAND_WORD -> new GuardianAddCommandParser().parse(arguments);
+            case GuardianEditCommand.COMMAND_WORD -> new GuardianEditCommandParser().parse(arguments);
+            case GuardianDeleteCommand.COMMAND_WORD -> new GuardianDeleteCommandParser().parse(arguments);
+            case LessonAddCommand.COMMAND_WORD -> new LessonAddCommandParser().parse(arguments);
+            case LessonEditCommand.COMMAND_WORD -> new LessonEditCommandParser().parse(arguments);
+            case LessonDeleteCommand.COMMAND_WORD -> new LessonDeleteCommandParser().parse(arguments);
+            case NoteAddCommand.COMMAND_WORD -> new NoteAddCommandParser().parse(arguments);
+            case NoteDeleteCommand.COMMAND_WORD -> new NoteDeleteCommandParser().parse(arguments);
+            case FollowUpAddCommand.COMMAND_WORD -> new FollowUpAddCommandParser().parse(arguments);
+            case FollowUpEditCommand.COMMAND_WORD -> new FollowUpEditCommandParser().parse(arguments);
+            case FollowUpDoneCommand.COMMAND_WORD -> new FollowUpDoneCommandParser().parse(arguments);
             case FollowUpListCommand.COMMAND_WORD -> new FollowUpListCommand();
             case AddCommand.COMMAND_WORD -> new AddCommandParser().parse(arguments);
             case EditCommand.COMMAND_WORD -> new EditCommandParser().parse(arguments);
@@ -98,7 +89,6 @@ public class AddressBookParser {
             case ExitCommand.COMMAND_WORD -> new ExitCommand();
             case HelpCommand.COMMAND_WORD -> new HelpCommand();
             default -> {
-                logger.finer("This user input caused a ParseException: " + userInput);
                 throw new ParseException(MESSAGE_UNKNOWN_COMMAND);
             }
         };

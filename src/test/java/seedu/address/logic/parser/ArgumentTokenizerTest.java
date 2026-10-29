@@ -137,6 +137,34 @@ public class ArgumentTokenizerTest {
     }
 
     @Test
+    public void tokenizeWithTrailingValue_trailingPrefixAbsent_sameAsTokenize() {
+        String argsString = "SomePreambleString -t dashT-Value -t another ^Q111";
+        ArgumentMultimap argMultimap = ArgumentTokenizer.tokenizeWithTrailingValue(argsString, pSlash, dashT, hatQ);
+        assertPreamblePresent(argMultimap, "SomePreambleString");
+        assertArgumentPresent(argMultimap, dashT, "dashT-Value", "another");
+        assertArgumentPresent(argMultimap, hatQ, "111");
+        assertArgumentAbsent(argMultimap, pSlash);
+    }
+
+    @Test
+    public void tokenizeWithTrailingValue_prefixesInTrailingValue_keptVerbatim() {
+        String argsString = "Some preamble -t dashT-Value p/ pSlash value p/again -t not a prefix ^Q ";
+        ArgumentMultimap argMultimap = ArgumentTokenizer.tokenizeWithTrailingValue(argsString, pSlash, dashT, hatQ);
+        assertPreamblePresent(argMultimap, "Some preamble");
+        assertArgumentPresent(argMultimap, dashT, "dashT-Value");
+        assertArgumentPresent(argMultimap, pSlash, "pSlash value p/again -t not a prefix ^Q");
+        assertArgumentAbsent(argMultimap, hatQ);
+    }
+
+    @Test
+    public void tokenizeWithTrailingValue_emptyTrailingValue() {
+        ArgumentMultimap argMultimap = ArgumentTokenizer.tokenizeWithTrailingValue(" 1 -t value p/   ", pSlash, dashT);
+        assertPreamblePresent(argMultimap, "1");
+        assertArgumentPresent(argMultimap, dashT, "value");
+        assertArgumentPresent(argMultimap, pSlash, "");
+    }
+
+    @Test
     public void equalsMethod() {
         Prefix aaa = new Prefix("aaa");
 

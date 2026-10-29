@@ -17,11 +17,11 @@ public class UnarchiveCommand extends Command {
 
     public static final String COMMAND_WORD = "unarchive";
     public static final String MESSAGE_USAGE = COMMAND_WORD
-            + ": Unarchives the person identified by the index number used in the displayed person list.\n"
-            + "Parameters: INDEX (must be a positive integer)\n"
+            + ": Unarchives the student identified by the index number used in the displayed student list\n"
+            + "Parameters: STUDENT_INDEX\n"
             + "Example: " + COMMAND_WORD + " 1";
-    public static final String MESSAGE_UNARCHIVE_PERSON_SUCCESS = "Unarchived person: %1$s";
-    public static final String MESSAGE_ALREADY_UNARCHIVED = "This person is already unarchived.";
+    public static final String MESSAGE_UNARCHIVE_PERSON_SUCCESS = "Unarchived student: %1$s";
+    public static final String MESSAGE_ALREADY_UNARCHIVED = "This student is already unarchived";
 
     private final Index index;
 
@@ -48,6 +48,14 @@ public class UnarchiveCommand extends Command {
 
         model.unarchivePerson(personToUnarchive);
 
-        return new CommandResult(String.format(MESSAGE_UNARCHIVE_PERSON_SUCCESS, Messages.format(personToUnarchive)));
+        String message = String.format(MESSAGE_UNARCHIVE_PERSON_SUCCESS, Messages.format(personToUnarchive));
+        // Archived lessons were not checked against active ones, so returning the student can double-book.
+        Student unarchived = personToUnarchive.withArchived(false);
+        List<Student> activeStudents = model.getAddressBook().getPersonList();
+        StringBuilder warnings = new StringBuilder();
+        for (int i = 0; i < unarchived.getLessons().size(); i++) {
+            warnings.append(LessonClashes.warning(activeStudents, unarchived, i));
+        }
+        return warnings.isEmpty() ? new CommandResult(message) : CommandResult.warning(message + warnings);
     }
 }

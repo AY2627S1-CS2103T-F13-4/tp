@@ -51,6 +51,7 @@ Type commands in the box at the top and press **Enter**.
 | Up / Down | Previous commands |
 | Esc | Clear the box |
 | Alt+Up / Alt+Down | Scroll the calendar, or move between students |
+| Ctrl+L (Cmd+L on macOS) | Move the cursor to the command box |
 | F1 | Help |
 
 ## Features
@@ -88,6 +89,8 @@ Type commands in the box at the top and press **Enter**.
 
 Adds a student to StudentBook
 
+After adding, StudentBook switches to **Students**, clears the active search and opens the new student's details.
+
 Format: `add name/NAME phone/PHONE_NUMBER email/EMAIL address/ADDRESS [tag/TAG]... [sch/SCHOOL] [level/SCHOOLING_LEVEL]`
 
 Examples:
@@ -98,7 +101,12 @@ Examples:
 
 :bulb: **Tips:**<br>
 * A new student has no lessons or guardians. Add them with [`lesson-add`](#add-a-lesson-lesson-add) and [`guardian-add`](#add-a-guardian-guardian-add) respectively.
-* The added student cannot share a name with an existing one (case-sensitive).
+* Phone numbers have 7 to 15 digits. You can add a `+` country code and separate digits with spaces or hyphens, e.g. `+65 9123 4567`, which is saved as `+6591234567`. Guardian phones follow the same rules.
+* Each student needs a unique name. StudentBook rejects a name that is already used by an active or archived student.
+* Extra spaces in a name are removed, so `Alex   Tan` is saved as `Alex Tan`.
+* Capitalisation is kept as typed, so `Alex Tan` and `alex tan` count as different names. Avoid relying on this, as such students are easy to mix up.
+* Names must start with a letter or number. They can contain Unicode letters and accents, numbers, spaces, apostrophes, hyphens and periods, e.g. `Mary-Ann O'Brien` or `Zoë Ng`. Slashes are supported in the relationship terms `s/o` and `d/o`, e.g. `Ravi s/o Kumar`. Guardian names follow the same rules.
+* If two of your students share a name, add something that tells them apart, e.g. `Alex Tan Wei Ming`, `Alex Tan Sec 2` or `Alex Tan 2`.
 
 </div>
 
@@ -161,6 +169,7 @@ Examples:
 
 :bulb: **Tips:**<br>
 * To edit a student's lessons or guardians, use [`lesson-edit`](#edit-a-lesson-lesson-edit) and [`guardian-edit`](#edit-a-guardian-guardian-edit) respectively.
+* A new name must follow the same rules as in [`add`](#add-a-student-add): it cannot match another active or archived student's name.
 
 </div>
 
@@ -201,6 +210,13 @@ Format: `find [name/TEXT] [guardian/TEXT] [sch/TEXT] [level/TEXT] [subject/TEXT]
 * When multiple lesson-related criteria are specified, the same lesson must match all criteria
 * Day may be specified with three-letter or full names
 
+Search filters stay in place when you edit, delete, archive or restore students, or change their lessons
+and other details. A student who no longer matches disappears from the results, and remaining students are
+renumbered. Restored students appear in the active results only if they match the active search. Adding a
+student clears the active search and the calendar's lesson filter so that the new student is shown.
+The active and archived lists retain separate searches, and the weekly calendar retains the active lesson
+filter. Run `list` or `list-archive` to show all students in that list, or `find` to replace its search.
+
 Examples:
 * `find level/prim` matches `Primary 5`.
 * `find day/Mon` matches students with a lesson on Monday.
@@ -222,17 +238,17 @@ Deletes all students from StudentBook.
 
 Format: `clear`
 
+* In **Archives** (after `list-archive`), `clear` deletes only the archived students and keeps your active students.
+
 ### View help: `help`
 
-Displays link to this guide and location of data file.
+Opens this user guide in your default web browser. An internet connection is required to load the guide.
 
 Format: `help`
 
 * Alternate hotkey: **F1**
-* Press **Enter** to copy the link
-* Press **Esc** to close the window and return to the command box
-
-![Help window](images/helpMessage.png)
+* You can also click **All commands** or choose **Help → Help** from the menu.
+* The location of your data file is shown in the app's footer.
 
 ### Exit: `exit`
 
@@ -327,7 +343,7 @@ Adds a dated progress note to a student, such as what you covered in a lesson or
 Format: `note-add STUDENT_INDEX date/DATE text/TEXT`
 
 * Both `date/` and `text/` are required.
-* `DATE` is a real date in `YYYY-MM-DD` format, such as `2026-10-15`. It cannot be later than today.
+* `DATE` is a real date in `YYYY-MM-DD` format, such as `2026-10-15`. It cannot be earlier than `2000-01-01` or later than today.
 * `TEXT` is 1 to 500 characters on one line. Spaces at the start and end are removed.
 * Notes are listed oldest first in the student's details, each with its number, date and text. A note dated earlier than existing notes is placed before them, and notes on the same date stay in the order you added them.
 * Adding a note with the same date and text as an existing note of that student is rejected.
@@ -353,7 +369,7 @@ Adds something you still need to do for a student's guardian, such as sending a 
 
 Format: `followup-add STUDENT_INDEX text/TEXT`
 
-* `TEXT` is 1 to 200 characters on one line. Spaces at the start and end are removed.
+* `TEXT` is 1 to 200 characters on one line. Spaces at the start and end are removed, and repeated spaces between words become one.
 * The follow-up is added at the end of the student's list. Follow-ups appear in the student's details, under the guardian, with their numbers.
 * A follow-up that reads the same as another one of that student (ignoring letter case) is rejected.
 * A student does not need a guardian to have follow-ups, and `guardian-delete` keeps them.
@@ -397,7 +413,10 @@ Format: `followups`
 
 ## Saving and transferring records
 
-StudentBook saves automatically to `data/studentbook.json`, in the folder you start it from.
+StudentBook saves record changes automatically to `data/studentbook.json`, in the folder you start it from.
+
+If saving fails, your records stay unchanged. Fix the reported problem and retry the command.
+Viewing and searching do not save.
 
 To move to another computer, copy that file into the same place on the new computer.
 
@@ -408,7 +427,7 @@ To move to another computer, copy that file into the same place on the new compu
 ## Known issues
 
 * **Window opens off-screen:** Close the app and delete `preferences.json`, then restart it. This resets the saved window position.
-* **Help window stays minimized:** Restore the existing help window manually. Running `help` again does not restore it.
+* **User guide does not open:** Check your default browser and internet connection. You can open the [user guide](https://ay2627s1-cs2103t-f13-4.github.io/tp/UserGuide.html) manually.
 
 ### Lesson clash warnings
 

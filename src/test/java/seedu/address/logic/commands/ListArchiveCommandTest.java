@@ -78,7 +78,8 @@ public class ListArchiveCommandTest {
         expectedModel = new ModelManager();
         expectedModel.setArchiveView(true);
 
-        assertCommandSuccess(new ListArchiveCommand(), model, SHOWS_TABLE, expectedModel);
+        assertCommandSuccess(new ListArchiveCommand(), model,
+                new CommandResult(ListArchiveCommand.MESSAGE_NONE, CommandResult.Screen.ARCHIVE), expectedModel);
     }
 
     @Test
@@ -88,7 +89,8 @@ public class ListArchiveCommandTest {
         expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs());
         expectedModel.setArchiveView(true);
 
-        assertCommandSuccess(new ListArchiveCommand(), model, SHOWS_TABLE, expectedModel);
+        assertCommandSuccess(new ListArchiveCommand(), model,
+                new CommandResult(ListArchiveCommand.MESSAGE_NONE, CommandResult.Screen.ARCHIVE), expectedModel);
     }
 
     @Test

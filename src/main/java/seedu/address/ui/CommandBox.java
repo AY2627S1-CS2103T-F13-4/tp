@@ -34,15 +34,18 @@ public class CommandBox extends UiPart<Region> {
     private final CommandHistory history = new CommandHistory();
     private IntConsumer pageScroller = direction -> { };
     private IntConsumer detailsMover = direction -> { };
+    private IntConsumer sideScroller = direction -> { };
     private Runnable detailsCloser = () -> { };
     private Supplier<Optional<String>> exampleSupplier = Optional::empty;
-    /** True after Alt+Up or Alt+Down, so releasing Alt does not also open the window's menu bar. */
+    /** True after an Alt shortcut, so releasing Alt does not also open the window's menu bar. */
     private boolean altShortcutUsed;
 
     @FXML
     private TextField commandTextField;
     @FXML
     private HBox keyHints;
+    @FXML
+    private Label altKeys;
     @FXML
     private Label altHint;
 
@@ -86,6 +89,14 @@ public class CommandBox extends UiPart<Region> {
     }
 
     /**
+     * Sets what Alt+Left (-1) and Alt+Right (1) do in an empty box, e.g. scroll the calendar sideways. With text
+     * in the box they keep moving the cursor by word.
+     */
+    public void setSideScroller(IntConsumer sideScroller) {
+        this.sideScroller = requireNonNull(sideScroller);
+    }
+
+    /**
      * Sets where Tab finds an example command to put in the box, e.g. the Example of the last usage error.
      */
     public void setExampleSupplier(Supplier<Optional<String>> exampleSupplier) {
@@ -93,9 +104,11 @@ public class CommandBox extends UiPart<Region> {
     }
 
     /**
-     * Sets what the Alt+Up/Down hint says the keys do on the current screen, e.g. "Details" or "Scroll".
+     * Sets which Alt keys the hint shows for the current screen, e.g. "Alt ↑↓", and what it says they do,
+     * e.g. "Details" or "Scroll".
      */
-    public void setAltHint(String action) {
+    public void setAltHint(String keys, String action) {
+        altKeys.setText(keys);
         altHint.setText(action);
     }
 
@@ -162,7 +175,8 @@ public class CommandBox extends UiPart<Region> {
     /**
      * Handles the keyboard shortcuts of the command box: Up and Down for history, Esc to clear (or, in an empty
      * box, to close a student's details), Alt+Up and Alt+Down to step through students' details (or scroll the
-     * calendar), Tab to put the last usage error's example in the box, and Page Up and Page Down to scroll.
+     * calendar), Alt+Left and Alt+Right in an empty box to scroll the calendar sideways, Tab to put the last
+     * usage error's example in the box, and Page Up and Page Down to scroll.
      * Every shortcut uses keys that laptop keyboards have; Page Up and Page Down are only an extra.
      */
     private void handleKey(KeyEvent event) {
@@ -174,6 +188,10 @@ public class CommandBox extends UiPart<Region> {
         if (event.isAltDown() && (code == KeyCode.UP || code == KeyCode.DOWN)) {
             altShortcutUsed = true;
             detailsMover.accept(code == KeyCode.UP ? -1 : 1);
+        } else if (event.isAltDown() && (code == KeyCode.LEFT || code == KeyCode.RIGHT)
+                && commandTextField.getText().isEmpty()) {
+            altShortcutUsed = true;
+            sideScroller.accept(code == KeyCode.LEFT ? -1 : 1);
         } else if (code == KeyCode.TAB && !event.isShiftDown()) {
             // Tab never moves focus away: the command box is the only place to type.
             exampleSupplier.get().ifPresent(this::replaceText);
@@ -196,7 +214,7 @@ public class CommandBox extends UiPart<Region> {
     }
 
     /**
-     * On Windows and Linux, releasing Alt on its own focuses the menu bar. After Alt+Up or Alt+Down the user is
+     * On Windows and Linux, releasing Alt on its own focuses the menu bar. After an Alt shortcut the user is
      * still typing, so that release is kept from the menu bar.
      */
     private void handleAltRelease(KeyEvent event) {

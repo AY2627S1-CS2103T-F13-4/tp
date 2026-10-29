@@ -27,11 +27,15 @@ import static seedu.address.logic.commands.CommandTestUtil.VALID_SCHOOL_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_TAG_FRIEND;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_TAG_HUSBAND;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_ADDRESS;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_DATE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_EMAIL;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_LEVEL;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_RATE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_SCHOOL;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_SUBJECT;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_TAG;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_TEXT;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseFailure;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseSuccess;
 import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
@@ -235,6 +239,31 @@ public class EditCommandParserTest {
                 .withSchool(VALID_SCHOOL_AMY).build();
         assertParseSuccess(parser, userInput + SCHOOL_DESC_AMY,
                 new EditCommand(INDEX_FIRST_PERSON, descriptorWithSchool));
+    }
+
+    @Test
+    public void parse_slashInAddress_success() {
+        // Day/ differs in case from day/, so it stays in the address
+        assertParseSuccess(parser, "1 address/Blk 5 Day/Night Road", new EditCommand(INDEX_FIRST_PERSON,
+                new EditPersonDescriptorBuilder().withAddress("Blk 5 Day/Night Road").build()));
+
+        // rate/ without whitespace before it is not a prefix
+        assertParseSuccess(parser, "1 address/1 Road xrate/40", new EditCommand(INDEX_FIRST_PERSON,
+                new EditPersonDescriptorBuilder().withAddress("1 Road xrate/40").build()));
+    }
+
+    @Test
+    public void parse_otherCommandPrefix_failure() {
+        // lesson fields after the address are rejected instead of being read into it
+        assertParseFailure(parser, "1 address/New Road rate/50",
+                Messages.getErrorMessageForUnsupportedPrefixes(PREFIX_RATE));
+
+        // a foreign prefix right after the index is named, not reported as an invalid format
+        assertParseFailure(parser, "1 subject/Math", Messages.getErrorMessageForUnsupportedPrefixes(PREFIX_SUBJECT));
+
+        // only StudentBook prefixes are named, so c/o in the address is not
+        assertParseFailure(parser, "1 address/Blk 5 c/o John text/hi date/2026-01-01",
+                Messages.getErrorMessageForUnsupportedPrefixes(PREFIX_DATE, PREFIX_TEXT));
     }
 
     @Test

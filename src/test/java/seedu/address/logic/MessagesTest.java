@@ -1,6 +1,7 @@
 package seedu.address.logic;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static seedu.address.testutil.Assert.assertThrows;
 
 import java.math.BigDecimal;
 import java.time.DayOfWeek;
@@ -75,5 +76,11 @@ public class MessagesTest {
         Student cleared = new PersonBuilder(person).withLessons().build();
 
         assertEquals(PERSON_DETAILS, Messages.format(cleared));
+    }
+
+    @Test
+    public void getErrorMessageForUnsupportedPrefixes_noPrefixes_throwsAssertionError() {
+        // Callers report only prefixes they found, so an empty list means a caller bug, not a message to show.
+        assertThrows(AssertionError.class, () -> Messages.getErrorMessageForUnsupportedPrefixes());
     }
 }

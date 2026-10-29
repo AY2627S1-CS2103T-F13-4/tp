@@ -27,6 +27,8 @@ import seedu.address.model.person.StudentSearchPredicate;
  * Parses input arguments and creates a new FindCommand object
  */
 public class FindCommandParser implements Parser<FindCommand> {
+    public static final String MESSAGE_INVALID_DAY = "Lesson day must be a three-letter or full weekday name";
+
     private static final Logger logger = LogsCenter.getLogger(FindCommandParser.class);
     private static final Prefix[] PREFIXES = {
         PREFIX_NAME, PREFIX_GUARDIAN, PREFIX_SCHOOL, PREFIX_LEVEL, PREFIX_SUBJECT, PREFIX_DAY
@@ -65,12 +67,6 @@ public class FindCommandParser implements Parser<FindCommand> {
         if (!arguments.getPreamble().isEmpty()) {
             throw invalidFormat("bare keywords mixed with prefixes");
         }
-        try {
-            arguments.verifyNoDuplicatePrefixesFor(PREFIXES);
-        } catch (ParseException e) {
-            logger.fine("Student search rejected: duplicate prefixes");
-            throw e;
-        }
         Optional<String> name = arguments.getValue(PREFIX_NAME);
         Optional<String> guardian = arguments.getValue(PREFIX_GUARDIAN);
         Optional<String> school = arguments.getValue(PREFIX_SCHOOL);
@@ -80,6 +76,12 @@ public class FindCommandParser implements Parser<FindCommand> {
         if (List.of(name, guardian, school, level, subject, dayText).stream()
                 .anyMatch(value -> value.filter(String::isBlank).isPresent())) {
             throw invalidFormat("empty filter value");
+        }
+        try {
+            arguments.verifyNoDuplicatePrefixesFor(PREFIXES);
+        } catch (ParseException e) {
+            logger.fine("Student search rejected: duplicate prefixes");
+            throw e;
         }
         Optional<DayOfWeek> day = dayText.isPresent() ? Optional.of(parseDay(dayText.orElseThrow())) : Optional.empty();
         LessonMatchesPredicate lessonPredicate = new LessonMatchesPredicate(subject, day);
@@ -99,7 +101,8 @@ public class FindCommandParser implements Parser<FindCommand> {
                 return day;
             }
         }
-        throw invalidFormat("invalid weekday");
+        logger.fine("Student search rejected: invalid weekday");
+        throw new ParseException(MESSAGE_INVALID_DAY);
     }
 
     private ParseException invalidFormat(String reason) {

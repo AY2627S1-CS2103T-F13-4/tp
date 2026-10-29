@@ -39,6 +39,18 @@ public class NameTest {
     }
 
     @Test
+    public void isValidName_specialNames_acceptsLettersAccentsAndNamePunctuation() {
+        for (String name : new String[] {"Mary-Ann O'Brien", "Ravi s/o Kumar", "Devi d/o Raj",
+            "Zoë Ng", "Zoe\u0308 Ng", "李小龙", "D’Arcy Tan", "A. Rahman"}) {
+            assertTrue(Name.isValidName(name), name);
+        }
+        for (String name : new String[] {"---", "'", "/", "\u0308Zoe", "Alex\nTan", "Alex\tTan",
+            "Alex@example.com", "Alex 😀", "Alex/Bob"}) {
+            assertFalse(Name.isValidName(name), name);
+        }
+    }
+
+    @Test
     public void equals() {
         Name name = new Name("Valid Name");
 

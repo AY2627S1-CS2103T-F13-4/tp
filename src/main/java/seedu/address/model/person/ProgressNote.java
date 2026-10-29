@@ -14,9 +14,9 @@ import java.util.Objects;
 public final class ProgressNote {
     public static final int MAX_TEXT_LENGTH = 500;
     public static final String MESSAGE_DATE_CONSTRAINTS =
-            "Note dates must be real dates in YYYY-MM-DD format, such as 2026-10-15.";
+            "Note dates must be real dates in YYYY-MM-DD format, such as 2026-10-15";
     public static final String MESSAGE_TEXT_CONSTRAINTS =
-            "Note text must contain 1-" + MAX_TEXT_LENGTH + " characters and cannot be blank.";
+            "Note text must contain 1-" + MAX_TEXT_LENGTH + " characters on one line and cannot be blank";
     /** Orders notes by date, oldest first. Notes on the same date keep their order. */
     public static final Comparator<ProgressNote> OLDEST_FIRST = Comparator.comparing(ProgressNote::getDate);
 

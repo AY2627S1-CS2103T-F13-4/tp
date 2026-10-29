@@ -12,7 +12,8 @@ public class ListArchiveCommand extends Command {
 
     public static final String COMMAND_WORD = "list-archive";
 
-    public static final String MESSAGE_SUCCESS = "Listed all archived students.";
+    public static final String MESSAGE_SUCCESS = "Listed all archived students";
+    public static final String MESSAGE_NONE = "No archived students to list";
 
 
     @Override
@@ -20,6 +21,7 @@ public class ListArchiveCommand extends Command {
         requireNonNull(model);
         model.setArchiveView(true);
         model.updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS);
-        return new CommandResult(MESSAGE_SUCCESS, CommandResult.Screen.ARCHIVE);
+        String feedback = model.getFilteredPersonList().isEmpty() ? MESSAGE_NONE : MESSAGE_SUCCESS;
+        return new CommandResult(feedback, CommandResult.Screen.ARCHIVE);
     }
 }

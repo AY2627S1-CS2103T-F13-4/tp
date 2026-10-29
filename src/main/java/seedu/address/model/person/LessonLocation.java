@@ -9,7 +9,7 @@ import java.util.Locale;
 public final class LessonLocation {
     public static final String MESSAGE_CONSTRAINTS =
             "Lesson locations must contain 1-100 characters and must not contain a word of letters "
-            + "followed by '/' (such as 'x/'), which would look like a command prefix.";
+            + "followed by '/' (such as 'x/'), which would look like a command prefix";
     public final String value;
 
     /** Creates a validated location, trimming and collapsing spaces and tabs. */

@@ -5,9 +5,11 @@ import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 
 import seedu.address.commons.core.index.Index;
@@ -33,8 +35,12 @@ import seedu.address.model.tag.Tag;
  */
 public class ParserUtil {
 
-    public static final String MESSAGE_INVALID_INDEX = "Index must be a positive integer.";
-    public static final String MESSAGE_FUTURE_NOTE_DATE = "Note dates cannot be later than today.";
+    public static final String MESSAGE_INVALID_INDEX = "Index must be a positive integer";
+    public static final String MESSAGE_INVALID_INDEX_COUNT = "Incorrect number of indexes supplied, "
+            + "expected %1$s, got %2$s";
+    public static final String MESSAGE_FUTURE_NOTE_DATE = "Note dates cannot be later than today";
+    public static final LocalDate EARLIEST_NOTE_DATE = LocalDate.of(2000, 1, 1);
+    public static final String MESSAGE_EARLY_NOTE_DATE = "Note dates cannot be earlier than 2000-01-01";
 
     /**
      * Parses {@code oneBasedIndex} into an {@code Index} and returns it. Leading and trailing whitespaces will be
@@ -50,6 +56,29 @@ public class ParserUtil {
     }
 
     /**
+     * Parses {@code oneBasedIndexes} into a list of {@code Index}es of expected length {@code length} and returns it.
+     * Leading and trailing whitespaces will be trimmed.
+     * @throws ParseException if any of the specified indexes are invalid (not a non-zero unsigned integer).
+     */
+    public static List<Index> parseIndexes(String oneBasedIndexes, int length) throws ParseException {
+        ArrayList<Index> indexes = new ArrayList<>();
+        for (String oneBasedIndex : oneBasedIndexes.trim().split("\\s+")) {
+            String trimmedIndex = oneBasedIndex.trim();
+            if (trimmedIndex.isEmpty()) {
+                continue;
+            }
+
+            indexes.add(parseIndex(trimmedIndex));
+        }
+
+        if (indexes.size() != length) {
+            throw new ParseException(String.format(MESSAGE_INVALID_INDEX_COUNT, length, indexes.size()));
+        }
+
+        return indexes;
+    }
+
+    /**
      * Parses a {@code String name} into a {@code Name}.
      * Leading and trailing whitespaces will be trimmed.
      *
@@ -57,7 +86,8 @@ public class ParserUtil {
      */
     public static Name parseName(String name) throws ParseException {
         requireNonNull(name);
-        String trimmedName = name.trim();
+        // Collapse inner whitespace so "Alex  Tan" cannot coexist with "Alex Tan"
+        String trimmedName = name.trim().replaceAll("\\s+", " ");
         if (!Name.isValidName(trimmedName)) {
             throw new ParseException(Name.MESSAGE_CONSTRAINTS);
         }
@@ -195,8 +225,11 @@ public class ParserUtil {
         requireNonNull(weeklyLessonSlot);
         String trimmedWeeklyLessonSlot = weeklyLessonSlot.trim();
 
+        if (!WeeklyLessonSlot.isValidFormat(trimmedWeeklyLessonSlot)) {
+            throw new ParseException(WeeklyLessonSlot.MESSAGE_INVALID_FORMAT);
+        }
         if (!WeeklyLessonSlot.isValidWeeklyLessonSlot(trimmedWeeklyLessonSlot)) {
-            throw new ParseException(WeeklyLessonSlot.MESSAGE_CONSTRAINTS);
+            throw new ParseException(WeeklyLessonSlot.MESSAGE_END_NOT_AFTER_START);
         }
 
         return new WeeklyLessonSlot(trimmedWeeklyLessonSlot);
@@ -234,6 +267,7 @@ public class ParserUtil {
     /**
      * Parses a progress note from its date in YYYY-MM-DD format and its text.
      * A note records something that already happened, so a date after {@code today} is rejected.
+     * A date before {@link #EARLIEST_NOTE_DATE} is rejected as a mistyped year, such as 0026 for 2026.
      *
      * @throws ParseException if the date or text is invalid.
      */
@@ -248,6 +282,9 @@ public class ParserUtil {
         if (noteDate.isAfter(today)) {
             throw new ParseException(MESSAGE_FUTURE_NOTE_DATE);
         }
+        if (noteDate.isBefore(EARLIEST_NOTE_DATE)) {
+            throw new ParseException(MESSAGE_EARLY_NOTE_DATE);
+        }
         if (!ProgressNote.isValidText(text)) {
             throw new ParseException(ProgressNote.MESSAGE_TEXT_CONSTRAINTS);
         }
@@ -255,15 +292,17 @@ public class ParserUtil {
     }
 
     /**
-     * Parses the text of a guardian follow-up, trimming spaces around it.
+     * Parses the text of a guardian follow-up, trimming spaces around it and collapsing repeated spaces inside it.
      *
      * @throws ParseException if the text is blank, longer than 200 characters or spans several lines.
      */
     public static FollowUp parseFollowUp(String text) throws ParseException {
         requireNonNull(text);
-        if (!FollowUp.isValidText(text)) {
+        // Collapse inner spaces so "Call  mum" cannot coexist with "Call mum"
+        String collapsedText = text.replaceAll(" {2,}", " ");
+        if (!FollowUp.isValidText(collapsedText)) {
             throw new ParseException(FollowUp.MESSAGE_TEXT_CONSTRAINTS);
         }
-        return new FollowUp(text);
+        return new FollowUp(collapsedText);
     }
 }

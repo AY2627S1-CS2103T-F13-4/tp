@@ -1,6 +1,7 @@
 package seedu.address.ui;
 
 import java.nio.file.Path;
+import java.util.function.Consumer;
 import java.util.logging.Logger;
 
 import javafx.application.Platform;
@@ -25,15 +26,19 @@ public class UiManager implements Ui {
 
     private Logic logic;
     private Path dataFilePath;
+    private String startupWarning;
     private MainWindow mainWindow;
+    private final Consumer<String> openDocument;
 
     /**
-     * Creates a {@code UiManager} with the given {@code Logic} and the data file path
-     * to show in the status bar.
+     * Creates a {@code UiManager} with the given {@code Logic}, the data file path
+     * to show in the status bar, and a warning to show once the window opens, or null for none.
      */
-    public UiManager(Logic logic, Path dataFilePath) {
+    public UiManager(Logic logic, Path dataFilePath, String startupWarning, Consumer<String> openDocument) {
         this.logic = logic;
         this.dataFilePath = dataFilePath;
+        this.startupWarning = startupWarning;
+        this.openDocument = openDocument;
     }
 
     @Override
@@ -45,9 +50,12 @@ public class UiManager implements Ui {
 
         try {
             AppFonts.load();
-            mainWindow = new MainWindow(primaryStage, logic, dataFilePath);
+            mainWindow = new MainWindow(primaryStage, logic, dataFilePath, openDocument);
             mainWindow.show(); //This should be called before creating other UI parts
             mainWindow.fillInnerParts();
+            if (startupWarning != null) {
+                mainWindow.showWarning(startupWarning);
+            }
 
         } catch (Throwable e) {
             logger.severe(StringUtil.getDetails(e));
@@ -77,6 +85,15 @@ public class UiManager implements Ui {
         alert.setContentText(contentText);
         alert.getDialogPane().setId(ALERT_DIALOG_PANE_FIELD_ID);
         alert.showAndWait();
+    }
+
+    /**
+     * Shows {@code message} as an error before the main window opens, and exits after the user closes it.
+     */
+    public static void showStartupErrorAndExit(String message) {
+        logger.severe(message);
+        showAlertDialogAndWait(null, AlertType.ERROR, "StudentBook", "Could not open the data file", message);
+        Platform.exit();
     }
 
     /**

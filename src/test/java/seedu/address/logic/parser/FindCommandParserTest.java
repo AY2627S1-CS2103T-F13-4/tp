@@ -112,7 +112,7 @@ public class FindCommandParserTest {
     public void parse_invalidContactCriteria_rejectsEmptyDuplicateAndMixedInput() {
         String invalid = String.format(MESSAGE_INVALID_COMMAND_FORMAT, FindCommand.MESSAGE_USAGE);
         for (String input : List.of("name/", "guardian/", "name/alex sch/", "guardian/janet name/",
-                "alex guardian/janet", "alex name/alex", "guardian/janet day/Funday")) {
+                "alex guardian/janet", "alex name/alex")) {
             assertParseFailure(parser, input, invalid);
         }
         assertParseFailure(parser, "name/alex name/bob",
@@ -186,7 +186,7 @@ public class FindCommandParserTest {
     }
 
     @Test
-    public void parse_editSchoolAfterSearch_clearsStudentAndLessonFilters() throws Exception {
+    public void parse_editSchoolAfterSearch_preservesStudentAndLessonFilters() throws Exception {
         Lesson mondayMath = lesson("Math", DayOfWeek.MONDAY);
         Lesson tuesdayEnglish = lesson("English", DayOfWeek.TUESDAY);
         Student alex = new PersonBuilder().withName("Alex Tan").withSchool(new School("Raffles Institution"))
@@ -207,8 +207,10 @@ public class FindCommandParserTest {
 
             Student edited = new PersonBuilder(alex)
                     .withSchool(schoolText.isEmpty() ? null : new School(schoolText)).build();
-            assertEquals(List.of(edited, other), model.getFilteredPersonList());
-            assertTrue(model.getLessonPredicate().getValue().test(tuesdayEnglish));
+            assertTrue(model.getAddressBook().getPersonList().contains(edited));
+            assertTrue(model.getFilteredPersonList().isEmpty());
+            assertTrue(model.getLessonPredicate().getValue().test(mondayMath));
+            assertFalse(model.getLessonPredicate().getValue().test(tuesdayEnglish));
             commandParser.parseCommand("find sch/raffles").execute(model);
             assertTrue(model.getFilteredPersonList().isEmpty());
         }
@@ -218,11 +220,12 @@ public class FindCommandParserTest {
     public void parse_invalidSchoolCriteria_throwsParseException() {
         String invalid = String.format(MESSAGE_INVALID_COMMAND_FORMAT, FindCommand.MESSAGE_USAGE);
         for (String input : List.of("sch/", "sch/   ", "sch/raffles level/", "sch/ day/mon",
-                "alex sch/raffles", "sch/raffles day/Funday")) {
+                "alex sch/raffles")) {
             assertParseFailure(parser, input, invalid);
         }
         assertParseFailure(parser, "sch/raffles\tsch/dunman",
                 Messages.getErrorMessageForDuplicatePrefixes(PREFIX_SCHOOL));
+        assertParseFailure(parser, "sch/raffles day/Funday", FindCommandParser.MESSAGE_INVALID_DAY);
         assertParseSuccess(parser, "presch/raffles", new FindCommand(
                 new NameContainsKeywordsPredicate(List.of("presch/raffles"))));
     }
@@ -306,7 +309,8 @@ public class FindCommandParserTest {
     public void parse_invalidLessonCriteria_throwsParseException() {
         String invalid = String.format(MESSAGE_INVALID_COMMAND_FORMAT, FindCommand.MESSAGE_USAGE);
         assertParseFailure(parser, " subject/", invalid);
-        assertParseFailure(parser, " day/Funday", invalid);
+        assertParseFailure(parser, " day/Funday", FindCommandParser.MESSAGE_INVALID_DAY);
+        assertParseFailure(parser, " guardian/janet day/Funday", FindCommandParser.MESSAGE_INVALID_DAY);
         assertParseFailure(parser, " level/Primary subject/", invalid);
         assertParseFailure(parser, " alice subject/Math", invalid);
         assertParseFailure(parser, " subject/Math subject/English",

@@ -13,7 +13,8 @@ public class ListCommand extends Command {
 
     public static final String COMMAND_WORD = "list";
 
-    public static final String MESSAGE_SUCCESS = "Listed all students.";
+    public static final String MESSAGE_SUCCESS = "Listed all active students";
+    public static final String MESSAGE_NONE = "No active students to list";
 
 
     @Override
@@ -22,6 +23,7 @@ public class ListCommand extends Command {
         model.setArchiveView(false);
         model.setRateSortOrder(RateSortOrder.NONE);
         model.updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS);
-        return new CommandResult(MESSAGE_SUCCESS, CommandResult.Screen.STUDENTS);
+        String feedback = model.getFilteredPersonList().isEmpty() ? MESSAGE_NONE : MESSAGE_SUCCESS;
+        return new CommandResult(feedback, CommandResult.Screen.STUDENTS);
     }
 }

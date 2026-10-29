@@ -8,6 +8,8 @@ import seedu.address.model.person.Student;
 
 /** Finds conflicts in the complete student list without changing records. */
 public final class LessonClashes {
+    public static final String MESSAGE_CLASH_WARNING = "Lesson saved - scheduling clash detected";
+
     private LessonClashes() {}
 
     /** Returns a warning for the changed lesson, excluding that lesson itself. */
@@ -23,12 +25,12 @@ public final class LessonClashes {
                 if (changed.getDay() == other.getDay() && changed.getStart().isBefore(other.getEnd())
                         && other.getStart().isBefore(changed.getEnd())) {
                     conflicts.add(student.getName() + ", lesson " + (i + 1) + " (" + other.getSubject()
-                            + ", " + other.getWeeklyLessonSlot() + ")");
+                            + ", " + other.getLessonSlot() + ")");
                 }
             }
         }
         return conflicts.isEmpty() ? "" : "\nWarning: Lesson " + (lessonPosition + 1) + " for " + owner.getName()
                 + " overlaps with " + conflicts.size() + " lesson(s):\n- " + String.join("\n- ", conflicts)
-                + "\nThe change was applied.";
+                + "\nThe change was applied";
     }
 }

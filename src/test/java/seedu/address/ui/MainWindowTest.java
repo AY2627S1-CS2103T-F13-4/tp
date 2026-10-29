@@ -13,6 +13,7 @@ import java.math.BigDecimal;
 import java.nio.file.Path;
 import java.time.DayOfWeek;
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.jupiter.api.AfterEach;
@@ -22,10 +23,14 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import javafx.event.ActionEvent;
+import javafx.geometry.Bounds;
+import javafx.geometry.Orientation;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
+import javafx.scene.control.MenuBar;
+import javafx.scene.control.ScrollBar;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
@@ -55,6 +60,7 @@ import seedu.address.storage.JsonAddressBookStorage;
 import seedu.address.storage.JsonUserPrefsStorage;
 import seedu.address.storage.StorageManager;
 import seedu.address.testutil.FxTestUtil;
+import seedu.address.testutil.LogCapture;
 import seedu.address.testutil.PersonBuilder;
 
 /**
@@ -69,6 +75,8 @@ public class MainWindowTest {
     private MainWindow mainWindow;
     private Stage stage;
     private boolean failSaves;
+    private boolean failOpenDocument;
+    private List<String> openedUrls;
 
     @BeforeAll
     public static void initializeJavaFx() throws Exception {
@@ -96,7 +104,13 @@ public class MainWindowTest {
                     new JsonUserPrefsStorage(temporaryFolder.resolve("preferences.json"))));
             stage = new Stage();
             stage.setOpacity(0);
-            mainWindow = new MainWindow(stage, logic, dataFile);
+            openedUrls = new ArrayList<>();
+            mainWindow = new MainWindow(stage, logic, dataFile, url -> {
+                if (failOpenDocument) {
+                    throw new IllegalStateException("Test browser failure");
+                }
+                openedUrls.add(url);
+            });
             mainWindow.fillInnerParts();
             mainWindow.show();
         });
@@ -115,6 +129,59 @@ public class MainWindowTest {
                     }
                 }
             }
+        });
+    }
+
+    @Test
+    public void commandLogging_omitsContactDetailsFromResultsAndRejectedInput() throws Exception {
+        runOnFxThread(() -> {
+            try (LogCapture logs = new LogCapture()) {
+                submitCommand("add name/Private Student phone/93456789 email/private@example.com"
+                        + " address/Secret Road");
+                submitCommand("guardian-add 1 name/Private Guardian phone/98765432");
+                submitFailedCommand("guardian-add 999 name/Private Guardian phone/98765432");
+                submitFailedCommand("private@example.com 93456789");
+
+                assertTrue(logs.text().contains("Command completed: AddCommand (success)"));
+                assertTrue(logs.text().contains("Command failed: GuardianAddCommand"));
+                for (String value : List.of("Private Student", "93456789", "private@example.com",
+                        "Secret Road", "Private Guardian", "98765432")) {
+                    assertFalse(logs.text().contains(value), "Diagnostic logs must omit " + value);
+                }
+            }
+        });
+    }
+
+    @Test
+    public void help_buttonMenuShortcutAndCommand_openUserGuideWithoutAnotherWindow() throws Exception {
+        runOnFxThread(() -> {
+            List<Window> windows = List.copyOf(Window.getWindows());
+            assertInstanceOf(Button.class, stage.getScene().lookup("#helpNav")).fire();
+            MenuBar menuBar = assertInstanceOf(MenuBar.class, stage.getScene().lookup("#menuBar"));
+            menuBar.getMenus().stream().flatMap(menu -> menu.getItems().stream())
+                    .filter(item -> "helpMenuItem".equals(item.getId())).findFirst().orElseThrow().fire();
+            commandField().requestFocus();
+            pressKey(KeyCode.F1, false);
+            submitCommand("help");
+
+            assertEquals(List.of(MainWindow.USERGUIDE_URL, MainWindow.USERGUIDE_URL,
+                    MainWindow.USERGUIDE_URL, MainWindow.USERGUIDE_URL), openedUrls);
+            assertEquals(windows, List.copyOf(Window.getWindows()));
+            assertTrue(isShown(schedulePlaceholder()));
+        });
+    }
+
+    @Test
+    public void help_browserFailure_showsWarningWithManualLink() throws Exception {
+        runOnFxThread(() -> {
+            failOpenDocument = true;
+            submitCommand("help");
+
+            assertTrue(stage.getScene().lookup("#resultRow").getStyleClass().contains("result-warning"));
+            assertTrue(((ScrollPane) stage.getScene().lookup("#resultScroll")).getContent()
+                    .lookupAll("Text").stream().map(Text.class::cast).map(Text::getText)
+                    .anyMatch(text -> text.contains(MainWindow.USERGUIDE_URL)));
+            assertTrue(openedUrls.isEmpty());
         });
     }
 
@@ -289,14 +356,109 @@ public class MainWindowTest {
         });
     }
 
-    // Saving runs after the model changes its list, so a save error must not leave indices on a hidden table.
     @Test
-    public void listSwitch_saveFails_visibleRowsMatchNextCommandIndices() throws Exception {
+    public void addFromArchives_showsAndSelectsNewStudentInActiveTable() throws Exception {
+        runOnFxThread(() -> {
+            submitCommand("archive 1");
+            submitCommand("find missing");
+            submitCommand("list-archive");
+            submitCommand("find Alice");
+
+            submitCommand("add name/Aaron phone/91234567 email/aaron@example.com address/1");
+
+            assertFalse(model.isArchiveView());
+            assertTrue(isShown(studentTable()));
+            assertFalse(isShown(archivedStudentTable()));
+            assertActiveNav("#studentsNav");
+            assertEquals(List.of("Aaron", "Bob"), tableNames(studentTable()));
+            Student selected = (Student) studentTable().getSelectionModel().getSelectedItem();
+            assertEquals("Aaron", selected.getName().fullName);
+            assertEquals(List.of("Alice"), tableNames(archivedStudentTable()));
+        });
+    }
+
+    @Test
+    public void duplicateAddFromArchives_keepsArchiveTableAndSelection() throws Exception {
+        runOnFxThread(() -> {
+            submitCommand("archive 1");
+            submitCommand("list-archive");
+            submitCommand("view 1");
+
+            submitFailedCommand("add name/Alice phone/91234567 email/alice@example.com address/1");
+
+            assertTrue(model.isArchiveView());
+            assertTrue(isShown(archivedStudentTable()));
+            assertActiveNav("#archiveNav");
+            assertEquals(List.of("Alice"), tableNames(archivedStudentTable()));
+            assertEquals(0, archivedStudentTable().getSelectionModel().getSelectedIndex());
+            assertEquals(List.of("Bob"), tableNames(studentTable()));
+        });
+    }
+
+    @Test
+    public void failedDelete_restoresOpenDetailsAndDisplayedIndices() throws Exception {
+        runOnFxThread(() -> {
+            submitCommand("list");
+            submitCommand("view 1");
+            failSaves = true;
+
+            submitFailedCommand("delete 1");
+
+            assertEquals(List.of("Alice", "Bob"), tableNames(studentTable()));
+            assertEquals("Alice", ((Student) studentTable().getSelectionModel().getSelectedItem()).getName().fullName);
+            assertActiveNav("#studentsNav");
+            submitCommand("list-archive");
+            submitFailedCommand("add name/Carol phone/91234567 email/carol@example.com address/1");
+            assertTrue(model.isArchiveView());
+            assertActiveNav("#archiveNav");
+            assertTrue(tableNames(archivedStudentTable()).isEmpty());
+            assertEquals(List.of("Alice", "Bob"), tableNames(studentTable()));
+
+            failSaves = false;
+            submitCommand("list");
+            submitCommand("archive 1");
+            submitCommand("list-archive");
+            submitCommand("view 1");
+            failSaves = true;
+            submitFailedCommand("unarchive 1");
+            assertActiveNav("#archiveNav");
+            assertEquals(List.of("Alice"), tableNames(archivedStudentTable()));
+            assertEquals("Alice", ((Student) archivedStudentTable().getSelectionModel()
+                    .getSelectedItem()).getName().fullName);
+            assertEquals(List.of("Bob"), tableNames(studentTable()));
+
+            failSaves = false;
+            submitCommand("unarchive 1");
+            submitCommand("list");
+            submitCommand("delete 1");
+            assertEquals(List.of("Bob"), tableNames(studentTable()));
+        });
+    }
+
+    @Test
+    public void failedDelete_previouslyClosedDetails_remainClosed() throws Exception {
+        runOnFxThread(() -> {
+            submitCommand("find Alice");
+            mainWindow.getPersonListPanel().closeDetails();
+            assertTrue(studentTable().getSelectionModel().isEmpty());
+            failSaves = true;
+
+            submitFailedCommand("delete 1");
+
+            assertEquals(List.of("Alice"), tableNames(studentTable()));
+            assertTrue(studentTable().getSelectionModel().isEmpty());
+            assertActiveNav("#studentsNav");
+        });
+    }
+
+    // Viewing records remains available even when the data file cannot be written.
+    @Test
+    public void listSwitch_readOnlyDataFile_visibleRowsMatchNextCommandIndices() throws Exception {
         runOnFxThread(() -> {
             submitCommand("archive 1");
             submitCommand("list");
             failSaves = true;
-            submitFailedCommand("list-archive");
+            submitCommand("list-archive");
             assertTrue(isShown(archivedStudentTable()));
             assertActiveNav("#archiveNav");
             assertSame(model.getFilteredPersonList(), archivedStudentTable().getItems());
@@ -308,7 +470,7 @@ public class MainWindowTest {
             assertEquals(List.of("Bob"), tableNames(studentTable()));
 
             failSaves = true;
-            submitFailedCommand("list");
+            submitCommand("list");
             assertTrue(isShown(studentTable()));
             assertActiveNav("#studentsNav");
             assertSame(model.getFilteredPersonList(), studentTable().getItems());
@@ -322,14 +484,14 @@ public class MainWindowTest {
     }
 
     @Test
-    public void weekSwitch_saveFails_showsActiveRowsAndPreservesWeekForOrdinaryErrors() throws Exception {
+    public void weekSwitch_readOnlyDataFile_showsWeekAndPreservesItForInvalidCommands() throws Exception {
         runOnFxThread(() -> {
             submitCommand("archive 1");
             submitCommand("list-archive");
             failSaves = true;
-            submitFailedCommand("week");
-            assertTrue(isShown(studentTable()));
-            assertActiveNav("#studentsNav");
+            submitCommand("week");
+            assertTrue(isShown(schedulePlaceholder()));
+            assertActiveNav("#weekNav");
             assertSame(model.getFilteredPersonList(), studentTable().getItems());
 
             failSaves = false;
@@ -611,6 +773,168 @@ public class MainWindowTest {
         });
     }
 
+    // A window made narrower after showing the calendar wide must still fit all seven days and the colour key,
+    // as a window opened at the narrower width does, with no sideways scrollbar. Widening again in between lays
+    // out the hidden student tables wider too, which must not hold the calendar at that width.
+    @Test
+    public void calendar_windowNarrowedAfterWide_fitsWidth() throws Exception {
+        double wide = Math.min(1920, Screen.getPrimary().getVisualBounds().getWidth());
+        resizeWindow(wide);
+        resizeWindow(1000);
+        resizeWindow(wide - 100);
+        resizeWindow(1000);
+        runOnFxThread(() -> {
+            ScrollPane calendar = schedulePlaceholder();
+            GridPane grid = scheduleGrid();
+            assertTrue(grid.getWidth() <= calendar.getViewportBounds().getWidth(),
+                    "calendar " + grid.getWidth() + " of " + calendar.getViewportBounds().getWidth());
+            assertFalse(horizontalScrollBar().isVisible());
+            assertTrue(sceneMaxX(lastDayHeading()) <= sceneMaxX(calendar));
+            Node key = stage.getScene().getRoot().lookupAll(".legend-label").stream()
+                    .filter(label -> ((Label) label).getText().equals("JC")).findFirst().orElseThrow();
+            assertTrue(sceneMaxX(key) <= stage.getScene().getWidth());
+        });
+    }
+
+    // A week too wide to show readably scrolls sideways instead of squeezing the days. The headings move with
+    // their days, the times stay at the left, and Alt+Right reaches Sunday from the command box.
+    @Test
+    public void calendar_tooNarrowForWeek_scrollsSidewaysWithTimesPinned() throws Exception {
+        resizeWindow(1000);
+        resizeWindow(FxTestUtil.callOnFxThread(stage::getMinWidth));
+        runOnFxThread(() -> {
+            ScrollPane calendar = schedulePlaceholder();
+            GridPane grid = scheduleGrid();
+            assertTrue(horizontalScrollBar().isVisible());
+            assertTrue(sceneMaxX(lastDayHeading()) > sceneMaxX(calendar));
+
+            // With text in the box, Alt+Right moves the cursor by word instead.
+            commandField().setText("list");
+            pressKey(KeyCode.RIGHT, true);
+            assertEquals(0.0, calendar.getHvalue());
+            commandField().clear();
+            pressKey(KeyCode.RIGHT, true);
+            assertTrue(calendar.getHvalue() > 0);
+            calendar.setHvalue(1);
+            grid.layout();
+            Node sunday = lastDayHeading();
+            assertTrue(sceneMaxX(sunday) <= sceneMaxX(calendar) + 1);
+            int sundayColumn = GridPane.getColumnIndex(sunday);
+            Node sundayColumnLine = grid.getChildren().stream()
+                    .filter(node -> node.getStyleClass().contains("schedule-day-column"))
+                    .filter(node -> GridPane.getColumnIndex(node) == sundayColumn).findFirst().orElseThrow();
+            assertEquals(sceneMinX(sundayColumnLine), sceneMinX(sunday), 0.001);
+            Node nineAm = grid.getChildren().stream().filter(node -> node.getStyleClass().contains("schedule-time"))
+                    .findFirst().orElseThrow();
+            assertEquals(sceneMinX(calendar), sceneMinX(nineAm), 0.001);
+            // Part-way, the times still sit exactly on the calendar's edge, so no sliver of a scrolled lesson
+            // shows beside them; the day headings likewise sit exactly on the calendar's top.
+            calendar.setHvalue(0.3711);
+            calendar.setVvalue(0.3711);
+            grid.layout();
+            assertEquals(sceneMinX(calendar), sceneMinX(nineAm), 0.001);
+            assertEquals(sceneMinY(calendar), sceneMinY(sunday), 0.001);
+
+            pressKey(KeyCode.LEFT, true);
+            assertTrue(calendar.getHvalue() < 1);
+        });
+    }
+
+    // When the whole week fits there is nowhere to scroll, so Alt+Right leaves the calendar where it is.
+    @Test
+    public void altRight_weekFits_leavesCalendarInPlace() throws Exception {
+        resizeWindow(1600);
+        runOnFxThread(() -> {
+            ScrollPane calendar = schedulePlaceholder();
+            assertFalse(horizontalScrollBar().isVisible());
+            pressKey(KeyCode.RIGHT, true);
+            assertEquals(0.0, calendar.getHvalue());
+        });
+    }
+
+    // Alt+Right on the student table must not scroll the hidden calendar, or the week would come back
+    // scrolled somewhere the user never asked for.
+    @Test
+    public void altRight_onStudentTable_leavesHiddenCalendarInPlace() throws Exception {
+        resizeWindow(1000);
+        resizeWindow(FxTestUtil.callOnFxThread(stage::getMinWidth));
+        runOnFxThread(() -> {
+            submitCommand("list");
+            pressKey(KeyCode.RIGHT, true);
+            submitCommand("week");
+            assertEquals(0.0, schedulePlaceholder().getHvalue());
+        });
+    }
+
+    // A lesson added while the week is scrolled sideways rebuilds the calendar. The pinned times must keep their
+    // background, or the scrolled lessons would show through them.
+    @Test
+    public void calendar_rebuiltWhileScrolledSideways_keepsTimeColumnBackground() throws Exception {
+        resizeWindow(1000);
+        resizeWindow(FxTestUtil.callOnFxThread(stage::getMinWidth));
+        runOnFxThread(() -> {
+            schedulePlaceholder().setHvalue(1);
+            scheduleGrid().layout();
+            submitCommand("lesson-add 1 subject/Physics slot/Wed 4.00pm 5.00pm rate/40");
+            assertEquals(1.0, schedulePlaceholder().getHvalue());
+            Node timeBackground = scheduleGrid().lookup(".schedule-time-column");
+            assertTrue(timeBackground.isVisible());
+        });
+    }
+
+    // The calendar is resized while the student table shows. Going back to it must place the current time a
+    // quarter of the way down the calendar at its new size: week scrolls before the next layout pass, so the
+    // calendar must already have that size when it is shown.
+    @Test
+    public void week_afterResizeOnStudentTable_scrollsToCurrentTime() throws Exception {
+        runOnFxThread(() -> {
+            // A lesson across the whole day, so the current-time line shows whatever the time.
+            Lesson allDay = new Lesson(new Subject("Math"),
+                    new WeeklyLessonSlot(DayOfWeek.MONDAY, LocalTime.MIDNIGHT, LocalTime.of(23, 59)),
+                    new HourlyRate(new BigDecimal("50")));
+            model.addPerson(new PersonBuilder().withName("Carol").withLessons(allDay).build());
+        });
+        resizeWindow(Math.min(1470, Screen.getPrimary().getVisualBounds().getWidth()), 800);
+        runOnFxThread(() -> submitCommand("list"));
+        resizeWindow(1000, 520);
+        runOnFxThread(() -> {
+            submitCommand("week");
+            Bounds shown = schedulePlaceholder().getViewportBounds();
+            // With styles applied too, as the result just shown is new and its height depends on its style.
+            stage.getScene().getRoot().applyCss();
+            stage.getScene().getRoot().layout();
+            Bounds laidOut = schedulePlaceholder().getViewportBounds();
+            assertEquals(List.of(laidOut.getWidth(), laidOut.getHeight()),
+                    List.of(shown.getWidth(), shown.getHeight()));
+        });
+        // After the scroll that week queues.
+        runOnFxThread(() -> {
+            ScrollPane calendar = schedulePlaceholder();
+            double viewportHeight = calendar.getViewportBounds().getHeight();
+            double hidden = scheduleGrid().getHeight() - viewportHeight;
+            double nowLine = scheduleGrid().lookup(".schedule-now-line").getBoundsInParent().getMinY();
+            assertEquals(Math.clamp((nowLine - viewportHeight * 0.25) / hidden, 0, 1), calendar.getVvalue(), 0.001);
+        });
+    }
+
+    // The Alt hint names different keys on each screen; the hints and the end of the box stay put when switching.
+    @Test
+    public void altHint_switchingScreens_keepsHintsInPlace() throws Exception {
+        resizeWindow(1280);
+        List<List<Double>> edges = new ArrayList<>();
+        for (String command : List.of("week", "list", "list-archive", "week")) {
+            runOnFxThread(() -> {
+                submitCommand(command);
+                stage.getScene().getRoot().applyCss();
+                stage.getScene().getRoot().layout();
+                Node keys = stage.getScene().lookup("#altKeys");
+                edges.add(List.of(sceneMaxX(commandField()), sceneMinX(keys), sceneMaxX(stage.getScene()
+                        .lookup("#altHint"))));
+            });
+        }
+        assertEquals(1, edges.stream().distinct().count(), edges.toString());
+    }
+
     @Test
     public void source_filteredAndReplaced_refreshesAttachedSchedule() throws Exception {
         runOnFxThread(() -> {
@@ -678,6 +1002,28 @@ public class MainWindowTest {
 
     private ScrollPane schedulePlaceholder() {
         return assertInstanceOf(ScrollPane.class, stage.getScene().lookup("#scheduleScroll"));
+    }
+
+    private ScrollBar horizontalScrollBar() {
+        return schedulePlaceholder().lookupAll(".scroll-bar").stream().map(ScrollBar.class::cast)
+                .filter(bar -> bar.getOrientation() == Orientation.HORIZONTAL).findFirst().orElseThrow();
+    }
+
+    private Node lastDayHeading() {
+        return scheduleGrid().getChildren().stream().filter(node -> node.getStyleClass().contains("schedule-day"))
+                .reduce((first, second) -> second).orElseThrow();
+    }
+
+    private static double sceneMinX(Node node) {
+        return node.localToScene(node.getBoundsInLocal()).getMinX();
+    }
+
+    private static double sceneMinY(Node node) {
+        return node.localToScene(node.getBoundsInLocal()).getMinY();
+    }
+
+    private static double sceneMaxX(Node node) {
+        return node.localToScene(node.getBoundsInLocal()).getMaxX();
     }
 
     private HBox levelNav() {

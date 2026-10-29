@@ -48,7 +48,7 @@ class JsonAdaptedLesson {
     /** Converts a given {@code Lesson} into this class for Jackson use. */
     JsonAdaptedLesson(Lesson source) {
         subject = source.getSubject().toString();
-        weeklyLessonSlot = new JsonAdaptedWeeklyLessonSlot(source.getWeeklyLessonSlot());
+        weeklyLessonSlot = new JsonAdaptedWeeklyLessonSlot(source.getLessonSlot());
         hourlyRate = source.getHourlyRate().toString();
         location = source.getLocation().map(LessonLocation::toString).orElse(null);
         mode = source.getMode().map(LessonMode::name).orElse(null);

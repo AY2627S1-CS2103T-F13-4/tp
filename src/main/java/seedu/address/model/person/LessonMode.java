@@ -11,7 +11,7 @@ public enum LessonMode {
     VIRTUAL("Virtual");
 
     public static final String MESSAGE_CONSTRAINTS = "Lesson mode must be either physical or virtual "
-            + "(not case-sensitive).";
+            + "(not case-sensitive)";
     private final String displayName;
 
     LessonMode(String displayName) {
