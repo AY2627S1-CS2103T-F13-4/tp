@@ -46,13 +46,13 @@ public class GuardianDeleteCommandTest {
         Model expectedModel = new ModelManager();
         expectedModel.addPerson(original);
         assertCommandSuccess(new GuardianDeleteCommand(INDEX_FIRST_PERSON), model,
-                "Guardian removed for " + original.getName() + ".", expectedModel);
+                "Guardian deleted for " + original.getName(), expectedModel);
     }
 
     @Test
     public void execute_missingGuardian_failure() {
         assertCommandFailure(new GuardianDeleteCommand(INDEX_FIRST_PERSON), model,
-                GuardianEditCommand.MESSAGE_NOT_FOUND);
+                GuardianDeleteCommand.MESSAGE_NOT_FOUND);
     }
 
     @Test

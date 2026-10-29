@@ -17,11 +17,11 @@ public class ArchiveCommand extends Command {
 
     public static final String COMMAND_WORD = "archive";
     public static final String MESSAGE_USAGE = COMMAND_WORD
-            + ": Archives the student identified by the index number used in the displayed student list.\n"
-            + "Parameters: INDEX (must be a positive integer)\n"
+            + ": Archives the student identified by the index number used in the displayed student list\n"
+            + "Parameters: STUDENT_INDEX\n"
             + "Example: " + COMMAND_WORD + " 1";
     public static final String MESSAGE_ARCHIVE_PERSON_SUCCESS = "Archived student: %1$s";
-    public static final String MESSAGE_ALREADY_ARCHIVED = "This student is already archived.";
+    public static final String MESSAGE_ALREADY_ARCHIVED = "This student is already archived";
 
     private final Index index;
 

@@ -112,7 +112,7 @@ public class FindCommandParserTest {
     public void parse_invalidContactCriteria_rejectsEmptyDuplicateAndMixedInput() {
         String invalid = String.format(MESSAGE_INVALID_COMMAND_FORMAT, FindCommand.MESSAGE_USAGE);
         for (String input : List.of("name/", "guardian/", "name/alex sch/", "guardian/janet name/",
-                "alex guardian/janet", "alex name/alex", "guardian/janet day/Funday")) {
+                "alex guardian/janet", "alex name/alex")) {
             assertParseFailure(parser, input, invalid);
         }
         assertParseFailure(parser, "name/alex name/bob",
@@ -218,11 +218,12 @@ public class FindCommandParserTest {
     public void parse_invalidSchoolCriteria_throwsParseException() {
         String invalid = String.format(MESSAGE_INVALID_COMMAND_FORMAT, FindCommand.MESSAGE_USAGE);
         for (String input : List.of("sch/", "sch/   ", "sch/raffles level/", "sch/ day/mon",
-                "alex sch/raffles", "sch/raffles day/Funday")) {
+                "alex sch/raffles")) {
             assertParseFailure(parser, input, invalid);
         }
         assertParseFailure(parser, "sch/raffles\tsch/dunman",
                 Messages.getErrorMessageForDuplicatePrefixes(PREFIX_SCHOOL));
+        assertParseFailure(parser, "sch/raffles day/Funday", FindCommandParser.MESSAGE_INVALID_DAY);
         assertParseSuccess(parser, "presch/raffles", new FindCommand(
                 new NameContainsKeywordsPredicate(List.of("presch/raffles"))));
     }
@@ -306,7 +307,8 @@ public class FindCommandParserTest {
     public void parse_invalidLessonCriteria_throwsParseException() {
         String invalid = String.format(MESSAGE_INVALID_COMMAND_FORMAT, FindCommand.MESSAGE_USAGE);
         assertParseFailure(parser, " subject/", invalid);
-        assertParseFailure(parser, " day/Funday", invalid);
+        assertParseFailure(parser, " day/Funday", FindCommandParser.MESSAGE_INVALID_DAY);
+        assertParseFailure(parser, " guardian/janet day/Funday", FindCommandParser.MESSAGE_INVALID_DAY);
         assertParseFailure(parser, " level/Primary subject/", invalid);
         assertParseFailure(parser, " alice subject/Math", invalid);
         assertParseFailure(parser, " subject/Math subject/English",

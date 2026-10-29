@@ -21,11 +21,11 @@ import seedu.address.model.person.Student;
 public class FollowUpAddCommand extends Command {
     public static final String COMMAND_WORD = "followup-add";
     public static final String MESSAGE_USAGE = COMMAND_WORD
-            + ": Records something to follow up on with a student's guardian.\n"
+            + ": Records something to follow up on with a student's guardian\n"
             + "Parameters: STUDENT_INDEX text/TEXT\n"
             + "Example: " + COMMAND_WORD + " 1 text/Send the term 4 progress report";
-    public static final String MESSAGE_SUCCESS = "Added follow-up %1$d for %2$s: %3$s";
-    public static final String MESSAGE_DUPLICATE_FOLLOW_UP = "This student already has this follow-up.";
+    public static final String MESSAGE_SUCCESS = "Added follow-up for %2$s: %1$d. %3$s";
+    public static final String MESSAGE_DUPLICATE_FOLLOW_UP = "This student already has this follow-up";
 
     private final Index studentIndex;
     private final FollowUp toAdd;

@@ -20,11 +20,11 @@ public class ViewCommand extends Command {
     public static final String COMMAND_WORD = "view";
 
     public static final String MESSAGE_USAGE = COMMAND_WORD
-            + ": Shows a student's details, including every lesson's rate, mode and location.\n"
-            + "Parameters: INDEX (must be a positive integer)\n"
+            + ": Shows a student's details, including every lesson's rate, mode and location\n"
+            + "Parameters: STUDENT_INDEX\n"
             + "Example: " + COMMAND_WORD + " 3";
 
-    public static final String MESSAGE_SUCCESS = "Showing %1$s's details.";
+    public static final String MESSAGE_SUCCESS = "Showing %1$s's details";
 
     private final Index targetIndex;
 

@@ -19,7 +19,7 @@ public class GuardianEditCommandParser implements Parser<GuardianEditCommand> {
     public GuardianEditCommand parse(String args) throws ParseException {
         requireNonNull(args);
         String formatError = String.format(MESSAGE_INVALID_COMMAND_FORMAT, GuardianEditCommand.MESSAGE_USAGE);
-        ArgumentMultimap arguments = GuardianCommandParserUtil.tokenize(args, GuardianEditCommand.MESSAGE_USAGE);
+        ArgumentMultimap arguments = GuardianCommandParserUtil.tokenize(args);
         Index studentIndex;
         try {
             studentIndex = ParserUtil.parseIndex(arguments.getPreamble());
@@ -33,9 +33,11 @@ public class GuardianEditCommandParser implements Parser<GuardianEditCommand> {
         if (arguments.getValue(PREFIX_PHONE).isPresent()) {
             descriptor.setPhone(ParserUtil.parsePhone(arguments.getValue(PREFIX_PHONE).orElseThrow()));
         }
+
         if (!descriptor.isAnyFieldEdited()) {
             throw new ParseException(formatError);
         }
+
         return new GuardianEditCommand(studentIndex, descriptor);
     }
 }

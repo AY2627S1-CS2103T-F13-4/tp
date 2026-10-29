@@ -21,7 +21,7 @@ import seedu.address.model.person.Student;
 public class NoteDeleteCommand extends Command {
     public static final String COMMAND_WORD = "note-delete";
     public static final String MESSAGE_USAGE = COMMAND_WORD
-            + ": Deletes one of a student's progress notes, numbered as in the student's details.\n"
+            + ": Deletes one of a student's progress notes, numbered as in the student's details\n"
             + "Parameters: STUDENT_INDEX NOTE_INDEX\n"
             + "Example: " + COMMAND_WORD + " 1 2";
     public static final String MESSAGE_DELETE_NOTE_SUCCESS = "Deleted note %1$d for %2$s: %3$s";

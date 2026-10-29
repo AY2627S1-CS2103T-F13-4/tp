@@ -10,6 +10,7 @@ import static seedu.address.logic.parser.CliSyntax.PREFIX_SUBJECT;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import seedu.address.commons.core.index.Index;
 import seedu.address.logic.commands.LessonEditCommand;
@@ -30,7 +31,7 @@ public class LessonEditCommandParser implements Parser<LessonEditCommand> {
     @Override
     public LessonEditCommand parse(String args) throws ParseException {
         requireNonNull(args);
-        ArgumentMultimap argMultimap = LessonCommandParserUtil.tokenize(args, LessonEditCommand.MESSAGE_USAGE);
+        ArgumentMultimap argMultimap = LessonCommandParserUtil.tokenize(args);
         Index studentIndex;
         Index lessonIndex;
 

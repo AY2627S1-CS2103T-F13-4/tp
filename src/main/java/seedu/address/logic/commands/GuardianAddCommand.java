@@ -20,9 +20,11 @@ import seedu.address.model.person.Student;
  */
 public class GuardianAddCommand extends Command {
     public static final String COMMAND_WORD = "guardian-add";
-    public static final String MESSAGE_USAGE = COMMAND_WORD + " INDEX name/NAME phone/PHONE";
-    public static final String MESSAGE_SUCCESS = "Guardian added for %1$s.";
-    public static final String MESSAGE_ALREADY_EXISTS = "This student already has a guardian. Use guardian-edit.";
+    public static final String MESSAGE_USAGE = COMMAND_WORD + ": Adds a guardian to a student\n"
+            + "Parameters: STUDENT_INDEX name/NAME phone/PHONE\n"
+            + "Example: " + COMMAND_WORD + " 1 name/Jonathan Doe phone/90123456";
+    public static final String MESSAGE_SUCCESS = "Added guardian for %1$s: %2$s";
+    public static final String MESSAGE_ALREADY_EXISTS = "This student already has a guardian. Use guardian-edit";
 
     private final Index studentIndex;
     private final Guardian toAdd;
@@ -48,7 +50,7 @@ public class GuardianAddCommand extends Command {
             throw new CommandException(MESSAGE_ALREADY_EXISTS);
         }
         model.setPerson(student, student.withGuardian(Optional.of(toAdd)));
-        return new CommandResult(String.format(MESSAGE_SUCCESS, student.getName()));
+        return new CommandResult(String.format(MESSAGE_SUCCESS, student.getName(), toAdd));
     }
 
     @Override

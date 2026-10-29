@@ -18,15 +18,18 @@ final class GuardianCommandParserUtil {
     private GuardianCommandParserUtil() {}
 
     /**
-     * Tokenizes guardian fields, rejecting unknown or repeated prefixes.
+     * Tokenizes guardian fields without validating them.
      */
-    static ArgumentMultimap tokenize(String args, String usage) throws ParseException {
+    static ArgumentMultimap tokenize(String args) {
         requireNonNull(args);
+        return ArgumentTokenizer.tokenize(args, PREFIX_NAME, PREFIX_PHONE);
+    }
+
+    /** Rejects repeated prefixes before unknown prefixes, after index and required-field checks. */
+    static void validatePrefixes(String args, ArgumentMultimap arguments, String usage) throws ParseException {
+        arguments.verifyNoDuplicatePrefixesFor(PREFIX_NAME, PREFIX_PHONE);
         if (UNKNOWN_PREFIX.matcher(args).find()) {
             throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, usage));
         }
-        ArgumentMultimap arguments = ArgumentTokenizer.tokenize(args, PREFIX_NAME, PREFIX_PHONE);
-        arguments.verifyNoDuplicatePrefixesFor(PREFIX_NAME, PREFIX_PHONE);
-        return arguments;
     }
 }

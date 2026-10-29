@@ -24,10 +24,12 @@ import seedu.address.model.person.Student;
 public class GuardianEditCommand extends Command {
     public static final String COMMAND_WORD = "guardian-edit";
     public static final String MESSAGE_USAGE = COMMAND_WORD
-            + " INDEX [name/NAME] [phone/PHONE] (at least one field required)";
-    public static final String MESSAGE_EDIT_GUARDIAN_SUCCESS = "Guardian updated for %1$s.";
-    public static final String MESSAGE_NOT_EDITED = "At least one field to edit must be provided.";
-    public static final String MESSAGE_NOT_FOUND = "This student has no guardian. Use guardian-add first.";
+            + ": Edits a student's guardian\n"
+            + "Parameters: STUDENT_INDEX [name/NAME] [phone/PHONE]\n"
+            + "Example: " + COMMAND_WORD + " 1 phone/91234567";
+    public static final String MESSAGE_EDIT_GUARDIAN_SUCCESS = "Guardian edited for %1$s";
+    public static final String MESSAGE_NOT_EDITED = "At least one field to edit must be provided";
+    public static final String MESSAGE_NOT_FOUND = "This student has no guardian. Use guardian-add first";
 
     private final Index studentIndex;
     private final EditGuardianDescriptor editGuardianDescriptor;

@@ -19,7 +19,7 @@ import java.util.regex.Pattern;
 /** One weekly lesson, with minute precision and no overnight range. */
 public final class WeeklyLessonSlot implements Comparable<WeeklyLessonSlot> {
     public static final String MESSAGE_CONSTRAINTS =
-            "A lesson slot must use minute precision and end after it starts on the same day.";
+            "A lesson slot must use minute precision and end after it starts on the same day";
     public static final String MESSAGE_INVALID_FORMAT = "Lesson slots must be in the format DAY START END, "
             + "where DAY is a three-letter day (e.g. Mon, Sun) and START and END are minute-precise times "
             + "(e.g. 10.30am, 1.00pm). Example: Wed 1.00pm 5.00pm";

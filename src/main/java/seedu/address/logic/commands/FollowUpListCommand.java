@@ -12,8 +12,9 @@ public class FollowUpListCommand extends Command {
 
     public static final String COMMAND_WORD = "followups";
 
-    public static final String MESSAGE_SUCCESS = "%1$d students with outstanding follow-ups listed.";
-    public static final String MESSAGE_NONE = "No outstanding follow-ups. Use list to see every student.";
+    public static final String MESSAGE_SUCCESS = "%1$d active student(s) with outstanding follow-ups listed";
+    public static final String MESSAGE_NONE = "No active students have outstanding follow-ups. "
+            + "Use list to see all active students";
 
     /** Keeps students with at least one outstanding follow-up. */
     public static final Predicate<Student> PREDICATE_HAS_FOLLOW_UPS = Student::hasFollowUps;

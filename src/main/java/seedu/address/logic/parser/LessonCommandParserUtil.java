@@ -22,17 +22,20 @@ final class LessonCommandParserUtil {
     private LessonCommandParserUtil() {}
 
     /**
-     * Tokenizes lesson fields, rejecting unknown or repeated prefixes.
+     * Tokenizes lesson fields without validating them.
      */
-    static ArgumentMultimap tokenize(String args, String usage) throws ParseException {
+    static ArgumentMultimap tokenize(String args) {
         requireNonNull(args);
+        return ArgumentTokenizer.tokenize(args, PREFIX_SUBJECT, PREFIX_LESSON_SLOT,
+                PREFIX_RATE, PREFIX_MODE, PREFIX_LOCATION);
+    }
+
+    /** Rejects repeated prefixes before unknown prefixes, after index and required-field checks. */
+    static void validatePrefixes(String args, ArgumentMultimap arguments, String usage) throws ParseException {
+        arguments.verifyNoDuplicatePrefixesFor(PREFIX_SUBJECT, PREFIX_LESSON_SLOT, PREFIX_RATE, PREFIX_MODE,
+                PREFIX_LOCATION);
         if (UNKNOWN_PREFIX.matcher(args).find()) {
             throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, usage));
         }
-        ArgumentMultimap arguments = ArgumentTokenizer.tokenize(args, PREFIX_SUBJECT, PREFIX_LESSON_SLOT,
-                PREFIX_RATE, PREFIX_MODE, PREFIX_LOCATION);
-        arguments.verifyNoDuplicatePrefixesFor(PREFIX_SUBJECT, PREFIX_LESSON_SLOT, PREFIX_RATE, PREFIX_MODE,
-                PREFIX_LOCATION);
-        return arguments;
     }
 }

@@ -8,7 +8,7 @@ import java.math.BigDecimal;
 /** An agreed SGD hourly rate. Absence is represented outside this value object. */
 public final class HourlyRate {
     public static final String MESSAGE_CONSTRAINTS =
-            "Hourly rate must be a non-negative SGD amount with at most two decimal places.";
+            "Hourly rate must be a non-negative SGD amount with at most two decimal places";
     private static final String VALIDATION_REGEX = "[0-9]+(\\.[0-9]{1,2})?";
 
     public final BigDecimal value;

@@ -35,10 +35,9 @@ import seedu.address.model.person.WeeklyLessonSlot;
 public class LessonEditCommand extends Command {
     public static final String COMMAND_WORD = "lesson-edit";
 
-    public static final String MESSAGE_USAGE = COMMAND_WORD + ": Edits the details of the lesson of the student "
-            + "identified by the respective index numbers used in the displayed student list. "
-            + "At least one field is required. Empty mode/ or location/ clears that field.\n"
-            + "Parameters: STUDENT_INDEX LESSON_INDEX (both must be positive integers) "
+    public static final String MESSAGE_USAGE = COMMAND_WORD
+            + ": Edits one of a student's lessons, numbered as in the student's details\n"
+            + "Parameters: STUDENT_INDEX LESSON_INDEX "
             + "[" + PREFIX_SUBJECT + "SUBJECT] "
             + "[" + PREFIX_LESSON_SLOT + "LESSON_SLOT] "
             + "[" + PREFIX_RATE + "HOURLY_RATE] "
@@ -46,8 +45,8 @@ public class LessonEditCommand extends Command {
             + "[" + PREFIX_LOCATION + "LOCATION]\n"
             + "Example: " + COMMAND_WORD + " 1 1 " + PREFIX_RATE + "50";
 
-    public static final String MESSAGE_EDIT_LESSON_SUCCESS = "Lesson updated for %1$s.";
-    public static final String MESSAGE_NOT_EDITED = "At least one field to edit must be provided.";
+    public static final String MESSAGE_EDIT_LESSON_SUCCESS = "Lesson edited for %1$s";
+    public static final String MESSAGE_NOT_EDITED = "At least one field to edit must be provided";
 
     private final Index studentIndex;
     private final Index lessonIndex;

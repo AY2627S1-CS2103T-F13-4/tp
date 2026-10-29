@@ -37,11 +37,11 @@ public class FeedbackLinesTest {
     public void separateParametersLine_usesPrecedingCommandWord() {
         String usage = "Invalid command format!\n"
                 + "delete: Deletes the person.\n"
-                + "Parameters: INDEX (must be a positive integer)\n"
+                + "Parameters: INDEX\n"
                 + "Example: delete 1";
         assertEquals(List.of(new Line(Kind.TITLE, "Invalid command format!"),
                 new Line(Kind.TEXT, "Deletes the person."),
-                new Line(Kind.FORMAT, "delete INDEX (must be a positive integer)"),
+                new Line(Kind.FORMAT, "delete INDEX"),
                 new Line(Kind.EXAMPLE, "delete 1")), FeedbackLines.split(usage));
     }
 
