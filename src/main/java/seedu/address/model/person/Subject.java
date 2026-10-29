@@ -9,7 +9,7 @@ import java.util.Locale;
 public final class Subject {
     public static final String MESSAGE_CONSTRAINTS =
             "Subjects must contain 1-40 characters, start with a letter or digit, include a letter, "
-            + "and use only letters, digits, spaces, apostrophes, hyphens, periods, parentheses or ampersands (&).";
+            + "and use only letters, digits, spaces, apostrophes, hyphens, periods, parentheses or ampersands (&)";
     private static final String VALIDATION_REGEX = "[A-Za-z0-9][A-Za-z0-9 '.()&\\-]*";
     public final String value;
 

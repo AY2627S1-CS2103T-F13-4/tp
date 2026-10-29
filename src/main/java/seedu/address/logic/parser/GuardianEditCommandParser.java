@@ -26,6 +26,7 @@ public class GuardianEditCommandParser implements Parser<GuardianEditCommand> {
         } catch (ParseException e) {
             throw new ParseException(formatError, e);
         }
+        GuardianCommandParserUtil.validatePrefixes(arguments);
         EditGuardianDescriptor descriptor = new EditGuardianDescriptor();
         if (arguments.getValue(PREFIX_NAME).isPresent()) {
             descriptor.setName(ParserUtil.parseName(arguments.getValue(PREFIX_NAME).orElseThrow()));
@@ -33,9 +34,11 @@ public class GuardianEditCommandParser implements Parser<GuardianEditCommand> {
         if (arguments.getValue(PREFIX_PHONE).isPresent()) {
             descriptor.setPhone(ParserUtil.parsePhone(arguments.getValue(PREFIX_PHONE).orElseThrow()));
         }
+
         if (!descriptor.isAnyFieldEdited()) {
-            throw new ParseException(formatError);
+            throw new ParseException(GuardianEditCommand.MESSAGE_NOT_EDITED);
         }
+
         return new GuardianEditCommand(studentIndex, descriptor);
     }
 }

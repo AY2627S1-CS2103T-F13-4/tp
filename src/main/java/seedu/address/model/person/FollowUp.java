@@ -10,7 +10,7 @@ import static seedu.address.commons.util.AppUtil.checkArgument;
 public final class FollowUp {
     public static final int MAX_TEXT_LENGTH = 200;
     public static final String MESSAGE_TEXT_CONSTRAINTS =
-            "Follow-up text must contain 1-" + MAX_TEXT_LENGTH + " characters on one line and cannot be blank.";
+            "Follow-up text must contain 1-" + MAX_TEXT_LENGTH + " characters on one line and cannot be blank";
 
     private final String text;
 

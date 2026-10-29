@@ -82,7 +82,8 @@ public class LessonAddCommandTest {
         Model expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs());
         expectedModel.setPerson(student, withLessons(student, FULL_LESSON));
 
-        assertCommandSuccess(command, model, "Lesson added for " + student.getName() + ".", expectedModel);
+        assertCommandSuccess(command, model,
+                "Added lesson for " + student.getName() + ": " + FULL_LESSON, expectedModel);
     }
 
     @Test
@@ -145,7 +146,7 @@ public class LessonAddCommandTest {
         Model expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs());
         expectedModel.setPerson(student, withLessons(student, new Lesson(MATH, MONDAY, RATE)));
         assertCommandSuccess(add(INDEX_FIRST_PERSON, MATH, MONDAY), model,
-                "Lesson added for " + student.getName() + ".", expectedModel);
+                "Added lesson for " + student.getName() + ": " + new Lesson(MATH, MONDAY, RATE), expectedModel);
     }
 
     @Test

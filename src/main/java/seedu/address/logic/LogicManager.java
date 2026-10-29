@@ -28,13 +28,13 @@ import seedu.address.storage.Storage;
 public class LogicManager implements Logic {
     private static final String SAVE_FAILURE_RECOVERY =
             "\nThe command was not applied. Your records are unchanged."
-                    + "\nFix the file or folder problem, then try the command again.";
+                    + "\nFix the file or folder problem, then try the command again";
 
     public static final String FILE_OPS_ERROR_FORMAT = "Could not save data due to the following error: %s"
             + SAVE_FAILURE_RECOVERY;
 
     public static final String FILE_OPS_PERMISSION_ERROR_FORMAT =
-            "Could not save data to file %s due to insufficient permissions to write to the file or the folder."
+            "Could not save data to file %s due to insufficient permissions to write to the file or the folder"
                     + SAVE_FAILURE_RECOVERY;
 
     private final Logger logger = LogsCenter.getLogger(LogicManager.class);

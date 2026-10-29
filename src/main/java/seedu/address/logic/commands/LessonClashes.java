@@ -31,6 +31,6 @@ public final class LessonClashes {
         }
         return conflicts.isEmpty() ? "" : "\nWarning: Lesson " + (lessonPosition + 1) + " for " + owner.getName()
                 + " overlaps with " + conflicts.size() + " lesson(s):\n- " + String.join("\n- ", conflicts)
-                + "\nThe change was applied.";
+                + "\nThe change was applied";
     }
 }

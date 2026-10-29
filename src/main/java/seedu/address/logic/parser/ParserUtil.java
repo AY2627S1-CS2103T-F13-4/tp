@@ -35,12 +35,12 @@ import seedu.address.model.tag.Tag;
  */
 public class ParserUtil {
 
-    public static final String MESSAGE_INVALID_INDEX = "Index must be a positive integer.";
+    public static final String MESSAGE_INVALID_INDEX = "Index must be a positive integer";
     public static final String MESSAGE_INVALID_INDEX_COUNT = "Incorrect number of indexes supplied, "
             + "expected %1$s, got %2$s";
-    public static final String MESSAGE_FUTURE_NOTE_DATE = "Note dates cannot be later than today.";
+    public static final String MESSAGE_FUTURE_NOTE_DATE = "Note dates cannot be later than today";
     public static final LocalDate EARLIEST_NOTE_DATE = LocalDate.of(2000, 1, 1);
-    public static final String MESSAGE_EARLY_NOTE_DATE = "Note dates cannot be earlier than 2000-01-01.";
+    public static final String MESSAGE_EARLY_NOTE_DATE = "Note dates cannot be earlier than 2000-01-01";
 
     /**
      * Parses {@code oneBasedIndex} into an {@code Index} and returns it. Leading and trailing whitespaces will be

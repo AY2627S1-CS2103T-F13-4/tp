@@ -27,15 +27,15 @@ public class GuardianEditCommand extends Command {
     public static final String COMMAND_WORD = "guardian-edit";
 
     public static final String MESSAGE_USAGE = COMMAND_WORD
-            + " INDEX "
+            + ": Edits a student's guardian\n"
+            + "Parameters: STUDENT_INDEX "
             + "[" + PREFIX_NAME + "NAME] "
             + "[" + PREFIX_PHONE + "PHONE]\n"
             + "Example: " + COMMAND_WORD + " 1 "
             + PREFIX_PHONE + "91234567";
-
-    public static final String MESSAGE_EDIT_GUARDIAN_SUCCESS = "Guardian updated for %1$s.";
-    public static final String MESSAGE_NOT_EDITED = "At least one field to edit must be provided.";
-    public static final String MESSAGE_NOT_FOUND = "This student has no guardian. Use guardian-add first.";
+    public static final String MESSAGE_EDIT_GUARDIAN_SUCCESS = "Guardian edited for %1$s";
+    public static final String MESSAGE_NOT_EDITED = "At least one field to edit must be provided";
+    public static final String MESSAGE_NOT_FOUND = "This student has no guardian. Use guardian-add first";
 
     private final Index studentIndex;
     private final EditGuardianDescriptor editGuardianDescriptor;

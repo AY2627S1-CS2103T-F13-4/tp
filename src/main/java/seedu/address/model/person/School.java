@@ -6,7 +6,7 @@ import static seedu.address.commons.util.AppUtil.checkArgument;
 /** Represents the school a student attends. */
 public final class School {
 
-    public static final String MESSAGE_CONSTRAINTS = "Schools must contain 1-60 characters and must not be blank.";
+    public static final String MESSAGE_CONSTRAINTS = "Schools must contain 1-60 characters and must not be blank";
 
     public final String value;
 

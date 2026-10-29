@@ -21,7 +21,7 @@ import seedu.address.model.person.Student;
 public class FollowUpDoneCommand extends Command {
     public static final String COMMAND_WORD = "followup-done";
     public static final String MESSAGE_USAGE = COMMAND_WORD
-            + ": Marks one of a student's follow-ups as done, which removes it.\n"
+            + ": Marks one of a student's follow-ups as done, which removes it\n"
             + "Parameters: STUDENT_INDEX FOLLOW_UP_INDEX\n"
             + "Example: " + COMMAND_WORD + " 1 2";
     public static final String MESSAGE_DONE_FOLLOW_UP_SUCCESS = "Completed follow-up %1$d for %2$s: %3$s";

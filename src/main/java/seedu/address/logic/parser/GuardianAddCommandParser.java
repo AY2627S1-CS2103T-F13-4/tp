@@ -31,6 +31,7 @@ public class GuardianAddCommandParser implements Parser<GuardianAddCommand> {
         if (arguments.getValue(PREFIX_NAME).isEmpty() || arguments.getValue(PREFIX_PHONE).isEmpty()) {
             throw new ParseException(formatError);
         }
+        GuardianCommandParserUtil.validatePrefixes(arguments);
         Name name = ParserUtil.parseName(arguments.getValue(PREFIX_NAME).orElseThrow());
         Phone phone = ParserUtil.parsePhone(arguments.getValue(PREFIX_PHONE).orElseThrow());
         return new GuardianAddCommand(studentIndex, new Guardian(name, phone));

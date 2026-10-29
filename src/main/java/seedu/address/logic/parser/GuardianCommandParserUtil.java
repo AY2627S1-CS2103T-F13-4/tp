@@ -13,13 +13,16 @@ final class GuardianCommandParserUtil {
     private GuardianCommandParserUtil() {}
 
     /**
-     * Tokenizes name and phone fields, rejecting repeated prefixes.
+     * Tokenizes guardian fields without validating them.
      * Other slash-containing text stays in the values for name and phone validation.
      */
-    static ArgumentMultimap tokenize(String args) throws ParseException {
+    static ArgumentMultimap tokenize(String args) {
         requireNonNull(args);
-        ArgumentMultimap arguments = ArgumentTokenizer.tokenize(args, PREFIX_NAME, PREFIX_PHONE);
+        return ArgumentTokenizer.tokenize(args, PREFIX_NAME, PREFIX_PHONE);
+    }
+
+    /** Rejects repeated prefixes, after index and required-field checks. */
+    static void validatePrefixes(ArgumentMultimap arguments) throws ParseException {
         arguments.verifyNoDuplicatePrefixesFor(PREFIX_NAME, PREFIX_PHONE);
-        return arguments;
     }
 }

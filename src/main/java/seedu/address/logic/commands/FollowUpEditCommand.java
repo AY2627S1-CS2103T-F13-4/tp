@@ -22,7 +22,7 @@ import seedu.address.model.person.Student;
 public class FollowUpEditCommand extends Command {
     public static final String COMMAND_WORD = "followup-edit";
     public static final String MESSAGE_USAGE = COMMAND_WORD
-            + ": Changes the text of one of a student's follow-ups, numbered as in the student's details.\n"
+            + ": Changes the text of one of a student's follow-ups, numbered as in the student's details\n"
             + "Parameters: STUDENT_INDEX FOLLOW_UP_INDEX text/TEXT\n"
             + "Example: " + COMMAND_WORD + " 1 2 text/Call about the make-up lesson on Saturday";
     public static final String MESSAGE_EDIT_FOLLOW_UP_SUCCESS = "Edited follow-up %1$d for %2$s: %3$s";

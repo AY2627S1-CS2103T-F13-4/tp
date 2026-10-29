@@ -13,6 +13,7 @@ import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
 import seedu.address.model.person.Student;
+import seedu.address.testutil.PersonBuilder;
 
 /**
  * Contains integration tests (interaction with the Model) and unit tests for ListCommand.
@@ -35,6 +36,16 @@ public class ListCommandTest {
     @Test
     public void execute_listIsNotFiltered_showsSameList() {
         assertCommandSuccess(new ListCommand(), model, SHOWS_TABLE, expectedModel);
+    }
+
+    @Test
+    public void execute_emptyActiveList_explainsScope() {
+        model = new ModelManager();
+        model.addPerson(new PersonBuilder().build().withArchived(true));
+        expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs());
+
+        assertCommandSuccess(new ListCommand(), model,
+                new CommandResult(ListCommand.MESSAGE_NONE, CommandResult.Screen.STUDENTS), expectedModel);
     }
 
     @Test

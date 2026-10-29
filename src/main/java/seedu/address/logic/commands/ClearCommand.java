@@ -14,9 +14,9 @@ import seedu.address.model.person.Student;
 public class ClearCommand extends Command {
 
     public static final String COMMAND_WORD = "clear";
-    public static final String MESSAGE_SUCCESS = "All students have been deleted.";
+    public static final String MESSAGE_SUCCESS = "All students have been deleted";
     public static final String MESSAGE_ARCHIVE_SUCCESS =
-            "All archived students have been deleted. Active students are kept.";
+            "All archived students have been deleted. Active students are kept";
 
 
     @Override
