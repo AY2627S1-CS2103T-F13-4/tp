@@ -13,7 +13,7 @@ import seedu.address.model.person.Student;
 public final class LessonClashes {
     public static final String MESSAGE_CLASH_WARNING = "Lesson saved - scheduling clash detected";
     public static final String MESSAGE_CONFLICT = "%1$s, lesson %2$d (%3$s, %4$s)";
-    public static final String WARNING_CONFLICT = "\nWarning: Lesson %1$d for %2$s overlaps with %3$d lesson(s): %4$s";
+    public static final String WARNING_CONFLICT = "\nWarning: Lesson %1$d for %2$s overlaps with %3$d lesson(s):%4$s";
 
     private LessonClashes() {}
 

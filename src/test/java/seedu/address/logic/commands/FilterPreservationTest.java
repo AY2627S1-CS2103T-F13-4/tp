@@ -189,18 +189,16 @@ public class FilterPreservationTest {
     }
 
     @Test
-    public void add_matchingAndNonmatchingStudents_preservesFilters() throws Exception {
+    public void add_nonmatchingStudent_clearsActiveSearchToShowNewStudent() throws Exception {
+        // AddCommand selects the new student by its place in the shown list, so add clears the search.
         execute(ACTIVE_SEARCH);
-        Predicate<Lesson> lessonFilter = model.getLessonPredicate().getValue();
-        Student matching = student("Alice Young");
         Student nonmatching = student("Carol Young");
 
-        new AddCommand(matching).execute(model);
         new AddCommand(nonmatching).execute(model);
 
-        assertEquals(List.of(ALICE_ADAMS, ALICE_BAKER, matching), model.getFilteredPersonList());
-        assertTrue(model.getAddressBook().getPersonList().contains(nonmatching));
-        assertSame(lessonFilter, model.getLessonPredicate().getValue());
+        assertEquals(model.getAddressBook().getPersonList(), model.getFilteredPersonList());
+        assertTrue(model.getFilteredPersonList().contains(nonmatching));
+        assertTrue(model.getLessonPredicate().getValue().test(TUESDAY_ENGLISH));
         assertFalse(model.isArchiveView());
     }
 
