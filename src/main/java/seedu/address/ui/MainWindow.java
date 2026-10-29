@@ -10,6 +10,7 @@ import java.nio.file.Path;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.logging.Logger;
 
 import javafx.beans.binding.Bindings;
@@ -21,6 +22,7 @@ import javafx.fxml.FXML;
 import javafx.geometry.Pos;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Node;
+import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuBar;
@@ -56,6 +58,7 @@ import seedu.address.model.person.Student;
  */
 public class MainWindow extends UiPart<Stage> {
 
+    public static final String USERGUIDE_URL = "https://ay2627s1-cs2103t-f13-4.github.io/tp/UserGuide.html";
     private static final String FXML = "MainWindow.fxml";
     /** Index of the first level filter; the divider before them is child 0 of their row. */
     private static final int LEVEL_NAV_FIRST_FILTER = 1;
@@ -83,7 +86,7 @@ public class MainWindow extends UiPart<Stage> {
     private WeekPanel weekPanel;
     private ResultDisplay resultDisplay;
     private CommandBox commandBox;
-    private HelpWindow helpWindow;
+    private final Consumer<String> openDocument;
 
     @FXML
     private StackPane commandBoxPlaceholder;
@@ -131,13 +134,14 @@ public class MainWindow extends UiPart<Stage> {
      * Creates a {@code MainWindow} with the given {@code Stage}, {@code Logic},
      * and the data file path to show in the status bar.
      */
-    public MainWindow(Stage primaryStage, Logic logic, Path dataFilePath) {
+    public MainWindow(Stage primaryStage, Logic logic, Path dataFilePath, Consumer<String> openDocument) {
         super(FXML, primaryStage);
 
         // Set dependencies
         this.primaryStage = primaryStage;
         this.logic = logic;
         this.dataFilePath = dataFilePath;
+        this.openDocument = openDocument;
 
         // Configure the UI
         setWindowDefaultSize(logic.getGuiSettings());
@@ -146,19 +150,16 @@ public class MainWindow extends UiPart<Stage> {
 
         setAccelerators();
 
-        helpWindow = new HelpWindow();
-        helpWindow.showDataFile(dataFilePath);
-        // Closing help returns the cursor to the command box, so the user can keep typing.
-        helpWindow.getRoot().addEventHandler(WindowEvent.WINDOW_HIDDEN, event -> {
-            if (commandBox != null) {
-                commandBox.focus();
-            }
-        });
         primaryStage.addEventHandler(WindowEvent.WINDOW_HIDDEN, event -> disposeWeekPanel());
     }
 
     public Stage getPrimaryStage() {
         return primaryStage;
+    }
+
+    /** Shows {@code message} as a warning in the result display, e.g. a problem found at startup. */
+    void showWarning(String message) {
+        resultDisplay.setWarningToUser(message);
     }
 
     private void setAccelerators() {
@@ -183,7 +184,7 @@ public class MainWindow extends UiPart<Stage> {
          * key event is consumed by the TextInputControl.
          *
          * For now, we add the following event filter to capture such key events and open
-         * the help window purposely so as to support accelerators even when focus is
+         * the user guide so as to support accelerators even when focus is
          * in CommandBox.
          */
         getRoot().addEventFilter(KeyEvent.KEY_PRESSED, event -> {
@@ -199,9 +200,9 @@ public class MainWindow extends UiPart<Stage> {
      */
     void fillInnerParts() {
         personListPanel = new PersonListPanel(logic.getFilteredActivePersonList(),
-                logic.getAddressBook().getPersonList());
+                logic.getAddressBook().getPersonList(), false, logic.getRateSortOrder());
         archivedPersonListPanel = new PersonListPanel(logic.getFilteredArchivedPersonList(),
-                logic.getAddressBook().getArchivedPersonList(), true);
+                logic.getAddressBook().getArchivedPersonList(), true, logic.getRateSortOrder());
         personListPanelPlaceholder.getChildren().setAll(personListPanel.getRoot(), archivedPersonListPanel.getRoot());
 
         resultDisplay = new ResultDisplay();
@@ -211,6 +212,10 @@ public class MainWindow extends UiPart<Stage> {
         weekPanel = new WeekPanel(logic.getFilteredActivePersonList(), logic.getAddressBook().getPersonList(),
                 logic.getLessonPredicate());
         personListPanelPlaceholder.getChildren().add(weekPanel.getRoot());
+        // Only the shown screen takes part in layout, so a hidden one can never make the shown one wider than
+        // the window.
+        personListPanelPlaceholder.getChildren()
+                .forEach(screen -> screen.managedProperty().bind(screen.visibleProperty()));
 
         StatusBarFooter statusBarFooter = new StatusBarFooter(dataFilePath);
         statusbarPlaceholder.getChildren().add(statusBarFooter.getRoot());
@@ -234,6 +239,11 @@ public class MainWindow extends UiPart<Stage> {
         }, () -> {
             if (!weekPanel.getRoot().isVisible()) {
                 visiblePersonListPanel().closeDetails();
+            }
+        });
+        commandBox.setSideScroller(direction -> {
+            if (weekPanel.getRoot().isVisible()) {
+                weekPanel.scrollSideways(direction);
             }
         });
         commandBox.setExampleSupplier(resultDisplay::getExample);
@@ -357,8 +367,17 @@ public class MainWindow extends UiPart<Stage> {
         setActive(studentsNav, !week && !archive);
         setActive(archiveNav, archive);
         fillLevelNav();
-        commandBox.setAltHint(week ? "Scroll" : "Details");
+        // On the calendar, Alt+Left/Right also scroll sideways.
+        commandBox.setAltHint(week ? "Alt ↑↓←→" : "Alt ↑↓", week ? "Scroll" : "Details");
         if (week) {
+            // The calendar is out of layout while hidden, and the scroll to the current time can run before the
+            // next layout pass, so size it now, with the styles of everything changed above. Before the window
+            // first shows there is nothing to do: showing it lays everything out for the screen it is on.
+            if (primaryStage.isShowing()) {
+                Parent root = primaryStage.getScene().getRoot();
+                root.applyCss();
+                root.layout();
+            }
             weekPanel.scrollToCurrentTime();
         }
     }
@@ -403,14 +422,15 @@ public class MainWindow extends UiPart<Stage> {
     }
 
     /**
-     * Opens the help window or focuses on it if it's already opened.
+     * Opens the user guide in the default browser.
      */
     @FXML
     public void handleHelp() {
-        if (!helpWindow.isShowing()) {
-            helpWindow.show();
-        } else {
-            helpWindow.focus();
+        try {
+            openDocument.accept(USERGUIDE_URL);
+        } catch (RuntimeException e) {
+            logger.warning("Could not open user guide: " + e);
+            showWarning("Could not open the browser. Open the user guide manually: " + USERGUIDE_URL);
         }
     }
 
@@ -426,7 +446,6 @@ public class MainWindow extends UiPart<Stage> {
         GuiSettings guiSettings = new GuiSettings(primaryStage.getWidth(), primaryStage.getHeight(),
                 (int) primaryStage.getX(), (int) primaryStage.getY());
         logic.setGuiSettings(guiSettings);
-        helpWindow.hide();
         primaryStage.hide();
     }
 

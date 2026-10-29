@@ -20,6 +20,11 @@ import java.util.regex.Pattern;
 public final class WeeklyLessonSlot implements Comparable<WeeklyLessonSlot> {
     public static final String MESSAGE_CONSTRAINTS =
             "A lesson slot must use minute precision and end after it starts on the same day.";
+    public static final String MESSAGE_INVALID_FORMAT = "Lesson slots must be in the format DAY START END, "
+            + "where DAY is a three-letter day (e.g. Mon, Sun) and START and END are minute-precise times "
+            + "(e.g. 10.30am, 1.00pm). Example: Wed 1.00pm 5.00pm";
+    public static final String MESSAGE_END_NOT_AFTER_START =
+            "A lesson slot's START must be before its END on the same day, e.g. Wed 1.00pm 5.00pm";
 
     private static final DateTimeFormatter DAY_FORMAT = new DateTimeFormatterBuilder()
             .parseCaseInsensitive().appendPattern("E").toFormatter(new Locale("EN", "SG"));
@@ -69,9 +74,9 @@ public final class WeeklyLessonSlot implements Comparable<WeeklyLessonSlot> {
     }
 
     /**
-     * Returns true if a given string is a valid weekly lesson slot.
+     * Returns true if a given string is written as DAY START END, whether or not END is after START.
      */
-    public static boolean isValidWeeklyLessonSlot(String test) {
+    public static boolean isValidFormat(String test) {
         Pattern pattern = Pattern.compile(VALIDATION_REGEX);
         Matcher matcher = pattern.matcher(test);
 
@@ -79,26 +84,30 @@ public final class WeeklyLessonSlot implements Comparable<WeeklyLessonSlot> {
             return false;
         }
 
-        String dayString = matcher.group(1);
-        String startString = matcher.group(2);
-        String endString = matcher.group(3);
-
-        LocalTime start;
-        LocalTime end;
-
         try {
-            DayOfWeek.from(DAY_FORMAT.parse(dayString));
-            start = LocalTime.parse(startString, TIME_FORMAT);
-            end = LocalTime.parse(endString, TIME_FORMAT);
+            DayOfWeek.from(DAY_FORMAT.parse(matcher.group(1)));
+            LocalTime.parse(matcher.group(2), TIME_FORMAT);
+            LocalTime.parse(matcher.group(3), TIME_FORMAT);
         } catch (DateTimeException e) {
             return false;
         }
 
-        if (!end.isAfter(start)) {
+        return true;
+    }
+
+    /**
+     * Returns true if a given string is a valid weekly lesson slot.
+     */
+    public static boolean isValidWeeklyLessonSlot(String test) {
+        if (!isValidFormat(test)) {
             return false;
         }
 
-        return true;
+        Matcher matcher = Pattern.compile(VALIDATION_REGEX).matcher(test);
+        matcher.matches();
+        LocalTime start = LocalTime.parse(matcher.group(2), TIME_FORMAT);
+        LocalTime end = LocalTime.parse(matcher.group(3), TIME_FORMAT);
+        return end.isAfter(start);
     }
 
     public DayOfWeek getDay() {

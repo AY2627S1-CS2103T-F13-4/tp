@@ -31,7 +31,7 @@ public class LessonTest {
     public void getters_returnConstructorValues() {
         Lesson lesson = new Lesson(MATH, MONDAY_SLOT, RATE);
         assertEquals(MATH, lesson.getSubject());
-        assertEquals(MONDAY_SLOT, lesson.getWeeklyLessonSlot());
+        assertEquals(MONDAY_SLOT, lesson.getLessonSlot());
         assertEquals(RATE, lesson.getHourlyRate());
     }
 

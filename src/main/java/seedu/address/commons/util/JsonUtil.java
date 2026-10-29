@@ -65,6 +65,11 @@ public class JsonUtil {
             logger.warning("Error reading from jsonFile file " + filePath + ": " + e);
             throw new DataLoadingException(e);
         }
+        // A file holding only "null" is invalid rather than missing, so it must not be treated as no file.
+        if (jsonFile == null) {
+            logger.warning("JSON file " + filePath + " holds null");
+            throw new DataLoadingException(new IOException("JSON file " + filePath + " holds null"));
+        }
 
         return Optional.of(jsonFile);
     }

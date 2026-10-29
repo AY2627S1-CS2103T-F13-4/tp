@@ -10,6 +10,7 @@ import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.ReadOnlyAddressBook;
 import seedu.address.model.person.Lesson;
+import seedu.address.model.person.RateSortOrder;
 import seedu.address.model.person.Student;
 
 /**
@@ -43,6 +44,9 @@ public interface Logic {
 
     /** Returns whether commands currently use the archived student list. */
     boolean isArchiveView();
+
+    /** Returns how students are ordered by hourly rate within each school stage. */
+    ObservableValue<RateSortOrder> getRateSortOrder();
 
     /** Returns the active calendar lesson filter. */
     ObservableValue<Predicate<Lesson>> getLessonPredicate();

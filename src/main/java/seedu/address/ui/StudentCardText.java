@@ -12,6 +12,7 @@ import java.util.Optional;
 import seedu.address.model.person.HourlyRate;
 import seedu.address.model.person.Lesson;
 import seedu.address.model.person.LessonMode;
+import seedu.address.model.person.RateSortOrder;
 import seedu.address.model.person.Student;
 import seedu.address.model.person.WeeklyLessonSlot;
 
@@ -43,7 +44,7 @@ final class StudentCardText {
         List<Lesson> lessons = student.getLessons();
         for (int i = 0; i < lessons.size(); i++) {
             Lesson lesson = lessons.get(i);
-            lines.add(new LessonLine(i + 1, lesson.getSubject().toString(), shortSlot(lesson.getWeeklyLessonSlot()),
+            lines.add(new LessonLine(i + 1, lesson.getSubject().toString(), shortSlot(lesson.getLessonSlot()),
                     shortRate(lesson.getHourlyRate()), lesson.getLocation().map(Object::toString),
                     lesson.getMode()));
         }
@@ -70,7 +71,7 @@ final class StudentCardText {
 
     /** Returns the student's lesson slots, in the same order as {@link #lessons(Student)}. */
     static List<WeeklyLessonSlot> slots(Student student) {
-        return student.getLessons().stream().map(Lesson::getWeeklyLessonSlot).toList();
+        return student.getLessons().stream().map(Lesson::getLessonSlot).toList();
     }
 
     private static long minutesUntil(DayOfWeek day, LocalTime start, LocalDateTime now) {
@@ -117,9 +118,23 @@ final class StudentCardText {
         return subjects.isEmpty() ? Optional.empty() : Optional.of(String.join(", ", subjects));
     }
 
+    /** Returns the table's Rate column heading: the rate the current sort ranks by, or plain "Rate". */
+    static String rateHeading(RateSortOrder order) {
+        return switch (order) {
+            case ASCENDING -> "Min rate";
+            case DESCENDING -> "Max rate";
+            case NONE -> "Rate";
+        };
+    }
+
     /** Returns a rate for the table's narrow Rate column, e.g. "$60/h" for "SGD 60/h". */
     static String tableRate(LessonLine line) {
         return line.rate().replace("SGD ", "$");
+    }
+
+    /** Returns a rate for the table's narrow Rate column, e.g. "$45.50/h". */
+    static String tableRate(HourlyRate rate) {
+        return shortRate(rate).replace("SGD ", "$");
     }
 
 }
