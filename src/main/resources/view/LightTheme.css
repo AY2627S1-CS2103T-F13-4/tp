@@ -701,6 +701,12 @@
     -fx-border-color: -sb-divider transparent transparent transparent;
 }
 
+/* Behind the times while the days scroll sideways under them, with a line where the days start */
+.schedule-time-column {
+    -fx-background-color: -sb-card;
+    -fx-border-color: transparent -sb-divider transparent transparent;
+}
+
 .schedule-time {
     -fx-font-size: 10.5px;
     -fx-text-fill: #A1A1AA;
