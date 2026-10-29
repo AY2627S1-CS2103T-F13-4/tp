@@ -12,7 +12,8 @@ import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.person.FollowUp;
 
 /**
- * Parses follow-up text, preserving words such as {@code and/or} as free text.
+ * Parses follow-up text. Follow-up text is free text: everything after {@code text/} is the text,
+ * including words such as {@code and/or} or {@code text/}.
  */
 public class FollowUpAddCommandParser implements Parser<FollowUpAddCommand> {
 
@@ -20,7 +21,7 @@ public class FollowUpAddCommandParser implements Parser<FollowUpAddCommand> {
     public FollowUpAddCommand parse(String args) throws ParseException {
         requireNonNull(args);
         String formatError = String.format(MESSAGE_INVALID_COMMAND_FORMAT, FollowUpAddCommand.MESSAGE_USAGE);
-        ArgumentMultimap arguments = ArgumentTokenizer.tokenize(args, PREFIX_TEXT);
+        ArgumentMultimap arguments = ArgumentTokenizer.tokenizeWithTrailingValue(args, PREFIX_TEXT);
         Index studentIndex;
         try {
             studentIndex = ParserUtil.parseIndex(arguments.getPreamble());
@@ -31,7 +32,6 @@ public class FollowUpAddCommandParser implements Parser<FollowUpAddCommand> {
         if (text.isEmpty()) {
             throw new ParseException(formatError);
         }
-        arguments.verifyNoDuplicatePrefixesFor(PREFIX_TEXT);
         FollowUp followUp = ParserUtil.parseFollowUp(text.get());
         return new FollowUpAddCommand(studentIndex, followUp);
     }

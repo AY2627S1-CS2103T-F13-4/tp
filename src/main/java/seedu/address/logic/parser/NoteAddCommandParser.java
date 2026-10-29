@@ -14,7 +14,8 @@ import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.person.ProgressNote;
 
 /**
- * Parses dated progress notes, preserving words such as {@code and/or} in the free text.
+ * Parses dated progress notes. Note text is free text: everything after {@code text/} is the text, including words
+ * such as {@code and/or}, {@code date/} or {@code text/}, so {@code text/} must come last.
  */
 public class NoteAddCommandParser implements Parser<NoteAddCommand> {
 
@@ -22,7 +23,7 @@ public class NoteAddCommandParser implements Parser<NoteAddCommand> {
     public NoteAddCommand parse(String args) throws ParseException {
         requireNonNull(args);
         String formatError = String.format(MESSAGE_INVALID_COMMAND_FORMAT, NoteAddCommand.MESSAGE_USAGE);
-        ArgumentMultimap arguments = ArgumentTokenizer.tokenize(args, PREFIX_DATE, PREFIX_TEXT);
+        ArgumentMultimap arguments = ArgumentTokenizer.tokenizeWithTrailingValue(args, PREFIX_TEXT, PREFIX_DATE);
         Index studentIndex;
         try {
             studentIndex = ParserUtil.parseIndex(arguments.getPreamble());
@@ -34,7 +35,7 @@ public class NoteAddCommandParser implements Parser<NoteAddCommand> {
         if (date.isEmpty() || text.isEmpty()) {
             throw new ParseException(formatError);
         }
-        arguments.verifyNoDuplicatePrefixesFor(PREFIX_DATE, PREFIX_TEXT);
+        arguments.verifyNoDuplicatePrefixesFor(PREFIX_DATE);
         ProgressNote note = ParserUtil.parseProgressNote(date.get(), text.get(), LocalDate.now());
         return new NoteAddCommand(studentIndex, note);
     }

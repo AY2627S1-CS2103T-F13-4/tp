@@ -35,8 +35,8 @@ import seedu.address.model.person.WeeklyLessonSlot;
 public class LessonEditCommand extends Command {
     public static final String COMMAND_WORD = "lesson-edit";
 
-    public static final String MESSAGE_USAGE = COMMAND_WORD + ": Edits the details of the lesson of the person "
-            + "identified by the respective index numbers used in the displayed person list. "
+    public static final String MESSAGE_USAGE = COMMAND_WORD + ": Edits the details of the lesson of the student "
+            + "identified by the respective index numbers used in the displayed student list. "
             + "At least one field is required. Empty mode/ or location/ clears that field.\n"
             + "Parameters: STUDENT_INDEX LESSON_INDEX (both must be positive integers) "
             + "[" + PREFIX_SUBJECT + "SUBJECT] "

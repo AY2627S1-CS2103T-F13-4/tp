@@ -21,6 +21,7 @@ import seedu.address.model.person.HourlyRate;
 import seedu.address.model.person.LessonLocation;
 import seedu.address.model.person.LessonMode;
 import seedu.address.model.person.Subject;
+import seedu.address.model.person.WeeklyLessonSlot;
 import seedu.address.testutil.EditLessonDescriptorBuilder;
 
 public class LessonEditCommandParserTest {
@@ -76,6 +77,8 @@ public class LessonEditCommandParserTest {
         assertParseFailure(parser, "1 a rate/50", invalidFormat(USAGE));
         assertParseFailure(parser, "1 0 rate/50", invalidFormat(USAGE));
         assertParseFailure(parser, "1 2 subject/", Subject.MESSAGE_CONSTRAINTS);
+        assertParseFailure(parser, "1 2 slot/Wednesday 1.00pm 5.00pm", WeeklyLessonSlot.MESSAGE_INVALID_FORMAT);
+        assertParseFailure(parser, "1 2 slot/Wed 1.00pm 1.00pm", WeeklyLessonSlot.MESSAGE_END_NOT_AFTER_START);
         assertParseFailure(parser, "1 2 rate/1e2", HourlyRate.MESSAGE_CONSTRAINTS);
         assertParseFailure(parser, "1 2 subject/Math x/y", invalidFormat(USAGE));
         assertParseFailure(parser, "1 2 location/Library x/y", invalidFormat(USAGE));

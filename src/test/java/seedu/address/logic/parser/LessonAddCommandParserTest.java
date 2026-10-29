@@ -68,7 +68,10 @@ public class LessonAddCommandParserTest {
         assertParseFailure(parser, "1 subject/Math" + LESSON_SLOT_DESC + " rate/45 x/y", invalidFormat(USAGE));
         assertParseFailure(parser, "1 extra subject/Math" + LESSON_SLOT_DESC + " rate/45", invalidFormat(USAGE));
         assertParseFailure(parser, "1 subject/123" + LESSON_SLOT_DESC + " rate/45", Subject.MESSAGE_CONSTRAINTS);
-        assertParseFailure(parser, "1 subject/Math slot/nope rate/45", WeeklyLessonSlot.MESSAGE_CONSTRAINTS);
+        assertParseFailure(parser, "1 subject/Math slot/nope rate/45", WeeklyLessonSlot.MESSAGE_INVALID_FORMAT);
+        assertParseFailure(parser, "1 subject/Math slot/ rate/45", WeeklyLessonSlot.MESSAGE_INVALID_FORMAT);
+        assertParseFailure(parser, "1 subject/Math slot/Wed 5.00pm 1.00pm rate/45",
+                WeeklyLessonSlot.MESSAGE_END_NOT_AFTER_START);
         assertParseFailure(parser, "1 subject/Math" + LESSON_SLOT_DESC + " rate/-1", HourlyRate.MESSAGE_CONSTRAINTS);
         assertParseFailure(parser, "1 subject/Math" + LESSON_SLOT_DESC + " rate/45 rate/50",
                 Messages.getErrorMessageForDuplicatePrefixes(PREFIX_RATE));

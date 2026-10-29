@@ -28,8 +28,8 @@ public class NoteAddCommandParserTest {
     public void parse_validArgs_success() {
         NoteAddCommand expected = addFirst(DATE, "Finished fractions");
         assertParseSuccess(parser, " 1 date/2026-10-15 text/Finished fractions", expected);
-        // any order, extra spaces trimmed
-        assertParseSuccess(parser, " 1  text/  Finished fractions  date/ 2026-10-15 ", expected);
+        // extra spaces trimmed
+        assertParseSuccess(parser, " 1  date/ 2026-10-15  text/  Finished fractions  ", expected);
     }
 
     @Test
@@ -43,6 +43,23 @@ public class NoteAddCommandParserTest {
     public void parse_wordWithSlashInText_keptAsText() {
         assertParseSuccess(parser, " 1 date/2026-10-15 text/Revise and/or redo Q3 w/o a calculator",
                 addFirst(DATE, "Revise and/or redo Q3 w/o a calculator"));
+    }
+
+    @Test
+    public void parse_prefixWordsInText_keptAsText() {
+        assertParseSuccess(parser,
+                " 1 date/2026-10-15 text/Practised the essay; next session update date/time of mock exam",
+                addFirst(DATE, "Practised the essay; next session update date/time of mock exam"));
+        assertParseSuccess(parser, " 1 date/2026-10-15 text/Bring the text/workbook bundle",
+                addFirst(DATE, "Bring the text/workbook bundle"));
+    }
+
+    @Test
+    public void parse_dateAfterText_treatedAsText() {
+        // date/ after text/ is part of the text, so the note has no date
+        assertParseFailure(parser, " 1 text/Fractions date/2026-10-15", INVALID_FORMAT);
+        assertParseSuccess(parser, " 1 date/2026-10-15 text/Fractions date/2026-10-16",
+                addFirst(DATE, "Fractions date/2026-10-16"));
     }
 
     @Test
@@ -77,7 +94,5 @@ public class NoteAddCommandParserTest {
     public void parse_repeatedPrefix_failure() {
         assertParseFailure(parser, " 1 date/2026-10-15 date/2026-10-16 text/Fractions",
                 Messages.getErrorMessageForDuplicatePrefixes(CliSyntax.PREFIX_DATE));
-        assertParseFailure(parser, " 1 date/2026-10-15 text/Fractions text/Decimals",
-                Messages.getErrorMessageForDuplicatePrefixes(CliSyntax.PREFIX_TEXT));
     }
 }

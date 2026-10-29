@@ -222,8 +222,11 @@ public class ParserUtil {
         requireNonNull(weeklyLessonSlot);
         String trimmedWeeklyLessonSlot = weeklyLessonSlot.trim();
 
+        if (!WeeklyLessonSlot.isValidFormat(trimmedWeeklyLessonSlot)) {
+            throw new ParseException(WeeklyLessonSlot.MESSAGE_INVALID_FORMAT);
+        }
         if (!WeeklyLessonSlot.isValidWeeklyLessonSlot(trimmedWeeklyLessonSlot)) {
-            throw new ParseException(WeeklyLessonSlot.MESSAGE_CONSTRAINTS);
+            throw new ParseException(WeeklyLessonSlot.MESSAGE_END_NOT_AFTER_START);
         }
 
         return new WeeklyLessonSlot(trimmedWeeklyLessonSlot);

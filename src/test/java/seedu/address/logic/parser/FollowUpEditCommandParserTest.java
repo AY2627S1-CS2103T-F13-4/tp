@@ -26,6 +26,13 @@ public class FollowUpEditCommandParserTest {
     }
 
     @Test
+    public void parseEdit_prefixWordsInText_keptAsText() {
+        FollowUpEditCommand expected = new FollowUpEditCommand(INDEX_FIRST_PERSON, INDEX_SECOND_PERSON,
+                new FollowUp("Buy the text/workbook; date/time TBC"));
+        assertParseSuccess(parser, " 1 2 text/Buy the text/workbook; date/time TBC", expected);
+    }
+
+    @Test
     public void parseEdit_invalidArgs_failure() {
         for (String args : new String[] {"", " 1 text/Call", " 1 2", " 1 0 text/Call", " 1 2 3 text/Call",
             " 1 b text/Call"}) {

@@ -165,8 +165,8 @@ public class StudentBookSeederTest {
                     Map.Entry<Lesson, String> after = sorted.get(i);
                     int gap = before.getValue().equals(after.getValue()) ? 0 : StudentBookSeeder.TRAVEL_MINUTES;
                     assertFalse(after.getKey().getStart().isBefore(before.getKey().getEnd().plusMinutes(gap)),
-                            day + " " + before.getKey().getWeeklyLessonSlot() + " then "
-                                    + after.getKey().getWeeklyLessonSlot());
+                            day + " " + before.getKey().getLessonSlot() + " then "
+                                    + after.getKey().getLessonSlot());
                 }
             });
         }
@@ -185,7 +185,7 @@ public class StudentBookSeederTest {
                 default -> LocalTime.of(22, 0);
             };
             assertFalse(lesson.getStart().isBefore(earliest) || lesson.getEnd().isAfter(latest),
-                    lesson.getWeeklyLessonSlot().toString());
+                    lesson.getLessonSlot().toString());
         });
     }
 
