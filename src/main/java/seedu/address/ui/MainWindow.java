@@ -28,6 +28,8 @@ import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.TextInputControl;
 import javafx.scene.control.Tooltip;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.HBox;
@@ -69,6 +71,9 @@ public class MainWindow extends UiPart<Stage> {
     private static final int RECENT_COMMANDS = 3;
     private static final String NAV_ACTIVE_STYLE_CLASS = "nav-item-active";
     private static final String COMMAND_PANEL_FOCUSED_STYLE_CLASS = "command-panel-focused";
+    /** Moves the cursor back to the command box: Cmd+L on macOS, Ctrl+L elsewhere. */
+    private static final KeyCombination FOCUS_COMMAND_BOX = new KeyCodeCombination(KeyCode.L,
+            KeyCombination.SHORTCUT_DOWN);
     /** Filled into the command box by the Add student button. */
     private static final String ADD_TEMPLATE = AddCommand.COMMAND_WORD + " " + PREFIX_NAME + " " + PREFIX_PHONE
             + " " + PREFIX_EMAIL + " " + PREFIX_ADDRESS;
@@ -242,6 +247,13 @@ public class MainWindow extends UiPart<Stage> {
             commandPanel.getStyleClass().remove(COMMAND_PANEL_FOCUSED_STYLE_CLASS);
             if (focused) {
                 commandPanel.getStyleClass().add(COMMAND_PANEL_FOCUSED_STYLE_CLASS);
+            }
+        });
+        // Clicking a row or tab takes the cursor out of the command box; the shortcut brings it back from anywhere.
+        getRoot().addEventFilter(KeyEvent.KEY_PRESSED, event -> {
+            if (FOCUS_COMMAND_BOX.match(event)) {
+                commandBox.focus();
+                event.consume();
             }
         });
         personListPanel.setOnAddStudent(() -> commandBox.prefill(ADD_TEMPLATE));
