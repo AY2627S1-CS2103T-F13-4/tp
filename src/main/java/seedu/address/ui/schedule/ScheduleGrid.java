@@ -64,8 +64,11 @@ public class ScheduleGrid extends UiPart<GridPane> {
     /** The hours always shown, so a light week still reads as a working day; lessons outside extend it. */
     private static final LocalTime DAY_START = LocalTime.of(9, 0);
     private static final LocalTime DAY_END = LocalTime.of(20, 0);
-    /** Width of the time column; the lesson columns share the rest of the width equally. */
-    private static final double TIME_COLUMN_WIDTH = 76;
+    /**
+     * Narrowest a lesson column gets, so a block shows a time like "10.00am-11.00am" in full; a week that would
+     * need narrower columns scrolls sideways instead.
+     */
+    private static final double MIN_LESSON_COLUMN_WIDTH = 116;
     /** Gap between a lesson block and the edges of its column. */
     private static final double CARD_SIDE_GAP = 4;
     private static final Duration NOW_LINE_REFRESH = Duration.minutes(1);
@@ -88,6 +91,10 @@ public class ScheduleGrid extends UiPart<GridPane> {
     /** The day headings and the corner above the times; they stay at the top while the hours scroll. */
     private final List<Region> headings = new ArrayList<>();
     private double headingOffset;
+    /** The times, their background and the corner; they stay at the left while the days scroll sideways. */
+    private final List<Region> timeColumn = new ArrayList<>();
+    private double timeColumnOffset;
+    private Region timeBackground;
     private final Timeline nowLineUpdater;
     /** The date the headings and today's shading were drawn for; a new day redraws them. */
     private LocalDate renderedDate;
@@ -151,8 +158,6 @@ public class ScheduleGrid extends UiPart<GridPane> {
         refreshSchedule();
         students.addListener(studentListListener);
         lessonPredicate.addListener(filterListener);
-        // Percentages include the fixed time column, so each day's share is worked out from the width.
-        scheduleGrid.widthProperty().addListener((unused, oldWidth, newWidth) -> shareDayWidths());
         nowLineUpdater = new Timeline(new KeyFrame(NOW_LINE_REFRESH, event -> updateForTime()));
         nowLineUpdater.setCycleCount(Animation.INDEFINITE);
         // Start on the next whole minute, so the line moves when the clock's minute changes.
@@ -177,6 +182,9 @@ public class ScheduleGrid extends UiPart<GridPane> {
         Region corner = new Region();
         corner.getStyleClass().add("schedule-day");
         pin(corner);
+        pinLeft(corner);
+        // Above the day headings, which scroll sideways under it.
+        corner.setViewOrder(-2);
         scheduleGrid.add(corner, 0, 0);
 
         int currDisplayColumn = 1;
@@ -188,7 +196,6 @@ public class ScheduleGrid extends UiPart<GridPane> {
             addDayBackground(day, currDisplayColumn, dayColumnWidth, rowCount);
             currDisplayColumn += dayColumnWidth;
         }
-        shareDayWidths();
         // Lessons go on top of the day backgrounds and hour lines, so they are added last.
         for (DayOfWeek day : DayOfWeek.values()) {
             for (ScheduleEntry entry : entriesByDay.get(day)) {
@@ -215,6 +222,7 @@ public class ScheduleGrid extends UiPart<GridPane> {
         dayColumnCounts.clear();
         dayStartColumns.clear();
         headings.clear();
+        timeColumn.clear();
         scheduleGrid.getChildren().clear();
 
         // Keep the FXML timestamp column and day-heading row; regenerate the remaining constraints.
@@ -254,29 +262,17 @@ public class ScheduleGrid extends UiPart<GridPane> {
         }
     }
 
+    /**
+     * Adds a lesson column. Lesson columns all start at the same width and grow equally into the width left
+     * after the time column, so a day with two overlapping lessons has two columns and is twice as wide as a day
+     * without overlaps.
+     */
     private void addColumn() {
         ColumnConstraints col = new ColumnConstraints();
-        col.setMinWidth(0);
+        col.setMinWidth(MIN_LESSON_COLUMN_WIDTH);
+        col.setPrefWidth(MIN_LESSON_COLUMN_WIDTH);
         col.setHgrow(Priority.SOMETIMES);
         scheduleGrid.getColumnConstraints().add(col);
-    }
-
-    /**
-     * Gives every lesson column an equal share of the width left after the time column. A day with two
-     * overlapping lessons has two columns, so it is twice as wide as a day without overlaps.
-     */
-    private void shareDayWidths() {
-        double width = scheduleGrid.getWidth();
-        if (width <= TIME_COLUMN_WIDTH || dayColumnCounts.isEmpty()) {
-            return;
-        }
-        double timePercent = TIME_COLUMN_WIDTH / width * 100;
-        int lessonColumns = dayColumnCounts.stream().mapToInt(Integer::intValue).sum();
-        List<ColumnConstraints> columns = scheduleGrid.getColumnConstraints();
-        columns.get(0).setPercentWidth(timePercent);
-        for (ColumnConstraints column : columns.subList(1, columns.size())) {
-            column.setPercentWidth((100 - timePercent) / lessonColumns);
-        }
     }
 
     private void addRow() {
@@ -321,6 +317,24 @@ public class ScheduleGrid extends UiPart<GridPane> {
     public void setHeadingOffset(double offset) {
         headingOffset = offset;
         headings.forEach(heading -> heading.setTranslateY(offset));
+    }
+
+    /** Keeps {@code node} of the time column above the lessons and at the current sideways scroll offset. */
+    private void pinLeft(Region node) {
+        node.setViewOrder(-1);
+        node.setTranslateX(timeColumnOffset);
+        timeColumn.add(node);
+    }
+
+    /**
+     * Moves the time column right by {@code offset}, the distance the grid is scrolled sideways, so the times
+     * stay in view. Its background shows only while the days scroll under it, so it never hides the left half of
+     * the current-time dot on Monday.
+     */
+    public void setTimeColumnOffset(double offset) {
+        timeColumnOffset = offset;
+        timeColumn.forEach(node -> node.setTranslateX(offset));
+        timeBackground.setVisible(offset > 0);
     }
 
     /** Draws the line on the left of a day, from the heading down to the last row, and shades today. */
@@ -407,19 +421,36 @@ public class ScheduleGrid extends UiPart<GridPane> {
 
         int rowCount = (gridEndMinute - gridStartMinute) / minuteInterval;
 
+        timeBackground = new Region();
+        timeBackground.getStyleClass().add("schedule-time-column");
+        pinLeft(timeBackground);
+        timeBackground.setVisible(timeColumnOffset > 0);
+        scheduleGrid.add(timeBackground, 0, 1, 1, rowCount);
         LocalTime currTime = LocalTime.MIDNIGHT.plusMinutes(gridStartMinute);
         for (int i = 0; i < rowCount; i++) {
             addRow();
             Region line = new Region();
             line.getStyleClass().add("schedule-hour-line");
-            scheduleGrid.add(line, 1, i + 1, GridPane.REMAINING, 1);
+            scheduleGrid.add(line, 0, i + 1, GridPane.REMAINING, 1);
+            addHalfHourLine(i + 1, minuteInterval);
             Label timeLabel = new Label(WeeklyLessonSlot.formatTime(currTime));
             timeLabel.getStyleClass().add("schedule-time");
+            pinLeft(timeLabel);
             scheduleGrid.add(timeLabel, 0, i + 1, 1, 1);
             GridPane.setValignment(timeLabel, VPos.TOP);
             currTime = currTime.plusMinutes(minuteInterval);
         }
         return rowCount;
+    }
+
+    /** Draws a dotted line halfway down {@code row}, across every day but not the time column. */
+    private void addHalfHourLine(int row, int minuteInterval) {
+        Region line = new Region();
+        line.getStyleClass().add("schedule-half-hour-line");
+        line.setMouseTransparent(true);
+        GridPane.setValignment(line, VPos.TOP);
+        GridPane.setMargin(line, new Insets(minuteInterval / 2 * PIXELS_PER_MINUTE, 0, 0, 0));
+        scheduleGrid.add(line, 1, row, GridPane.REMAINING, 1);
     }
 
     private void makeLessonCard(ScheduleEntry entry) {

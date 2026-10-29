@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.nio.file.Path;
 import java.time.DayOfWeek;
@@ -45,7 +46,7 @@ public class GuardianWorkflowTest {
     private Student original;
 
     @BeforeEach
-    public void setUp() {
+    public void setUp() throws IOException {
         original = new PersonBuilder().withSchoolingLevel(new SchoolingLevel("Primary 5"))
                 .withLessons(new Lesson(new Subject("Math"),
                         new WeeklyLessonSlot(DayOfWeek.MONDAY, LocalTime.of(16, 0), LocalTime.of(17, 0)),
@@ -55,6 +56,7 @@ public class GuardianWorkflowTest {
         book.addPerson(original);
         model = new ModelManager(book, new UserPrefs());
         storage = new JsonAddressBookStorage(temporaryFolder.resolve("students.json"));
+        storage.saveAddressBook(model.getAddressBook());
         logic = new LogicManager(model, new StorageManager(storage,
                 new JsonUserPrefsStorage(temporaryFolder.resolve("preferences.json"))));
     }
@@ -122,7 +124,7 @@ public class GuardianWorkflowTest {
             "guardian-add 1 name/Janet", "guardian-add 1 phone/91234567", "guardian-add 1 name/ phone/91234567",
             "guardian-add 1 name/Janet phone/abc", "guardian-add 1 name/Janet name/John phone/91234567",
             "guardian-add 1 name/Janet phone/91234567 phone/87654321", "guardian-edit 1", "guardian-edit 1 name/",
-            "guardian-edit 1 phone/", "guardian-edit 1 phone/12", "guardian-edit 1 name/Janet Tan phone/+6591234567",
+            "guardian-edit 1 phone/", "guardian-edit 1 phone/12", "guardian-edit 1 name/Janet Tan phone/9123+4567",
             "guardian-edit 1 subject/Math", "guardian-add 1 name/Janet phone/91234567 rate/50",
             "guardian-edit 1 name/John name/Janet", "guardian-edit 1 phone/91234567 phone/87654321",
             "guardian-delete 1 name/Janet", "guardian-delete 0", "guardian-delete 2147483648"

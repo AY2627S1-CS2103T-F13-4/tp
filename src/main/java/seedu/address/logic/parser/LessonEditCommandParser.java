@@ -10,7 +10,6 @@ import static seedu.address.logic.parser.CliSyntax.PREFIX_SUBJECT;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 import seedu.address.commons.core.index.Index;
 import seedu.address.logic.commands.LessonEditCommand;
@@ -43,6 +42,7 @@ public class LessonEditCommandParser implements Parser<LessonEditCommand> {
             throw new ParseException(String.format(
                     MESSAGE_INVALID_COMMAND_FORMAT, LessonEditCommand.MESSAGE_USAGE), pe);
         }
+        LessonCommandParserUtil.validatePrefixes(args, argMultimap, LessonEditCommand.MESSAGE_USAGE);
 
         EditLessonDescriptor editLessonDescriptor = new EditLessonDescriptor();
 

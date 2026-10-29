@@ -50,6 +50,7 @@ public class EditCommand extends Command {
             + "[" + PREFIX_TAG + "TAG]... "
             + "[" + PREFIX_SCHOOL + "SCHOOL] "
             + "[" + PREFIX_LEVEL + "SCHOOLING_LEVEL]\n"
+            + "Use an empty " + PREFIX_SCHOOL + " or " + PREFIX_LEVEL + " to clear that field\n"
             + "Example: " + COMMAND_WORD + " 1 "
             + PREFIX_PHONE + "91234567 "
             + PREFIX_EMAIL + "johndoe@example.com";

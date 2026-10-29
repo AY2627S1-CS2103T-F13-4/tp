@@ -30,10 +30,13 @@ import static seedu.address.logic.commands.CommandTestUtil.VALID_TAG_FRIEND;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_TAG_HUSBAND;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_ADDRESS;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_EMAIL;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_GUARDIAN;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_LEVEL;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_NAME;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_RATE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_SCHOOL;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_SUBJECT;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseFailure;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseSuccess;
 import static seedu.address.testutil.TypicalPersons.AMY;
@@ -224,6 +227,33 @@ public class AddCommandParserTest {
 
         Student expectedWithSchool = new PersonBuilder(expected).withSchool(new School(VALID_SCHOOL_BOB)).build();
         assertParseSuccess(parser, userInput + SCHOOL_DESC_BOB, new AddCommand(expectedWithSchool));
+    }
+
+    @Test
+    public void parse_slashInAddress_success() {
+        String userInput = NAME_DESC_BOB + PHONE_DESC_BOB + EMAIL_DESC_BOB + " address/";
+
+        // Day/ differs in case from day/, so it stays in the address
+        Student expected = new PersonBuilder(BOB).withAddress("Blk 5 Day/Night Road").withTags().withSchool(null)
+                .build();
+        assertParseSuccess(parser, userInput + "Blk 5 Day/Night Road", new AddCommand(expected));
+
+        // rate/ without whitespace before it is not a prefix
+        expected = new PersonBuilder(BOB).withAddress("1 Road xrate/40").withTags().withSchool(null).build();
+        assertParseSuccess(parser, userInput + "1 Road xrate/40", new AddCommand(expected));
+    }
+
+    @Test
+    public void parse_otherCommandPrefix_failure() {
+        String validInput = NAME_DESC_BOB + PHONE_DESC_BOB + EMAIL_DESC_BOB + ADDRESS_DESC_BOB;
+
+        // lesson fields after the address are rejected instead of being read into it
+        assertParseFailure(parser, validInput + " subject/Math rate/40",
+                Messages.getErrorMessageForUnsupportedPrefixes(PREFIX_SUBJECT, PREFIX_RATE));
+
+        // a foreign prefix before the student fields is named, but c/o in the address is not
+        assertParseFailure(parser, " guardian/Mary" + NAME_DESC_BOB + PHONE_DESC_BOB + EMAIL_DESC_BOB
+                + " address/1 Road c/o John", Messages.getErrorMessageForUnsupportedPrefixes(PREFIX_GUARDIAN));
     }
 
     @Test

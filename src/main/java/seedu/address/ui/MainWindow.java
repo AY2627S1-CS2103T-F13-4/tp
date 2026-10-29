@@ -22,12 +22,15 @@ import javafx.fxml.FXML;
 import javafx.geometry.Pos;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Node;
+import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.TextInputControl;
 import javafx.scene.control.Tooltip;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.HBox;
@@ -59,6 +62,7 @@ public class MainWindow extends UiPart<Stage> {
 
     public static final String USERGUIDE_URL = "https://ay2627s1-cs2103t-f13-4.github.io/tp/UserGuide.html";
     private static final String FXML = "MainWindow.fxml";
+    private static final Logger logger = LogsCenter.getLogger(MainWindow.class);
     /** Index of the first level filter; the divider before them is child 0 of their row. */
     private static final int LEVEL_NAV_FIRST_FILTER = 1;
     /** Below this height the brand and the footer are hidden, leaving the screen room for a few rows. */
@@ -69,11 +73,13 @@ public class MainWindow extends UiPart<Stage> {
     private static final int RECENT_COMMANDS = 3;
     private static final String NAV_ACTIVE_STYLE_CLASS = "nav-item-active";
     private static final String COMMAND_PANEL_FOCUSED_STYLE_CLASS = "command-panel-focused";
+    /** Moves the cursor back to the command box: Cmd+L on macOS, Ctrl+L elsewhere. */
+    private static final KeyCombination FOCUS_COMMAND_BOX = new KeyCodeCombination(KeyCode.L,
+            KeyCombination.SHORTCUT_DOWN);
     /** Filled into the command box by the Add student button. */
     private static final String ADD_TEMPLATE = AddCommand.COMMAND_WORD + " " + PREFIX_NAME + " " + PREFIX_PHONE
             + " " + PREFIX_EMAIL + " " + PREFIX_ADDRESS;
 
-    private final Logger logger = LogsCenter.getLogger(getClass());
 
     private Stage primaryStage;
     private Logic logic;
@@ -211,6 +217,10 @@ public class MainWindow extends UiPart<Stage> {
         weekPanel = new WeekPanel(logic.getFilteredActivePersonList(), logic.getAddressBook().getPersonList(),
                 logic.getLessonPredicate());
         personListPanelPlaceholder.getChildren().add(weekPanel.getRoot());
+        // Only the shown screen takes part in layout, so a hidden one can never make the shown one wider than
+        // the window.
+        personListPanelPlaceholder.getChildren()
+                .forEach(screen -> screen.managedProperty().bind(screen.visibleProperty()));
 
         StatusBarFooter statusBarFooter = new StatusBarFooter(dataFilePath);
         statusbarPlaceholder.getChildren().add(statusBarFooter.getRoot());
@@ -236,12 +246,24 @@ public class MainWindow extends UiPart<Stage> {
                 visiblePersonListPanel().closeDetails();
             }
         });
+        commandBox.setSideScroller(direction -> {
+            if (weekPanel.getRoot().isVisible()) {
+                weekPanel.scrollSideways(direction);
+            }
+        });
         commandBox.setExampleSupplier(resultDisplay::getExample);
         // The command panel shows an accent outline while the cursor is in the command box.
         commandBox.focusedProperty().addListener((unused, wasFocused, focused) -> {
             commandPanel.getStyleClass().remove(COMMAND_PANEL_FOCUSED_STYLE_CLASS);
             if (focused) {
                 commandPanel.getStyleClass().add(COMMAND_PANEL_FOCUSED_STYLE_CLASS);
+            }
+        });
+        // Clicking a row or tab takes the cursor out of the command box; the shortcut brings it back from anywhere.
+        getRoot().addEventFilter(KeyEvent.KEY_PRESSED, event -> {
+            if (FOCUS_COMMAND_BOX.match(event)) {
+                commandBox.focus();
+                event.consume();
             }
         });
         personListPanel.setOnAddStudent(() -> commandBox.prefill(ADD_TEMPLATE));
@@ -357,8 +379,17 @@ public class MainWindow extends UiPart<Stage> {
         setActive(studentsNav, !week && !archive);
         setActive(archiveNav, archive);
         fillLevelNav();
-        commandBox.setAltHint(week ? "Scroll" : "Details");
+        // On the calendar, Alt+Left/Right also scroll sideways.
+        commandBox.setAltHint(week ? "Alt ↑↓←→" : "Alt ↑↓", week ? "Scroll" : "Details");
         if (week) {
+            // The calendar is out of layout while hidden, and the scroll to the current time can run before the
+            // next layout pass, so size it now, with the styles of everything changed above. Before the window
+            // first shows there is nothing to do: showing it lays everything out for the screen it is on.
+            if (primaryStage.isShowing()) {
+                Parent root = primaryStage.getScene().getRoot();
+                root.applyCss();
+                root.layout();
+            }
             weekPanel.scrollToCurrentTime();
         }
     }
@@ -444,9 +475,10 @@ public class MainWindow extends UiPart<Stage> {
      * @see seedu.address.logic.Logic#execute(String)
      */
     private CommandResult executeCommand(String commandText) throws CommandException, ParseException {
+        Student activeDetails = personListPanel.getOpenStudent();
+        Student archivedDetails = archivedPersonListPanel.getOpenStudent();
         try {
             CommandResult commandResult = logic.execute(commandText);
-            logger.info("Result: " + commandResult.getFeedbackToUser());
             resultDisplay.setRecent(commandBox.recent(RECENT_COMMANDS));
             if (commandResult.isWarning()) {
                 resultDisplay.setWarningToUser(commandResult.getFeedbackToUser());
@@ -467,12 +499,9 @@ public class MainWindow extends UiPart<Stage> {
 
             return commandResult;
         } catch (CommandException | ParseException e) {
-            logger.info("An error occurred while executing command: " + commandText);
-            // A save can fail after a command switches the model's list. Keep the visible rows consistent
-            // with the indices the next command will use, without changing screens for ordinary errors.
-            if (logic.isArchiveView() != archivedPersonListPanel.getRoot().isVisible()) {
-                showScreen(logic.isArchiveView() ? CommandResult.Screen.ARCHIVE : CommandResult.Screen.STUDENTS);
-            }
+            personListPanel.restoreOpenStudent(activeDetails);
+            archivedPersonListPanel.restoreOpenStudent(archivedDetails);
+            // Failed saves restore the model's list selection; keep the screen that was visible before the command.
             resultDisplay.setErrorToUser(e.getMessage());
             throw e;
         }

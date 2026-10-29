@@ -43,6 +43,7 @@ public class LessonEditCommand extends Command {
             + "[" + PREFIX_RATE + "HOURLY_RATE] "
             + "[" + PREFIX_MODE + "MODE] "
             + "[" + PREFIX_LOCATION + "LOCATION]\n"
+            + "Use an empty " + PREFIX_MODE + " or " + PREFIX_LOCATION + " to clear that field\n"
             + "Example: " + COMMAND_WORD + " 1 1 " + PREFIX_RATE + "50";
 
     public static final String MESSAGE_EDIT_LESSON_SUCCESS = "Lesson edited for %1$s";

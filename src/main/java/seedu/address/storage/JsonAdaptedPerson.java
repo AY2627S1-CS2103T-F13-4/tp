@@ -139,6 +139,9 @@ class JsonAdaptedPerson {
     public Student toModelType() throws IllegalValueException {
         final List<Tag> personTags = new ArrayList<>();
         for (JsonAdaptedTag tag : tags) {
+            if (tag == null) {
+                throw new IllegalValueException(String.format(MISSING_FIELD_MESSAGE_FORMAT, "tag"));
+            }
             personTags.add(tag.toModelType());
         }
 
@@ -182,6 +185,9 @@ class JsonAdaptedPerson {
                     : Optional.of(guardianContact.toModelType());
             final List<Lesson> modelLessons = new ArrayList<>();
             for (JsonAdaptedLesson lesson : lessons) {
+                if (lesson == null) {
+                    throw new IllegalValueException(String.format(MISSING_FIELD_MESSAGE_FORMAT, "lesson"));
+                }
                 modelLessons.add(lesson.toModelType());
             }
             final List<ProgressNote> modelNotes = new ArrayList<>();
