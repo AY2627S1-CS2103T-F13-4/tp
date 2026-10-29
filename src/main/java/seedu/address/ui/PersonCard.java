@@ -27,6 +27,7 @@ import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import seedu.address.model.person.FollowUp;
 import seedu.address.model.person.ProgressNote;
+import seedu.address.model.person.RateSortOrder;
 import seedu.address.model.person.SchoolingLevel;
 import seedu.address.model.person.Student;
 
@@ -121,6 +122,7 @@ public class PersonCard extends UiPart<Region> {
     private final List<Text> noteTexts = new ArrayList<>();
     private final List<Text> followUpTexts = new ArrayList<>();
     private final List<StudentCardText.LessonLine> lines;
+    private final Optional<StudentCardText.LessonLine> nextLesson;
     private boolean detailsBuilt;
     private boolean open;
     private DoubleExpression detailsWidth;
@@ -129,6 +131,15 @@ public class PersonCard extends UiPart<Region> {
      * Creates a row for {@code person} with the index to display. Its details stay hidden until {@link #setOpen}.
      */
     public PersonCard(Student person, int displayedIndex) {
+        this(person, displayedIndex, RateSortOrder.NONE);
+    }
+
+    /**
+     * Creates a row like {@link #PersonCard(Student, int)}. While the list is sorted by rate, the Rate column shows
+     * the rate the sort ranks by (the student's lowest or highest) instead of the next lesson's, so the column
+     * matches the order.
+     */
+    public PersonCard(Student person, int displayedIndex, RateSortOrder sortOrder) {
         super(FXML);
         this.person = person;
         id.setText(String.valueOf(displayedIndex));
@@ -147,12 +158,11 @@ public class PersonCard extends UiPart<Region> {
 
         lines = StudentCardText.lessons(person);
         subjects.setText(StudentCardText.subjects(person).orElse("None yet"));
-        Optional<StudentCardText.LessonLine> next =
-                StudentCardText.nextLesson(lines, StudentCardText.slots(person), LocalDateTime.now());
-        if (next.isPresent()) {
-            nextTime.setText(StudentCardText.dayAndStart(next.get()));
+        nextLesson = StudentCardText.nextLesson(lines, StudentCardText.slots(person), LocalDateTime.now());
+        if (nextLesson.isPresent()) {
+            nextTime.setText(StudentCardText.dayAndStart(nextLesson.get()));
             moreLessons.setText(lines.size() > 1 ? "+" + (lines.size() - 1) + " more" : "");
-            rate.setText(StudentCardText.tableRate(next.get()));
+            setSortOrder(sortOrder);
         } else {
             nextTime.setText(StudentCardText.NOT_SET);
             rate.setText("\u2014");
@@ -165,6 +175,17 @@ public class PersonCard extends UiPart<Region> {
             guardianName.getStyleClass().add(EMPTY_VALUE_STYLE_CLASS);
         }
         hide(details);
+    }
+
+    /**
+     * Shows the rate that {@code sortOrder} ranks this student by, or the next lesson's rate when it is
+     * {@code NONE}. Rows call this when the order changes, so the column never lags behind the sort.
+     */
+    public void setSortOrder(RateSortOrder sortOrder) {
+        if (nextLesson.isPresent()) {
+            rate.setText(sortOrder.rateOf(person).map(StudentCardText::tableRate)
+                    .orElseGet(() -> StudentCardText.tableRate(nextLesson.get())));
+        }
     }
 
     /**

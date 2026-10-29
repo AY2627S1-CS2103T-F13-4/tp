@@ -29,6 +29,7 @@ import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
+import javafx.scene.control.MenuBar;
 import javafx.scene.control.ScrollBar;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
@@ -73,6 +74,8 @@ public class MainWindowTest {
     private MainWindow mainWindow;
     private Stage stage;
     private boolean failSaves;
+    private boolean failOpenDocument;
+    private List<String> openedUrls;
 
     @BeforeAll
     public static void initializeJavaFx() throws Exception {
@@ -100,7 +103,13 @@ public class MainWindowTest {
                     new JsonUserPrefsStorage(temporaryFolder.resolve("preferences.json"))));
             stage = new Stage();
             stage.setOpacity(0);
-            mainWindow = new MainWindow(stage, logic, dataFile);
+            openedUrls = new ArrayList<>();
+            mainWindow = new MainWindow(stage, logic, dataFile, url -> {
+                if (failOpenDocument) {
+                    throw new IllegalStateException("Test browser failure");
+                }
+                openedUrls.add(url);
+            });
             mainWindow.fillInnerParts();
             mainWindow.show();
         });
@@ -119,6 +128,39 @@ public class MainWindowTest {
                     }
                 }
             }
+        });
+    }
+
+    @Test
+    public void help_buttonMenuShortcutAndCommand_openUserGuideWithoutAnotherWindow() throws Exception {
+        runOnFxThread(() -> {
+            List<Window> windows = List.copyOf(Window.getWindows());
+            assertInstanceOf(Button.class, stage.getScene().lookup("#helpNav")).fire();
+            MenuBar menuBar = assertInstanceOf(MenuBar.class, stage.getScene().lookup("#menuBar"));
+            menuBar.getMenus().stream().flatMap(menu -> menu.getItems().stream())
+                    .filter(item -> "helpMenuItem".equals(item.getId())).findFirst().orElseThrow().fire();
+            commandField().requestFocus();
+            pressKey(KeyCode.F1, false);
+            submitCommand("help");
+
+            assertEquals(List.of(MainWindow.USERGUIDE_URL, MainWindow.USERGUIDE_URL,
+                    MainWindow.USERGUIDE_URL, MainWindow.USERGUIDE_URL), openedUrls);
+            assertEquals(windows, List.copyOf(Window.getWindows()));
+            assertTrue(isShown(schedulePlaceholder()));
+        });
+    }
+
+    @Test
+    public void help_browserFailure_showsWarningWithManualLink() throws Exception {
+        runOnFxThread(() -> {
+            failOpenDocument = true;
+            submitCommand("help");
+
+            assertTrue(stage.getScene().lookup("#resultRow").getStyleClass().contains("result-warning"));
+            assertTrue(((ScrollPane) stage.getScene().lookup("#resultScroll")).getContent()
+                    .lookupAll("Text").stream().map(Text.class::cast).map(Text::getText)
+                    .anyMatch(text -> text.contains(MainWindow.USERGUIDE_URL)));
+            assertTrue(openedUrls.isEmpty());
         });
     }
 

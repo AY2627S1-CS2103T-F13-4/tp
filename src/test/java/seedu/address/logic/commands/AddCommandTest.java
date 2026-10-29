@@ -179,6 +179,16 @@ public class AddCommandTest {
         }
 
         @Override
+        public void setRateSortOrder(seedu.address.model.person.RateSortOrder rateSortOrder) {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
+        public javafx.beans.value.ObservableValue<seedu.address.model.person.RateSortOrder> getRateSortOrder() {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
         public javafx.beans.value.ObservableValue<Predicate<seedu.address.model.person.Lesson>> getLessonPredicate() {
             throw new AssertionError("This method should not be called.");
         }

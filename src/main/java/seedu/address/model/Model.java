@@ -6,6 +6,7 @@ import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.model.person.Lesson;
+import seedu.address.model.person.RateSortOrder;
 import seedu.address.model.person.Student;
 
 /**
@@ -83,6 +84,12 @@ public interface Model {
 
     /** Returns an unmodifiable view of the filtered archived student list. */
     ObservableList<Student> getFilteredArchivedPersonList();
+
+    /** Sets how students are ordered by hourly rate within each school stage; shown lists re-sort at once. */
+    void setRateSortOrder(RateSortOrder rateSortOrder);
+
+    /** Returns how students are currently ordered by hourly rate within each school stage. */
+    ObservableValue<RateSortOrder> getRateSortOrder();
 
     /** Selects which student list filters and indexed commands use, retaining each list's filter. */
     void setArchiveView(boolean archiveView);
