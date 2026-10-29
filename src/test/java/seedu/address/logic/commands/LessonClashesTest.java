@@ -48,7 +48,7 @@ public class LessonClashesTest {
         CommandResult result = LessonClashes.resultForLesson(model.getAddressBook(), owner, 0, "Added lesson");
 
         assertEquals(CommandResult.warning(SAVED_HEADING
-                + "\nWarning: Lesson 1 for Owner overlaps with 1 lesson(s): "
+                + "\nWarning: Lesson 1 for Owner overlaps with 1 lesson(s):"
                 + "\n- Peer, lesson 1 (Science, Monday 1.30pm-2.30pm)"), result);
         assertEquals(original, model.getAddressBook());
         assertEquals(List.of(owner), model.getFilteredPersonList());
@@ -65,7 +65,7 @@ public class LessonClashesTest {
         CommandResult result = LessonClashes.resultForLesson(addressBook, owner, 0, "Edited lesson");
 
         assertEquals(CommandResult.warning(SAVED_HEADING
-                + "\nWarning: Lesson 1 for Owner overlaps with 1 lesson(s): "
+                + "\nWarning: Lesson 1 for Owner overlaps with 1 lesson(s):"
                 + "\n- Archived Peer, lesson 1 (Science, Monday 1.30pm-2.30pm)"), result);
     }
 
@@ -93,9 +93,9 @@ public class LessonClashesTest {
                 "Unarchived student: Owner");
 
         assertEquals(CommandResult.warning("Unarchived student: Owner"
-                + "\nWarning: Lesson 1 for Owner overlaps with 1 lesson(s): "
+                + "\nWarning: Lesson 1 for Owner overlaps with 1 lesson(s):"
                 + "\n- Peer, lesson 1 (Science, Monday 1.30pm-2.30pm)"
-                + "\nWarning: Lesson 2 for Owner overlaps with 1 lesson(s): "
+                + "\nWarning: Lesson 2 for Owner overlaps with 1 lesson(s):"
                 + "\n- Peer, lesson 2 (History, Tuesday 1.30pm-2.30pm)"), result);
         assertTrue(model.isArchiveView());
     }
@@ -108,9 +108,9 @@ public class LessonClashesTest {
         CommandResult result = LessonClashes.resultForStudent(addressBook, owner, "Unarchived student: Owner");
 
         assertEquals(CommandResult.warning("Unarchived student: Owner"
-                + "\nWarning: Lesson 1 for Owner overlaps with 1 lesson(s): "
+                + "\nWarning: Lesson 1 for Owner overlaps with 1 lesson(s):"
                 + "\n- Owner, lesson 2 (Science, Monday 1.30pm-2.30pm)"
-                + "\nWarning: Lesson 2 for Owner overlaps with 1 lesson(s): "
+                + "\nWarning: Lesson 2 for Owner overlaps with 1 lesson(s):"
                 + "\n- Owner, lesson 1 (Math, Monday 1.00pm-2.00pm)"), result);
     }
 

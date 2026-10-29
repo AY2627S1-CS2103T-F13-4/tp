@@ -110,10 +110,10 @@ Type commands in the box at the top and press **Enter**.
   E.g. `name/NAME [tag/TAG]` &rarr; `name/John Doe tag/friend` or `name/John Doe`.
 
 * `…`​ means a field can be repeated.<br>
-  E.g. `[t/TAG]…​` &rarr; ` ` or `t/friend` or `t/friend t/family`. 
+  E.g. `[tag/TAG]…​` &rarr; ` ` or `tag/friend` or `tag/friend tag/family`.
 
 * Parameters can be in any order.<br>
-  E.g. `name/NAME p/PHONE_NUMBER` &rarr; `name/John Doe phone/87654321` or `phone/87654321 name/John Doe`
+  E.g. `name/NAME phone/PHONE_NUMBER` &rarr; `name/John Doe phone/87654321` or `phone/87654321 name/John Doe`
 
 * `INDEX` is the number beside a student in the current list display.
 
@@ -528,6 +528,7 @@ If a lesson overlaps another lesson, StudentBook still saves it but warns you wh
 | Edit guardian | `guardian-edit INDEX [name/NAME] [phone/PHONE]` |
 | Delete guardian | `guardian-delete INDEX` |
 | Add note | `note-add STUDENT_INDEX date/DATE text/TEXT` |
+| Edit note | `note-edit STUDENT_INDEX NOTE_INDEX [date/DATE] [text/TEXT]` |
 | Delete note | `note-delete STUDENT_INDEX NOTE_INDEX` |
 | Add follow-up | `followup-add STUDENT_INDEX text/TEXT` |
 | Edit follow-up | `followup-edit STUDENT_INDEX FOLLOW_UP_INDEX text/TEXT` |

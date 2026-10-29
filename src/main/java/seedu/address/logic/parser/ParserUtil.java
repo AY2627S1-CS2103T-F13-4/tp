@@ -273,6 +273,12 @@ public class ParserUtil {
      */
     public static ProgressNote parseProgressNote(String date, String text, LocalDate today) throws ParseException {
         requireAllNonNull(date, text, today);
+        return new ProgressNote(parseProgressNoteDate(date, today), parseProgressNoteText(text));
+    }
+
+    /** Parses a real note date between {@link #EARLIEST_NOTE_DATE} and {@code today}, inclusive. */
+    public static LocalDate parseProgressNoteDate(String date, LocalDate today) throws ParseException {
+        requireAllNonNull(date, today);
         LocalDate noteDate;
         try {
             noteDate = ProgressNote.parseDate(date);
@@ -285,10 +291,16 @@ public class ParserUtil {
         if (noteDate.isBefore(EARLIEST_NOTE_DATE)) {
             throw new ParseException(MESSAGE_EARLY_NOTE_DATE);
         }
+        return noteDate;
+    }
+
+    /** Parses single-line note text, trimming surrounding whitespace. */
+    public static String parseProgressNoteText(String text) throws ParseException {
+        requireNonNull(text);
         if (!ProgressNote.isValidText(text)) {
             throw new ParseException(ProgressNote.MESSAGE_TEXT_CONSTRAINTS);
         }
-        return new ProgressNote(noteDate, text);
+        return text.strip();
     }
 
     /**
