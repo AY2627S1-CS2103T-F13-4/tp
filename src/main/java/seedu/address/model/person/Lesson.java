@@ -1,3 +1,4 @@
+//@@author minweed
 package seedu.address.model.person;
 
 import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
@@ -55,6 +56,7 @@ public final class Lesson {
         return mode;
     }
 
+    //@@author
     public DayOfWeek getDay() {
         return weeklyLessonSlot.getDay();
     }
@@ -67,6 +69,11 @@ public final class Lesson {
         return weeklyLessonSlot.getEnd();
     }
 
+    public boolean overlapsWith(Lesson other) {
+        return weeklyLessonSlot.overlapsWith(other.weeklyLessonSlot);
+    }
+
+    //@@author minweed
     @Override
     public boolean equals(Object other) {
         if (other == this) {

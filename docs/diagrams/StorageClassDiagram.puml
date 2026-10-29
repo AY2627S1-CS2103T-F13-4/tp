@@ -3,22 +3,25 @@
 skinparam arrowThickness 1.1
 skinparam arrowColor STORAGE_COLOR
 skinparam classBackgroundColor STORAGE_COLOR
+skinparam nodesep 50
+skinparam ranksep 55
 
 package Storage as StoragePackage {
 
 Class "<<interface>>\nStorage" as Storage
 Class StorageManager
 
-package "UserPrefs Storage" #F4F6F6{
 Class JsonUserPrefsStorage
-}
 
-package "AddressBook Storage" #F4F6F6{
 Class JsonAddressBookStorage
 Class JsonSerializableAddressBook
 Class JsonAdaptedPerson
 Class JsonAdaptedTag
-}
+Class JsonAdaptedGuardian
+Class JsonAdaptedLesson
+Class JsonAdaptedWeeklyLessonSlot
+Class JsonAdaptedProgressNote
+Class JsonAdaptedFollowUp
 
 }
 
@@ -30,7 +33,14 @@ StorageManager -down-> "1" JsonUserPrefsStorage
 StorageManager -down-> "1" JsonAddressBookStorage
 
 JsonAddressBookStorage ..> JsonSerializableAddressBook
-JsonSerializableAddressBook --> "*" JsonAdaptedPerson
-JsonAdaptedPerson --> "*" JsonAdaptedTag
+JsonSerializableAddressBook --> "~* persons" JsonAdaptedPerson
+JsonAdaptedPerson -left-> "~* tags" JsonAdaptedTag
+JsonAdaptedPerson -right-> "0..1" JsonAdaptedGuardian
+JsonAdaptedPerson -down-> "~*\nlessons" JsonAdaptedLesson
+JsonAdaptedLesson --> "1" JsonAdaptedWeeklyLessonSlot
+JsonAdaptedPerson -down-> "~*\nnotes" JsonAdaptedProgressNote
+JsonAdaptedPerson -down-> "~*\nfollowUps" JsonAdaptedFollowUp
+JsonAdaptedLesson -[hidden]right- JsonAdaptedProgressNote
+JsonAdaptedProgressNote -[hidden]right- JsonAdaptedFollowUp
 
 @enduml

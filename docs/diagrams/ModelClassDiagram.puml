@@ -3,19 +3,33 @@
 skinparam arrowThickness 1.1
 skinparam arrowColor MODEL_COLOR
 skinparam classBackgroundColor MODEL_COLOR
+skinparam classAttributeIconSize 0
+skinparam genericDisplay old
 
 Package Model as ModelPackage <<Rectangle>>{
 Class "<<interface>>\nReadOnlyAddressBook" as ReadOnlyAddressBook
 Class "<<interface>>\nReadOnlyUserPrefs" as ReadOnlyUserPrefs
 Class "<<interface>>\nModel" as Model
 Class AddressBook
-Class ModelManager
+Class ModelManager {
+  archiveView : boolean
+  lessonPredicate : Predicate<Lesson>
+  shownPersons : Student [*] {ordered}
+  shownArchivedPersons : Student [*] {ordered}
+}
 Class UserPrefs
+enum RateSortOrder <<enumeration>> {
+  NONE
+  ASCENDING
+  DESCENDING
+}
 
 Class UniquePersonList
 Class Student
 
 }
+show ModelManager fields
+show RateSortOrder members
 
 Class HiddenOutside #FFFFFF
 HiddenOutside ..> Model
@@ -29,8 +43,13 @@ ModelManager -left-> "1" AddressBook
 ModelManager -right-> "1" UserPrefs
 UserPrefs .up.|> ReadOnlyUserPrefs
 
-AddressBook *--> "1" UniquePersonList
-UniquePersonList -right-> "~*" Student : all
+AddressBook *--> "2" UniquePersonList
+note on link
+  persons (active)
+  archivedPersons
+end note
+UniquePersonList -right-> "~* internalList" Student
 
-ModelManager --> "~* filtered" Student
+ModelManager -down-> "1 rateSortOrder" RateSortOrder
+Student -[hidden]right- RateSortOrder
 @enduml

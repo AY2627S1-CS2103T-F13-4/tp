@@ -4,18 +4,22 @@ skinparam arrowThickness 1.1
 skinparam arrowColor MODEL_COLOR
 skinparam classBackgroundColor MODEL_COLOR
 
-AddressBook *-right-> "1" UniquePersonList
-AddressBook *-right-> "1" UniqueTagList
+class "{abstract}\nPerson" as Person
+class Student
+
+' Only shared tag storage is hypothetical; the student model stays current.
+AddressBook *-right-> "1 persons" UniquePersonList
+AddressBook *-right-> "1 archivedPersons" UniquePersonList
+AddressBook *-right-> "1 tags" UniqueTagList
 UniqueTagList -[hidden]down- UniquePersonList
-UniqueTagList -[hidden]down- UniquePersonList
 
-UniqueTagList -right-> "*" Tag
-UniquePersonList -right-> Person
+UniqueTagList -right-> "~*" Tag
+UniquePersonList -right-> "~*" Student
+Student -up-> "~* tags" Tag
 
-Person -up-> "*" Tag
-
-Person *--> Name
-Person *--> Phone
-Person *--> Email
-Person *--> Address
+Student -down-|> Person
+Person --> "1 name" Name
+Person --> "1 phone" Phone
+Student --> "1" Email
+Student --> "1" Address
 @enduml
