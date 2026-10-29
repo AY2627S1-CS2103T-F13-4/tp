@@ -20,7 +20,8 @@ import seedu.address.model.person.Student;
  */
 public class GuardianDeleteCommand extends Command {
     public static final String COMMAND_WORD = "guardian-delete";
-    public static final String MESSAGE_USAGE = COMMAND_WORD + " INDEX";
+    public static final String MESSAGE_USAGE = COMMAND_WORD + " INDEX\n"
+            + "Example: " + COMMAND_WORD + " 1";
     public static final String MESSAGE_DELETE_GUARDIAN_SUCCESS = "Guardian removed for %1$s.";
 
     private final Index studentIndex;

@@ -3,6 +3,8 @@ package seedu.address.logic.commands;
 import static java.util.Objects.requireNonNull;
 import static seedu.address.commons.util.AppUtil.checkArgument;
 import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_NAME;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
 
 import java.util.List;
 import java.util.Objects;
@@ -23,8 +25,14 @@ import seedu.address.model.person.Student;
  */
 public class GuardianEditCommand extends Command {
     public static final String COMMAND_WORD = "guardian-edit";
+
     public static final String MESSAGE_USAGE = COMMAND_WORD
-            + " INDEX [name/NAME] [phone/PHONE] (at least one field required)";
+            + " INDEX "
+            + "[" + PREFIX_NAME + "NAME] "
+            + "[" + PREFIX_PHONE + "PHONE]\n"
+            + "Example: " + COMMAND_WORD + " 1 "
+            + PREFIX_PHONE + "91234567";
+
     public static final String MESSAGE_EDIT_GUARDIAN_SUCCESS = "Guardian updated for %1$s.";
     public static final String MESSAGE_NOT_EDITED = "At least one field to edit must be provided.";
     public static final String MESSAGE_NOT_FOUND = "This student has no guardian. Use guardian-add first.";
