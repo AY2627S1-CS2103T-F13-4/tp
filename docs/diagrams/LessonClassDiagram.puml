@@ -9,33 +9,18 @@ skinparam genericDisplay old
 
 class Student
 class Lesson
-class Subject {
-    +value : String
-}
-class WeeklyLessonSlot {
-    -day : DayOfWeek
-    -start : LocalTime
-    -end : LocalTime
-}
-class HourlyRate {
-    +value : BigDecimal
-}
-class LessonLocation {
-    +value : String
-}
+class Subject
+class WeeklyLessonSlot
+class HourlyRate
+class LessonLocation
 enum LessonMode <<enumeration>> {
     PHYSICAL
     VIRTUAL
 }
-
-show Subject fields
-show WeeklyLessonSlot fields
-show HourlyRate fields
-show LessonLocation fields
 show LessonMode members
 
 ' These immutable objects may be shared, so the relationships are associations.
-Student -down-> "0..*\n{ordered, unique}" Lesson : lessons
+Student "1" -down-> "*" Lesson : lessons
 Lesson -down-> "1" Subject : subject
 Lesson -down-> "1" WeeklyLessonSlot : weeklyLessonSlot
 Lesson -down-> "1" HourlyRate : hourlyRate
