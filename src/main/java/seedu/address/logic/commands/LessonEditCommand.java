@@ -95,13 +95,9 @@ public class LessonEditCommand extends Command {
         Student updatedStudent = student.withLessons(lessons);
         model.setPerson(student, updatedStudent);
 
-        List<Student> students = updatedStudent.isArchived() ? model.getAddressBook().getArchivedPersonList()
-                : model.getAddressBook().getPersonList();
-        String warning = LessonClashes.warning(students, updatedStudent, lessonIndex.getZeroBased());
-        if (!warning.isEmpty()) {
-            return CommandResult.warning(LessonClashes.MESSAGE_CLASH_WARNING + warning);
-        }
-        return new CommandResult(String.format(MESSAGE_EDIT_LESSON_SUCCESS, student.getName()));
+        String successMessage = String.format(MESSAGE_EDIT_LESSON_SUCCESS, student.getName());
+        return LessonClashes.resultForLesson(model.getAddressBook(), updatedStudent,
+                lessonIndex.getZeroBased(), successMessage);
     }
 
     /**

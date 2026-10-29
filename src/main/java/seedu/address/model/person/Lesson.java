@@ -67,6 +67,10 @@ public final class Lesson {
         return weeklyLessonSlot.getEnd();
     }
 
+    public boolean overlapsWith(Lesson other) {
+        return weeklyLessonSlot.overlapsWith(other.weeklyLessonSlot);
+    }
+
     @Override
     public boolean equals(Object other) {
         if (other == this) {
