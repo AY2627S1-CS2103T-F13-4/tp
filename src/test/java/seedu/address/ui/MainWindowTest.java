@@ -12,9 +12,12 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.nio.file.Path;
 import java.time.DayOfWeek;
+import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -22,17 +25,23 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import javafx.animation.PauseTransition;
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.geometry.Bounds;
 import javafx.geometry.Orientation;
 import javafx.scene.Node;
+import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.IndexedCell;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.ScrollBar;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
+import javafx.scene.control.skin.VirtualFlow;
+import javafx.scene.input.InputEvent;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.FlowPane;
@@ -45,6 +54,7 @@ import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 import javafx.stage.WindowEvent;
+import javafx.util.Duration;
 import seedu.address.logic.LogicManager;
 import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.ListArchiveCommand;
@@ -54,6 +64,7 @@ import seedu.address.model.ModelManager;
 import seedu.address.model.ReadOnlyAddressBook;
 import seedu.address.model.person.HourlyRate;
 import seedu.address.model.person.Lesson;
+import seedu.address.model.person.ProgressNote;
 import seedu.address.model.person.Student;
 import seedu.address.model.person.Subject;
 import seedu.address.model.person.WeeklyLessonSlot;
@@ -78,6 +89,8 @@ public class MainWindowTest {
     private boolean failSaves;
     private boolean failOpenDocument;
     private List<String> openedUrls;
+    /** True while the test fires a key, the only input the window lets in; see {@link #setUp()}. */
+    private boolean firingTestKey;
 
     @BeforeAll
     public static void initializeJavaFx() throws Exception {
@@ -105,6 +118,13 @@ public class MainWindowTest {
                     new JsonUserPrefsStorage(temporaryFolder.resolve("preferences.json"))));
             stage = new Stage();
             stage.setOpacity(0);
+            // The window is invisible but still on screen and focused, so a click, scroll or key press meant for
+            // another window lands here and can open, close or scroll rows mid-test. Only the test's keys get in.
+            stage.addEventFilter(InputEvent.ANY, event -> {
+                if (!firingTestKey) {
+                    event.consume();
+                }
+            });
             openedUrls = new ArrayList<>();
             mainWindow = new MainWindow(stage, logic, dataFile, url -> {
                 if (failOpenDocument) {
@@ -701,6 +721,87 @@ public class MainWindowTest {
         });
     }
 
+    // view INDEX shows whose details these are: a row taller than the list starts at the list's top, whichever
+    // row was open before. The list places rows it has not laid out from estimated heights, so this depends on
+    // what was viewed before.
+    @Test
+    public void view_rowTallerThanList_showsItsTopAfterAnyOtherView() throws Exception {
+        resizeWindow(1280, 720);
+        addStudentsWithNotes();
+        for (int before = 1; before <= 6; before++) {
+            String viewBefore = "view " + before;
+            runOnFxThread(() -> submitCommand(viewBefore));
+            awaitDetailsSettled();
+            runOnFxThread(() -> submitCommand("view 3"));
+            assertOpenRowAtListTop(2, "after " + viewBefore);
+        }
+    }
+
+    // A row already open and taller than the list is lined up by its top too, and Alt+Down to one does the same.
+    @Test
+    public void view_openTallRowAgainOrAltDown_showsItsTop() throws Exception {
+        resizeWindow(760, 400);
+        addStudentsWithNotes();
+        runOnFxThread(() -> submitCommand("view 9"));
+        awaitDetailsSettled();
+        runOnFxThread(() -> submitCommand("view 10"));
+        assertOpenRowAtListTop(9, "view 10 after view 9");
+        runOnFxThread(() -> submitCommand("view 10"));
+        assertOpenRowAtListTop(9, "view 10 again");
+        runOnFxThread(() -> submitCommand("view 8"));
+        awaitDetailsSettled();
+        runOnFxThread(() -> pressKey(KeyCode.DOWN, true));
+        assertOpenRowAtListTop(8, "Alt+Down from row 8");
+    }
+
+    // Aligning must not overshoot when the list was scrolled away first, leaving the name above the list.
+    @Test
+    public void view_tallRowAfterScrollingToBottom_showsItsTop() throws Exception {
+        resizeWindow(760, 400);
+        addStudentsWithNotes();
+        runOnFxThread(() -> submitCommand("view 1"));
+        awaitDetailsSettled();
+        for (int page = 0; page < 60; page++) {
+            runOnFxThread(() -> mainWindow.getPersonListPanel().scrollPage(1));
+        }
+        Thread.sleep(100);
+        runOnFxThread(() -> submitCommand("view 5"));
+        assertOpenRowAtListTop(4, "view 5 after scrolling to the bottom");
+    }
+
+    // Alt+Up from a tall row to a shorter one above must show all of that row, not leave its top and name above
+    // the list while it grows open. Whether it did depends on the frame the row starts growing in, so this tries
+    // each tall row at two sizes.
+    @Test
+    public void altUp_fromTallRowToRowThatFits_showsWholeRow() throws Exception {
+        addStudentsWithNotes();
+        // At 620 the row still fits on Windows, whose window frame takes more height than macOS's or Linux's.
+        for (int height : new int[] {720, 620}) {
+            resizeWindow(height == 720 ? 1280 : 1000, height);
+            for (int tall : new int[] {5, 3, 9, 5, 3, 9}) {
+                String view = "view " + tall;
+                runOnFxThread(() -> submitCommand(view));
+                awaitDetailsSettled();
+                runOnFxThread(() -> pressKey(KeyCode.UP, true));
+                assertOpenRowFullyShown(tall - 2, "Alt+Up after " + view + " at height " + height);
+            }
+        }
+    }
+
+    // Viewing another student just as the last view's row has finished opening must still show that student's
+    // row; the list once ended up showing no rows at all. The timing is narrow, so this tries around it.
+    @Test
+    public void view_justAfterTallRowOpened_showsNewRow() throws Exception {
+        resizeWindow(1280, 720);
+        addStudentsWithNotes();
+        for (int delay = 225; delay <= 245; delay += 5) {
+            runOnFxThread(() -> submitCommand("view 5"));
+            Thread.sleep(delay);
+            runOnFxThread(() -> submitCommand("view 1"));
+            assertOpenRowFullyShown(0, "view 1 " + delay + " ms after view 5");
+        }
+    }
+
     // An edit keeps the student's details open, and deleting them closes the details instead of opening the
     // details of whoever takes their row.
     @Test
@@ -803,13 +904,11 @@ public class MainWindowTest {
             stage.getScene().addEventHandler(KeyEvent.KEY_RELEASED, event -> reachedWindow[0] = true);
 
             pressKey(KeyCode.DOWN, true);
-            commandField().fireEvent(new KeyEvent(KeyEvent.KEY_RELEASED, "", "", KeyCode.ALT,
-                    false, false, false, false));
+            fireKey(new KeyEvent(KeyEvent.KEY_RELEASED, "", "", KeyCode.ALT, false, false, false, false));
             assertFalse(reachedWindow[0]);
 
             // A release without a shortcut before it is left alone.
-            commandField().fireEvent(new KeyEvent(KeyEvent.KEY_RELEASED, "", "", KeyCode.ALT,
-                    false, false, false, false));
+            fireKey(new KeyEvent(KeyEvent.KEY_RELEASED, "", "", KeyCode.ALT, false, false, false, false));
             assertTrue(reachedWindow[0]);
         });
     }
@@ -1188,6 +1287,87 @@ public class MainWindowTest {
                 .filter(Text.class::isInstance).map(Text.class::cast).map(Text::getText).toList();
     }
 
+    /**
+     * Adds eight students after Alice and Bob, three of whose details are taller than a short list and one far
+     * taller, then shows the table.
+     */
+    private void addStudentsWithNotes() throws Exception {
+        int[] noteCounts = {20, 0, 20, 0, 0, 0, 200, 20};
+        String[] names = {"Carol", "Dan", "Eve", "Fay", "Gus", "Hal", "Ivy", "Jack"};
+        runOnFxThread(() -> {
+            for (int i = 0; i < names.length; i++) {
+                ProgressNote[] notes = new ProgressNote[noteCounts[i]];
+                for (int n = 0; n < notes.length; n++) {
+                    notes[n] = new ProgressNote(LocalDate.of(2026, 1, 1).plusDays(n), "Fractions");
+                }
+                model.addPerson(new PersonBuilder(student(names[i], DayOfWeek.WEDNESDAY)).withNotes(notes).build());
+            }
+            submitCommand("list");
+        });
+        Thread.sleep(600);
+    }
+
+    /**
+     * Waits for the open animation to settle, then checks that row {@code index} is open, taller than the list and
+     * starts at the list's top.
+     */
+    private void assertOpenRowAtListTop(int index, String message) throws Exception {
+        awaitDetailsSettled();
+        runOnFxThread(() -> {
+            assertEquals(index, studentTable().getSelectionModel().getSelectedIndex(), message);
+            VirtualFlow<?> flow = assertInstanceOf(VirtualFlow.class, studentTable().lookup(".virtual-flow"));
+            IndexedCell<?> row = flow.getVisibleCell(index);
+            assertTrue(row != null && row.isVisible(), message + ": the open row should be in view");
+            Bounds flowBounds = flow.localToScene(flow.getLayoutBounds());
+            Bounds rowBounds = row.localToScene(row.getLayoutBounds());
+            assertTrue(rowBounds.getHeight() > flowBounds.getHeight(), message + ": the row should be taller");
+            assertEquals(0, rowBounds.getMinY() - flowBounds.getMinY(), 1, message);
+        });
+    }
+
+    /** Waits for the open animation to settle, then checks that row {@code index} is open and wholly in the list. */
+    private void assertOpenRowFullyShown(int index, String message) throws Exception {
+        awaitDetailsSettled();
+        runOnFxThread(() -> {
+            assertEquals(index, studentTable().getSelectionModel().getSelectedIndex(), message);
+            VirtualFlow<?> flow = assertInstanceOf(VirtualFlow.class, studentTable().lookup(".virtual-flow"));
+            IndexedCell<?> row = flow.getVisibleCell(index);
+            assertTrue(row != null && row.isVisible(), message + ": the open row should be in view");
+            Bounds flowBounds = flow.localToScene(flow.getLayoutBounds());
+            Bounds rowBounds = row.localToScene(row.getLayoutBounds());
+            assertTrue(rowBounds.getMinY() > flowBounds.getMinY() - 1, message + ": top at "
+                    + (rowBounds.getMinY() - flowBounds.getMinY()));
+            assertTrue(rowBounds.getMaxY() < flowBounds.getMaxY() + 1, message + ": bottom below the list");
+        });
+    }
+
+    /**
+     * Waits until the rows opened or closed by the last command or key press have finished their 220 ms animation
+     * and the list has lined up the open row after it. The wait runs on the animation clock and frames that drive
+     * the rows, not on this thread's clock, so a slow machine that draws fewer frames cannot cut it short.
+     */
+    private void awaitDetailsSettled() throws Exception {
+        CountDownLatch settled = new CountDownLatch(1);
+        runOnFxThread(() -> {
+            // Started after the rows' animations, and longer, so it ends in the frame they end or later. The list
+            // lines up the open row in the layout after that frame, so wait for that layout too.
+            PauseTransition wait = new PauseTransition(Duration.millis(300));
+            wait.setOnFinished(event -> {
+                Scene scene = stage.getScene();
+                scene.addPostLayoutPulseListener(new Runnable() {
+                    @Override
+                    public void run() {
+                        scene.removePostLayoutPulseListener(this);
+                        settled.countDown();
+                    }
+                });
+                Platform.requestNextPulse();
+            });
+            wait.play();
+        });
+        assertTrue(settled.await(10, TimeUnit.SECONDS), "The student details did not settle within 10 seconds");
+    }
+
     /** Returns true if {@code node} and every container around it are visible. */
     private static boolean isShown(Node node) {
         for (Node current = node; current != null; current = current.getParent()) {
@@ -1207,7 +1387,17 @@ public class MainWindowTest {
     }
 
     private void pressKey(KeyCode code, boolean alt) {
-        commandField().fireEvent(new KeyEvent(KeyEvent.KEY_PRESSED, "", "", code, false, false, alt, false));
+        fireKey(new KeyEvent(KeyEvent.KEY_PRESSED, "", "", code, false, false, alt, false));
+    }
+
+    /** Fires {@code event} at the command box as the test's own key, which the window lets in. */
+    private void fireKey(KeyEvent event) {
+        firingTestKey = true;
+        try {
+            commandField().fireEvent(event);
+        } finally {
+            firingTestKey = false;
+        }
     }
 
     /** Returns a tab's command hint, checking it is in the command font like the command box. */

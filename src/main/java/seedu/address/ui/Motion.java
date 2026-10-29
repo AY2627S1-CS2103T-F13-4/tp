@@ -5,6 +5,7 @@ import javafx.animation.FadeTransition;
 import javafx.animation.Interpolator;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
+import javafx.animation.PauseTransition;
 import javafx.animation.Timeline;
 import javafx.animation.TranslateTransition;
 import javafx.beans.property.DoubleProperty;
@@ -76,6 +77,13 @@ final class Motion {
             afterwards.run();
         });
         play(region, shrink);
+    }
+
+    /** Runs {@code action} once a grow or shrink started now has finished, e.g. to scroll to what it grew. */
+    static void afterResize(Runnable action) {
+        PauseTransition wait = new PauseTransition(RESIZE);
+        wait.setOnFinished(event -> action.run());
+        wait.play();
     }
 
     /** Hides whatever lies outside {@code region}, so content never spills over while it grows or shrinks. */
