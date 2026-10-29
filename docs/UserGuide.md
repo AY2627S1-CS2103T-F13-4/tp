@@ -8,7 +8,49 @@ StudentBook is a desktop contact book for private tutors. Type commands to manag
 This development version supports contact details, schools, schooling levels, guardian contacts and lessons. Each student can have any number of lessons, and each lesson has a subject, a weekly time slot and an hourly rate. See the [Developer Guide](DeveloperGuide.md#product-scope) for the plan and open decisions.
 
 ## Table of Contents
-{:toc}
+* [Quick Start](#quick-start)
+* [Main Window](#main-window)
+* [Features](#features)
+  * [Reading Command Formats](#reading-command-formats)
+  * [Student Tracking](#student-tracking)
+    * [Add a student: `add`](#add-a-student-add)
+    * [Edit a student: `edit`](#edit-a-student-edit)
+    * [List all students: `list`](#list-all-students-list)
+    * [Sort students by rate: `sort`](#sort-students-by-rate-sort)
+    * [View a student's details: `view`](#view-a-students-details-view)
+    * [Find students by name: `find`](#find-students-by-name-find)
+    * [Find students by filter criteria: `find`](#find-students-by-filter-criteria-find)
+    * [Delete a student: `delete`](#delete-a-student-delete)
+    * [Delete all students: `clear`](#delete-all-students-clear)
+  * [Archiving Students](#archiving-students)
+    * [Archive or restore a student: `archive`, `unarchive`](#archive-or-restore-a-student-archive-unarchive)
+    * [List archived students: `list-archive`](#list-archived-students-list-archive)
+  * [Lesson Tracking](#lesson-tracking)
+    * [Add a lesson: `lesson-add`](#add-a-lesson-lesson-add)
+    * [Edit a lesson: `lesson-edit`](#edit-a-lesson-lesson-edit)
+    * [Delete a lesson: `lesson-delete`](#delete-a-lesson-lesson-delete)
+    * [Show weekly lessons: `week`](#show-weekly-lessons-week)
+  * [Guardian Tracking](#guardian-tracking)
+    * [Add a guardian: `guardian-add`](#add-a-guardian-guardian-add)
+    * [Edit a guardian: `guardian-edit`](#edit-a-guardian-guardian-edit)
+    * [Delete a guardian: `guardian-delete`](#delete-a-guardian-guardian-delete)
+  * [Progress Notes](#progress-notes)
+    * [Add a progress note: `note-add`](#add-a-progress-note-note-add)
+    * [Edit a progress note: `note-edit`](#edit-a-progress-note-note-edit)
+    * [Delete a progress note: `note-delete`](#delete-a-progress-note-note-delete)
+  * [Follow-ups](#follow-ups)
+    * [Add a guardian follow-up: `followup-add`](#add-a-guardian-follow-up-followup-add)
+    * [Edit a guardian follow-up: `followup-edit`](#edit-a-guardian-follow-up-followup-edit)
+    * [Complete a guardian follow-up: `followup-done`](#complete-a-guardian-follow-up-followup-done)
+    * [List students with outstanding follow-ups: `followups`](#list-students-with-outstanding-follow-ups-followups)
+  * [Miscellaneous](#miscellaneous)
+    * [View help: `help`](#view-help-help)
+    * [Exit: `exit`](#exit-exit)
+* [Saving and transferring records](#saving-and-transferring-records)
+* [Known issues](#known-issues)
+  * [Lesson clash warnings](#lesson-clash-warnings)
+* [Command summary](#command-summary)
+
 
 ## Quick Start
 1. Install Java `25`. Mac users should follow the [course Java installation guide](https://se-education.org/guides/tutorials/javaInstallationMac.html).
@@ -68,10 +110,10 @@ Type commands in the box at the top and press **Enter**.
   E.g. `name/NAME [tag/TAG]` &rarr; `name/John Doe tag/friend` or `name/John Doe`.
 
 * `…`​ means a field can be repeated.<br>
-  E.g. `[t/TAG]…​` &rarr; ` ` or `t/friend` or `t/friend t/family`. 
+  E.g. `[tag/TAG]…​` &rarr; ` ` or `tag/friend` or `tag/friend tag/family`.
 
 * Parameters can be in any order.<br>
-  E.g. `name/NAME p/PHONE_NUMBER` &rarr; `name/John Doe phone/87654321` or `phone/87654321 name/John Doe`
+  E.g. `name/NAME phone/PHONE_NUMBER` &rarr; `name/John Doe phone/87654321` or `phone/87654321 name/John Doe`
 
 * `INDEX` is the number beside a student in the current list display.
 
@@ -85,7 +127,9 @@ Type commands in the box at the top and press **Enter**.
 
 </div>
 
-### Add a student: `add`
+### Student Tracking
+
+#### Add a student: `add`
 
 Adds a student to StudentBook
 
@@ -111,44 +155,7 @@ Examples:
 </div>
 
 
-### List all students: `list`
-
-Shows all active students in StudentBook, grouped by school stage (Primary, Secondary, JC, Other), and selects this list for searches and indexed commands.
-
-Format: `list`
-
-Within each group, students are ordered by level (P1 before P2), then alphabetically by name. `P5` and `Primary 5` count as the same level. Levels StudentBook does not recognise come after the numbered ones, and students with no level come last.
-
-This also clears any `sort`, so students return to this order.
-
-### Sort students by rate: `sort`
-
-Orders students by hourly rate **within each group**. The Primary, Secondary, JC and Other groups stay where they are, and only the students inside each group are reordered. Numbers shown on screen still match the `INDEX` used by commands.
-
-Format: `sort rate asc` or `sort rate desc`
-
-* `asc` puts the lowest rate first and `desc` puts the highest rate first.
-* A student with several lessons is ranked by their lowest rate for `asc` and their highest rate for `desc`.
-* Students with no lessons always come last in their group.
-* While a sort is on, the **Rate** column is headed **Min rate** or **Max rate** and shows the rate the sort uses, instead of the next lesson's rate.
-* Students with the same rate are ordered by level, then name, as in `list`.
-* The sort stays in place when you edit lessons or use `find`. Type `list` to go back to the usual order by level, then name.
-
-Example: `sort rate desc`
-
-### List archived students: `list-archive`
-
-Shows all archived students in a separate **Archives** tab with the same layout as **Students**. Searches and commands using `INDEX` now use this list. Type `list` to return to active students.
-
-Format: `list-archive`
-
-### Archive or restore a student: `archive`, `unarchive`
-
-`archive INDEX` moves an active student to the archived list, keeping their details, lessons, notes and follow-ups. Archived students do not appear in the active list or weekly calendar.
-
-To restore a student, run `list-archive`, then `unarchive INDEX` using the number shown in that tab. The student moves back to the active list; the archived tab stays open. Run `list` to see the restored student.
-
-### Edit a student: `edit`
+#### Edit a student: `edit`
 
 Edits an existing student in StudentBook
 
@@ -173,19 +180,38 @@ Examples:
 
 </div>
 
-### Show weekly lessons: `week`
+#### List all students: `list`
 
-Displays lessons for active students, retaining the active list's search and lesson filters. Running `week` from the archived tab returns to active students.
+Shows all active students in StudentBook, grouped by school stage (Primary, Secondary, JC, Other), and selects this list for searches and indexed commands.
 
-Format: `week`
+Format: `list`
 
-### View a student's details: `view`
+Within each group, students are ordered by level (P1 before P2), then alphabetically by name. `P5` and `Primary 5` count as the same level. Levels StudentBook does not recognise come after the numbered ones, and students with no level come last.
+
+This also clears any `sort`, so students return to this order.
+
+#### Sort students by rate: `sort`
+
+Orders students by hourly rate **within each group**. The Primary, Secondary, JC and Other groups stay where they are, and only the students inside each group are reordered. Numbers shown on screen still match the `INDEX` used by commands.
+
+Format: `sort rate asc` or `sort rate desc`
+
+* `asc` puts the lowest rate first and `desc` puts the highest rate first.
+* A student with several lessons is ranked by their lowest rate for `asc` and their highest rate for `desc`.
+* Students with no lessons always come last in their group.
+* While a sort is on, the **Rate** column is headed **Min rate** or **Max rate** and shows the rate the sort uses, instead of the next lesson's rate.
+* Students with the same rate are ordered by level, then name, as in `list`.
+* The sort stays in place when you edit lessons or use `find`. Type `list` to go back to the usual order by level, then name.
+
+Example: `sort rate desc`
+
+#### View a student's details: `view`
 
 Displays the student at `INDEX` and their details.
 
 Format: `view INDEX`
 
-### Find students by name: `find`
+#### Find students by name: `find`
 
 Find students whose names contain any of the given keywords
 
@@ -197,7 +223,7 @@ Examples:
 * `find John` matches `John Doe`, but not `Johnny`.
 * `find alex david` matches names containing `Alex` or `David`.
 
-### Find students by filter criteria: `find`
+#### Find students by filter criteria: `find`
 
 Find students by name, guardian, school, level, lesson subject and/or lesson day.
 
@@ -226,13 +252,13 @@ The result of `find subject/math day/wed`: students with a Math lesson on Wednes
 
 ![Result of find subject/math day/wed](images/findResult.png)
 
-### Delete a student: `delete`
+#### Delete a student: `delete`
 
 Deletes a student from StudentBook.
 
 Format: `delete INDEX`
 
-### Delete all students: `clear`
+#### Delete all students: `clear`
 
 Deletes all students from StudentBook.
 
@@ -240,23 +266,23 @@ Format: `clear`
 
 * In **Archives** (after `list-archive`), `clear` deletes only the archived students and keeps your active students.
 
-### View help: `help`
+### Archiving Students
 
-Opens this user guide in your default web browser. An internet connection is required to load the guide.
+#### Archive or restore a student: `archive`, `unarchive`
 
-Format: `help`
+`archive INDEX` moves an active student to the archived list, keeping their details, lessons, notes and follow-ups. Archived students do not appear in the active list or weekly calendar.
 
-* Alternate hotkey: **F1**
-* You can also click **All commands** or choose **Help → Help** from the menu.
-* The location of your data file is shown in the app's footer.
+To restore a student, run `list-archive`, then `unarchive INDEX` using the number shown in that tab. The student moves back to the active list; the archived tab stays open. Run `list` to see the restored student.
 
-### Exit: `exit`
+#### List archived students: `list-archive`
 
-Closes the app.
+Shows all archived students in a separate **Archives** tab with the same layout as **Students**. Searches and commands using `INDEX` now use this list. Type `list` to return to active students.
 
-Format: `exit`
+Format: `list-archive`
 
-### Add a lesson: `lesson-add`
+### Lesson Tracking
+
+#### Add a lesson: `lesson-add`
 
 Add a lesson for a given student.
 
@@ -268,7 +294,7 @@ Examples:
 * `lesson-add 1 subject/Math slot/Fri 4.00pm 6.00pm rate/40 mode/virtual location/Zoom`
 
 
-### Edit a lesson: `lesson-edit`
+#### Edit a lesson: `lesson-edit`
 
 Edit a lesson for a given student.
 
@@ -284,7 +310,7 @@ Examples:
 * `lesson-edit 2 1 mode/physical location/Home`
 * `lesson-edit 3 1 mode/ location/`
 
-### Delete a lesson: `lesson-delete`
+#### Delete a lesson: `lesson-delete`
 
 Deletes a lesson for a given student
 
@@ -307,7 +333,15 @@ Field rules:
 * **Location** (`location/`)
   * 1-100 characters
 
-### Add a guardian: `guardian-add`
+#### Show weekly lessons: `week`
+
+Displays lessons for active students, retaining the active list's search and lesson filters. Running `week` from the archived tab returns to active students.
+
+Format: `week`
+
+### Guardian Tracking
+
+#### Add a guardian: `guardian-add`
 
 Add a guardian for a given student.
 
@@ -316,7 +350,7 @@ Format: `guardian-add INDEX name/NAME phone/PHONE`
 Examples:
 * `guardian-add 1 name/Jane Doe phone/81234567`
 
-### Edit a guardian: `guardian-edit`
+#### Edit a guardian: `guardian-edit`
 
 Edit a guardian for a given student.
 
@@ -330,13 +364,15 @@ Examples:
 * `guardian-edit 1 name/Jane Doe` changes the first displayed student's guardian name.
 * `guardian-edit 1 phone/81234567` changes the first displayed student's guardian phone.
 
-### Delete a guardian: `guardian-delete`
+#### Delete a guardian: `guardian-delete`
 
 Delete a guardian for a given student.
 
 Format: `guardian-delete INDEX`
 
-### Add a progress note: `note-add`
+### Progress Notes
+
+#### Add a progress note: `note-add`
 
 Adds a dated progress note to a student, such as what you covered in a lesson or what to revise next.
 
@@ -352,7 +388,23 @@ Examples:
 * `note-add 1 date/2026-10-15 text/Finished the fractions worksheet; revise decimals next`
 * `note-add 1 date/2026-10-08 text/Struggled with word problems` is placed before the first note and becomes note 1.
 
-### Delete a progress note: `note-delete`
+#### Edit a progress note: `note-edit`
+
+Edits an existing progress note for a student.
+
+Format: `note-edit STUDENT_INDEX NOTE_INDEX [date/DATE] [text/TEXT]`
+
+* Targets the student at the specified [`STUDENT_INDEX`](#reading-command-formats).
+* `NOTE_INDEX` is the note's number in the student's details.
+* At least one of the optional fields must be provided.
+* Existing values will be updated to the input values. Fields not provided keep their existing values.
+* The same rules for `DATE` and `TEXT` as in [`note-add`](#add-a-progress-note-note-add) apply.
+
+Examples:
+* `note-edit 1 1 text/Finished the fractions worksheet; revise percentages next` changes the first displayed student's first note's text.
+* `note-edit 1 2 date/2026-10-08` changes the date of the first displayed student's second note.
+
+#### Delete a progress note: `note-delete`
 
 Deletes one progress note from a student.
 
@@ -363,7 +415,9 @@ Format: `note-delete STUDENT_INDEX NOTE_INDEX`
 
 Example: `note-delete 1 1`
 
-### Add a guardian follow-up: `followup-add`
+### Follow-ups
+
+#### Add a guardian follow-up: `followup-add`
 
 Adds something you still need to do for a student's guardian, such as sending a progress report or confirming a make-up lesson.
 
@@ -376,7 +430,7 @@ Format: `followup-add STUDENT_INDEX text/TEXT`
 
 Example: `followup-add 1 text/Send the term 4 progress report`
 
-### Edit a guardian follow-up: `followup-edit`
+#### Edit a guardian follow-up: `followup-edit`
 
 Replaces the text of a follow-up. Its number stays the same.
 
@@ -387,7 +441,7 @@ Format: `followup-edit STUDENT_INDEX FOLLOW_UP_INDEX text/TEXT`
 
 Example: `followup-edit 1 2 text/Confirm the make-up lesson on Saturday`
 
-### Complete a guardian follow-up: `followup-done`
+#### Complete a guardian follow-up: `followup-done`
 
 Marks a follow-up as done by removing it from the student's list.
 
@@ -397,7 +451,7 @@ Format: `followup-done STUDENT_INDEX FOLLOW_UP_INDEX`
 
 Example: `followup-done 1 1`
 
-### List students with outstanding follow-ups: `followups`
+#### List students with outstanding follow-ups: `followups`
 
 Shows only active students who have at least one outstanding follow-up. Archived students are left out and keep their follow-ups. Type `list` to see every student again.
 
@@ -410,6 +464,24 @@ Format: `followups`
 * Notes and follow-ups are saved automatically. Older data files without them still load, with none recorded.
 
 </div>
+
+### Miscellaneous
+
+#### View help: `help`
+
+Opens this user guide in your default web browser. An internet connection is required to load the guide.
+
+Format: `help`
+
+* Alternate hotkey: **F1**
+* You can also click **All commands** or choose **Help → Help** from the menu.
+* The location of your data file is shown in the app's footer.
+
+#### Exit: `exit`
+
+Closes the app.
+
+Format: `exit`
 
 ## Saving and transferring records
 
@@ -456,6 +528,7 @@ If a lesson overlaps another lesson, StudentBook still saves it but warns you wh
 | Edit guardian | `guardian-edit INDEX [name/NAME] [phone/PHONE]` |
 | Delete guardian | `guardian-delete INDEX` |
 | Add note | `note-add STUDENT_INDEX date/DATE text/TEXT` |
+| Edit note | `note-edit STUDENT_INDEX NOTE_INDEX [date/DATE] [text/TEXT]` |
 | Delete note | `note-delete STUDENT_INDEX NOTE_INDEX` |
 | Add follow-up | `followup-add STUDENT_INDEX text/TEXT` |
 | Edit follow-up | `followup-edit STUDENT_INDEX FOLLOW_UP_INDEX text/TEXT` |

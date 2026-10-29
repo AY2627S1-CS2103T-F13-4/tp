@@ -763,6 +763,17 @@
     -fx-font-size: 12.5px;
 }
 
+/* A block shorter than an hour shows the number and student, and the time below from 30px; */
+/* the shortest block, 15px, fits one line and 30px fits two (1 + 14 + 1 + 14) */
+/* Narrower side padding leaves room for the number in a narrow day */
+.lesson-card.lesson-card-compact {
+    -fx-padding: 1 6 0 6;
+}
+
+.lesson-card.lesson-card-compact .lesson-card-name {
+    -fx-font-size: 11px;
+}
+
 .lesson-card.level-primary .label {
     -fx-text-fill: #7A3B00;
 }

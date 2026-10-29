@@ -327,9 +327,13 @@ A note's position in that list is the `NOTE_INDEX` shown in the details. New stu
 
 <img src="images/ProgressNoteClassDiagram.png" width="450" />
 
-`note-add` and `note-delete` are routed by `AddressBookParser` to `NoteAddCommandParser` and
-`NoteDeleteCommandParser`, respectively. Deleting takes only the student index and the note's number. The parser reads only `date/` and `text/`, so a word such as `and/or` stays in the note text.
-`ParserUtil#parseProgressNote` rejects dates that are not real `YYYY-MM-DD` dates or are later than today. The
+`note-add`, `note-edit` and `note-delete` are routed by `AddressBookParser` to their corresponding command parsers.
+Editing takes the student index, the note's number and an optional date and/or text; at least one field is required.
+Deleting takes only the student index and the note's number. Add and edit treat everything after the first `text/`
+as note text, including words resembling prefixes, so `date/` must precede `text/` when both are supplied.
+`ParserUtil#parseProgressNote` uses the shared `parseProgressNoteDate` and `parseProgressNoteText` validators.
+The edit parser uses these validators for each supplied field. Dates must be real `YYYY-MM-DD` dates between
+`2000-01-01` and today, and text must be 1–500 characters on one line. The
 future-date check is in the parser rather than the model, so a saved file still loads if the computer's clock is
 wrong.
 

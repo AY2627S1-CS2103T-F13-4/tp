@@ -35,6 +35,8 @@ import seedu.address.logic.commands.ListArchiveCommand;
 import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.commands.NoteAddCommand;
 import seedu.address.logic.commands.NoteDeleteCommand;
+import seedu.address.logic.commands.NoteEditCommand;
+import seedu.address.logic.commands.NoteEditCommand.EditNoteDescriptor;
 import seedu.address.logic.commands.SortCommand;
 import seedu.address.logic.commands.UnarchiveCommand;
 import seedu.address.logic.commands.ViewCommand;
@@ -118,6 +120,15 @@ public class AddressBookParserTest {
     public void parseCommand_noteDelete() throws Exception {
         NoteDeleteCommand command = (NoteDeleteCommand) parser.parseCommand(NoteDeleteCommand.COMMAND_WORD + " 1 1");
         assertEquals(new NoteDeleteCommand(INDEX_FIRST_PERSON, INDEX_FIRST_PERSON), command);
+    }
+
+    @Test
+    public void parseCommand_noteEdit() throws Exception {
+        EditNoteDescriptor descriptor = new EditNoteDescriptor();
+        descriptor.setDate(LocalDate.of(2026, 10, 15));
+        descriptor.setText("Finished fractions");
+        assertEquals(new NoteEditCommand(INDEX_FIRST_PERSON, INDEX_FIRST_PERSON, descriptor), parser.parseCommand(
+                "note-edit 1 1 date/2026-10-15 text/Finished fractions"));
     }
 
     @Test

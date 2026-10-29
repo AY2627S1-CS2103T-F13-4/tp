@@ -43,7 +43,7 @@ public class AddCommand extends Command {
             + PREFIX_LEVEL + "Primary 5";
 
     public static final String MESSAGE_SUCCESS = "Added student: %1$s";
-    public static final String MESSAGE_DUPLICATE_PERSON = "This student already exists in StudentBook";
+    public static final String MESSAGE_DUPLICATE_PERSON = Messages.MESSAGE_DUPLICATE_ACTIVE_STUDENT;
 
     private final Student toAdd;
 
@@ -60,7 +60,7 @@ public class AddCommand extends Command {
         requireNonNull(model);
 
         if (model.hasPerson(toAdd)) {
-            throw new CommandException(MESSAGE_DUPLICATE_PERSON);
+            throw new CommandException(Messages.getDuplicateStudentMessage(model, toAdd));
         }
 
         // New students are active, so clear the active search rather than the archived search.

@@ -51,11 +51,6 @@ public class UnarchiveCommand extends Command {
         String message = String.format(MESSAGE_UNARCHIVE_PERSON_SUCCESS, Messages.format(personToUnarchive));
         // Archived lessons were not checked against active ones, so returning the student can double-book.
         Student unarchived = personToUnarchive.withArchived(false);
-        List<Student> activeStudents = model.getAddressBook().getPersonList();
-        StringBuilder warnings = new StringBuilder();
-        for (int i = 0; i < unarchived.getLessons().size(); i++) {
-            warnings.append(LessonClashes.warning(activeStudents, unarchived, i));
-        }
-        return warnings.isEmpty() ? new CommandResult(message) : CommandResult.warning(message + warnings);
+        return LessonClashes.resultForStudent(model.getAddressBook(), unarchived, message);
     }
 }

@@ -68,7 +68,7 @@ public class ScheduleWorkflowTest {
             logic.execute("lesson-add 1 subject/Math slot/Mon 9.10am 10.05am rate/45.50"
                     + " mode/physical location/Library");
             Region math = card("Alice", "Math");
-            assertText(math, List.of("Alice", "9.10am-10.05am", "#1.1 \u00b7 Math"),
+            assertText(math, List.of("#1.1", "Alice", "9.10am-10.05am"),
                     "#1.1 Alice\nMath, Monday 9.10am-10.05am, SGD 45.50/hour, Physical, at Library");
             assertPlacement(math, 1, 1, 2, 10, 55);
 
@@ -77,13 +77,13 @@ public class ScheduleWorkflowTest {
             logic.execute("lesson-edit 1 1 subject/Science slot/Wed 11.15am 11.45am rate/60"
                     + " mode/virtual location/Zoom");
             Region science = card("Alice", "Science");
-            assertText(science, List.of("Alice", "11.15am-11.45am", "#1.1 \u00b7 Science"),
+            assertText(science, List.of("#1.1", "Alice", "11.15am-11.45am"),
                     "#1.1 Alice\nScience, Wednesday 11.15am-11.45am, SGD 60.00/hour, Virtual, at Zoom");
             assertPlacement(science, 3, 3, 1, 15, 15);
             assertPlacement(card("Alice", "English"), 4, 6, 1, 0, 0);
 
             logic.execute("lesson-edit 1 1 mode/ location/");
-            assertText(card("Alice", "Science"), List.of("Alice", "11.15am-11.45am", "#1.1 \u00b7 Science"),
+            assertText(card("Alice", "Science"), List.of("#1.1", "Alice", "11.15am-11.45am"),
                     "#1.1 Alice\nScience, Wednesday 11.15am-11.45am, SGD 60.00/hour");
 
             // Deleting the first lesson renumbers the second, as lesson-edit would see it.
@@ -112,7 +112,7 @@ public class ScheduleWorkflowTest {
             // Index one now denotes Bob, although Alice is first in the backing address book.
             logic.execute("lesson-edit 1 1 subject/Science slot/Tue 10.10am 10.40am");
             assertEquals(List.of("Bob"), cardNames());
-            assertText(card("Bob", "Science"), List.of("Bob", "10.10am-10.40am", "#1.1 \u00b7 Science"),
+            assertText(card("Bob", "Science"), List.of("#1.1", "Bob", "10.10am-10.40am"),
                     "#1.1 Bob\nScience, Tuesday 10.10am-10.40am, SGD 50.00/hour");
             assertPlacement(card("Bob", "Science"), 2, 2, 1, 10, 20);
 
@@ -120,7 +120,7 @@ public class ScheduleWorkflowTest {
             assertEquals(List.of("Alice", "Bob"), cardNames());
             assertText(card("Alice", "Math"), List.of("Alice", "9.00am-10.00am", "#1.1 \u00b7 Math"),
                     "#1.1 Alice\nMath, Monday 9.00am-10.00am, SGD 45.00/hour");
-            assertText(card("Bob", "Science"), List.of("Bob", "10.10am-10.40am", "#2.1 \u00b7 Science"),
+            assertText(card("Bob", "Science"), List.of("#2.1", "Bob", "10.10am-10.40am"),
                     "#2.1 Bob\nScience, Tuesday 10.10am-10.40am, SGD 50.00/hour");
             assertPlacement(card("Alice", "Math"), 1, 1, 1, 0, 0);
             assertPlacement(card("Bob", "Science"), 2, 2, 1, 10, 20);
@@ -175,16 +175,17 @@ public class ScheduleWorkflowTest {
             assertEquals(model.getAddressBook(), loaded);
             connectSchedule(loaded);
             assertEquals(List.of("Alice", "Bob"), cardNames());
-            assertText(card("Alice", "Math"), List.of("Alice", "9.10am-9.25am", "#1.1 \u00b7 Math"),
+            assertText(card("Alice", "Math"), List.of("#1.1", "Alice"),
                     "#1.1 Alice\nMath, Monday 9.10am-9.25am, SGD 45.50/hour, Physical, at Room A");
             assertPlacement(card("Alice", "Math"), 1, 1, 1, 10, 35);
-            assertText(card("Bob", "English"), List.of("Bob", "11.45pm-11.59pm", "#2.1 \u00b7 English"),
+            assertText(card("Bob", "English"), List.of("#2.1", "Bob"),
                     "#2.1 Bob\nEnglish, Sunday 11.45pm-11.59pm, SGD 50.00/hour, Virtual");
-            assertPlacement(card("Bob", "English"), 7, 15, 1, 45, 1);
+            // The 14-minute lesson is drawn as the shortest block, which must end by midnight.
+            assertPlacement(card("Bob", "English"), 7, 15, 1, 45, 0);
             assertEquals(16, schedule.getRoot().getRowConstraints().size());
 
             logic.execute("lesson-edit 1 1 subject/Physics");
-            assertText(card("Alice", "Physics"), List.of("Alice", "9.10am-9.25am", "#1.1 \u00b7 Physics"),
+            assertText(card("Alice", "Physics"), List.of("#1.1", "Alice"),
                     "#1.1 Alice\nPhysics, Monday 9.10am-9.25am, SGD 45.50/hour, Physical, at Room A");
             assertPlacement(card("Alice", "Physics"), 1, 1, 1, 10, 35);
             return null;
@@ -204,7 +205,7 @@ public class ScheduleWorkflowTest {
             assertThrows(CommandException.class, () -> logic.execute("lesson-delete 3 1"));
 
             assertEquals(1, cards().size());
-            assertText(card("Alice", "Math"), List.of("Alice", "9.10am-9.25am", "#1.1 \u00b7 Math"),
+            assertText(card("Alice", "Math"), List.of("#1.1", "Alice"),
                     "#1.1 Alice\nMath, Monday 9.10am-9.25am, SGD 45.50/hour");
             assertPlacement(card("Alice", "Math"), 1, 1, 1, 10, 35);
             assertEquals(originalTimeLabels, timeLabels());
@@ -267,12 +268,16 @@ public class ScheduleWorkflowTest {
     }
 
     private Region card(String student, String subject) {
-        return cards().stream().filter(node -> labelText(node).get(0).equals(student)
-                && labelText(node).get(2).endsWith(" " + subject)).findFirst().orElseThrow();
+        return cards().stream().filter(node -> cardName(node).equals(student)
+                && node.getAccessibleText().split("\n")[1].startsWith(subject + ",")).findFirst().orElseThrow();
     }
 
     private List<String> cardNames() {
-        return cards().stream().map(node -> labelText(node).get(0)).toList();
+        return cards().stream().map(ScheduleWorkflowTest::cardName).toList();
+    }
+
+    private static String cardName(Region card) {
+        return card.getAccessibleText().split("\n")[0].split(" ", 2)[1];
     }
 
     private List<String> timeLabels() {
@@ -292,8 +297,7 @@ public class ScheduleWorkflowTest {
     }
 
     private static List<String> labelText(Region card) {
-        return card.getChildrenUnmodifiable().stream().filter(Label.class::isInstance).map(Label.class::cast)
-                .map(Label::getText).toList();
+        return card.lookupAll(".label").stream().map(Label.class::cast).map(Label::getText).toList();
     }
 
     private static void assertText(Region card, List<String> expectedLabels, String expectedDetails) {

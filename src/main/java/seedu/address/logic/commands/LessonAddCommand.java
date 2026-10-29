@@ -74,13 +74,9 @@ public class LessonAddCommand extends Command {
         Student updatedStudent = student.withLessons(lessons);
         model.setPerson(student, updatedStudent);
 
-        List<Student> students = updatedStudent.isArchived() ? model.getAddressBook().getArchivedPersonList()
-                : model.getAddressBook().getPersonList();
-        String warning = LessonClashes.warning(students, updatedStudent, addedLessonPosition);
-        if (!warning.isEmpty()) {
-            return CommandResult.warning(LessonClashes.MESSAGE_CLASH_WARNING + warning);
-        }
-        return new CommandResult(String.format(MESSAGE_SUCCESS, student.getName(), toAdd));
+        String successMessage = String.format(MESSAGE_SUCCESS, student.getName(), toAdd);
+        return LessonClashes.resultForLesson(model.getAddressBook(), updatedStudent,
+                addedLessonPosition, successMessage);
     }
 
     @Override
