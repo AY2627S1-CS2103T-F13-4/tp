@@ -1,6 +1,8 @@
 package seedu.address.logic.commands;
 
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandSuccess;
+import static seedu.address.testutil.TypicalPersons.ALICE;
+import static seedu.address.testutil.TypicalPersons.BENSON;
 import static seedu.address.testutil.TypicalPersons.getTypicalAddressBook;
 
 import org.junit.jupiter.api.Test;
@@ -25,6 +27,29 @@ public class ClearCommandTest {
         Model model = new ModelManager(getTypicalAddressBook(), new UserPrefs());
         Model expectedModel = new ModelManager(getTypicalAddressBook(), new UserPrefs());
         expectedModel.setAddressBook(new AddressBook());
+
+        assertCommandSuccess(new ClearCommand(), model, ClearCommand.MESSAGE_SUCCESS, expectedModel);
+    }
+
+    @Test
+    public void execute_archiveView_deletesOnlyArchivedStudents() {
+        Model model = new ModelManager(getTypicalAddressBook(), new UserPrefs());
+        model.archivePerson(ALICE);
+        model.archivePerson(BENSON);
+        model.setArchiveView(true);
+        Model expectedModel = new ModelManager(getTypicalAddressBook(), new UserPrefs());
+        expectedModel.deletePerson(ALICE);
+        expectedModel.deletePerson(BENSON);
+        expectedModel.setArchiveView(true);
+
+        assertCommandSuccess(new ClearCommand(), model, ClearCommand.MESSAGE_ARCHIVE_SUCCESS, expectedModel);
+    }
+
+    @Test
+    public void execute_studentsViewWithArchivedStudents_deletesAllStudents() {
+        Model model = new ModelManager(getTypicalAddressBook(), new UserPrefs());
+        model.archivePerson(ALICE);
+        Model expectedModel = new ModelManager();
 
         assertCommandSuccess(new ClearCommand(), model, ClearCommand.MESSAGE_SUCCESS, expectedModel);
     }

@@ -230,6 +230,8 @@ Deletes all students from StudentBook.
 
 Format: `clear`
 
+* In **Archives** (after `list-archive`), `clear` deletes only the archived students and keeps your active students.
+
 ### View help: `help`
 
 Opens this user guide in your default web browser. An internet connection is required to load the guide.
