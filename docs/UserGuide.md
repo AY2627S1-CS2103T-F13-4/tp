@@ -109,6 +109,25 @@ Shows all active students in StudentBook, grouped by schooling level, and select
 
 Format: `list`
 
+Within each group, students are ordered by level (P1 before P2), then alphabetically by name. `P5` and `Primary 5` count as the same level. Levels StudentBook does not recognise come after the numbered ones, and students with no level come last.
+
+This also clears any `sort`, so students return to this order.
+
+### Sort students by rate: `sort`
+
+Orders students by hourly rate **within each schooling level**. The Primary, Secondary, JC and Other groups stay where they are, and only the students inside each group are reordered. Numbers shown on screen still match the `INDEX` used by commands.
+
+Format: `sort rate asc` or `sort rate desc`
+
+* `asc` puts the lowest rate first and `desc` puts the highest rate first.
+* A student with several lessons is ranked by their lowest rate for `asc` and their highest rate for `desc`.
+* Students with no lessons always come last in their group.
+* While a sort is on, the **Rate** column is headed **Min rate** or **Max rate** and shows the rate the sort uses, instead of the next lesson's rate.
+* Students with the same rate are ordered by level, then name, as in `list`.
+* The sort stays in place when you edit lessons or use `find`. Type `list` to go back to the usual order by level, then name.
+
+Example: `sort rate desc`
+
 ### List archived students: `list-archive`
 
 Shows all archived students in a separate **Archives** tab with the same layout as **Students**. Searches and commands using `INDEX` now use this list. Type `list` to return to active students.
@@ -205,15 +224,13 @@ Format: `clear`
 
 ### View help: `help`
 
-Displays link to this guide and location of data file.
+Opens this user guide in your default web browser. An internet connection is required to load the guide.
 
 Format: `help`
 
 * Alternate hotkey: **F1**
-* Press **Enter** to copy the link
-* Press **Esc** to close the window and return to the command box
-
-![Help window](images/helpMessage.png)
+* You can also click **All commands** or choose **Help → Help** from the menu.
+* The location of your data file is shown in the app's footer.
 
 ### Exit: `exit`
 
@@ -389,7 +406,7 @@ To move to another computer, copy that file into the same place on the new compu
 ## Known issues
 
 * **Window opens off-screen:** Close the app and delete `preferences.json`, then restart it. This resets the saved window position.
-* **Help window stays minimized:** Restore the existing help window manually. Running `help` again does not restore it.
+* **User guide does not open:** Check your default browser and internet connection. You can open the [user guide](https://ay2627s1-cs2103t-f13-4.github.io/tp/UserGuide.html) manually.
 
 ### Lesson clash warnings
 
@@ -405,6 +422,7 @@ If a lesson overlaps another lesson, StudentBook still saves it but warns you wh
 | Clear schooling level | `edit INDEX level/` |
 | Find | `find KEYWORD [MORE_KEYWORDS]` or `find [name/TEXT] [guardian/TEXT] [sch/TEXT] [level/TEXT] [subject/TEXT] [day/DAY]` |
 | List | `list` |
+| Sort by rate | `sort rate asc` or `sort rate desc` |
 | List archived students | `list-archive` |
 | Archive | `archive INDEX` |
 | Restore from archive | `unarchive INDEX` |

@@ -1,7 +1,6 @@
 package seedu.address.model.util;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
@@ -27,12 +26,13 @@ public class SampleDataUtilTest {
     @Test
     public void getSampleAddressBook_containsAllSamplePersons() {
         ReadOnlyAddressBook addressBook = SampleDataUtil.getSampleAddressBook();
-        Student[] samples = SampleDataUtil.getSamplePersons();
+        List<Student> active = Arrays.stream(SampleDataUtil.getSamplePersons())
+                .filter(student -> !student.isArchived()).toList();
+        List<Student> archived = Arrays.stream(SampleDataUtil.getSamplePersons())
+                .filter(Student::isArchived).toList();
 
-        assertEquals(samples.length, addressBook.getPersonList().size());
-        for (Student sample : samples) {
-            assertTrue(addressBook.getPersonList().contains(sample));
-        }
+        assertEquals(active, addressBook.getPersonList());
+        assertEquals(archived, addressBook.getArchivedPersonList());
     }
 
     @Test
@@ -51,11 +51,23 @@ public class SampleDataUtilTest {
     }
 
     @Test
-    public void getSamplePersons_schoolStudentsHaveSchoolsAndNoneArchived() {
+    public void getSamplePersons_schoolStudentsHaveSchoolsAndOnlyPastStudentArchived() {
         for (Student student : SampleDataUtil.getSamplePersons()) {
             assertEquals(student.getSchoolingLevel().isPresent(), student.getSchool().isPresent());
-            assertFalse(student.isArchived());
+            // Current students have lessons; the one archived past student has given up their slot.
+            assertEquals(student.isArchived(), student.getLessons().isEmpty());
         }
+        assertEquals(1, Arrays.stream(SampleDataUtil.getSamplePersons()).filter(Student::isArchived).count());
+    }
+
+    @Test
+    public void getSamplePersons_coversNotesFollowUpsAndMissingGuardian() {
+        List<Student> current = Arrays.stream(SampleDataUtil.getSamplePersons())
+                .filter(student -> !student.isArchived()).toList();
+
+        assertTrue(current.stream().anyMatch(student -> !student.getNotes().isEmpty()));
+        assertTrue(current.stream().anyMatch(student -> !student.getFollowUps().isEmpty()));
+        assertTrue(current.stream().anyMatch(student -> student.getGuardian().isEmpty()));
     }
 
     @Test
@@ -69,7 +81,7 @@ public class SampleDataUtilTest {
     }
 
     @Test
-    public void getSamplePersons_containsExactlyOneClash() {
+    public void getSamplePersons_containsNoClashes() {
         List<Lesson> lessons = Arrays.stream(SampleDataUtil.getSamplePersons())
                 .flatMap(student -> student.getLessons().stream())
                 .toList();
@@ -85,7 +97,7 @@ public class SampleDataUtilTest {
             }
         }
 
-        assertEquals(1, clashes);
+        assertEquals(0, clashes);
     }
 
     @Test

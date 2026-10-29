@@ -5,8 +5,8 @@ skinparam ArrowFontStyle plain
 box Logic LOGIC_COLOR_T1
 participant ":LogicManager" as LogicManager LOGIC_COLOR
 participant ":AddressBookParser" as AddressBookParser LOGIC_COLOR
-participant ":FollowUpCommandParser" as FollowUpCommandParser LOGIC_COLOR
-participant "c:FollowUpCommand" as FollowUpCommand LOGIC_COLOR
+participant ":FollowUpDoneCommandParser" as FollowUpDoneCommandParser LOGIC_COLOR
+participant "c:FollowUpDoneCommand" as FollowUpDoneCommand LOGIC_COLOR
 participant "r:CommandResult" as CommandResult LOGIC_COLOR
 end box
 
@@ -21,73 +21,73 @@ activate LogicManager
 LogicManager -> AddressBookParser : parseCommand("followup-done 1 2")
 activate AddressBookParser
 
-create FollowUpCommandParser
-AddressBookParser -> FollowUpCommandParser : FollowUpCommandParser(DONE)
-activate FollowUpCommandParser
-FollowUpCommandParser --> AddressBookParser
-deactivate FollowUpCommandParser
+create FollowUpDoneCommandParser
+AddressBookParser -> FollowUpDoneCommandParser : FollowUpDoneCommandParser()
+activate FollowUpDoneCommandParser
+FollowUpDoneCommandParser --> AddressBookParser
+deactivate FollowUpDoneCommandParser
 
-AddressBookParser -> FollowUpCommandParser : parse(" 1 2")
-activate FollowUpCommandParser
+AddressBookParser -> FollowUpDoneCommandParser : parse(" 1 2")
+activate FollowUpDoneCommandParser
 
-create FollowUpCommand
-FollowUpCommandParser -> FollowUpCommand : FollowUpCommand(1, DONE, 2)
-activate FollowUpCommand
-FollowUpCommand --> FollowUpCommandParser
-deactivate FollowUpCommand
+create FollowUpDoneCommand
+FollowUpDoneCommandParser -> FollowUpDoneCommand : FollowUpDoneCommand(1, 2)
+activate FollowUpDoneCommand
+FollowUpDoneCommand --> FollowUpDoneCommandParser
+deactivate FollowUpDoneCommand
 
-FollowUpCommandParser --> AddressBookParser : c
-deactivate FollowUpCommandParser
+FollowUpDoneCommandParser --> AddressBookParser : c
+deactivate FollowUpDoneCommandParser
 'Hidden arrow to position the destroy marker below the end of the activation bar.
-FollowUpCommandParser -[hidden]-> AddressBookParser
-destroy FollowUpCommandParser
+FollowUpDoneCommandParser -[hidden]-> AddressBookParser
+destroy FollowUpDoneCommandParser
 
 AddressBookParser --> LogicManager : c
 deactivate AddressBookParser
 
-LogicManager -> FollowUpCommand : execute(m)
-activate FollowUpCommand
+LogicManager -> FollowUpDoneCommand : execute(m)
+activate FollowUpDoneCommand
 
-FollowUpCommand -> Model : getFilteredPersonList()
+FollowUpDoneCommand -> Model : getFilteredPersonList()
 activate Model
-Model --> FollowUpCommand : student 1
+Model --> FollowUpDoneCommand : student 1
 deactivate Model
 
-note right of FollowUpCommand
+note right of FollowUpDoneCommand
   Removes item 2 from a copy
   of student 1's follow-ups
 end note
 
 create Student
-FollowUpCommand -> Student : Student(..., remaining follow-ups)
+FollowUpDoneCommand -> Student : Student(..., remaining follow-ups)
 activate Student
-Student --> FollowUpCommand
+Student --> FollowUpDoneCommand
 deactivate Student
 
-FollowUpCommand -> Model : setPerson(student 1, updated)
+FollowUpDoneCommand -> Model : setPerson(student 1, updated)
 activate Model
-Model --> FollowUpCommand
+Model --> FollowUpDoneCommand
 deactivate Model
 
-FollowUpCommand -> Model : getFilteredPersonList()
+FollowUpDoneCommand -> Model : getFilteredPersonList()
 activate Model
-Model --> FollowUpCommand : list
+Model --> FollowUpDoneCommand : list
 deactivate Model
 
 alt updated is still in list
-    FollowUpCommand -> FollowUpCommand : open its details\nat its new position
+    FollowUpDoneCommand -> FollowUpDoneCommand : open its details\nat its new position
 else updated left the list (its last item is done after followups)
-    FollowUpCommand -> FollowUpCommand : open no details
+    FollowUpDoneCommand -> FollowUpDoneCommand : open no details
 end
 
 create CommandResult
-FollowUpCommand -> CommandResult : CommandResult("Completed follow-up 2 ...", ...)
+FollowUpDoneCommand -> CommandResult : CommandResult("Completed follow-up 2 ...", ...)
 activate CommandResult
-CommandResult --> FollowUpCommand
+CommandResult --> FollowUpDoneCommand
 deactivate CommandResult
 
-FollowUpCommand --> LogicManager : r
-deactivate FollowUpCommand
+FollowUpDoneCommand --> LogicManager : r
+deactivate FollowUpDoneCommand
 
 [<-- LogicManager : r
 deactivate LogicManager

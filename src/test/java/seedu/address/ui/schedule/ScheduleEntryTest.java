@@ -96,7 +96,7 @@ public class ScheduleEntryTest {
     // lays them out the same way every time.
     @Test
     public void compareTo_sameSlot_ordersByStudentThenLessonNumber() {
-        Lesson englishLesson = new Lesson(new Subject("English"), LESSON.getWeeklyLessonSlot(),
+        Lesson englishLesson = new Lesson(new Subject("English"), LESSON.getLessonSlot(),
                 new HourlyRate(new BigDecimal("60")));
         Student otherStudent = new PersonBuilder().withName("Bob Tan").withLessons(englishLesson).build();
         ScheduleEntry first = new ScheduleEntry(STUDENT, LESSON, 1, 1);
