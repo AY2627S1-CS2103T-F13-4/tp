@@ -97,7 +97,7 @@ Abstract class `UiPart` captures common behaviour among classes representing vis
 User commands received by the UI component are sent to `Logic` for execution.
 
 Additionally, `Logic` supplies the following data:
-* The list of students to display, from `Logic#getFilteredPersonList()`. `ModelManager` sorts it by school stage (Primary, Secondary, JC, then others), then by level (`P1` before `P2`), then alphabetically by name, with stored order as the final tie-break. `PersonListPanel` shows it in this order, so the number on each card is the `INDEX` that commands use. Editing a student's name or level can therefore move it, changing its index.
+* The list of students to display, from `Logic#getFilteredPersonList()`. `ModelManager` sorts it by school stage (Primary, Secondary, JC, then others), then by level (`P1` before `P2`), then alphabetically by name, with stored order as the final tie-break. After `sort rate asc` or `sort rate desc`, `ModelManager#setRateSortOrder` orders students by rate within each stage instead, until `list` resets it. `PersonListPanel` shows it in this order, so the number on each card is the `INDEX` that commands use. Editing a student's name or level can therefore move it, changing its index.
 * The total number of students and lessons, from `Logic#getAddressBook()`
 * Empty-state message, also from `Logic#getAddressBook()`
 * Lesson filter, to determine total number of students and lessons, from `Logic#getLessonPredicate()`
