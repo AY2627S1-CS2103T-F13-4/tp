@@ -32,6 +32,14 @@ public class TuitionValuesTest {
     }
 
     @Test
+    public void subject_ampersandBetweenWords_accepted() {
+        assertEquals("Design & Technology", new Subject("Design & Technology").value);
+        assertEquals("Food&Nutrition", new Subject("Food&Nutrition").value);
+        assertThrows(IllegalArgumentException.class, () -> new Subject("&"));
+        assertThrows(IllegalArgumentException.class, () -> new Subject("& Art"));
+    }
+
+    @Test
     public void rates_useDecimalValuesAndRejectInvalidPrecision() {
         assertEquals(new HourlyRate(new BigDecimal("45")), new HourlyRate(new BigDecimal("45.00")));
         assertEquals("0.00", new HourlyRate(BigDecimal.ZERO).toString());

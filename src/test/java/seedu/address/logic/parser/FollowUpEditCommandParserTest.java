@@ -23,6 +23,7 @@ public class FollowUpEditCommandParserTest {
                 new FollowUp("Call on Saturday"));
         assertParseSuccess(parser, " 1 2 text/Call on Saturday", expected);
         assertParseSuccess(parser, " 1\t2  text/Call on Saturday ", expected);
+        assertParseSuccess(parser, " 1 2 text/Call  on   Saturday", expected);
     }
 
     @Test

@@ -82,6 +82,10 @@ public class WeekPanel extends UiPart<Region> {
         scheduleScroll.vvalueProperty().addListener((unused, oldValue, newValue) -> pinHeadings());
         scheduleScroll.viewportBoundsProperty().addListener((unused, oldValue, newValue) -> pinHeadings());
         scheduleGrid.getRoot().heightProperty().addListener((unused, oldValue, newValue) -> pinHeadings());
+        // Keep the times in view while the days scroll sideways under them.
+        scheduleScroll.hvalueProperty().addListener((unused, oldValue, newValue) -> pinTimes());
+        scheduleScroll.viewportBoundsProperty().addListener((unused, oldValue, newValue) -> pinTimes());
+        scheduleGrid.getRoot().widthProperty().addListener((unused, oldValue, newValue) -> pinTimes());
         emptyCommand.setStyle(MonospaceFont.style());
         students.addListener(summaryUpdater);
         allStudents.addListener(summaryUpdater);
@@ -110,7 +114,30 @@ public class WeekPanel extends UiPart<Region> {
 
     private void pinHeadings() {
         double hidden = scheduleGrid.getRoot().getHeight() - scheduleScroll.getViewportBounds().getHeight();
-        scheduleGrid.setHeadingOffset(Math.max(0, hidden) * scheduleScroll.getVvalue());
+        // Snapped as the scroll pane snaps the scrolled grid, so the headings sit exactly on its top edge.
+        double offset = Math.max(0, hidden) * scheduleScroll.getVvalue();
+        scheduleGrid.setHeadingOffset(scheduleScroll.snapPositionY(offset));
+    }
+
+    private void pinTimes() {
+        double hidden = scheduleGrid.getRoot().getWidth() - scheduleScroll.getViewportBounds().getWidth();
+        double offset = Math.max(0, hidden) * scheduleScroll.getHvalue();
+        scheduleGrid.setTimeColumnOffset(scheduleScroll.snapPositionX(offset));
+    }
+
+    /**
+     * Scrolls the calendar sideways by most of one screen: left for a negative {@code direction}, right otherwise.
+     * Does nothing when the whole week fits.
+     */
+    public void scrollSideways(int direction) {
+        double contentWidth = scheduleGrid.getRoot().getWidth();
+        double viewportWidth = scheduleScroll.getViewportBounds().getWidth();
+        if (contentWidth <= viewportWidth) {
+            return;
+        }
+        double step = viewportWidth * PersonListPanel.PAGE_FRACTION / (contentWidth - viewportWidth);
+        double next = scheduleScroll.getHvalue() + Math.signum(direction) * step;
+        scheduleScroll.setHvalue(Math.clamp(next, 0, 1));
     }
 
     /**

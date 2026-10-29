@@ -48,6 +48,24 @@ public class JsonAdaptedPersonTest {
     }
 
     @Test
+    public void toModelType_nullTagEntry_throwsIllegalValueException() throws Exception {
+        String json = LEGACY_PERSON.replace("[\"student\"]", "[null]");
+        JsonAdaptedPerson person = JsonUtil.fromJsonString(json, JsonAdaptedPerson.class);
+
+        assertThrows(IllegalValueException.class, String.format(MISSING_FIELD_MESSAGE_FORMAT, "tag"),
+                person::toModelType);
+    }
+
+    @Test
+    public void toModelType_nullLessonEntry_throwsIllegalValueException() throws Exception {
+        String json = LEGACY_PERSON.substring(0, LEGACY_PERSON.length() - 1) + ",\"lessons\":[null]}";
+        JsonAdaptedPerson person = JsonUtil.fromJsonString(json, JsonAdaptedPerson.class);
+
+        assertThrows(IllegalValueException.class, String.format(MISSING_FIELD_MESSAGE_FORMAT, "lesson"),
+                person::toModelType);
+    }
+
+    @Test
     public void toModelType_personDetailsWithoutNotes_preservesArchiveStatus() throws Exception {
         for (boolean isArchived : new boolean[] {false, true}) {
             JsonAdaptedPerson person = new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL, VALID_ADDRESS,

@@ -19,6 +19,9 @@ public interface Model {
     Predicate<Student> PREDICATE_SHOW_ALL_PERSONS = unused -> true;
     Predicate<Lesson> PREDICATE_SHOW_ALL_LESSONS = unused -> true;
 
+    /** Captures records, filters and sorting; running the returned action restores this model in place. */
+    Runnable createRestorePoint();
+
     /**
      * Returns the user prefs.
      */
