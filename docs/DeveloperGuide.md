@@ -250,11 +250,12 @@ Bare name keywords retain whole-word, case-insensitive OR matching through `Name
 `LessonMatchesPredicate` stays separate: subject and day must match the same lesson. The student predicate
 requires at least one such lesson, and `FindCommand` passes that same lesson filter to the model for `week`.
 A later search without lesson criteria resets the lesson filter; `list` clears the active search and
-`list-archive` clears the archived search. Data mutations, including adding, editing, archiving and
+`list-archive` clears the archived search. Data mutations, including editing, archiving and
 unarchiving students, preserve both student lists' filters, the active calendar lesson filter and the
 selected archive view. The observable lists automatically apply their existing predicates to changed data.
-An edited student who no longer matches disappears from the results; a newly added or transferred student
-appears only if they match the destination list's filter. Remaining students are renumbered.
+An edited student who no longer matches disappears from the results; a transferred student appears only if
+they match the destination list's filter. Remaining students are renumbered. `add` is the exception: it
+clears the active search and lesson filter and leaves Archives so that `AddCommand` can select the new student.
 
 Search logging uses the existing `LogsCenter` framework. The parser logs selected prefix names and rejection
 reasons at `FINE`; the command logs the result count at `INFO`. These search-specific diagnostics omit search
@@ -262,8 +263,8 @@ values. Command-level logging in `LogicManager` records parsed command types and
 or result messages. Logs go to the console and rotating `studentbook.log.*` files; set `LOG_LEVEL` in
 `LogsCenter` to `Level.FINE` for parser diagnostics.
 
-Tests: `StudentSearchPredicateTest`, `LessonFilterPredicateTest`, `FindCommandParserTest`,
-`FilterPreservationTest` and `FindLoggingTest`
+Tests: `StudentSearchPredicateTest`, `LessonFilterPredicateTest`, `FindCommandParserTest`
+and `FindLoggingTest`
 cover contact and school substrings, absent fields, searches without lessons, all criteria combined, same-lesson
 and calendar filtering, bare-name compatibility, explicit filter resets, filter preservation during mutations,
 school edits through `EditCommand`, invalid
