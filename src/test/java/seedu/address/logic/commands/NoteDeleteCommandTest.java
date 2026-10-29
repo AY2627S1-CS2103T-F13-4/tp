@@ -1,3 +1,4 @@
+//@@author pranavp311
 package seedu.address.logic.commands;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -73,6 +74,7 @@ public class NoteDeleteCommandTest {
         assertCommandFailure(delete(outOfBounds, FIRST_NOTE), model, Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
     }
 
+    //@@author
     @Test
     public void equals() {
         Command deleteFirst = delete(INDEX_FIRST_PERSON, FIRST_NOTE);
