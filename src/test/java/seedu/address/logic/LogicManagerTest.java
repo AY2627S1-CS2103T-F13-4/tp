@@ -1,6 +1,7 @@
 package seedu.address.logic;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX;
 import static seedu.address.logic.Messages.MESSAGE_UNKNOWN_COMMAND;
 import static seedu.address.logic.commands.CommandTestUtil.ADDRESS_DESC_AMY;
@@ -13,6 +14,7 @@ import static seedu.address.testutil.TypicalPersons.AMY;
 import java.io.IOException;
 import java.nio.file.AccessDeniedException;
 import java.nio.file.Path;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -27,11 +29,9 @@ import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.ReadOnlyAddressBook;
 import seedu.address.model.UserPrefs;
-import seedu.address.model.person.Student;
 import seedu.address.storage.JsonAddressBookStorage;
 import seedu.address.storage.JsonUserPrefsStorage;
 import seedu.address.storage.StorageManager;
-import seedu.address.testutil.PersonBuilder;
 
 public class LogicManagerTest {
     private static final IOException DUMMY_IO_EXCEPTION = new IOException("dummy IO exception");
@@ -67,7 +67,7 @@ public class LogicManagerTest {
     @Test
     public void execute_validCommand_success() throws Exception {
         String listCommand = ListCommand.COMMAND_WORD;
-        assertCommandSuccess(listCommand, ListCommand.MESSAGE_SUCCESS, model);
+        assertCommandSuccess(listCommand, ListCommand.MESSAGE_NONE, model);
     }
 
     @Test
@@ -80,6 +80,50 @@ public class LogicManagerTest {
     public void execute_storageThrowsAdException_throwsCommandException() {
         assertCommandFailureForExceptionFromStorage(DUMMY_AD_EXCEPTION, String.format(
                 LogicManager.FILE_OPS_PERMISSION_ERROR_FORMAT, DUMMY_AD_EXCEPTION.getMessage()));
+    }
+
+    @Test
+    public void execute_failedDelete_rollsBackAndRetryDeletesTheSameStudent() throws Exception {
+        for (IOException failure : new IOException[] {DUMMY_IO_EXCEPTION, DUMMY_AD_EXCEPTION}) {
+            Path dataFile = temporaryFolder.resolve("retry.json");
+            AtomicBoolean failSaves = new AtomicBoolean(false);
+            JsonAddressBookStorage storage = new JsonAddressBookStorage(dataFile) {
+                @Override
+                public void saveAddressBook(ReadOnlyAddressBook addressBook) throws IOException {
+                    if (failSaves.get()) {
+                        throw failure;
+                    }
+                    super.saveAddressBook(addressBook);
+                }
+            };
+            Model testModel = new ModelManager();
+            testModel.addPerson(AMY);
+            storage.saveAddressBook(testModel.getAddressBook());
+            Logic testLogic = new LogicManager(testModel, new StorageManager(storage,
+                    new JsonUserPrefsStorage(temporaryFolder.resolve("retry-prefs.json"))));
+            failSaves.set(true);
+
+            CommandException error = org.junit.jupiter.api.Assertions.assertThrows(
+                    CommandException.class, () -> testLogic.execute("delete 1"));
+
+            assertTrue(error.getMessage().contains("command was not applied"));
+            assertTrue(error.getMessage().contains("records are unchanged"));
+            assertEquals(AMY, testModel.getFilteredPersonList().get(0));
+            assertEquals(AMY, storage.readAddressBook().orElseThrow().getPersonList().get(0));
+
+            // Read-only commands work even while storage is unavailable, and do not persist a failed delete.
+            for (String command : new String[] {"list", "find Amy", "week", "view 1", "help", "exit"}) {
+                testLogic.execute(command);
+            }
+            assertEquals(AMY, testModel.getAddressBook().getPersonList().get(0));
+            assertEquals(AMY, storage.readAddressBook().orElseThrow().getPersonList().get(0));
+
+            failSaves.set(false);
+            assertEquals(ListCommand.MESSAGE_SUCCESS, testLogic.execute("list").getFeedbackToUser());
+            assertEquals(AMY, storage.readAddressBook().orElseThrow().getPersonList().get(0));
+            testLogic.execute("delete 1");
+            assertTrue(storage.readAddressBook().orElseThrow().getPersonList().isEmpty());
+        }
     }
 
     // The UI counts all students from this list; it must stay the model's live list, not a copy.
@@ -174,9 +218,7 @@ public class LogicManagerTest {
         // Triggers the saveAddressBook method by executing an add command
         String addCommand = AddCommand.COMMAND_WORD + NAME_DESC_AMY + PHONE_DESC_AMY
                 + EMAIL_DESC_AMY + ADDRESS_DESC_AMY;
-        Student expectedPerson = new PersonBuilder(AMY).withTags().build();
         ModelManager expectedModel = new ModelManager();
-        expectedModel.addPerson(expectedPerson);
         assertCommandFailure(addCommand, CommandException.class, expectedMessage, expectedModel);
     }
 }

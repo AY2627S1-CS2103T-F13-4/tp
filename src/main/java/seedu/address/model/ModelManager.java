@@ -42,7 +42,7 @@ public class ModelManager implements Model {
     public ModelManager(ReadOnlyAddressBook addressBook, ReadOnlyUserPrefs userPrefs) {
         requireAllNonNull(addressBook, userPrefs);
 
-        logger.fine("Initializing with address book: " + addressBook + " and user prefs " + userPrefs);
+        logger.fine("Initializing model from saved data and user preferences");
 
         this.addressBook = new AddressBook(addressBook);
         this.userPrefs = new UserPrefs(userPrefs);
@@ -61,6 +61,24 @@ public class ModelManager implements Model {
 
     public ModelManager() {
         this(new AddressBook(), new UserPrefs());
+    }
+
+    @Override
+    public Runnable createRestorePoint() {
+        AddressBook savedRecords = new AddressBook(addressBook);
+        Predicate<? super Student> activeFilter = filteredPersons.getPredicate();
+        Predicate<? super Student> archivedFilter = filteredArchivedPersons.getPredicate();
+        Predicate<Lesson> savedLessonFilter = lessonPredicate.get();
+        RateSortOrder savedOrder = rateSortOrder.get();
+        boolean savedArchiveView = archiveView;
+        return () -> {
+            addressBook.resetData(savedRecords);
+            filteredPersons.setPredicate(activeFilter);
+            filteredArchivedPersons.setPredicate(archivedFilter);
+            lessonPredicate.set(savedLessonFilter);
+            setRateSortOrder(savedOrder);
+            archiveView = savedArchiveView;
+        };
     }
 
     /** Orders by school stage, then the chosen rate order, then level and name, then the order added. */
@@ -115,13 +133,11 @@ public class ModelManager implements Model {
     @Override
     public void archivePerson(Student target) {
         addressBook.archivePerson(target);
-        updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS);
     }
 
     @Override
     public void unarchivePerson(Student target) {
         addressBook.unarchivePerson(target);
-        updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS);
     }
 
     @Override

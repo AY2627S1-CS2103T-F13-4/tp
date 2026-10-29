@@ -47,6 +47,7 @@ import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
+import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Text;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
@@ -70,6 +71,7 @@ import seedu.address.storage.JsonAddressBookStorage;
 import seedu.address.storage.JsonUserPrefsStorage;
 import seedu.address.storage.StorageManager;
 import seedu.address.testutil.FxTestUtil;
+import seedu.address.testutil.LogCapture;
 import seedu.address.testutil.PersonBuilder;
 
 /**
@@ -136,6 +138,26 @@ public class MainWindowTest {
                     if (!existingWindows.contains(window)) {
                         window.hide();
                     }
+                }
+            }
+        });
+    }
+
+    @Test
+    public void commandLogging_omitsContactDetailsFromResultsAndRejectedInput() throws Exception {
+        runOnFxThread(() -> {
+            try (LogCapture logs = new LogCapture()) {
+                submitCommand("add name/Private Student phone/93456789 email/private@example.com"
+                        + " address/Secret Road");
+                submitCommand("guardian-add 1 name/Private Guardian phone/98765432");
+                submitFailedCommand("guardian-add 999 name/Private Guardian phone/98765432");
+                submitFailedCommand("private@example.com 93456789");
+
+                assertTrue(logs.text().contains("Command completed: AddCommand (success)"));
+                assertTrue(logs.text().contains("Command failed: GuardianAddCommand"));
+                for (String value : List.of("Private Student", "93456789", "private@example.com",
+                        "Secret Road", "Private Guardian", "98765432")) {
+                    assertFalse(logs.text().contains(value), "Diagnostic logs must omit " + value);
                 }
             }
         });
@@ -345,14 +367,109 @@ public class MainWindowTest {
         });
     }
 
-    // Saving runs after the model changes its list, so a save error must not leave indices on a hidden table.
     @Test
-    public void listSwitch_saveFails_visibleRowsMatchNextCommandIndices() throws Exception {
+    public void addFromArchives_showsAndSelectsNewStudentInActiveTable() throws Exception {
+        runOnFxThread(() -> {
+            submitCommand("archive 1");
+            submitCommand("find missing");
+            submitCommand("list-archive");
+            submitCommand("find Alice");
+
+            submitCommand("add name/Aaron phone/91234567 email/aaron@example.com address/1");
+
+            assertFalse(model.isArchiveView());
+            assertTrue(isShown(studentTable()));
+            assertFalse(isShown(archivedStudentTable()));
+            assertActiveNav("#studentsNav");
+            assertEquals(List.of("Aaron", "Bob"), tableNames(studentTable()));
+            Student selected = (Student) studentTable().getSelectionModel().getSelectedItem();
+            assertEquals("Aaron", selected.getName().fullName);
+            assertEquals(List.of("Alice"), tableNames(archivedStudentTable()));
+        });
+    }
+
+    @Test
+    public void duplicateAddFromArchives_keepsArchiveTableAndSelection() throws Exception {
+        runOnFxThread(() -> {
+            submitCommand("archive 1");
+            submitCommand("list-archive");
+            submitCommand("view 1");
+
+            submitFailedCommand("add name/Alice phone/91234567 email/alice@example.com address/1");
+
+            assertTrue(model.isArchiveView());
+            assertTrue(isShown(archivedStudentTable()));
+            assertActiveNav("#archiveNav");
+            assertEquals(List.of("Alice"), tableNames(archivedStudentTable()));
+            assertEquals(0, archivedStudentTable().getSelectionModel().getSelectedIndex());
+            assertEquals(List.of("Bob"), tableNames(studentTable()));
+        });
+    }
+
+    @Test
+    public void failedDelete_restoresOpenDetailsAndDisplayedIndices() throws Exception {
+        runOnFxThread(() -> {
+            submitCommand("list");
+            submitCommand("view 1");
+            failSaves = true;
+
+            submitFailedCommand("delete 1");
+
+            assertEquals(List.of("Alice", "Bob"), tableNames(studentTable()));
+            assertEquals("Alice", ((Student) studentTable().getSelectionModel().getSelectedItem()).getName().fullName);
+            assertActiveNav("#studentsNav");
+            submitCommand("list-archive");
+            submitFailedCommand("add name/Carol phone/91234567 email/carol@example.com address/1");
+            assertTrue(model.isArchiveView());
+            assertActiveNav("#archiveNav");
+            assertTrue(tableNames(archivedStudentTable()).isEmpty());
+            assertEquals(List.of("Alice", "Bob"), tableNames(studentTable()));
+
+            failSaves = false;
+            submitCommand("list");
+            submitCommand("archive 1");
+            submitCommand("list-archive");
+            submitCommand("view 1");
+            failSaves = true;
+            submitFailedCommand("unarchive 1");
+            assertActiveNav("#archiveNav");
+            assertEquals(List.of("Alice"), tableNames(archivedStudentTable()));
+            assertEquals("Alice", ((Student) archivedStudentTable().getSelectionModel()
+                    .getSelectedItem()).getName().fullName);
+            assertEquals(List.of("Bob"), tableNames(studentTable()));
+
+            failSaves = false;
+            submitCommand("unarchive 1");
+            submitCommand("list");
+            submitCommand("delete 1");
+            assertEquals(List.of("Bob"), tableNames(studentTable()));
+        });
+    }
+
+    @Test
+    public void failedDelete_previouslyClosedDetails_remainClosed() throws Exception {
+        runOnFxThread(() -> {
+            submitCommand("find Alice");
+            mainWindow.getPersonListPanel().closeDetails();
+            assertTrue(studentTable().getSelectionModel().isEmpty());
+            failSaves = true;
+
+            submitFailedCommand("delete 1");
+
+            assertEquals(List.of("Alice"), tableNames(studentTable()));
+            assertTrue(studentTable().getSelectionModel().isEmpty());
+            assertActiveNav("#studentsNav");
+        });
+    }
+
+    // Viewing records remains available even when the data file cannot be written.
+    @Test
+    public void listSwitch_readOnlyDataFile_visibleRowsMatchNextCommandIndices() throws Exception {
         runOnFxThread(() -> {
             submitCommand("archive 1");
             submitCommand("list");
             failSaves = true;
-            submitFailedCommand("list-archive");
+            submitCommand("list-archive");
             assertTrue(isShown(archivedStudentTable()));
             assertActiveNav("#archiveNav");
             assertSame(model.getFilteredPersonList(), archivedStudentTable().getItems());
@@ -364,7 +481,7 @@ public class MainWindowTest {
             assertEquals(List.of("Bob"), tableNames(studentTable()));
 
             failSaves = true;
-            submitFailedCommand("list");
+            submitCommand("list");
             assertTrue(isShown(studentTable()));
             assertActiveNav("#studentsNav");
             assertSame(model.getFilteredPersonList(), studentTable().getItems());
@@ -378,14 +495,14 @@ public class MainWindowTest {
     }
 
     @Test
-    public void weekSwitch_saveFails_showsActiveRowsAndPreservesWeekForOrdinaryErrors() throws Exception {
+    public void weekSwitch_readOnlyDataFile_showsWeekAndPreservesItForInvalidCommands() throws Exception {
         runOnFxThread(() -> {
             submitCommand("archive 1");
             submitCommand("list-archive");
             failSaves = true;
-            submitFailedCommand("week");
-            assertTrue(isShown(studentTable()));
-            assertActiveNav("#studentsNav");
+            submitCommand("week");
+            assertTrue(isShown(schedulePlaceholder()));
+            assertActiveNav("#weekNav");
             assertSame(model.getFilteredPersonList(), studentTable().getItems());
 
             failSaves = false;
@@ -457,6 +574,61 @@ public class MainWindowTest {
                 previousRightEdge = tabRight;
             }
         });
+    }
+
+    // Shrinking a wide window must narrow the student table to fit, with the layout a fresh window of that
+    // width has: the table's columns follow its width, which must not hold the table at its old width.
+    @Test
+    public void studentTable_windowShrunk_fitsAndSwitchesLayoutLikeFreshWindow() throws Exception {
+        // The window opens at its minimum width, 760, so the table starts narrow.
+        runOnFxThread(() -> submitCommand("list"));
+        settle();
+        double freshNarrowWidth = FxTestUtil.callOnFxThread(() -> studentTable().getWidth());
+        resizeWindow(Math.min(1470, Screen.getPrimary().getVisualBounds().getWidth()));
+        settle();
+        for (double width : new double[] {1000, FxTestUtil.callOnFxThread(stage::getMinWidth)}) {
+            resizeWindow(width);
+            settle();
+            runOnFxThread(() -> {
+                Region card = (Region) studentTable().getParent().getParent();
+                double cardRight = card.localToScene(card.getBoundsInLocal()).getMaxX();
+                String sizes = "window " + stage.getWidth() + ", table " + studentTable().getWidth()
+                        + ", fresh " + freshNarrowWidth;
+                assertTrue(cardRight <= stage.getScene().getWidth(), sizes);
+                assertTrue(sceneMaxX(studentTable()) <= cardRight, sizes);
+                assertTrue(sceneMaxX(stage.getScene().lookup("#addStudentButton")) <= cardRight, sizes);
+                Node guardian = stage.getScene().lookup("#guardianHeading");
+                assertEquals(width >= 1000, guardian.isVisible(), sizes);
+                if (guardian.isVisible()) {
+                    assertTrue(sceneMaxX(guardian) <= cardRight, sizes);
+                }
+            });
+        }
+        runOnFxThread(() -> assertEquals(freshNarrowWidth, studentTable().getWidth(), 0.5));
+    }
+
+    // Rows, open details and the scroll bar must stay inside the card's rounded corners at every size, so the
+    // table's content is clipped to the card's shape: the same size and the same corner radius as its background.
+    @Test
+    public void studentTables_resized_contentClippedToRoundedCard() throws Exception {
+        runOnFxThread(() -> submitCommand("view 2"));
+        for (double width : new double[] {1000, FxTestUtil.callOnFxThread(stage::getMinWidth)}) {
+            resizeWindow(width);
+            settle();
+            runOnFxThread(() -> {
+                for (ListView<?> table : List.of(studentTable(), archivedStudentTable())) {
+                    Region content = (Region) table.getParent();
+                    Region card = (Region) content.getParent();
+                    Rectangle clip = assertInstanceOf(Rectangle.class, content.getClip());
+                    assertEquals(card.getLayoutBounds(), content.getBoundsInParent());
+                    assertEquals(content.getLayoutBounds(), clip.getLayoutBounds());
+                    double radius = card.getBackground().getFills().get(0).getRadii().getTopLeftHorizontalRadius();
+                    assertTrue(radius > 0);
+                    assertEquals(2 * radius, clip.getArcWidth());
+                    assertEquals(2 * radius, clip.getArcHeight());
+                }
+            });
+        }
     }
 
     // A filter that does not fully fit is hidden, never shown cut short, and returns when the window widens.
@@ -1032,6 +1204,14 @@ public class MainWindowTest {
             Thread.sleep(20);
         }
         throw new AssertionError("The window did not resize to " + width);
+    }
+
+    /** Lets the window lay itself out until a resize has fully settled, as it does between frames. */
+    private void settle() throws Exception {
+        for (int pulse = 0; pulse < 10; pulse++) {
+            Thread.sleep(20);
+            runOnFxThread(() -> { });
+        }
     }
 
     private void assertVisibleFiltersFit() {

@@ -89,7 +89,7 @@ public class LessonEditCommandTest {
         expectedModel.setPerson(student, withLessons(student,
                 new Lesson(ENGLISH, MONDAY, RATE, Optional.of(LIBRARY), Optional.of(LessonMode.PHYSICAL))));
 
-        assertCommandSuccess(command, model, "Lesson updated for " + student.getName() + ".", expectedModel);
+        assertCommandSuccess(command, model, "Lesson edited for " + student.getName(), expectedModel);
     }
 
     @Test
@@ -146,7 +146,7 @@ public class LessonEditCommandTest {
         expectedModel.setPerson(student, withLessons(student, new Lesson(ENGLISH, TUESDAY, newRate,
                 Optional.of(newLocation), Optional.of(LessonMode.VIRTUAL))));
 
-        assertCommandSuccess(command, model, "Lesson updated for " + student.getName() + ".", expectedModel);
+        assertCommandSuccess(command, model, "Lesson edited for " + student.getName(), expectedModel);
     }
 
     @Test
@@ -161,7 +161,7 @@ public class LessonEditCommandTest {
         Model expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs());
         expectedModel.setPerson(student, withLessons(student, new Lesson(MATH, MONDAY, RATE)));
 
-        assertCommandSuccess(command, model, "Lesson updated for " + student.getName() + ".", expectedModel);
+        assertCommandSuccess(command, model, "Lesson edited for " + student.getName(), expectedModel);
     }
 
     @Test
@@ -196,7 +196,7 @@ public class LessonEditCommandTest {
                         .build()).execute(model);
 
         assertFalse(result.isWarning());
-        assertEquals("Lesson updated for " + student.getName() + ".", result.getFeedbackToUser());
+        assertEquals("Lesson edited for " + student.getName(), result.getFeedbackToUser());
     }
 
     @Test
@@ -211,7 +211,7 @@ public class LessonEditCommandTest {
         Model expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs());
         expectedModel.setPerson(student, withLessons(student,
                 new Lesson(ENGLISH, MONDAY, RATE, FULL_LESSON.getLocation(), FULL_LESSON.getMode())));
-        assertCommandSuccess(command, model, "Lesson updated for " + student.getName() + ".", expectedModel);
+        assertCommandSuccess(command, model, "Lesson edited for " + student.getName(), expectedModel);
     }
 
     @Test
@@ -224,7 +224,7 @@ public class LessonEditCommandTest {
         expectedModel.setPerson(student, withLessons(student, new Lesson(ENGLISH, MONDAY, RATE)));
         LessonEditCommand command = new LessonEditCommand(INDEX_FIRST_PERSON, INDEX_FIRST_LESSON,
                 new EditLessonDescriptorBuilder().withSubject(ENGLISH).build());
-        assertCommandSuccess(command, model, "Lesson updated for " + student.getName() + ".", expectedModel);
+        assertCommandSuccess(command, model, "Lesson edited for " + student.getName(), expectedModel);
     }
 
     @Test

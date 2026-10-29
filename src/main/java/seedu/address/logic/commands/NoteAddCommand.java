@@ -21,11 +21,11 @@ import seedu.address.model.person.Student;
 public class NoteAddCommand extends Command {
     public static final String COMMAND_WORD = "note-add";
     public static final String MESSAGE_USAGE = COMMAND_WORD
-            + ": Adds a dated progress note to a student.\n"
+            + ": Adds a dated progress note to a student\n"
             + "Parameters: STUDENT_INDEX date/YYYY-MM-DD text/TEXT\n"
             + "Example: " + COMMAND_WORD + " 1 date/2026-10-15 text/Finished the fractions worksheet";
-    public static final String MESSAGE_SUCCESS = "Added note %1$d for %2$s.";
-    public static final String MESSAGE_DUPLICATE_NOTE = "This student already has this note on that date.";
+    public static final String MESSAGE_SUCCESS = "Added note for %2$s: %1$d";
+    public static final String MESSAGE_DUPLICATE_NOTE = "This student already has this note on that date";
 
     private final Index studentIndex;
     private final ProgressNote toAdd;

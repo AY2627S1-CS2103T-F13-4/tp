@@ -11,7 +11,7 @@ public class WeekCommand extends Command {
 
     public static final String COMMAND_WORD = "week";
 
-    public static final String MESSAGE_SUCCESS = "Showing this week's lessons.";
+    public static final String MESSAGE_SUCCESS = "Showing this week's lessons";
 
     @Override
     public CommandResult execute(Model model) {

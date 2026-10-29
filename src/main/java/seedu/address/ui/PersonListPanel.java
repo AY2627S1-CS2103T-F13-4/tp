@@ -247,6 +247,24 @@ public class PersonListPanel extends UiPart<Region> {
         personListView.getSelectionModel().clearSelection();
     }
 
+    /** Returns the student whose details are open, or null when none are open. */
+    public Student getOpenStudent() {
+        return personListView.getSelectionModel().getSelectedItem();
+    }
+
+    /** Restores details after a failed command has restored the records and their displayed order. */
+    public void restoreOpenStudent(Student student) {
+        if (getOpenStudent() == student) {
+            return;
+        }
+        int index = personListView.getItems().indexOf(student);
+        if (index < 0) {
+            closeDetails();
+        } else {
+            openStudent(index);
+        }
+    }
+
     /**
      * Scrolls the list by most of one screen: up for a negative {@code direction}, down otherwise.
      * Lets keyboard users page through the list while focus stays in the command box.

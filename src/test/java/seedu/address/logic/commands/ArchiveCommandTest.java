@@ -9,6 +9,7 @@ import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
 import static seedu.address.testutil.TypicalIndexes.INDEX_SECOND_PERSON;
 import static seedu.address.testutil.TypicalPersons.ALICE;
 import static seedu.address.testutil.TypicalPersons.BENSON;
+import static seedu.address.testutil.TypicalPersons.CARL;
 
 import java.util.List;
 
@@ -42,6 +43,22 @@ public class ArchiveCommandTest {
         new ListArchiveCommand().execute(model);
 
         assertCommandFailure(new ArchiveCommand(INDEX_FIRST_PERSON), model, ArchiveCommand.MESSAGE_ALREADY_ARCHIVED);
+    }
+
+    @Test
+    public void execute_afterSearch_keepsSearchSoNextIndexMatchesDisplayedList() throws CommandException {
+        // Archiving from search results must not bring back the full list, or the next index hits someone else.
+        model = new ModelManager(new AddressBookBuilder().withPerson(ALICE).withPerson(BENSON).withPerson(CARL)
+                .build(), new UserPrefs());
+        model.updateFilteredPersonList(student -> !student.equals(ALICE));
+
+        new ArchiveCommand(INDEX_FIRST_PERSON).execute(model);
+        assertEquals(List.of(CARL), model.getFilteredPersonList());
+
+        new ArchiveCommand(INDEX_FIRST_PERSON).execute(model);
+        assertEquals(List.of(ALICE), model.getAddressBook().getPersonList());
+        assertEquals(List.of(BENSON.withArchived(true), CARL.withArchived(true)),
+                model.getAddressBook().getArchivedPersonList());
     }
 
     @Test

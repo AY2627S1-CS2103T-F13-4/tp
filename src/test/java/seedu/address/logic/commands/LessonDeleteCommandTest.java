@@ -71,7 +71,7 @@ public class LessonDeleteCommandTest {
         Model expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs());
         expectedModel.setPerson(student, withLessons(student));
 
-        assertCommandSuccess(command, model, "Lesson removed for " + student.getName() + ".", expectedModel);
+        assertCommandSuccess(command, model, "Lesson deleted for " + student.getName(), expectedModel);
     }
 
     @Test
@@ -83,7 +83,7 @@ public class LessonDeleteCommandTest {
         Model expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs());
         expectedModel.setPerson(student, withLessons(student));
         LessonDeleteCommand command = new LessonDeleteCommand(INDEX_FIRST_PERSON, INDEX_FIRST_LESSON);
-        assertCommandSuccess(command, model, "Lesson removed for " + student.getName() + ".", expectedModel);
+        assertCommandSuccess(command, model, "Lesson deleted for " + student.getName(), expectedModel);
     }
 
     @Test

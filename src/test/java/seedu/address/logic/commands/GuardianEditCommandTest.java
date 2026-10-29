@@ -56,7 +56,7 @@ public class GuardianEditCommandTest {
         expectedModel.addPerson(expectedStudent);
         GuardianEditCommand command = new GuardianEditCommand(INDEX_FIRST_PERSON,
                 new EditGuardianDescriptorBuilder().withPhone(updatedPhone).build());
-        assertCommandSuccess(command, model, "Guardian updated for " + original.getName() + ".", expectedModel);
+        assertCommandSuccess(command, model, "Guardian edited for " + original.getName(), expectedModel);
     }
 
     @Test

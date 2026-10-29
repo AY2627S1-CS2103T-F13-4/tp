@@ -13,7 +13,7 @@ public final class SchoolingLevel {
 
     public static final String MESSAGE_CONSTRAINTS =
             "Schooling levels must contain 1-30 characters, start with a letter or digit, include a letter, "
-            + "and use only letters, digits, spaces, apostrophes, hyphens, periods or parentheses.";
+            + "and use only letters, digits, spaces, apostrophes, hyphens, periods or parentheses";
     private static final String VALIDATION_REGEX = "[A-Za-z0-9][A-Za-z0-9 '.()\\-]*";
 
     // Levels are free text, so only clear forms such as "P5", "Primary 5", "Sec 3 Express" or "JC1" get a stage.

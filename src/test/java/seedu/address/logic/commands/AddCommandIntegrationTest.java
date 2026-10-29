@@ -4,11 +4,13 @@ import static seedu.address.logic.commands.CommandTestUtil.VALID_SCHOOL_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_SCHOOL_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandFailure;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandSuccess;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_NAME;
 import static seedu.address.testutil.TypicalPersons.getTypicalAddressBook;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import seedu.address.commons.core.index.Index;
 import seedu.address.logic.Messages;
 import seedu.address.logic.parser.AddressBookParser;
 import seedu.address.model.Model;
@@ -40,7 +42,7 @@ public class AddCommandIntegrationTest {
         expectedModel.addPerson(validPerson);
 
         assertCommandSuccess(new AddCommand(validPerson), model,
-                String.format(AddCommand.MESSAGE_SUCCESS, Messages.format(validPerson)),
+                expectedResult(validPerson, expectedModel),
                 expectedModel);
     }
 
@@ -54,7 +56,12 @@ public class AddCommandIntegrationTest {
         expectedModel.addPerson(validPerson);
 
         assertCommandSuccess(command, model,
-                String.format(AddCommand.MESSAGE_SUCCESS, Messages.format(validPerson)), expectedModel);
+                expectedResult(validPerson, expectedModel), expectedModel);
+    }
+
+    private static CommandResult expectedResult(Student added, Model expectedModel) {
+        return new CommandResult(String.format(AddCommand.MESSAGE_SUCCESS, Messages.format(added)),
+                Index.fromZeroBased(expectedModel.getFilteredPersonList().indexOf(added)));
     }
 
     @Test
@@ -63,6 +70,17 @@ public class AddCommandIntegrationTest {
         Student differentSchool = new PersonBuilder(personInList).withSchool(new School(VALID_SCHOOL_BOB)).build();
 
         assertCommandFailure(new AddCommand(differentSchool), model, AddCommand.MESSAGE_DUPLICATE_PERSON);
+    }
+
+    @Test
+    public void execute_duplicatePersonWithExtraSpacesInName_throwsCommandException() throws Exception {
+        Student personInList = model.getAddressBook().getPersonList().get(0);
+        String spacedName = personInList.getName().fullName.replace(" ", "   ");
+        String userInput = PersonUtil.getAddCommand(personInList)
+                .replace(PREFIX_NAME + personInList.getName().fullName, PREFIX_NAME + spacedName);
+        Command command = new AddressBookParser().parseCommand(userInput);
+
+        assertCommandFailure(command, model, AddCommand.MESSAGE_DUPLICATE_PERSON);
     }
 
     @Test

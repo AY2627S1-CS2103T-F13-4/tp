@@ -97,7 +97,7 @@ Abstract class `UiPart` captures common behaviour among classes representing vis
 User commands received by the UI component are sent to `Logic` for execution.
 
 Additionally, `Logic` supplies the following data:
-* The list of students to display, from `Logic#getFilteredPersonList()`. `ModelManager` sorts it by school stage (Primary, Secondary, JC, then others), then by level (`P1` before `P2`), then alphabetically by name, with stored order as the final tie-break. `PersonListPanel` shows it in this order, so the number on each card is the `INDEX` that commands use. Editing a student's name or level can therefore move it, changing its index.
+* The list of students to display, from `Logic#getFilteredPersonList()`. `ModelManager` sorts it by school stage (Primary, Secondary, JC, then others), then by level (`P1` before `P2`), then alphabetically by name, with stored order as the final tie-break. After `sort rate asc` or `sort rate desc`, `ModelManager#setRateSortOrder` orders students by rate within each stage instead, until `list` resets it. `PersonListPanel` shows it in this order, so the number on each card is the `INDEX` that commands use. Editing a student's name or level can therefore move it, changing its index.
 * The total number of students and lessons, from `Logic#getAddressBook()`
 * Empty-state message, also from `Logic#getAddressBook()`
 * Lesson filter, to determine total number of students and lessons, from `Logic#getLessonPredicate()`
@@ -234,7 +234,9 @@ both `s` and `f`. Prefix validation and the parser's own creation and lifetime a
 to the model, reads the matching students to form the result summary, and returns a `CommandResult`
 that selects the students screen. The model is shown through its interface; internal filtering, logging
 and UI observation are omitted. The repeated list lookup used by logging is also omitted.
-`LogicManager` performs the existing storage save after execution, outside this diagram's scope.
+`LogicManager` saves only record changes and rolls back records, filters and sorting on failure; the UI restores open details.
+`JsonAddressBookStorage` atomically replaces the file from a temporary file, preserving permissions.
+Failures retain the original and remove the temporary file. Unsupported atomic replacement fails without a fallback.
 
 ![Execution of a combined student search](images/FindSequenceDiagram.png)
 
@@ -247,18 +249,25 @@ Bare name keywords retain whole-word, case-insensitive OR matching through `Name
 
 `LessonMatchesPredicate` stays separate: subject and day must match the same lesson. The student predicate
 requires at least one such lesson, and `FindCommand` passes that same lesson filter to the model for `week`.
-A later search without lesson criteria
-resets the lesson filter; `list` clears the entire search. `EditCommand`, including school changes and
-clearing a school, clears both student and lesson filters and displays all students after a successful edit.
+A later search without lesson criteria resets the lesson filter; `list` clears the active search and
+`list-archive` clears the archived search. Data mutations, including editing, archiving and
+unarchiving students, preserve both student lists' filters, the active calendar lesson filter and the
+selected archive view. The observable lists automatically apply their existing predicates to changed data.
+An edited student who no longer matches disappears from the results; a transferred student appears only if
+they match the destination list's filter. Remaining students are renumbered. `add` is the exception: it
+clears the active search and lesson filter and leaves Archives so that `AddCommand` can select the new student.
 
 Search logging uses the existing `LogsCenter` framework. The parser logs selected prefix names and rejection
 reasons at `FINE`; the command logs the result count at `INFO`. These search-specific diagnostics omit search
-values. Existing command-level logging in `LogicManager` still records raw commands. Logs go to the console
-and rotating `studentbook.log.*` files; set `LOG_LEVEL` in `LogsCenter` to `Level.FINE` for parser diagnostics.
+values. Command-level logging in `LogicManager` records parsed command types and outcomes without input values
+or result messages. Logs go to the console and rotating `studentbook.log.*` files; set `LOG_LEVEL` in
+`LogsCenter` to `Level.FINE` for parser diagnostics.
 
-Tests: `StudentSearchPredicateTest`, `LessonFilterPredicateTest`, `FindCommandParserTest` and `FindLoggingTest`
+Tests: `StudentSearchPredicateTest`, `LessonFilterPredicateTest`, `FindCommandParserTest`
+and `FindLoggingTest`
 cover contact and school substrings, absent fields, searches without lessons, all criteria combined, same-lesson
-and calendar filtering, bare-name compatibility, filter resets, school edits through `EditCommand`, invalid
+and calendar filtering, bare-name compatibility, explicit filter resets, filter preservation during mutations,
+school edits through `EditCommand`, invalid
 input, prefix ordering, equality, defensive checks and logging.
 
 ### Guardian follow-ups <!-- Move to model...? -->
@@ -316,15 +325,22 @@ A note's position in that list is the `NOTE_INDEX` shown in the details. New stu
 
 <img src="images/ProgressNoteClassDiagram.png" width="450" />
 
-`note-add` and `note-delete` are routed by `AddressBookParser` to `NoteAddCommandParser` and
-`NoteDeleteCommandParser`, respectively. Deleting takes only the student index and the note's number. The parser reads only `date/` and `text/`, so a word such as `and/or` stays in the note text.
-`ParserUtil#parseProgressNote` rejects dates that are not real `YYYY-MM-DD` dates or are later than today. The
+`note-add`, `note-edit` and `note-delete` are routed by `AddressBookParser` to their corresponding command parsers.
+Editing takes the student index, the note's number and an optional date and/or text; at least one field is required.
+Deleting takes only the student index and the note's number. Add and edit treat everything after the first `text/`
+as note text, including words resembling prefixes, so `date/` must precede `text/` when both are supplied.
+`ParserUtil#parseProgressNote` uses the shared `parseProgressNoteDate` and `parseProgressNoteText` validators.
+The edit parser uses these validators for each supplied field. Dates must be real `YYYY-MM-DD` dates between
+`2000-01-01` and today, and text must be 1–500 characters on one line. The
 future-date check is in the parser rather than the model, so a saved file still loads if the computer's clock is
 wrong.
 
-`NoteAddCommand` and `NoteDeleteCommand` resolve the student from the current filtered list. Adding rejects an identical note on the same
-date; deleting rejects a note number past the end. Either way, it replaces the student with a copy whose notes
-have changed. It returns a `CommandResult` that opens that student's
+The note commands resolve the student from the current filtered list. Adding and editing reject an identical note
+on the same date; editing excludes the selected note from the duplicate check. Editing and deleting reject a note
+number past the end. `NoteEditCommand` copies an `EditNoteDescriptor` so later descriptor changes cannot affect it.
+It preserves omitted fields and replaces the selected note. `Student.withNotes` restores chronological order, and
+the edit result reports the note's new number after sorting. Each command replaces the student with a copy whose
+notes have changed and returns a `CommandResult` that opens that student's
 details, where `PersonCard` lists the notes. Every command that rebuilds a `Student` (`edit`, archiving, and the
 guardian, lesson and follow-up commands) passes the existing notes on. `NoteWorkflowTest` checks `edit` and the guardian
 and lesson commands, so a later field change cannot silently drop notes there.
@@ -382,8 +398,8 @@ The earlier Google specification and the current code differ on the rules below.
 |---|---|---|
 | Contact fields | Name required on creation | Name, phone, email and address required; confirm whether all four contact fields are needed |
 | Duplicate names | Normalized, case-insensitive comparison | Exact, case-sensitive name comparison |
-| Names and phones | Punctuation in names; optional `+` and 7–15 digits in phones | AB3 alphanumeric names; phones with at least 3 digits and no `+` |
-| Save/load failures | Roll back failed saves; block commands after a failed load | In-memory changes can remain after a failed save; commands remain available after a failed load |
+| Names and phones | Punctuation in names; optional `+` and 7–15 digits in phones | AB3 alphanumeric names; optional `+` and 7–15 digits in phones, with single spaces or hyphens allowed between digits |
+| Save/load failures | Roll back failed saves; block commands after a failed load | Failed saves roll back; failed loads use backup recovery |
 
 The pre-chat Git and Google documents also differed on registration and guardian attachment. The current plan adds the guardian separately. Confirm the remaining rules with the team before treating the earlier draft as superseded.
 
@@ -482,7 +498,7 @@ Use case ends.
   * 1b1. StudentBook reports the duplicate without adding a record.
   * Use case ends.
 * 2a. StudentBook cannot save the change.
-  * 2a1. StudentBook reports the save failure. The student may still appear on screen without being saved.
+  * 2a1. StudentBook reports the save failure without adding the student.
   * Use case ends.
 
 #### UC02: Retrieve a guardian's contact details
@@ -601,7 +617,7 @@ Use case ends.
   * 1a2. Tutor corrects and resubmits the request.
   * Use case resumes at step 1.
 * 2a. StudentBook cannot save the change.
-  * 2a1. StudentBook reports the save failure. The contact may still appear on screen without being saved.
+  * 2a1. StudentBook reports the save failure without adding the guardian.
   * Use case ends.
 
 ### Non-functional requirements
@@ -732,6 +748,6 @@ For larger or boundary-value data sets, generate a data file with `./gradlew see
 Close the app and back up the test data before each case.
 
 * **Missing file:** Move `data/studentbook.json` out of the test folder, then restart. Sample records should appear.
-* **Invalid file:** Replace the test file with invalid JSON, then restart. An empty list should appear and the log should record the load failure. Do not run commands before restoring the backup; a successful command saves over the file.
+* **Invalid file:** Restart with invalid JSON. Expect an empty list, a recovery warning and a backup. Only record changes overwrite the original file.
 * **Old valid file:** Load AB3 data without tuition properties. Run `view INDEX`; the contact details should remain and the sidebar's Lessons section should show `No lessons yet`.
 * **Pre-lesson file:** Load a file whose students have `subjects`, `weeklyLessonSlot` and `hourlyRate`. The contact details load, but those properties are ignored and removed on the next save.

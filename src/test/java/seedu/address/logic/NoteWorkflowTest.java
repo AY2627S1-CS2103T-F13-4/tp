@@ -4,10 +4,12 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
 import static seedu.address.testutil.TypicalPersons.getTypicalAddressBook;
 
+import java.nio.file.Path;
 import java.time.LocalDate;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import seedu.address.commons.core.index.Index;
 import seedu.address.logic.commands.NoteAddCommand;
@@ -16,9 +18,13 @@ import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
 import seedu.address.model.person.ProgressNote;
+import seedu.address.storage.JsonAddressBookStorage;
 
 public class NoteWorkflowTest {
     private static final ProgressNote OCTOBER = new ProgressNote(LocalDate.of(2026, 10, 15), "Fractions");
+
+    @TempDir
+    public Path testFolder;
 
     private final Model model = new ModelManager(getTypicalAddressBook(), new UserPrefs());
 
@@ -36,5 +42,25 @@ public class NoteWorkflowTest {
             parser.parseCommand(command).execute(model);
             assertEquals(List.of(OCTOBER), model.getFilteredPersonList().get(0).getNotes(), command);
         }
+    }
+
+    @Test
+    public void editNote_savedAndReloaded_preservesChangesAndChronologicalOrder() throws Exception {
+        AddressBookParser parser = new AddressBookParser();
+        add(INDEX_FIRST_PERSON, OCTOBER).execute(model);
+        parser.parseCommand("note-add 1 date/2026-09-01 text/Placement test").execute(model);
+
+        parser.parseCommand("note-edit 1 2 date/2026-08-01 text/Revised fractions").execute(model);
+        JsonAddressBookStorage storage = new JsonAddressBookStorage(testFolder.resolve("notes.json"));
+        storage.saveAddressBook(model.getAddressBook());
+        Model reloaded = new ModelManager(storage.readAddressBook().orElseThrow(), new UserPrefs());
+
+        assertEquals(model.getAddressBook(), reloaded.getAddressBook());
+        assertEquals(List.of(new ProgressNote(LocalDate.of(2026, 8, 1), "Revised fractions"),
+                new ProgressNote(LocalDate.of(2026, 9, 1), "Placement test")),
+                reloaded.getFilteredPersonList().getFirst().getNotes());
+        parser.parseCommand("note-delete 1 1").execute(reloaded);
+        assertEquals(List.of(new ProgressNote(LocalDate.of(2026, 9, 1), "Placement test")),
+                reloaded.getFilteredPersonList().getFirst().getNotes());
     }
 }

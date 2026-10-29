@@ -37,11 +37,11 @@ public class FeedbackLinesTest {
     public void separateParametersLine_usesPrecedingCommandWord() {
         String usage = "Invalid command format!\n"
                 + "delete: Deletes the person.\n"
-                + "Parameters: INDEX (must be a positive integer)\n"
+                + "Parameters: INDEX\n"
                 + "Example: delete 1";
         assertEquals(List.of(new Line(Kind.TITLE, "Invalid command format!"),
                 new Line(Kind.TEXT, "Deletes the person."),
-                new Line(Kind.FORMAT, "delete INDEX (must be a positive integer)"),
+                new Line(Kind.FORMAT, "delete INDEX"),
                 new Line(Kind.EXAMPLE, "delete 1")), FeedbackLines.split(usage));
     }
 
@@ -68,7 +68,7 @@ public class FeedbackLinesTest {
     @Test
     public void realUsageErrors_allShowAFormat() {
         String[] incompleteCommands = {"add", "edit", "delete", "find", "lesson-add", "lesson-edit", "lesson-delete",
-            "guardian-add", "guardian-edit", "guardian-delete"};
+            "guardian-add", "guardian-edit", "guardian-delete", "note-edit"};
         for (String command : incompleteCommands) {
             List<Line> lines = FeedbackLines.split(usageError(command));
             assertTrue(lines.stream().anyMatch(line -> line.kind() == Kind.FORMAT
@@ -79,7 +79,7 @@ public class FeedbackLinesTest {
     // Commands whose usage includes an example must show it as an Example line.
     @Test
     public void realUsageErrors_withExamples_showExample() {
-        for (String command : new String[] {"add", "edit", "delete", "find"}) {
+        for (String command : new String[] {"add", "edit", "delete", "find", "note-edit"}) {
             List<Line> lines = FeedbackLines.split(usageError(command));
             assertTrue(lines.stream().anyMatch(line -> line.kind() == Kind.EXAMPLE
                     && line.text().startsWith(command)), command + " has no example line: " + lines);

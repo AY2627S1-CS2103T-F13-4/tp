@@ -20,7 +20,7 @@ import seedu.address.model.tag.Tag;
  */
 public class Student extends Person {
 
-    public static final String MESSAGE_DUPLICATE_LESSONS = "A student cannot have duplicate lessons.";
+    public static final String MESSAGE_DUPLICATE_LESSONS = "A student cannot have duplicate lessons";
 
     private final Email email;
     private final Address address;

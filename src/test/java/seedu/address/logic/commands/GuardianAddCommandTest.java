@@ -46,7 +46,7 @@ public class GuardianAddCommandTest {
         Model expectedModel = new ModelManager();
         expectedModel.addPerson(expectedStudent);
         assertCommandSuccess(new GuardianAddCommand(INDEX_FIRST_PERSON, CONTACT), model,
-                "Guardian added for " + original.getName() + ".", expectedModel);
+                "Added guardian for " + original.getName() + ": " + CONTACT, expectedModel);
     }
 
     @Test

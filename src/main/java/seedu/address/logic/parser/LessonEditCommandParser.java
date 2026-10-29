@@ -30,7 +30,7 @@ public class LessonEditCommandParser implements Parser<LessonEditCommand> {
     @Override
     public LessonEditCommand parse(String args) throws ParseException {
         requireNonNull(args);
-        ArgumentMultimap argMultimap = LessonCommandParserUtil.tokenize(args, LessonEditCommand.MESSAGE_USAGE);
+        ArgumentMultimap argMultimap = LessonCommandParserUtil.tokenize(args);
         Index studentIndex;
         Index lessonIndex;
 
@@ -42,6 +42,7 @@ public class LessonEditCommandParser implements Parser<LessonEditCommand> {
             throw new ParseException(String.format(
                     MESSAGE_INVALID_COMMAND_FORMAT, LessonEditCommand.MESSAGE_USAGE), pe);
         }
+        LessonCommandParserUtil.validatePrefixes(args, argMultimap, LessonEditCommand.MESSAGE_USAGE);
 
         EditLessonDescriptor editLessonDescriptor = new EditLessonDescriptor();
 

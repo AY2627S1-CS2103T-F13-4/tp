@@ -33,7 +33,7 @@ public class LessonAddCommandParser implements Parser<LessonAddCommand> {
     @Override
     public LessonAddCommand parse(String args) throws ParseException {
         requireNonNull(args);
-        ArgumentMultimap argMultimap = LessonCommandParserUtil.tokenize(args, LessonAddCommand.MESSAGE_USAGE);
+        ArgumentMultimap argMultimap = LessonCommandParserUtil.tokenize(args);
         Index index;
 
         try {
@@ -45,6 +45,7 @@ public class LessonAddCommandParser implements Parser<LessonAddCommand> {
         if (!arePrefixesPresent(argMultimap, PREFIX_SUBJECT, PREFIX_LESSON_SLOT, PREFIX_RATE)) {
             throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, LessonAddCommand.MESSAGE_USAGE));
         }
+        LessonCommandParserUtil.validatePrefixes(args, argMultimap, LessonAddCommand.MESSAGE_USAGE);
 
         Subject subject = ParserUtil.parseSubject(argMultimap.getValue(PREFIX_SUBJECT).get());
         WeeklyLessonSlot lessonSlot = ParserUtil.parseWeeklyLessonSlot(argMultimap.getValue(PREFIX_LESSON_SLOT).get());

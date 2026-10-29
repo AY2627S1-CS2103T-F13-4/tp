@@ -24,17 +24,19 @@ public class FindCommand extends Command {
     public static final String COMMAND_WORD = "find";
 
     public static final String MESSAGE_USAGE = COMMAND_WORD
-            + ": Finds students by name, guardian, school, schooling level, subject or lesson day.\n"
+            + ": Finds students by name, guardian, school, schooling level, subject or lesson day\n"
             + "Parameters: KEYWORD [MORE_KEYWORDS]...\n"
             + "Example: " + COMMAND_WORD + " alice bob charlie\n"
             + "Parameters: [" + PREFIX_NAME + "TEXT] [" + PREFIX_GUARDIAN + "TEXT] [" + PREFIX_SCHOOL + "TEXT] ["
-            + PREFIX_LEVEL + "LEVEL] [" + PREFIX_SUBJECT + "SUBJECT] ["
+            + PREFIX_LEVEL + "TEXT] [" + PREFIX_SUBJECT + "TEXT] ["
             + PREFIX_DAY + "DAY]\n"
             + "Supply at least one prefix; all criteria must match. Name, guardian and school match substrings, "
             + "ignoring case; "
-            + "bare keywords match whole name words. Guardian matches name or phone.\n"
+            + "bare keywords match whole name words. Guardian matches name or phone\n"
             + "Example: " + COMMAND_WORD + " " + PREFIX_LEVEL + "Secondary "
             + PREFIX_SUBJECT + "Math " + PREFIX_DAY + "Wed";
+
+    public static final String MESSAGE_NONE = "No students match the search";
 
     private static final Logger logger = LogsCenter.getLogger(FindCommand.class);
 
@@ -56,9 +58,9 @@ public class FindCommand extends Command {
         requireNonNull(model);
         model.updateFilteredPersonList(predicate, lessonPredicate);
         logger.info("Student search completed: matchedStudents=" + model.getFilteredPersonList().size());
-        return new CommandResult(
-                String.format(Messages.MESSAGE_PERSONS_LISTED_OVERVIEW, model.getFilteredPersonList().size()),
-                CommandResult.Screen.STUDENTS);
+        int count = model.getFilteredPersonList().size();
+        String feedback = count == 0 ? MESSAGE_NONE : String.format(Messages.MESSAGE_PERSONS_LISTED_OVERVIEW, count);
+        return new CommandResult(feedback, CommandResult.Screen.STUDENTS);
     }
 
     @Override

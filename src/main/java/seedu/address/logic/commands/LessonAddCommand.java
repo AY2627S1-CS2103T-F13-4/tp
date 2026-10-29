@@ -26,10 +26,10 @@ import seedu.address.model.person.Student;
 public class LessonAddCommand extends Command {
     public static final String COMMAND_WORD = "lesson-add";
 
-    public static final String MESSAGE_DUPLICATE_LESSON = "This student already has an identical lesson.";
+    public static final String MESSAGE_DUPLICATE_LESSON = "This student already has an identical lesson";
 
-    public static final String MESSAGE_USAGE = COMMAND_WORD + ": Adds a lesson to a student. "
-            + "Parameters: STUDENT_INDEX (must be a positive integer) "
+    public static final String MESSAGE_USAGE = COMMAND_WORD + ": Adds a lesson to a student\n"
+            + "Parameters: STUDENT_INDEX "
             + PREFIX_SUBJECT + "SUBJECT "
             + PREFIX_LESSON_SLOT + "LESSON_SLOT "
             + PREFIX_RATE + "HOURLY_RATE "
@@ -38,7 +38,7 @@ public class LessonAddCommand extends Command {
             + "Example: " + COMMAND_WORD + " 1 " + PREFIX_SUBJECT + "Math "
             + PREFIX_LESSON_SLOT + "Mon 2.00pm 3.00pm " + PREFIX_RATE + "45";
 
-    public static final String MESSAGE_SUCCESS = "Lesson added for %1$s.";
+    public static final String MESSAGE_SUCCESS = "Added lesson for %1$s: %2$s";
 
     private final Index index;
     private final Lesson toAdd;
@@ -80,7 +80,7 @@ public class LessonAddCommand extends Command {
         if (!warning.isEmpty()) {
             return CommandResult.warning(LessonClashes.MESSAGE_CLASH_WARNING + warning);
         }
-        return new CommandResult(String.format(MESSAGE_SUCCESS, student.getName()));
+        return new CommandResult(String.format(MESSAGE_SUCCESS, student.getName(), toAdd));
     }
 
     @Override

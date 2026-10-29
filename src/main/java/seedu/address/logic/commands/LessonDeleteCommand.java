@@ -22,12 +22,11 @@ public class LessonDeleteCommand extends Command {
     public static final String COMMAND_WORD = "lesson-delete";
 
     public static final String MESSAGE_USAGE = COMMAND_WORD
-            + ": Deletes the lesson from the student identified by the respective index numbers used in the displayed "
-            + "student list.\n"
-            + "Parameters: STUDENT_INDEX LESSON_INDEX (both must be positive integers)\n"
+            + ": Deletes one of a student's lessons, numbered as in the student's details\n"
+            + "Parameters: STUDENT_INDEX LESSON_INDEX\n"
             + "Example: " + COMMAND_WORD + " 1 1";
 
-    public static final String MESSAGE_DELETE_LESSON_SUCCESS = "Lesson removed for %1$s.";
+    public static final String MESSAGE_DELETE_LESSON_SUCCESS = "Lesson deleted for %1$s";
 
     private final Index studentIndex;
     private final Index lessonIndex;
