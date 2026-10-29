@@ -1008,10 +1008,6 @@ public class MainWindowTest {
         }
     }
 
-    private static double sceneMaxX(Node node) {
-        return node.localToScene(node.getBoundsInLocal()).getMaxX();
-    }
-
     private void assertVisibleFiltersFit() {
         for (Node filter : levelNav().getChildren()) {
             if (filter.isVisible()) {
