@@ -10,13 +10,13 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import seedu.address.logic.commands.AddCommand;
-import seedu.address.logic.commands.GuardianAddCommand;
-import seedu.address.logic.commands.GuardianEditCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.AddressBookParser;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
+import seedu.address.model.person.Name;
+import seedu.address.model.person.Phone;
 import seedu.address.model.person.Student;
 import seedu.address.storage.JsonAddressBookStorage;
 
@@ -61,11 +61,9 @@ public class NameWorkflowTest {
 
     @Test
     public void relationshipTerms_unknownGuardianPrefixesStillRejected() {
-        assertThrows(ParseException.class, String.format(Messages.MESSAGE_INVALID_COMMAND_FORMAT,
-                GuardianAddCommand.MESSAGE_USAGE), () -> parser.parseCommand(
+        assertThrows(ParseException.class, Phone.MESSAGE_CONSTRAINTS, () -> parser.parseCommand(
                         "guardian-add 1 name/Ravi s/o Kumar phone/81234567 rate/50"));
-        assertThrows(ParseException.class, String.format(Messages.MESSAGE_INVALID_COMMAND_FORMAT,
-                GuardianEditCommand.MESSAGE_USAGE), () -> parser.parseCommand(
+        assertThrows(ParseException.class, Name.MESSAGE_CONSTRAINTS, () -> parser.parseCommand(
                         "guardian-edit 1 name/Devi d/o Raj x1/value"));
     }
 }

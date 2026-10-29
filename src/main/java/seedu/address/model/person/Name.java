@@ -16,7 +16,7 @@ public class Name {
     /*
      * Unicode letters and combining marks preserve names in different scripts and accent forms.
      * Requiring a letter or number first excludes blank and punctuation-only names.
-     * A slash is accepted only within a whole s/o or d/o term, matching guardian prefix validation.
+     * A slash is accepted only within a whole s/o or d/o term.
      */
     public static final String VALIDATION_REGEX = "[\\p{L}\\p{N}]"
             + "(?:[\\p{L}\\p{M}\\p{N} .'’-]|(?<=\\b[sSdD])/(?=[oO](?: |$)))*";
