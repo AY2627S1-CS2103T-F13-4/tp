@@ -292,15 +292,17 @@ public class ParserUtil {
     }
 
     /**
-     * Parses the text of a guardian follow-up, trimming spaces around it.
+     * Parses the text of a guardian follow-up, trimming spaces around it and collapsing repeated spaces inside it.
      *
      * @throws ParseException if the text is blank, longer than 200 characters or spans several lines.
      */
     public static FollowUp parseFollowUp(String text) throws ParseException {
         requireNonNull(text);
-        if (!FollowUp.isValidText(text)) {
+        // Collapse inner spaces so "Call  mum" cannot coexist with "Call mum"
+        String collapsedText = text.replaceAll(" {2,}", " ");
+        if (!FollowUp.isValidText(collapsedText)) {
             throw new ParseException(FollowUp.MESSAGE_TEXT_CONSTRAINTS);
         }
-        return new FollowUp(text);
+        return new FollowUp(collapsedText);
     }
 }

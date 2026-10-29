@@ -29,6 +29,12 @@ public class FollowUpAddCommandParserTest {
     }
 
     @Test
+    public void parseAdd_repeatedInnerSpaces_collapsed() {
+        assertParseSuccess(parser, " 1 text/Call  mum", addFirst("Call mum"));
+        assertParseSuccess(parser, " 1 text/Send   the    report", addFirst("Send the report"));
+    }
+
+    @Test
     public void parseAdd_prefixWordsInText_keptAsText() {
         assertParseSuccess(parser, " 1 text/Ask mum to buy the text/workbook bundle",
                 addFirst("Ask mum to buy the text/workbook bundle"));

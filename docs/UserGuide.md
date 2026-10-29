@@ -362,7 +362,7 @@ Adds something you still need to do for a student's guardian, such as sending a 
 
 Format: `followup-add STUDENT_INDEX text/TEXT`
 
-* `TEXT` is 1 to 200 characters on one line. Spaces at the start and end are removed.
+* `TEXT` is 1 to 200 characters on one line. Spaces at the start and end are removed, and repeated spaces between words become one.
 * The follow-up is added at the end of the student's list. Follow-ups appear in the student's details, under the guardian, with their numbers.
 * A follow-up that reads the same as another one of that student (ignoring letter case) is rejected.
 * A student does not need a guardian to have follow-ups, and `guardian-delete` keeps them.
