@@ -701,6 +701,17 @@
     -fx-border-color: -sb-divider transparent transparent transparent;
 }
 
+/* The half-hour mark: a fainter dotted line through the middle of each hour */
+.schedule-half-hour-line {
+    -fx-min-height: 1;
+    -fx-pref-height: 1;
+    -fx-max-height: 1;
+    -fx-border-color: -sb-divider transparent transparent transparent;
+    -fx-border-style: dashed;
+    -fx-border-width: 1 0 0 0;
+    -fx-opacity: 0.7;
+}
+
 .schedule-time {
     -fx-font-size: 10.5px;
     -fx-text-fill: #A1A1AA;

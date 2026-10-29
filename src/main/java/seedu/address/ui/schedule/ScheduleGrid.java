@@ -413,6 +413,7 @@ public class ScheduleGrid extends UiPart<GridPane> {
             Region line = new Region();
             line.getStyleClass().add("schedule-hour-line");
             scheduleGrid.add(line, 1, i + 1, GridPane.REMAINING, 1);
+            addHalfHourLine(i + 1, minuteInterval);
             Label timeLabel = new Label(WeeklyLessonSlot.formatTime(currTime));
             timeLabel.getStyleClass().add("schedule-time");
             scheduleGrid.add(timeLabel, 0, i + 1, 1, 1);
@@ -420,6 +421,16 @@ public class ScheduleGrid extends UiPart<GridPane> {
             currTime = currTime.plusMinutes(minuteInterval);
         }
         return rowCount;
+    }
+
+    /** Draws a dotted line halfway down {@code row}, across the time column and every day, as in Outlook. */
+    private void addHalfHourLine(int row, int minuteInterval) {
+        Region line = new Region();
+        line.getStyleClass().add("schedule-half-hour-line");
+        line.setMouseTransparent(true);
+        GridPane.setValignment(line, VPos.TOP);
+        GridPane.setMargin(line, new Insets(minuteInterval / 2 * PIXELS_PER_MINUTE, 0, 0, 0));
+        scheduleGrid.add(line, 0, row, GridPane.REMAINING, 1);
     }
 
     private void makeLessonCard(ScheduleEntry entry) {
