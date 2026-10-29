@@ -41,6 +41,7 @@ import javafx.scene.control.ScrollBar;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.control.skin.VirtualFlow;
+import javafx.scene.input.InputEvent;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.FlowPane;
@@ -88,6 +89,8 @@ public class MainWindowTest {
     private boolean failSaves;
     private boolean failOpenDocument;
     private List<String> openedUrls;
+    /** True while the test fires a key, the only input the window lets in; see {@link #setUp()}. */
+    private boolean firingTestKey;
 
     @BeforeAll
     public static void initializeJavaFx() throws Exception {
@@ -115,6 +118,13 @@ public class MainWindowTest {
                     new JsonUserPrefsStorage(temporaryFolder.resolve("preferences.json"))));
             stage = new Stage();
             stage.setOpacity(0);
+            // The window is invisible but still on screen and focused, so a click, scroll or key press meant for
+            // another window lands here and can open, close or scroll rows mid-test. Only the test's keys get in.
+            stage.addEventFilter(InputEvent.ANY, event -> {
+                if (!firingTestKey) {
+                    event.consume();
+                }
+            });
             openedUrls = new ArrayList<>();
             mainWindow = new MainWindow(stage, logic, dataFile, url -> {
                 if (failOpenDocument) {
@@ -894,13 +904,11 @@ public class MainWindowTest {
             stage.getScene().addEventHandler(KeyEvent.KEY_RELEASED, event -> reachedWindow[0] = true);
 
             pressKey(KeyCode.DOWN, true);
-            commandField().fireEvent(new KeyEvent(KeyEvent.KEY_RELEASED, "", "", KeyCode.ALT,
-                    false, false, false, false));
+            fireKey(new KeyEvent(KeyEvent.KEY_RELEASED, "", "", KeyCode.ALT, false, false, false, false));
             assertFalse(reachedWindow[0]);
 
             // A release without a shortcut before it is left alone.
-            commandField().fireEvent(new KeyEvent(KeyEvent.KEY_RELEASED, "", "", KeyCode.ALT,
-                    false, false, false, false));
+            fireKey(new KeyEvent(KeyEvent.KEY_RELEASED, "", "", KeyCode.ALT, false, false, false, false));
             assertTrue(reachedWindow[0]);
         });
     }
@@ -1379,7 +1387,17 @@ public class MainWindowTest {
     }
 
     private void pressKey(KeyCode code, boolean alt) {
-        commandField().fireEvent(new KeyEvent(KeyEvent.KEY_PRESSED, "", "", code, false, false, alt, false));
+        fireKey(new KeyEvent(KeyEvent.KEY_PRESSED, "", "", code, false, false, alt, false));
+    }
+
+    /** Fires {@code event} at the command box as the test's own key, which the window lets in. */
+    private void fireKey(KeyEvent event) {
+        firingTestKey = true;
+        try {
+            commandField().fireEvent(event);
+        } finally {
+            firingTestKey = false;
+        }
     }
 
     /** Returns a tab's command hint, checking it is in the command font like the command box. */
