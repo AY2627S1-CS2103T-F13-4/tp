@@ -11,26 +11,33 @@ public class Phone {
 
 
     public static final String MESSAGE_CONSTRAINTS =
-            "Phone numbers should only contain digits, and should be at least 3 digits long";
-    public static final String VALIDATION_REGEX = "\\d{3,}";
+            "Phone numbers should have 7 to 15 digits, optionally starting with + for the country code. "
+            + "Groups of digits may be separated by single spaces or hyphens, e.g. +65 9123 4567.";
+    public static final String VALIDATION_REGEX = "\\+?\\d+([ -]\\d+)*";
+    private static final int MIN_DIGITS = 7;
+    private static final int MAX_DIGITS = 15;
     public final String value;
 
     /**
-     * Constructs a {@code Phone}.
+     * Constructs a {@code Phone}, removing the spaces and hyphens between groups of digits.
      *
      * @param phone A valid phone number.
      */
     public Phone(String phone) {
         requireNonNull(phone);
         checkArgument(isValidPhone(phone), MESSAGE_CONSTRAINTS);
-        value = phone;
+        value = phone.replaceAll("[ -]", "");
     }
 
     /**
      * Returns true if a given string is a valid phone number.
      */
     public static boolean isValidPhone(String test) {
-        return test.matches(VALIDATION_REGEX);
+        if (!test.matches(VALIDATION_REGEX)) {
+            return false;
+        }
+        long digitCount = test.chars().filter(c -> c >= '0' && c <= '9').count();
+        return digitCount >= MIN_DIGITS && digitCount <= MAX_DIGITS;
     }
 
     @Override

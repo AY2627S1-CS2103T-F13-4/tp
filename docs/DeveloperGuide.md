@@ -385,7 +385,7 @@ The earlier Google specification and the current code differ on the rules below.
 |---|---|---|
 | Contact fields | Name required on creation | Name, phone, email and address required; confirm whether all four contact fields are needed |
 | Duplicate names | Normalized, case-insensitive comparison | Exact, case-sensitive name comparison |
-| Names and phones | Punctuation in names; optional `+` and 7–15 digits in phones | AB3 alphanumeric names; phones with at least 3 digits and no `+` |
+| Names and phones | Punctuation in names; optional `+` and 7–15 digits in phones | AB3 alphanumeric names; optional `+` and 7–15 digits in phones, with single spaces or hyphens allowed between digits |
 | Save/load failures | Roll back failed saves; block commands after a failed load | Failed saves roll back; failed loads use backup recovery |
 
 The pre-chat Git and Google documents also differed on registration and guardian attachment. The current plan adds the guardian separately. Confirm the remaining rules with the team before treating the earlier draft as superseded.

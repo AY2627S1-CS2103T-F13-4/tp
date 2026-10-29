@@ -124,7 +124,7 @@ public class GuardianWorkflowTest {
             "guardian-add 1 name/Janet", "guardian-add 1 phone/91234567", "guardian-add 1 name/ phone/91234567",
             "guardian-add 1 name/Janet phone/abc", "guardian-add 1 name/Janet name/John phone/91234567",
             "guardian-add 1 name/Janet phone/91234567 phone/87654321", "guardian-edit 1", "guardian-edit 1 name/",
-            "guardian-edit 1 phone/", "guardian-edit 1 phone/12", "guardian-edit 1 name/Janet Tan phone/+6591234567",
+            "guardian-edit 1 phone/", "guardian-edit 1 phone/12", "guardian-edit 1 name/Janet Tan phone/9123+4567",
             "guardian-edit 1 subject/Math", "guardian-add 1 name/Janet phone/91234567 rate/50",
             "guardian-edit 1 name/John name/Janet", "guardian-edit 1 phone/91234567 phone/87654321",
             "guardian-delete 1 name/Janet", "guardian-delete 0", "guardian-delete 2147483648"
