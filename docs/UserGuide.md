@@ -332,7 +332,7 @@ Adds a dated progress note to a student, such as what you covered in a lesson or
 Format: `note-add STUDENT_INDEX date/DATE text/TEXT`
 
 * Both `date/` and `text/` are required.
-* `DATE` is a real date in `YYYY-MM-DD` format, such as `2026-10-15`. It cannot be later than today.
+* `DATE` is a real date in `YYYY-MM-DD` format, such as `2026-10-15`. It cannot be earlier than `2000-01-01` or later than today.
 * `TEXT` is 1 to 500 characters on one line. Spaces at the start and end are removed.
 * Notes are listed oldest first in the student's details, each with its number, date and text. A note dated earlier than existing notes is placed before them, and notes on the same date stay in the order you added them.
 * Adding a note with the same date and text as an existing note of that student is rejected.
