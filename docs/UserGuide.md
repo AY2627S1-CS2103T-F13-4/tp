@@ -224,15 +224,13 @@ Format: `clear`
 
 ### View help: `help`
 
-Displays link to this guide and location of data file.
+Opens this user guide in your default web browser. An internet connection is required to load the guide.
 
 Format: `help`
 
 * Alternate hotkey: **F1**
-* Press **Enter** to copy the link
-* Press **Esc** to close the window and return to the command box
-
-![Help window](images/helpMessage.png)
+* You can also click **All commands** or choose **Help → Help** from the menu.
+* The location of your data file is shown in the app's footer.
 
 ### Exit: `exit`
 
@@ -408,7 +406,7 @@ To move to another computer, copy that file into the same place on the new compu
 ## Known issues
 
 * **Window opens off-screen:** Close the app and delete `preferences.json`, then restart it. This resets the saved window position.
-* **Help window stays minimized:** Restore the existing help window manually. Running `help` again does not restore it.
+* **User guide does not open:** Check your default browser and internet connection. You can open the [user guide](https://ay2627s1-cs2103t-f13-4.github.io/tp/UserGuide.html) manually.
 
 ### Lesson clash warnings
 
