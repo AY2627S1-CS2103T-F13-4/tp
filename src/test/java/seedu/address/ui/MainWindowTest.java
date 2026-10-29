@@ -16,6 +16,8 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -23,10 +25,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import javafx.animation.PauseTransition;
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.geometry.Bounds;
 import javafx.geometry.Orientation;
 import javafx.scene.Node;
+import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.IndexedCell;
 import javafx.scene.control.Label;
@@ -47,6 +52,7 @@ import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 import javafx.stage.WindowEvent;
+import javafx.util.Duration;
 import seedu.address.logic.LogicManager;
 import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.ListArchiveCommand;
@@ -543,7 +549,7 @@ public class MainWindowTest {
         for (int before = 1; before <= 6; before++) {
             String viewBefore = "view " + before;
             runOnFxThread(() -> submitCommand(viewBefore));
-            Thread.sleep(300);
+            awaitDetailsSettled();
             runOnFxThread(() -> submitCommand("view 3"));
             assertOpenRowAtListTop(2, "after " + viewBefore);
         }
@@ -555,13 +561,13 @@ public class MainWindowTest {
         resizeWindow(760, 400);
         addStudentsWithNotes();
         runOnFxThread(() -> submitCommand("view 9"));
-        Thread.sleep(300);
+        awaitDetailsSettled();
         runOnFxThread(() -> submitCommand("view 10"));
         assertOpenRowAtListTop(9, "view 10 after view 9");
         runOnFxThread(() -> submitCommand("view 10"));
         assertOpenRowAtListTop(9, "view 10 again");
         runOnFxThread(() -> submitCommand("view 8"));
-        Thread.sleep(300);
+        awaitDetailsSettled();
         runOnFxThread(() -> pressKey(KeyCode.DOWN, true));
         assertOpenRowAtListTop(8, "Alt+Down from row 8");
     }
@@ -572,7 +578,7 @@ public class MainWindowTest {
         resizeWindow(760, 400);
         addStudentsWithNotes();
         runOnFxThread(() -> submitCommand("view 1"));
-        Thread.sleep(300);
+        awaitDetailsSettled();
         for (int page = 0; page < 60; page++) {
             runOnFxThread(() -> mainWindow.getPersonListPanel().scrollPage(1));
         }
@@ -592,7 +598,7 @@ public class MainWindowTest {
             for (int tall : new int[] {5, 3, 9, 5, 3, 9}) {
                 String view = "view " + tall;
                 runOnFxThread(() -> submitCommand(view));
-                Thread.sleep(900);
+                awaitDetailsSettled();
                 runOnFxThread(() -> pressKey(KeyCode.UP, true));
                 assertOpenRowFullyShown(tall - 2, "Alt+Up after " + view + " at height " + height);
             }
@@ -1113,11 +1119,11 @@ public class MainWindowTest {
     }
 
     /**
-     * Waits well past the 220 ms open animation, then checks that row {@code index} is open, taller than the list
-     * and starts at the list's top.
+     * Waits for the open animation to settle, then checks that row {@code index} is open, taller than the list and
+     * starts at the list's top.
      */
     private void assertOpenRowAtListTop(int index, String message) throws Exception {
-        Thread.sleep(450);
+        awaitDetailsSettled();
         runOnFxThread(() -> {
             assertEquals(index, studentTable().getSelectionModel().getSelectedIndex(), message);
             VirtualFlow<?> flow = assertInstanceOf(VirtualFlow.class, studentTable().lookup(".virtual-flow"));
@@ -1130,9 +1136,9 @@ public class MainWindowTest {
         });
     }
 
-    /** Waits past the open animation, then checks that row {@code index} is open and wholly inside the list. */
+    /** Waits for the open animation to settle, then checks that row {@code index} is open and wholly in the list. */
     private void assertOpenRowFullyShown(int index, String message) throws Exception {
-        Thread.sleep(700);
+        awaitDetailsSettled();
         runOnFxThread(() -> {
             assertEquals(index, studentTable().getSelectionModel().getSelectedIndex(), message);
             VirtualFlow<?> flow = assertInstanceOf(VirtualFlow.class, studentTable().lookup(".virtual-flow"));
@@ -1144,6 +1150,33 @@ public class MainWindowTest {
                     + (rowBounds.getMinY() - flowBounds.getMinY()));
             assertTrue(rowBounds.getMaxY() < flowBounds.getMaxY() + 1, message + ": bottom below the list");
         });
+    }
+
+    /**
+     * Waits until the rows opened or closed by the last command or key press have finished their 220 ms animation
+     * and the list has lined up the open row after it. The wait runs on the animation clock and frames that drive
+     * the rows, not on this thread's clock, so a slow machine that draws fewer frames cannot cut it short.
+     */
+    private void awaitDetailsSettled() throws Exception {
+        CountDownLatch settled = new CountDownLatch(1);
+        runOnFxThread(() -> {
+            // Started after the rows' animations, and longer, so it ends in the frame they end or later. The list
+            // lines up the open row in the layout after that frame, so wait for that layout too.
+            PauseTransition wait = new PauseTransition(Duration.millis(300));
+            wait.setOnFinished(event -> {
+                Scene scene = stage.getScene();
+                scene.addPostLayoutPulseListener(new Runnable() {
+                    @Override
+                    public void run() {
+                        scene.removePostLayoutPulseListener(this);
+                        settled.countDown();
+                    }
+                });
+                Platform.requestNextPulse();
+            });
+            wait.play();
+        });
+        assertTrue(settled.await(10, TimeUnit.SECONDS), "The student details did not settle within 10 seconds");
     }
 
     /** Returns true if {@code node} and every container around it are visible. */
