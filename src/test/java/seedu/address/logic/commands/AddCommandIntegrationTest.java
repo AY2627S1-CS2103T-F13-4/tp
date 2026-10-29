@@ -4,6 +4,7 @@ import static seedu.address.logic.commands.CommandTestUtil.VALID_SCHOOL_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_SCHOOL_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandFailure;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandSuccess;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_NAME;
 import static seedu.address.testutil.TypicalPersons.getTypicalAddressBook;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -63,6 +64,17 @@ public class AddCommandIntegrationTest {
         Student differentSchool = new PersonBuilder(personInList).withSchool(new School(VALID_SCHOOL_BOB)).build();
 
         assertCommandFailure(new AddCommand(differentSchool), model, AddCommand.MESSAGE_DUPLICATE_PERSON);
+    }
+
+    @Test
+    public void execute_duplicatePersonWithExtraSpacesInName_throwsCommandException() throws Exception {
+        Student personInList = model.getAddressBook().getPersonList().get(0);
+        String spacedName = personInList.getName().fullName.replace(" ", "   ");
+        String userInput = PersonUtil.getAddCommand(personInList)
+                .replace(PREFIX_NAME + personInList.getName().fullName, PREFIX_NAME + spacedName);
+        Command command = new AddressBookParser().parseCommand(userInput);
+
+        assertCommandFailure(command, model, AddCommand.MESSAGE_DUPLICATE_PERSON);
     }
 
     @Test
