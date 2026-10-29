@@ -765,7 +765,8 @@ public class MainWindowTest {
     @Test
     public void altUp_fromTallRowToRowThatFits_showsWholeRow() throws Exception {
         addStudentsWithNotes();
-        for (int height : new int[] {720, 560}) {
+        // At 620 the row still fits on Windows, whose window frame takes more height than macOS's or Linux's.
+        for (int height : new int[] {720, 620}) {
             resizeWindow(height == 720 ? 1280 : 1000, height);
             for (int tall : new int[] {5, 3, 9, 5, 3, 9}) {
                 String view = "view " + tall;
@@ -1327,18 +1328,8 @@ public class MainWindowTest {
             Bounds flowBounds = flow.localToScene(flow.getLayoutBounds());
             Bounds rowBounds = row.localToScene(row.getLayoutBounds());
             assertTrue(rowBounds.getMinY() > flowBounds.getMinY() - 1, message + ": top at "
-                    + (rowBounds.getMinY() - flowBounds.getMinY()) + " DIAG row h=" + row.getHeight()
-                    + " flow h=" + flow.getHeight() + " flow w=" + flow.getWidth()
-                    + " scene=" + stage.getScene().getWidth() + "x" + stage.getScene().getHeight()
-                    + " stage=" + stage.getWidth() + "x" + stage.getHeight()
-                    + " screen=" + javafx.stage.Screen.getPrimary().getVisualBounds()
-                    + " scale=" + stage.getOutputScaleY());
-            assertTrue(rowBounds.getMaxY() < flowBounds.getMaxY() + 1, message + ": bottom below the list DIAG top="
-                    + (rowBounds.getMinY() - flowBounds.getMinY()) + " row h=" + row.getHeight()
-                    + " flow h=" + flow.getHeight() + " flow w=" + flow.getWidth()
-                    + " scene=" + stage.getScene().getWidth() + "x" + stage.getScene().getHeight()
-                    + " stage=" + stage.getWidth() + "x" + stage.getHeight()
-                    + " screen=" + javafx.stage.Screen.getPrimary().getVisualBounds());
+                    + (rowBounds.getMinY() - flowBounds.getMinY()));
+            assertTrue(rowBounds.getMaxY() < flowBounds.getMaxY() + 1, message + ": bottom below the list");
         });
     }
 
