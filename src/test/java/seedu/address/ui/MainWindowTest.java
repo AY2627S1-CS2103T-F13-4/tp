@@ -55,6 +55,7 @@ import seedu.address.storage.JsonAddressBookStorage;
 import seedu.address.storage.JsonUserPrefsStorage;
 import seedu.address.storage.StorageManager;
 import seedu.address.testutil.FxTestUtil;
+import seedu.address.testutil.LogCapture;
 import seedu.address.testutil.PersonBuilder;
 
 /**
@@ -113,6 +114,26 @@ public class MainWindowTest {
                     if (!existingWindows.contains(window)) {
                         window.hide();
                     }
+                }
+            }
+        });
+    }
+
+    @Test
+    public void commandLogging_omitsContactDetailsFromResultsAndRejectedInput() throws Exception {
+        runOnFxThread(() -> {
+            try (LogCapture logs = new LogCapture()) {
+                submitCommand("add name/Private Student phone/93456789 email/private@example.com"
+                        + " address/Secret Road");
+                submitCommand("guardian-add 1 name/Private Guardian phone/98765432");
+                submitFailedCommand("guardian-add 999 name/Private Guardian phone/98765432");
+                submitFailedCommand("private@example.com 93456789");
+
+                assertTrue(logs.text().contains("Command completed: AddCommand (success)"));
+                assertTrue(logs.text().contains("Command failed: GuardianAddCommand"));
+                for (String value : List.of("Private Student", "93456789", "private@example.com",
+                        "Secret Road", "Private Guardian", "98765432")) {
+                    assertFalse(logs.text().contains(value), "Diagnostic logs must omit " + value);
                 }
             }
         });

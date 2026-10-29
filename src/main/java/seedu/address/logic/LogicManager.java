@@ -47,12 +47,31 @@ public class LogicManager implements Logic {
 
     @Override
     public CommandResult execute(String commandText) throws CommandException, ParseException {
-        logger.info("----------------[USER COMMAND][" + commandText + "]");
+        Command command;
+        try {
+            command = addressBookParser.parseCommand(commandText);
+        } catch (ParseException e) {
+            logger.info("Command rejected: invalid input");
+            throw e;
+        }
 
-        CommandResult commandResult;
-        Command command = addressBookParser.parseCommand(commandText);
-        commandResult = command.execute(model);
+        // Use the parsed type, never user input or command.toString(), which can contain contact details.
+        String commandType = command.getClass().getSimpleName();
+        logger.info("Executing command: " + commandType);
+        try {
+            CommandResult commandResult = command.execute(model);
+            saveAddressBook();
+            logger.info("Command completed: " + commandType
+                    + (commandResult.isWarning() ? " (warning)" : " (success)"));
+            return commandResult;
+        } catch (CommandException e) {
+            logger.info("Command failed: " + commandType);
+            throw e;
+        }
+    }
 
+    /** Saves the current book, translating storage failures into user-facing command errors. */
+    private void saveAddressBook() throws CommandException {
         try {
             storage.saveAddressBook(model.getAddressBook());
         } catch (AccessDeniedException e) {
@@ -60,8 +79,6 @@ public class LogicManager implements Logic {
         } catch (IOException ioe) {
             throw new CommandException(String.format(FILE_OPS_ERROR_FORMAT, ioe.getMessage()), ioe);
         }
-
-        return commandResult;
     }
 
     @Override

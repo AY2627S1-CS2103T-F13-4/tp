@@ -254,8 +254,9 @@ clearing a school, clears both student and lesson filters and displays all stude
 
 Search logging uses the existing `LogsCenter` framework. The parser logs selected prefix names and rejection
 reasons at `FINE`; the command logs the result count at `INFO`. These search-specific diagnostics omit search
-values. Existing command-level logging in `LogicManager` still records raw commands. Logs go to the console
-and rotating `studentbook.log.*` files; set `LOG_LEVEL` in `LogsCenter` to `Level.FINE` for parser diagnostics.
+values. Command-level logging in `LogicManager` records parsed command types and outcomes without input values
+or result messages. Logs go to the console and rotating `studentbook.log.*` files; set `LOG_LEVEL` in
+`LogsCenter` to `Level.FINE` for parser diagnostics.
 
 Tests: `StudentSearchPredicateTest`, `LessonFilterPredicateTest`, `FindCommandParserTest` and `FindLoggingTest`
 cover contact and school substrings, absent fields, searches without lessons, all criteria combined, same-lesson
