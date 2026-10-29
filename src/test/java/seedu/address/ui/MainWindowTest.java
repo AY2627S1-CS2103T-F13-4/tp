@@ -310,6 +310,45 @@ public class MainWindowTest {
         });
     }
 
+    @Test
+    public void addFromArchives_showsAndSelectsNewStudentInActiveTable() throws Exception {
+        runOnFxThread(() -> {
+            submitCommand("archive 1");
+            submitCommand("find missing");
+            submitCommand("list-archive");
+            submitCommand("find Alice");
+
+            submitCommand("add name/Aaron phone/91234567 email/aaron@example.com address/1");
+
+            assertFalse(model.isArchiveView());
+            assertTrue(isShown(studentTable()));
+            assertFalse(isShown(archivedStudentTable()));
+            assertActiveNav("#studentsNav");
+            assertEquals(List.of("Aaron", "Bob"), tableNames(studentTable()));
+            Student selected = (Student) studentTable().getSelectionModel().getSelectedItem();
+            assertEquals("Aaron", selected.getName().fullName);
+            assertEquals(List.of("Alice"), tableNames(archivedStudentTable()));
+        });
+    }
+
+    @Test
+    public void duplicateAddFromArchives_keepsArchiveTableAndSelection() throws Exception {
+        runOnFxThread(() -> {
+            submitCommand("archive 1");
+            submitCommand("list-archive");
+            submitCommand("view 1");
+
+            submitFailedCommand("add name/Alice phone/91234567 email/alice@example.com address/1");
+
+            assertTrue(model.isArchiveView());
+            assertTrue(isShown(archivedStudentTable()));
+            assertActiveNav("#archiveNav");
+            assertEquals(List.of("Alice"), tableNames(archivedStudentTable()));
+            assertEquals(0, archivedStudentTable().getSelectionModel().getSelectedIndex());
+            assertEquals(List.of("Bob"), tableNames(studentTable()));
+        });
+    }
+
     // Saving runs after the model changes its list, so a save error must not leave indices on a hidden table.
     @Test
     public void listSwitch_saveFails_visibleRowsMatchNextCommandIndices() throws Exception {

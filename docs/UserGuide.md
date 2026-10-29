@@ -88,6 +88,8 @@ Type commands in the box at the top and press **Enter**.
 
 Adds a student to StudentBook
 
+After adding, StudentBook switches to **Students**, clears the active search and opens the new student's details.
+
 Format: `add name/NAME phone/PHONE_NUMBER email/EMAIL address/ADDRESS [tag/TAG]... [sch/SCHOOL] [level/SCHOOLING_LEVEL]`
 
 Examples:

@@ -9,6 +9,7 @@ import static seedu.address.testutil.TypicalPersons.getTypicalAddressBook;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import seedu.address.commons.core.index.Index;
 import seedu.address.logic.Messages;
 import seedu.address.logic.parser.AddressBookParser;
 import seedu.address.model.Model;
@@ -40,7 +41,7 @@ public class AddCommandIntegrationTest {
         expectedModel.addPerson(validPerson);
 
         assertCommandSuccess(new AddCommand(validPerson), model,
-                String.format(AddCommand.MESSAGE_SUCCESS, Messages.format(validPerson)),
+                expectedResult(validPerson, expectedModel),
                 expectedModel);
     }
 
@@ -54,7 +55,12 @@ public class AddCommandIntegrationTest {
         expectedModel.addPerson(validPerson);
 
         assertCommandSuccess(command, model,
-                String.format(AddCommand.MESSAGE_SUCCESS, Messages.format(validPerson)), expectedModel);
+                expectedResult(validPerson, expectedModel), expectedModel);
+    }
+
+    private static CommandResult expectedResult(Student added, Model expectedModel) {
+        return new CommandResult(String.format(AddCommand.MESSAGE_SUCCESS, Messages.format(added)),
+                Index.fromZeroBased(expectedModel.getFilteredPersonList().indexOf(added)));
     }
 
     @Test
