@@ -724,6 +724,48 @@ public class MainWindowTest {
         });
     }
 
+    // When the whole week fits there is nowhere to scroll, so Alt+Right leaves the calendar where it is.
+    @Test
+    public void altRight_weekFits_leavesCalendarInPlace() throws Exception {
+        resizeWindow(1600);
+        runOnFxThread(() -> {
+            ScrollPane calendar = schedulePlaceholder();
+            assertFalse(horizontalScrollBar().isVisible());
+            pressKey(KeyCode.RIGHT, true);
+            assertEquals(0.0, calendar.getHvalue());
+        });
+    }
+
+    // Alt+Right on the student table must not scroll the hidden calendar, or the week would come back
+    // scrolled somewhere the user never asked for.
+    @Test
+    public void altRight_onStudentTable_leavesHiddenCalendarInPlace() throws Exception {
+        resizeWindow(1000);
+        resizeWindow(FxTestUtil.callOnFxThread(stage::getMinWidth));
+        runOnFxThread(() -> {
+            submitCommand("list");
+            pressKey(KeyCode.RIGHT, true);
+            submitCommand("week");
+            assertEquals(0.0, schedulePlaceholder().getHvalue());
+        });
+    }
+
+    // A lesson added while the week is scrolled sideways rebuilds the calendar. The pinned times must keep their
+    // background, or the scrolled lessons would show through them.
+    @Test
+    public void calendar_rebuiltWhileScrolledSideways_keepsTimeColumnBackground() throws Exception {
+        resizeWindow(1000);
+        resizeWindow(FxTestUtil.callOnFxThread(stage::getMinWidth));
+        runOnFxThread(() -> {
+            schedulePlaceholder().setHvalue(1);
+            scheduleGrid().layout();
+            submitCommand("lesson-add 1 subject/Physics slot/Wed 4.00pm 5.00pm rate/40");
+            assertEquals(1.0, schedulePlaceholder().getHvalue());
+            Node timeBackground = scheduleGrid().lookup(".schedule-time-column");
+            assertTrue(timeBackground.isVisible());
+        });
+    }
+
     // The calendar is resized while the student table shows. Going back to it must place the current time a
     // quarter of the way down the calendar at its new size: week scrolls before the next layout pass, so the
     // calendar must already have that size when it is shown.
