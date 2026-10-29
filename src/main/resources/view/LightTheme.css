@@ -690,7 +690,7 @@
 
 /* The line on the left of each day; today is lightly shaded */
 .schedule-day-column {
-    -fx-border-color: transparent transparent transparent -sb-divider;
+    -fx-border-color: transparent transparent transparent -sb-border;
 }
 
 .schedule-today-column {
@@ -698,18 +698,17 @@
 }
 
 .schedule-hour-line {
-    -fx-border-color: -sb-divider transparent transparent transparent;
+    -fx-border-color: -sb-border transparent transparent transparent;
 }
 
-/* The half-hour mark: a fainter dotted line through the middle of each hour */
+/* The half-hour mark: a dotted line through the middle of each hour; the gaps make it lighter than the hour line */
 .schedule-half-hour-line {
     -fx-min-height: 1;
     -fx-pref-height: 1;
     -fx-max-height: 1;
-    -fx-border-color: -sb-divider transparent transparent transparent;
+    -fx-border-color: -sb-border transparent transparent transparent;
     -fx-border-style: dashed;
     -fx-border-width: 1 0 0 0;
-    -fx-opacity: 0.7;
 }
 
 .schedule-time {
