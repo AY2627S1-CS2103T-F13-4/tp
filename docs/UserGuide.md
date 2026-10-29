@@ -352,6 +352,24 @@ Examples:
 * `note-add 1 date/2026-10-15 text/Finished the fractions worksheet; revise decimals next`
 * `note-add 1 date/2026-10-08 text/Struggled with word problems` is placed before the first note and becomes note 1.
 
+### Edit a progress note: `note-edit`
+
+Changes the date, text or both for an existing progress note.
+
+Format: `note-edit STUDENT_INDEX NOTE_INDEX [date/DATE] [text/TEXT]`
+
+* `NOTE_INDEX` is the note's number in the student's details before the edit.
+* Provide at least one field. Omitted fields keep their existing values; fields cannot be cleared.
+* Dates and text follow the same rules as `note-add`. When providing both fields, put `date/` before `text/`;
+  everything after `text/`, including words resembling prefixes, is note text.
+* An edit cannot create another note with the same date and text for that student.
+* Notes stay oldest first. Changing the date can change their numbers; the message shows the edited note's new
+  number, date and text, and opens the student's details.
+
+Examples:
+* `note-edit 1 2 text/Finished fractions; revise decimals next` changes only the text.
+* `note-edit 1 2 date/2026-10-08` corrects only the date.
+
 ### Delete a progress note: `note-delete`
 
 Deletes one progress note from a student.
@@ -456,6 +474,7 @@ If a lesson overlaps another lesson, StudentBook still saves it but warns you wh
 | Edit guardian | `guardian-edit INDEX [name/NAME] [phone/PHONE]` |
 | Delete guardian | `guardian-delete INDEX` |
 | Add note | `note-add STUDENT_INDEX date/DATE text/TEXT` |
+| Edit note | `note-edit STUDENT_INDEX NOTE_INDEX [date/DATE] [text/TEXT]` |
 | Delete note | `note-delete STUDENT_INDEX NOTE_INDEX` |
 | Add follow-up | `followup-add STUDENT_INDEX text/TEXT` |
 | Edit follow-up | `followup-edit STUDENT_INDEX FOLLOW_UP_INDEX text/TEXT` |
