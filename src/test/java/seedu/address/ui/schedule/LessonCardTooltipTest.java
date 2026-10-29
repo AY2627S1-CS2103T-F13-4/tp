@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.math.BigDecimal;
 import java.time.DayOfWeek;
 import java.time.LocalTime;
+import java.util.List;
 import java.util.Optional;
 
 import org.junit.jupiter.api.AfterEach;
@@ -60,14 +61,14 @@ public class LessonCardTooltipTest {
     }
 
     @Test
-    public void tooltip_clippedOneMinuteLesson_hasDetailsMissingFromCard() throws Exception {
+    public void tooltip_oneMinuteLesson_hasDetailsMissingFromCard() throws Exception {
         FxTestUtil.runOnFxThread(() -> {
             Region card = showLesson(LocalTime.of(9, 1), Optional.of(new LessonLocation("Clementi Library\nRoom 2")),
                     Optional.of(LessonMode.PHYSICAL));
-            assertEquals(1, card.getHeight(), 0.001);
-            assertEquals(1, card.getClip().getBoundsInLocal().getHeight(), 0.001);
-            Label name = (Label) card.getChildrenUnmodifiable().get(0);
-            assertTrue(name.getBoundsInParent().getMaxY() > card.getHeight());
+            // The block has room for only the number and the student; the tooltip has the rest.
+            assertEquals(15, card.getHeight(), 0.001);
+            assertEquals(List.of("#1.1", "Alice Tan"), card.lookupAll(".label").stream().map(Label.class::cast)
+                    .map(Label::getText).toList());
 
             assertEquals("#1.1 Alice Tan\nMath, Monday 9.00am-9.01am, SGD 45.50/hour, "
                     + "Physical, at Clementi Library\nRoom 2", installedTooltip(card).getText());

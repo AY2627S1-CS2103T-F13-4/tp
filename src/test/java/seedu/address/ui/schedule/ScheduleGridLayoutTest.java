@@ -57,21 +57,28 @@ public class ScheduleGridLayoutTest {
             showStudents(FXCollections.observableArrayList(student("Alice", DayOfWeek.MONDAY, "09:05", "09:20")));
             assertCardGeometry("Alice", 1, 1, 5, 40, 15);
 
-            showStudents(FXCollections.observableArrayList(student("Alice", DayOfWeek.MONDAY, "09:25", "09:35")));
-            assertCardGeometry("Alice", 1, 1, 25, 25, 10);
+            showStudents(FXCollections.observableArrayList(student("Alice", DayOfWeek.MONDAY, "09:25", "09:45")));
+            assertCardGeometry("Alice", 1, 1, 25, 15, 20);
 
+            // Crossing the hour line: the card spans both rows and keeps its exact twenty minutes.
+            showStudents(FXCollections.observableArrayList(student("Alice", DayOfWeek.MONDAY, "09:50", "10:10")));
+            assertCardGeometry("Alice", 1, 2, 50, 50, 20);
+        });
+    }
+
+    // A lesson under 15 minutes would be too thin to read, so its block starts at the lesson and is
+    // 15 minutes long, crossing the hour line if it must.
+    @Test
+    public void layout_lessonUnderFifteenMinutes_drawsShortestBlockFromStart() throws Exception {
+        runOnFxThread(() -> {
             showStudents(FXCollections.observableArrayList(student("Alice", DayOfWeek.MONDAY, "09:00", "09:01")));
-            assertCardGeometry("Alice", 1, 1, 0, 59, 1);
-
-            // Crossing the hour line: the card spans both rows and keeps its exact two minutes.
-            showStudents(FXCollections.observableArrayList(student("Alice", DayOfWeek.MONDAY, "09:59", "10:01")));
-            assertCardGeometry("Alice", 1, 2, 59, 59, 2);
+            assertCardGeometry("Alice", 1, 1, 0, 45, 15);
 
             showStudents(FXCollections.observableArrayList(student("Alice", DayOfWeek.MONDAY, "09:59", "10:00")));
-            assertCardGeometry("Alice", 1, 1, 59, 0, 1);
+            assertCardGeometry("Alice", 1, 2, 59, 46, 15);
 
-            showStudents(FXCollections.observableArrayList(student("Alice", DayOfWeek.MONDAY, "10:00", "10:01")));
-            assertCardGeometry("Alice", 2, 1, 0, 59, 1);
+            showStudents(FXCollections.observableArrayList(student("Alice", DayOfWeek.MONDAY, "10:00", "10:14")));
+            assertCardGeometry("Alice", 2, 1, 0, 45, 15);
         });
     }
 
@@ -96,10 +103,11 @@ public class ScheduleGridLayoutTest {
     @Test
     public void layout_endOfDay_preservesFinalMinuteAndFullDayExtent() throws Exception {
         runOnFxThread(() -> {
+            // The day ends at midnight, so a one-minute lesson at 11.58pm is drawn from 11.45pm.
             showStudents(FXCollections.observableArrayList(student("Late", DayOfWeek.SUNDAY, "23:58", "23:59")));
             assertEquals(15, timeLabels().size());
             assertEquals("11.00pm", timeLabels().get(14));
-            assertCardGeometry("Late", 15, 1, 58, 1, 1);
+            assertCardGeometry("Late", 15, 1, 45, 0, 15);
 
             showStudents(FXCollections.observableArrayList(student("Full Day", DayOfWeek.MONDAY, "00:00", "23:59")));
             assertEquals(24, timeLabels().size());
@@ -114,13 +122,13 @@ public class ScheduleGridLayoutTest {
     public void layout_disjointLessonsWithinOneRow_sharesColumnWithoutVisualOverlap() throws Exception {
         runOnFxThread(() -> {
             showStudents(FXCollections.observableArrayList(
-                    student("First", DayOfWeek.MONDAY, "09:00", "09:05"),
-                    student("Adjacent", DayOfWeek.MONDAY, "09:05", "09:10"),
-                    student("Gapped", DayOfWeek.MONDAY, "09:15", "09:20")));
+                    student("First", DayOfWeek.MONDAY, "09:00", "09:15"),
+                    student("Adjacent", DayOfWeek.MONDAY, "09:15", "09:30"),
+                    student("Gapped", DayOfWeek.MONDAY, "09:35", "09:50")));
 
-            assertCardGeometry("First", 1, 1, 0, 55, 5);
-            assertCardGeometry("Adjacent", 1, 1, 5, 50, 5);
-            assertCardGeometry("Gapped", 1, 1, 15, 40, 5);
+            assertCardGeometry("First", 1, 1, 0, 45, 15);
+            assertCardGeometry("Adjacent", 1, 1, 15, 30, 15);
+            assertCardGeometry("Gapped", 1, 1, 35, 10, 15);
             assertEquals(GridPane.getColumnIndex(card("First")), GridPane.getColumnIndex(card("Adjacent")));
             assertEquals(GridPane.getColumnIndex(card("First")), GridPane.getColumnIndex(card("Gapped")));
             assertEquals(card("First").getBoundsInParent().getMaxY(),
@@ -135,13 +143,13 @@ public class ScheduleGridLayoutTest {
     public void layout_overlappingLessonsWithinOneRow_separatesCardsAndReusesFreedColumn() throws Exception {
         runOnFxThread(() -> {
             showStudents(FXCollections.observableArrayList(
-                    student("Long", DayOfWeek.MONDAY, "09:00", "09:20"),
-                    student("Short", DayOfWeek.MONDAY, "09:05", "09:15"),
-                    student("Next", DayOfWeek.MONDAY, "09:15", "09:25")));
+                    student("Long", DayOfWeek.MONDAY, "09:00", "09:40"),
+                    student("Short", DayOfWeek.MONDAY, "09:05", "09:20"),
+                    student("Next", DayOfWeek.MONDAY, "09:20", "09:35")));
 
-            assertCardGeometry("Long", 1, 1, 0, 40, 20);
-            assertCardGeometry("Short", 1, 1, 5, 45, 10);
-            assertCardGeometry("Next", 1, 1, 15, 35, 10);
+            assertCardGeometry("Long", 1, 1, 0, 20, 40);
+            assertCardGeometry("Short", 1, 1, 5, 40, 15);
+            assertCardGeometry("Next", 1, 1, 20, 25, 15);
             assertEquals(Integer.valueOf(1), GridPane.getColumnIndex(card("Long")));
             assertEquals(Integer.valueOf(2), GridPane.getColumnIndex(card("Short")));
             assertEquals(Integer.valueOf(2), GridPane.getColumnIndex(card("Next")));
@@ -176,14 +184,14 @@ public class ScheduleGridLayoutTest {
     @Test
     public void layout_viewportResized_keepsMinuteScaleAndCardHeights() throws Exception {
         runOnFxThread(() -> {
-            showStudents(FXCollections.observableArrayList(student("Alice", DayOfWeek.MONDAY, "09:25", "09:35")));
-            assertCardGeometry("Alice", 1, 1, 25, 25, 10);
+            showStudents(FXCollections.observableArrayList(student("Alice", DayOfWeek.MONDAY, "09:25", "09:45")));
+            assertCardGeometry("Alice", 1, 1, 25, 15, 20);
 
             layoutViewport(1100, 1000);
-            assertCardGeometry("Alice", 1, 1, 25, 25, 10);
+            assertCardGeometry("Alice", 1, 1, 25, 15, 20);
 
             layoutViewport(350, 90);
-            assertCardGeometry("Alice", 1, 1, 25, 25, 10);
+            assertCardGeometry("Alice", 1, 1, 25, 15, 20);
         });
     }
 
@@ -195,18 +203,18 @@ public class ScheduleGridLayoutTest {
             showStudents(students);
             assertCardGeometry("Alice", 1, 1, 5, 40, 15);
 
-            students.add(student("Bob", DayOfWeek.TUESDAY, "08:59", "09:01"));
+            students.add(student("Bob", DayOfWeek.TUESDAY, "08:59", "09:20"));
             layoutViewport(900, 700);
             assertCardGeometry("Alice", 2, 1, 5, 40, 15);
-            assertCardGeometry("Bob", 1, 2, 59, 59, 2);
+            assertCardGeometry("Bob", 1, 2, 59, 40, 21);
 
-            students.set(0, student("Alice", DayOfWeek.MONDAY, "09:29", "09:31"));
+            students.set(0, student("Alice", DayOfWeek.MONDAY, "09:29", "09:51"));
             layoutViewport(900, 700);
-            assertCardGeometry("Alice", 2, 1, 29, 29, 2);
+            assertCardGeometry("Alice", 2, 1, 29, 9, 22);
 
             students.remove(1);
             layoutViewport(900, 700);
-            assertCardGeometry("Alice", 1, 1, 29, 29, 2);
+            assertCardGeometry("Alice", 1, 1, 29, 9, 22);
 
             students.clear();
             layoutViewport(900, 700);
@@ -216,8 +224,105 @@ public class ScheduleGridLayoutTest {
 
             students.add(student("New", DayOfWeek.MONDAY, "09:00", "09:01"));
             layoutViewport(900, 700);
-            assertCardGeometry("New", 1, 1, 0, 59, 1);
+            assertCardGeometry("New", 1, 1, 0, 45, 15);
         });
+    }
+
+    // Issue #164: every block shows the number that commands use and whose lesson it is without hovering,
+    // however short the lesson. Under 30 minutes there is room for one line, so it shows just those;
+    // from 30 minutes the time fits underneath.
+    @Test
+    public void layout_lessonsUnderAnHour_showNumberAndStudentInsideBlock() throws Exception {
+        runOnFxThread(() -> {
+            for (String end : List.of("09:01", "09:15", "09:29", "09:30", "09:45", "09:59")) {
+                showStudents(FXCollections.observableArrayList(student("Alice", DayOfWeek.MONDAY, "09:00", end)));
+                Region card = card("Alice");
+                assertTrue(card.getHeight() >= 15, end);
+                String time = "9.00am-9." + end.substring(3) + "am";
+                boolean hasTime = end.compareTo("09:30") >= 0;
+                assertEquals(hasTime ? List.of("#1.1", "Alice", time) : List.of("#1.1", "Alice"), labelTexts(card),
+                        end);
+                if (hasTime) {
+                    assertShownWhole(card, label(card, time), end);
+                }
+                assertShownWhole(card, label(card, "#1.1"), end);
+                assertShownWhole(card, label(card, "Alice"), end);
+
+                // In a narrow day the name gives way, never the number.
+                layoutViewport(500, 700);
+                assertShownWhole(card, label(card, "#1.1"), end);
+            }
+        });
+    }
+
+    @Test
+    public void layout_lessonsOfAnHourOrMore_keepFullCard() throws Exception {
+        runOnFxThread(() -> {
+            for (String end : List.of("10:00", "11:00")) {
+                showStudents(FXCollections.observableArrayList(student("Alice", DayOfWeek.MONDAY, "09:00", end)));
+                Region card = card("Alice");
+                String time = "9.00am-" + (end.equals("10:00") ? "10.00am" : "11.00am");
+                assertEquals(List.of("Alice", time, "#1.1 \u00b7 Math"), labelTexts(card), end);
+                for (String text : labelTexts(card)) {
+                    assertShownWhole(card, label(card, text), end);
+                }
+            }
+        });
+    }
+
+    // Only midnight stops a short block: one near the end of an evening grid starts at the lesson and the grid
+    // grows to fit it, as it does for any lesson past 8pm.
+    @Test
+    public void layout_shortLessonNearEveningEnd_extendsGridInsteadOfMovingBlock() throws Exception {
+        runOnFxThread(() -> {
+            showStudents(FXCollections.observableArrayList(student("Alice", DayOfWeek.MONDAY, "19:50", "19:55")));
+            assertEquals("8.00pm", timeLabels().get(timeLabels().size() - 1));
+            assertCardGeometry("Alice", 11, 2, 50, 55, 15);
+
+            showStudents(FXCollections.observableArrayList(student("Alice", DayOfWeek.MONDAY, "20:50", "20:55")));
+            assertEquals("9.00pm", timeLabels().get(timeLabels().size() - 1));
+            assertCardGeometry("Alice", 12, 2, 50, 55, 15);
+        });
+    }
+
+    // A one-minute lesson is drawn 15 minutes long, so a lesson starting under that block goes beside it
+    // instead of covering it; lessons of 15 minutes or more still share a column back to back.
+    @Test
+    public void layout_lessonStartsUnderShortBlock_goesBesideIt() throws Exception {
+        runOnFxThread(() -> {
+            showStudents(FXCollections.observableArrayList(
+                    student("One", DayOfWeek.MONDAY, "09:00", "09:01"),
+                    student("Two", DayOfWeek.MONDAY, "09:01", "09:30"),
+                    student("Three", DayOfWeek.MONDAY, "09:30", "09:45"),
+                    student("Four", DayOfWeek.MONDAY, "09:45", "10:00")));
+
+            assertEquals(Integer.valueOf(1), GridPane.getColumnIndex(card("One")));
+            assertEquals(Integer.valueOf(2), GridPane.getColumnIndex(card("Two")));
+            assertEquals(Integer.valueOf(1), GridPane.getColumnIndex(card("Three")));
+            assertEquals(Integer.valueOf(1), GridPane.getColumnIndex(card("Four")));
+            assertTrue(card("One").getBoundsInParent().getMaxX() < card("Two").getBoundsInParent().getMinX());
+            assertEquals(card("Three").getBoundsInParent().getMaxY(),
+                    card("Four").getBoundsInParent().getMinY(), EPSILON);
+            assertEquals(9, grid().getColumnConstraints().size());
+        });
+    }
+
+    /** Checks {@code label} is visible, inside {@code card}, and not cut short with an ellipsis. */
+    private static void assertShownWhole(Region card, Label label, String message) {
+        assertTrue(label.isVisible(), message);
+        Bounds bounds = card.sceneToLocal(label.localToScene(label.getLayoutBounds()));
+        assertTrue(bounds.getMinX() >= 0 && bounds.getMaxX() <= card.getWidth() + EPSILON, message);
+        assertTrue(bounds.getMinY() >= 0 && bounds.getMaxY() <= card.getHeight() + EPSILON, message);
+        assertTrue(label.getWidth() >= label.prefWidth(-1), message);
+    }
+
+    private static Label label(Region card, String text) {
+        return card.lookupAll(".label").stream().map(Label.class::cast).filter(label -> label.getText().equals(text))
+                .findFirst().orElseThrow();
+    }
+
+    private static List<String> labelTexts(Region card) {
+        return card.lookupAll(".label").stream().map(Label.class::cast).map(Label::getText).toList();
     }
 
     private void showStudents(ObservableList<Student> students) {
