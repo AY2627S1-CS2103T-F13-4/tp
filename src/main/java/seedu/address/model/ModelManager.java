@@ -63,6 +63,24 @@ public class ModelManager implements Model {
         this(new AddressBook(), new UserPrefs());
     }
 
+    @Override
+    public Runnable createRestorePoint() {
+        AddressBook savedRecords = new AddressBook(addressBook);
+        Predicate<? super Student> activeFilter = filteredPersons.getPredicate();
+        Predicate<? super Student> archivedFilter = filteredArchivedPersons.getPredicate();
+        Predicate<Lesson> savedLessonFilter = lessonPredicate.get();
+        RateSortOrder savedOrder = rateSortOrder.get();
+        boolean savedArchiveView = archiveView;
+        return () -> {
+            addressBook.resetData(savedRecords);
+            filteredPersons.setPredicate(activeFilter);
+            filteredArchivedPersons.setPredicate(archivedFilter);
+            lessonPredicate.set(savedLessonFilter);
+            setRateSortOrder(savedOrder);
+            archiveView = savedArchiveView;
+        };
+    }
+
     /** Orders by school stage, then the chosen rate order, then level and name, then the order added. */
     private static Comparator<Student> shownOrder(ObservableList<Student> stored, RateSortOrder order) {
         return Comparator.comparing(Student::getStage)

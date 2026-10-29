@@ -392,14 +392,54 @@ public class MainWindowTest {
         });
     }
 
-    // Saving runs after the model changes its list, so a save error must not leave indices on a hidden table.
     @Test
-    public void listSwitch_saveFails_visibleRowsMatchNextCommandIndices() throws Exception {
+    public void failedDelete_restoresOpenDetailsAndDisplayedIndices() throws Exception {
+        runOnFxThread(() -> {
+            submitCommand("list");
+            submitCommand("view 1");
+            failSaves = true;
+
+            submitFailedCommand("delete 1");
+
+            assertEquals(List.of("Alice", "Bob"), tableNames(studentTable()));
+            assertEquals("Alice", ((Student) studentTable().getSelectionModel().getSelectedItem()).getName().fullName);
+            assertActiveNav("#studentsNav");
+            submitCommand("list-archive");
+            submitFailedCommand("add name/Carol phone/91234567 email/carol@example.com address/1");
+            assertTrue(model.isArchiveView());
+            assertActiveNav("#archiveNav");
+            assertTrue(tableNames(archivedStudentTable()).isEmpty());
+            assertEquals(List.of("Alice", "Bob"), tableNames(studentTable()));
+
+            failSaves = false;
+            submitCommand("list");
+            submitCommand("archive 1");
+            submitCommand("list-archive");
+            submitCommand("view 1");
+            failSaves = true;
+            submitFailedCommand("unarchive 1");
+            assertActiveNav("#archiveNav");
+            assertEquals(List.of("Alice"), tableNames(archivedStudentTable()));
+            assertEquals("Alice", ((Student) archivedStudentTable().getSelectionModel()
+                    .getSelectedItem()).getName().fullName);
+            assertEquals(List.of("Bob"), tableNames(studentTable()));
+
+            failSaves = false;
+            submitCommand("unarchive 1");
+            submitCommand("list");
+            submitCommand("delete 1");
+            assertEquals(List.of("Bob"), tableNames(studentTable()));
+        });
+    }
+
+    // Viewing records remains available even when the data file cannot be written.
+    @Test
+    public void listSwitch_readOnlyDataFile_visibleRowsMatchNextCommandIndices() throws Exception {
         runOnFxThread(() -> {
             submitCommand("archive 1");
             submitCommand("list");
             failSaves = true;
-            submitFailedCommand("list-archive");
+            submitCommand("list-archive");
             assertTrue(isShown(archivedStudentTable()));
             assertActiveNav("#archiveNav");
             assertSame(model.getFilteredPersonList(), archivedStudentTable().getItems());
@@ -411,7 +451,7 @@ public class MainWindowTest {
             assertEquals(List.of("Bob"), tableNames(studentTable()));
 
             failSaves = true;
-            submitFailedCommand("list");
+            submitCommand("list");
             assertTrue(isShown(studentTable()));
             assertActiveNav("#studentsNav");
             assertSame(model.getFilteredPersonList(), studentTable().getItems());
@@ -425,14 +465,14 @@ public class MainWindowTest {
     }
 
     @Test
-    public void weekSwitch_saveFails_showsActiveRowsAndPreservesWeekForOrdinaryErrors() throws Exception {
+    public void weekSwitch_readOnlyDataFile_showsWeekAndPreservesItForInvalidCommands() throws Exception {
         runOnFxThread(() -> {
             submitCommand("archive 1");
             submitCommand("list-archive");
             failSaves = true;
-            submitFailedCommand("week");
-            assertTrue(isShown(studentTable()));
-            assertActiveNav("#studentsNav");
+            submitCommand("week");
+            assertTrue(isShown(schedulePlaceholder()));
+            assertActiveNav("#weekNav");
             assertSame(model.getFilteredPersonList(), studentTable().getItems());
 
             failSaves = false;

@@ -402,7 +402,10 @@ Format: `followups`
 
 ## Saving and transferring records
 
-StudentBook saves automatically to `data/studentbook.json`, in the folder you start it from.
+StudentBook saves record changes automatically to `data/studentbook.json`, in the folder you start it from.
+
+If saving fails, your records stay unchanged. Fix the reported problem and retry the command.
+Viewing and searching do not save.
 
 To move to another computer, copy that file into the same place on the new computer.
 

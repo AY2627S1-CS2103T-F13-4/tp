@@ -1,7 +1,9 @@
 package seedu.address.storage;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalPersons.ALICE;
 import static seedu.address.testutil.TypicalPersons.HOON;
@@ -9,8 +11,14 @@ import static seedu.address.testutil.TypicalPersons.IDA;
 import static seedu.address.testutil.TypicalPersons.getTypicalAddressBook;
 
 import java.io.IOException;
+import java.nio.file.AccessDeniedException;
+import java.nio.file.AtomicMoveNotSupportedException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.attribute.AclFileAttributeView;
+import java.nio.file.attribute.PosixFileAttributeView;
+import java.util.List;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -106,5 +114,105 @@ public class JsonAddressBookStorageTest {
     @Test
     public void saveAddressBook_nullFilePath_throwsNullPointerException() {
         assertThrows(NullPointerException.class, () -> saveAddressBook(new AddressBook(), null));
+    }
+
+    @Test
+    public void save_partialTemporaryWrite_preservesOriginalAndRemovesTemporaryFile() throws Exception {
+        Path target = testFolder.resolve("students.json");
+        new JsonAddressBookStorage(target).saveAddressBook(getTypicalAddressBook());
+        byte[] original = Files.readAllBytes(target);
+        JsonAddressBookStorage failingStorage = new JsonAddressBookStorage(target) {
+            @Override
+            void writeTemporaryFile(Path temporaryFile, String json) throws IOException {
+                Files.writeString(temporaryFile, "partial JSON");
+                throw new IOException("Test partial write");
+            }
+        };
+
+        assertThrows(IOException.class, () -> failingStorage.saveAddressBook(new AddressBook()));
+
+        assertArrayEquals(original, Files.readAllBytes(target));
+        assertOnlyTargetRemains(target);
+    }
+
+    @Test
+    public void save_atomicMoveUnsupported_preservesOriginalAndRemovesTemporaryFile() throws Exception {
+        Path target = testFolder.resolve("students.json");
+        new JsonAddressBookStorage(target).saveAddressBook(getTypicalAddressBook());
+        byte[] original = Files.readAllBytes(target);
+        JsonAddressBookStorage failingStorage = new JsonAddressBookStorage(target) {
+            @Override
+            void replaceFile(Path temporaryFile, Path destination) throws IOException {
+                throw new AtomicMoveNotSupportedException(temporaryFile.toString(), destination.toString(), "Test");
+            }
+        };
+
+        assertThrows(AtomicMoveNotSupportedException.class, () -> failingStorage.saveAddressBook(new AddressBook()));
+
+        assertArrayEquals(original, Files.readAllBytes(target));
+        assertOnlyTargetRemains(target);
+    }
+
+    @Test
+    public void save_newFileReplacementFails_doesNotLeaveEmptyDataFile() throws Exception {
+        Path target = testFolder.resolve("students.json");
+        JsonAddressBookStorage failingStorage = new JsonAddressBookStorage(target) {
+            @Override
+            void replaceFile(Path temporaryFile, Path destination) throws IOException {
+                throw new IOException("Test replacement failure");
+            }
+        };
+
+        assertThrows(IOException.class, () -> failingStorage.saveAddressBook(getTypicalAddressBook()));
+
+        assertFalse(Files.exists(target));
+        try (var files = Files.list(testFolder)) {
+            assertTrue(files.findAny().isEmpty());
+        }
+    }
+
+    @Test
+    public void save_existingFile_preservesPermissions() throws Exception {
+        Path target = testFolder.resolve("students.json");
+        JsonAddressBookStorage storage = new JsonAddressBookStorage(target);
+        storage.saveAddressBook(getTypicalAddressBook());
+        PosixFileAttributeView posix = Files.getFileAttributeView(target, PosixFileAttributeView.class);
+        AclFileAttributeView acl = Files.getFileAttributeView(target, AclFileAttributeView.class);
+        var permissions = posix == null ? null : posix.readAttributes().permissions();
+        var entries = acl == null ? null : acl.getAcl();
+
+        storage.saveAddressBook(new AddressBook());
+
+        if (posix != null) {
+            assertEquals(permissions, posix.readAttributes().permissions());
+        }
+        if (acl != null) {
+            assertEquals(entries, acl.getAcl());
+        }
+        assertOnlyTargetRemains(target);
+    }
+
+    @Test
+    public void save_readOnlyFile_rejectsReplacementAndKeepsOriginal() throws Exception {
+        Path target = testFolder.resolve("students.json");
+        JsonAddressBookStorage storage = new JsonAddressBookStorage(target);
+        storage.saveAddressBook(getTypicalAddressBook());
+        byte[] original = Files.readAllBytes(target);
+        assertTrue(target.toFile().setWritable(false, false));
+        try {
+            org.junit.jupiter.api.Assumptions.assumeFalse(Files.isWritable(target),
+                    "This account can still write read-only files");
+            assertThrows(AccessDeniedException.class, () -> storage.saveAddressBook(new AddressBook()));
+            assertArrayEquals(original, Files.readAllBytes(target));
+            assertOnlyTargetRemains(target);
+        } finally {
+            assertTrue(target.toFile().setWritable(true, true));
+        }
+    }
+
+    private void assertOnlyTargetRemains(Path target) throws IOException {
+        try (var files = Files.list(testFolder)) {
+            assertEquals(List.of(target), files.toList());
+        }
     }
 }
