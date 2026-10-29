@@ -21,7 +21,7 @@ public class GuardianAddCommandParser implements Parser<GuardianAddCommand> {
     public GuardianAddCommand parse(String args) throws ParseException {
         requireNonNull(args);
         String formatError = String.format(MESSAGE_INVALID_COMMAND_FORMAT, GuardianAddCommand.MESSAGE_USAGE);
-        ArgumentMultimap arguments = GuardianCommandParserUtil.tokenize(args, GuardianAddCommand.MESSAGE_USAGE);
+        ArgumentMultimap arguments = GuardianCommandParserUtil.tokenize(args);
         Index studentIndex;
         try {
             studentIndex = ParserUtil.parseIndex(arguments.getPreamble());

@@ -39,7 +39,8 @@ public class GuardianEditCommandParserTest {
     public void parse_invalidOrRepeatedFields_failure() {
         assertParseFailure(parser, "1", INVALID_FORMAT);
         assertParseFailure(parser, "1 rate/50", INVALID_FORMAT);
-        assertParseFailure(parser, "1 name/John rate/50", INVALID_FORMAT);
+        assertParseFailure(parser, "1 name/John rate/50", Name.MESSAGE_CONSTRAINTS);
+        assertParseFailure(parser, "1 phone/91234567 rate/50", Phone.MESSAGE_CONSTRAINTS);
         assertParseFailure(parser, "1 name/", Name.MESSAGE_CONSTRAINTS);
         assertParseFailure(parser, "1 phone/", Phone.MESSAGE_CONSTRAINTS);
         assertParseFailure(parser, "1 name/Janet name/John",
