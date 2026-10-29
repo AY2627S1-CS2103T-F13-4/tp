@@ -39,6 +39,7 @@ import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
+import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Text;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
@@ -565,6 +566,61 @@ public class MainWindowTest {
         });
     }
 
+    // Shrinking a wide window must narrow the student table to fit, with the layout a fresh window of that
+    // width has: the table's columns follow its width, which must not hold the table at its old width.
+    @Test
+    public void studentTable_windowShrunk_fitsAndSwitchesLayoutLikeFreshWindow() throws Exception {
+        // The window opens at its minimum width, 760, so the table starts narrow.
+        runOnFxThread(() -> submitCommand("list"));
+        settle();
+        double freshNarrowWidth = FxTestUtil.callOnFxThread(() -> studentTable().getWidth());
+        resizeWindow(Math.min(1470, Screen.getPrimary().getVisualBounds().getWidth()));
+        settle();
+        for (double width : new double[] {1000, FxTestUtil.callOnFxThread(stage::getMinWidth)}) {
+            resizeWindow(width);
+            settle();
+            runOnFxThread(() -> {
+                Region card = (Region) studentTable().getParent().getParent();
+                double cardRight = card.localToScene(card.getBoundsInLocal()).getMaxX();
+                String sizes = "window " + stage.getWidth() + ", table " + studentTable().getWidth()
+                        + ", fresh " + freshNarrowWidth;
+                assertTrue(cardRight <= stage.getScene().getWidth(), sizes);
+                assertTrue(sceneMaxX(studentTable()) <= cardRight, sizes);
+                assertTrue(sceneMaxX(stage.getScene().lookup("#addStudentButton")) <= cardRight, sizes);
+                Node guardian = stage.getScene().lookup("#guardianHeading");
+                assertEquals(width >= 1000, guardian.isVisible(), sizes);
+                if (guardian.isVisible()) {
+                    assertTrue(sceneMaxX(guardian) <= cardRight, sizes);
+                }
+            });
+        }
+        runOnFxThread(() -> assertEquals(freshNarrowWidth, studentTable().getWidth(), 0.5));
+    }
+
+    // Rows, open details and the scroll bar must stay inside the card's rounded corners at every size, so the
+    // table's content is clipped to the card's shape: the same size and the same corner radius as its background.
+    @Test
+    public void studentTables_resized_contentClippedToRoundedCard() throws Exception {
+        runOnFxThread(() -> submitCommand("view 2"));
+        for (double width : new double[] {1000, FxTestUtil.callOnFxThread(stage::getMinWidth)}) {
+            resizeWindow(width);
+            settle();
+            runOnFxThread(() -> {
+                for (ListView<?> table : List.of(studentTable(), archivedStudentTable())) {
+                    Region content = (Region) table.getParent();
+                    Region card = (Region) content.getParent();
+                    Rectangle clip = assertInstanceOf(Rectangle.class, content.getClip());
+                    assertEquals(card.getLayoutBounds(), content.getBoundsInParent());
+                    assertEquals(content.getLayoutBounds(), clip.getLayoutBounds());
+                    double radius = card.getBackground().getFills().get(0).getRadii().getTopLeftHorizontalRadius();
+                    assertTrue(radius > 0);
+                    assertEquals(2 * radius, clip.getArcWidth());
+                    assertEquals(2 * radius, clip.getArcHeight());
+                }
+            });
+        }
+    }
+
     // A filter that does not fully fit is hidden, never shown cut short, and returns when the window widens.
     // Text widths differ between systems, and a window cannot be wider than the screen, which can be narrow on
     // CI machines; so the window widens only by what the hidden filter needs, measured on this system.
@@ -1058,6 +1114,14 @@ public class MainWindowTest {
             Thread.sleep(20);
         }
         throw new AssertionError("The window did not resize to " + width);
+    }
+
+    /** Lets the window lay itself out until a resize has fully settled, as it does between frames. */
+    private void settle() throws Exception {
+        for (int pulse = 0; pulse < 10; pulse++) {
+            Thread.sleep(20);
+            runOnFxThread(() -> { });
+        }
     }
 
     private void assertVisibleFiltersFit() {
