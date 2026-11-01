@@ -1,0 +1,30 @@
+@startuml
+skin rose
+skinparam ActivityFontSize 15
+skinparam ArrowFontSize 12
+
+start
+:Tutor enters a lesson-add command;
+if () then ([index or a field
+is invalid])
+  :Show error;
+else ([else])
+  if () then ([student already has
+an identical lesson])
+    :Show duplicate error;
+  else ([else])
+    :Add the lesson to the student;
+    :Compare it with every other lesson
+    in the same student list;
+    :Save the data file;
+    if () then ([some lesson
+overlaps])
+      :Show warning that
+      lists the clashes;
+    else ([else])
+      :Show success message;
+    endif
+  endif
+endif
+stop
+@enduml

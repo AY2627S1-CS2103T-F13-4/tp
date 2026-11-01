@@ -11,7 +11,6 @@ We are a team based in the [School of Computing, National University of Singapor
 
 <img src="images/minweed.png" width="200px">
 
-[[homepage](https://ay2627s1-cs2103t-f13-4.github.io/tp/)]
 [[github](https://github.com/minweed)]
 
 - Role: Developer
