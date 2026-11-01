@@ -205,7 +205,8 @@ public class PersonCardTest {
         });
     }
 
-    // Even when the longest words cannot both fit, the name and level stay apart and inside their cell.
+    // Even when the longest words cannot both fit, the name and level stay apart and inside their cell. A name word
+    // wider than the whole cell breaks wherever the level is, so the level stays beside it, where it costs no height.
     @Test
     public void bindColumns_wordsWiderThanCell_nameAndLevelStayInCell() throws Exception {
         for (double column : new double[] {218, 300, 500}) {
@@ -217,8 +218,23 @@ public class PersonCardTest {
                 layOut(root, 800);
 
                 assertNameAndLevelFit(root);
+                assertLevelBesideName(root);
             });
         }
+    }
+
+    // A typical name and level share one line, as in most rows of the table.
+    @Test
+    public void bindColumns_typicalNameAndLevel_levelBesideName() throws Exception {
+        FxTestUtil.runOnFxThread(() -> {
+            Student student = new PersonBuilder().withName("Alice Tan")
+                    .withSchoolingLevel(new SchoolingLevel("Secondary 3")).build();
+            PersonCard card = new PersonCard(student, 1);
+            Region root = prepareCard(card, new SimpleDoubleProperty(800), new SimpleDoubleProperty(230));
+            layOut(root, 800);
+
+            assertLevelBesideName(root);
+        });
     }
 
     // Short values must stay on one line, as wrapping text always fills its whole width.
@@ -332,6 +348,16 @@ public class PersonCardTest {
         // Layout snaps the level to whole pixels.
         assertTrue(levelBounds.getMaxX() <= nameCell.localToScene(nameCell.getLayoutBounds()).getMaxX() + 1,
                 "The level should end inside the name cell");
+    }
+
+    /** Checks that the level starts after the name, on the name's first line rather than under it. */
+    private static void assertLevelBesideName(Region root) {
+        Text name = assertInstanceOf(Text.class, root.lookup("#name"));
+        Text level = assertInstanceOf(Text.class, root.lookup("#schoolingLevel"));
+        Bounds nameBounds = name.localToScene(name.getLayoutBounds());
+        Bounds levelBounds = level.localToScene(level.getLayoutBounds());
+        assertTrue(levelBounds.getMinX() >= nameBounds.getMaxX() && levelBounds.getMinY() < nameBounds.getMaxY(),
+                "The level should sit beside the name");
     }
 
     /** Checks that {@code level} is on one line or wraps no narrower than its longest word. */

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.layout.FlowPane?>
 <?import javafx.scene.layout.HBox?>
@@ -24,8 +25,12 @@
           <Region fx:constant="USE_PREF_SIZE" />
         </minWidth>
       </Label>
-      <!-- The level follows the name, or goes under it when their longest words cannot sit side by side -->
+      <!-- The level follows the name, or goes under it when only that keeps the name's words whole. The -2 margin
+           lets the two run over by the pixels layout rounds them up by (see PersonCard#bindColumns) -->
       <FlowPane fx:id="nameFlow" alignment="CENTER_LEFT" hgap="10">
+        <HBox.margin>
+          <Insets right="-2" />
+        </HBox.margin>
         <Text fx:id="name" text="\$first" styleClass="row-name" />
         <Text fx:id="schoolingLevel" text="\$schoolingLevel" styleClass="row-level" />
       </FlowPane>
