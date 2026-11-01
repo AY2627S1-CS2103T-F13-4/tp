@@ -1,6 +1,7 @@
 package seedu.address.logic;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX;
 import static seedu.address.logic.Messages.MESSAGE_UNKNOWN_COMMAND;
@@ -13,6 +14,7 @@ import static seedu.address.testutil.TypicalPersons.AMY;
 
 import java.io.IOException;
 import java.nio.file.AccessDeniedException;
+import java.nio.file.FileSystemException;
 import java.nio.file.Path;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -73,7 +75,24 @@ public class LogicManagerTest {
     @Test
     public void execute_storageThrowsIoException_throwsCommandException() {
         assertCommandFailureForExceptionFromStorage(DUMMY_IO_EXCEPTION, String.format(
-                LogicManager.FILE_OPS_ERROR_FORMAT, DUMMY_IO_EXCEPTION.getMessage()));
+                LogicManager.FILE_OPS_ERROR_FORMAT, temporaryFolder.resolve("ExceptionAddressBook.json")));
+    }
+
+    @Test
+    public void execute_storageFailsOnTemporaryFile_reportsDataFilePath() {
+        String temporaryFile = temporaryFolder.resolve(".studentbook-123.tmp").toString();
+        for (IOException failure : new IOException[] {
+            new IOException(temporaryFile + ": No space left on device"),
+            new FileSystemException(temporaryFile, null, "Operation not permitted"),
+            new FileSystemException(temporaryFile, temporaryFolder.resolve("target.json").toString(),
+                    "Atomic move not supported")
+        }) {
+            String expectedMessage = "Could not save data to file "
+                    + temporaryFolder.resolve("ExceptionAddressBook.json") + " due to a file system error"
+                    + "\nThe command was not applied. Your records are unchanged."
+                    + "\nFix the file or folder problem, then try the command again";
+            assertCommandFailureForExceptionFromStorage(failure, expectedMessage);
+        }
     }
 
     @Test
@@ -227,6 +246,10 @@ public class LogicManagerTest {
         String addCommand = AddCommand.COMMAND_WORD + NAME_DESC_AMY + PHONE_DESC_AMY
                 + EMAIL_DESC_AMY + ADDRESS_DESC_AMY;
         ModelManager expectedModel = new ModelManager();
-        assertCommandFailure(addCommand, CommandException.class, expectedMessage, expectedModel);
+        CommandException error = org.junit.jupiter.api.Assertions.assertThrows(
+                CommandException.class, () -> logic.execute(addCommand));
+        assertEquals(expectedMessage, error.getMessage());
+        assertSame(e, error.getCause());
+        assertEquals(expectedModel, model);
     }
 }
