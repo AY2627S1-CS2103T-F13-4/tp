@@ -2,6 +2,7 @@ package seedu.address.logic;
 
 import java.io.IOException;
 import java.nio.file.AccessDeniedException;
+import java.util.List;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
 
@@ -69,7 +70,9 @@ public class LogicManager implements Logic {
         Runnable restoreModel = model.createRestorePoint();
         try {
             CommandResult commandResult = command.execute(model);
-            if (!originalRecords.equals(model.getAddressBook())) {
+            if (!hasSameStudentInstances(originalRecords.getPersonList(), model.getAddressBook().getPersonList())
+                    || !hasSameStudentInstances(originalRecords.getArchivedPersonList(),
+                            model.getAddressBook().getArchivedPersonList())) {
                 try {
                     saveAddressBook();
                 } catch (CommandException e) {
@@ -84,6 +87,22 @@ public class LogicManager implements Logic {
             logger.info("Command failed: " + commandType);
             throw e;
         }
+    }
+
+    /**
+     * Returns whether both lists contain the same immutable student instances in the same order.
+     * Edits replace students, even when case-insensitive field equality hides a change in saved text.
+     */
+    private static boolean hasSameStudentInstances(List<Student> before, List<Student> after) {
+        if (before.size() != after.size()) {
+            return false;
+        }
+        for (int i = 0; i < before.size(); i++) {
+            if (before.get(i) != after.get(i)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /** Saves the current book, translating storage failures into user-facing command errors. */
