@@ -166,7 +166,7 @@ The `Model` component stores:
 
 :information_source: An alternative design keeps a list of unique tags in `AddressBook`, then each `Student` references tags in that list, allowing `AddressBook` to maintain one `Tag` object per unique tag instead of each `Student` holding its own `Tag` object.
 
-<img src="images/BetterModelClassDiagram.png" width="400" />
+<img src="images/BetterModelClassDiagram.png" width="500" />
 
 This alternative is not the current implementation.
 </div>
