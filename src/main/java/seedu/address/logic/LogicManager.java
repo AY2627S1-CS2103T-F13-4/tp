@@ -2,6 +2,7 @@ package seedu.address.logic;
 
 import java.io.IOException;
 import java.nio.file.AccessDeniedException;
+import java.util.List;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
 
@@ -30,7 +31,7 @@ public class LogicManager implements Logic {
             "\nThe command was not applied. Your records are unchanged."
                     + "\nFix the file or folder problem, then try the command again";
 
-    public static final String FILE_OPS_ERROR_FORMAT = "Could not save data due to the following error: %s"
+    public static final String FILE_OPS_ERROR_FORMAT = "Could not save data to file %s due to a file system error"
             + SAVE_FAILURE_RECOVERY;
 
     public static final String FILE_OPS_PERMISSION_ERROR_FORMAT =
@@ -69,7 +70,9 @@ public class LogicManager implements Logic {
         Runnable restoreModel = model.createRestorePoint();
         try {
             CommandResult commandResult = command.execute(model);
-            if (!originalRecords.equals(model.getAddressBook())) {
+            if (!hasSameStudentInstances(originalRecords.getPersonList(), model.getAddressBook().getPersonList())
+                    || !hasSameStudentInstances(originalRecords.getArchivedPersonList(),
+                            model.getAddressBook().getArchivedPersonList())) {
                 try {
                     saveAddressBook();
                 } catch (CommandException e) {
@@ -86,6 +89,22 @@ public class LogicManager implements Logic {
         }
     }
 
+    /**
+     * Returns whether both lists contain the same immutable student instances in the same order.
+     * Edits replace students, even when case-insensitive field equality hides a change in saved text.
+     */
+    private static boolean hasSameStudentInstances(List<Student> before, List<Student> after) {
+        if (before.size() != after.size()) {
+            return false;
+        }
+        for (int i = 0; i < before.size(); i++) {
+            if (before.get(i) != after.get(i)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     /** Saves the current book, translating storage failures into user-facing command errors. */
     private void saveAddressBook() throws CommandException {
         try {
@@ -94,7 +113,8 @@ public class LogicManager implements Logic {
             throw new CommandException(String.format(FILE_OPS_PERMISSION_ERROR_FORMAT,
                     storage.getAddressBookFilePath()), e);
         } catch (IOException ioe) {
-            throw new CommandException(String.format(FILE_OPS_ERROR_FORMAT, ioe.getMessage()), ioe);
+            throw new CommandException(String.format(FILE_OPS_ERROR_FORMAT,
+                    storage.getAddressBookFilePath()), ioe);
         }
     }
 
