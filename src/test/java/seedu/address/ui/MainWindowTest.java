@@ -56,6 +56,7 @@ import javafx.stage.Stage;
 import javafx.stage.Window;
 import javafx.stage.WindowEvent;
 import javafx.util.Duration;
+import seedu.address.commons.core.GuiSettings;
 import seedu.address.logic.LogicManager;
 import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.ListArchiveCommand;
@@ -978,6 +979,18 @@ public class MainWindowTest {
         resizeWindow(760, 400);
         settle();
         assertOpenRowAtListTop(4, "after resizing");
+    }
+
+    // Windows does not enforce a stage's minimum size when it opens, so a first launch uses the default size as
+    // given; it must be no smaller than the window's minimum or the window opens narrower than the layout allows.
+    @Test
+    public void defaultWindowSize_atLeastWindowMinimum() throws Exception {
+        GuiSettings defaults = new GuiSettings();
+        runOnFxThread(() -> {
+            assertTrue(defaults.getWindowWidth() >= stage.getMinWidth(), "default width " + defaults.getWindowWidth());
+            assertTrue(defaults.getWindowHeight() >= stage.getMinHeight(),
+                    "default height " + defaults.getWindowHeight());
+        });
     }
 
     // In a narrow window, long recent commands must give way so "Recent" and the newest command stay readable.
