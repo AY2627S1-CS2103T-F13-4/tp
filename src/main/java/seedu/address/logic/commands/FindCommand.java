@@ -31,7 +31,7 @@ public class FindCommand extends Command {
             + PREFIX_LEVEL + "TEXT] [" + PREFIX_SUBJECT + "TEXT] ["
             + PREFIX_DAY + "DAY]\n"
             + "Supply at least one prefix; all criteria must match. Name, guardian and school match substrings, "
-            + "ignoring case; "
+            + "ignoring case; level also matches stage names, e.g. prim finds P5; "
             + "bare keywords match whole name words. Guardian matches name or phone\n"
             + "Example: " + COMMAND_WORD + " " + PREFIX_LEVEL + "Secondary "
             + PREFIX_SUBJECT + "Math " + PREFIX_DAY + "Wed";

@@ -240,13 +240,14 @@ Format: `find [name/TEXT] [guardian/TEXT] [sch/TEXT] [level/TEXT] [subject/TEXT]
 * At least one of the optional fields must be provided.
 * Text criteria match substrings. All supplied criteria must match; `guardian/` searches the guardian's name or phone.
 * Students without a level are excluded from the level filter
+* `level/` also matches a stage by any of its names or their starts, so `level/prim` and `level/Primary 5` match `P5`, and `level/Secondary` matches `Sec 3`. Text after the stage name must start the rest of the level, so `level/Secondary 3` does not match `Sec 2 G3`
 * When multiple lesson-related criteria are specified, the same lesson must match all criteria
 * Day may be specified with three-letter or full names
 
 Searches persist through edits, deletions, archiving and restoration. Students enter or leave the results as their details change, and displayed indices are renumbered. The active and archived lists keep separate searches; `week` uses the active student and lesson filters. Adding a student clears active filters to show the new student. Use `list` or `list-archive` to reset that list's search, or `find` to replace it.
 
 Examples:
-* `find level/prim` matches `Primary 5`.
+* `find level/prim` matches `Primary 5` and `P5`.
 * `find day/Mon` matches students with a lesson on Monday.
 * `find level/Secondary subject/math day/wednesday` matches secondary students with a Math lesson on Wednesday.
 

@@ -247,7 +247,10 @@ Failures retain the original and remove the temporary file. Unsupported atomic r
 `FindCommandParser` accepts `name/`, `guardian/`, `sch/`, `level/`, `subject/` and `day/`, rejecting empty
 values, duplicate prefixes and bare name keywords mixed with prefixes. It builds one `StudentSearchPredicate`
 for every prefixed search. The predicate requires every supplied criterion to match: student name, guardian
-name or phone, school and schooling level use case-insensitive substrings. Missing optional fields fail only
+name or phone, school and schooling level use case-insensitive substrings. A schooling level also matches when
+the text names its stage through `SchoolingLevel.isStageNamedBy`: the first word must be a stage name or its
+start (e.g. `prim`, `Secondary`), and any text after it must start the rest of the level, so `Primary 5`
+matches `P5` but `Secondary 3` does not match `Sec 2 G3`. Missing optional fields fail only
 when their criteria are supplied. Searches without lesson criteria do not require students to have lessons.
 Bare name keywords retain whole-word, case-insensitive OR matching through `NameContainsKeywordsPredicate`.
 
