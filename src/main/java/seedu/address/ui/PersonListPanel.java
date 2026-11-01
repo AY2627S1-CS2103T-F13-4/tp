@@ -11,6 +11,7 @@ import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanExpression;
 import javafx.beans.binding.DoubleExpression;
 import javafx.beans.property.ReadOnlyDoubleProperty;
+import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -250,6 +251,11 @@ public class PersonListPanel extends UiPart<Region> {
     /** Returns the student whose details are open, or null when none are open. */
     public Student getOpenStudent() {
         return personListView.getSelectionModel().getSelectedItem();
+    }
+
+    /** Returns the student whose details are open, or null, as rows open and close. */
+    public ReadOnlyObjectProperty<Student> openStudentProperty() {
+        return personListView.getSelectionModel().selectedItemProperty();
     }
 
     /** Restores details after a failed command has restored the records and their displayed order. */

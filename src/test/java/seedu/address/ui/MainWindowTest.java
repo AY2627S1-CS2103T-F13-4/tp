@@ -59,6 +59,7 @@ import seedu.address.logic.LogicManager;
 import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.ListArchiveCommand;
 import seedu.address.logic.commands.ListCommand;
+import seedu.address.logic.commands.ViewCommand;
 import seedu.address.logic.commands.WeekCommand;
 import seedu.address.model.ModelManager;
 import seedu.address.model.ReadOnlyAddressBook;
@@ -911,6 +912,21 @@ public class MainWindowTest {
                 "table shows " + longMessageRoom + "px, " + oneLineRoom + "px under a one-line message");
     }
 
+    // Alt+Down opens another student's details without a command, so the result must name that student, not
+    // the one view opened. A command that opens a student itself keeps its own message.
+    @Test
+    public void altDown_afterView_resultNamesNewlyOpenStudent() throws Exception {
+        runOnFxThread(() -> {
+            submitCommand("view 1");
+            pressKey(KeyCode.DOWN, true);
+            assertEquals(String.format(ViewCommand.MESSAGE_SUCCESS, "Bob"), resultMessage());
+            pressKey(KeyCode.UP, true);
+            assertEquals(String.format(ViewCommand.MESSAGE_SUCCESS, "Alice"), resultMessage());
+            submitCommand("note-add 2 date/2026-10-15 text/Fractions");
+            assertTrue(resultMessage().startsWith("Added note"), resultMessage());
+        });
+    }
+
     // On Windows and Linux, releasing Alt focuses the menu bar; after Alt+Down the user is still typing.
     @Test
     public void altRelease_afterAltDown_isKeptFromWindow() throws Exception {
@@ -1402,6 +1418,14 @@ public class MainWindowTest {
         Node flow = studentTable().lookup(".virtual-flow");
         Bounds bounds = flow.localToScene(flow.getLayoutBounds());
         return Math.min(bounds.getMaxY(), stage.getScene().getHeight()) - bounds.getMinY();
+    }
+
+    /** Returns the message of the latest result, without any recent commands shown beside it. */
+    private String resultMessage() {
+        return stage.getScene().lookup("#resultDisplayPlaceholder").lookupAll("Text").stream()
+                .filter(node -> node.getStyleClass().contains("result-text")
+                        || node.getStyleClass().contains("result-title"))
+                .map(Text.class::cast).map(Text::getText).findFirst().orElseThrow();
     }
 
     private TextField commandField() {
