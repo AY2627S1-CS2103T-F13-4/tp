@@ -16,6 +16,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -911,12 +912,11 @@ public class MainWindowTest {
             ScrollPane result = assertInstanceOf(ScrollPane.class, stage.getScene().lookup("#resultScroll"));
             double message = result.getContent().getLayoutBounds().getHeight();
             assertTrue(message <= result.getHeight() + 0.5, "message " + message + " in " + result.getHeight());
-            stage.getScene().getRoot().lookupAll(".page-header").forEach(heading -> assertFalse(heading.isVisible()));
+            headingRows().forEach(heading -> assertFalse(heading.isVisible() || heading.isManaged()));
             assertTrue(visibleTableHeight() > 0, "The table's rows should start inside the window");
         });
         resizeWindow(1000, 800);
-        runOnFxThread(() -> stage.getScene().getRoot().lookupAll(".page-header")
-                .forEach(heading -> assertTrue(heading.isVisible())));
+        runOnFxThread(() -> headingRows().forEach(heading -> assertTrue(heading.isVisible() && heading.isManaged())));
     }
 
     // Alt+Down opens another student's details without a command, so the result must name that student, not
@@ -1475,6 +1475,17 @@ public class MainWindowTest {
 
     private GridPane scheduleGrid() {
         return assertInstanceOf(GridPane.class, schedulePlaceholder().getContent());
+    }
+
+    /** Returns each screen's title row and both tables' column headings, failing if any is missing. */
+    private List<Node> headingRows() {
+        List<Node> rows = new ArrayList<>();
+        for (String selector : List.of(".page-header", ".table-header")) {
+            Set<Node> found = stage.getScene().getRoot().lookupAll(selector);
+            assertTrue(found.size() >= 2, selector);
+            rows.addAll(found);
+        }
+        return rows;
     }
 
     /** Returns how much of the student table's rows show within the window. */
