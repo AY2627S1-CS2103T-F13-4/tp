@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import javafx.beans.binding.Bindings;
+import javafx.beans.binding.BooleanExpression;
 import javafx.beans.binding.DoubleExpression;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
@@ -96,6 +97,8 @@ public class PersonCard extends UiPart<Region> {
     private HBox nameCell;
     @FXML
     private Label initials;
+    @FXML
+    private FlowPane nameFlow;
     @FXML
     private Text name;
     @FXML
@@ -394,7 +397,8 @@ public class PersonCard extends UiPart<Region> {
             optional.managedProperty().bind(columns.wide());
         }
         // The name keeps most of the cell and its longest word, and the level keeps its longest word beside it.
-        // When both cannot fit, the name keeps its share and the level the rest; neither leaves the cell.
+        // When both cannot fit, the level goes under the name if the name's longest word then fits a line; if even
+        // that cannot fit, the name keeps its share and the level the rest. Neither leaves the cell.
         String nameText = name.getText();
         double nameWidth = textWidth(nameText, NAME_FONT_FAMILY, NAME_FONT_SIZE);
         double nameWord = longestWordWidth(nameText, NAME_FONT_FAMILY, NAME_FONT_SIZE);
@@ -404,14 +408,17 @@ public class PersonCard extends UiPart<Region> {
         double levelFloor = hasLevel
                 ? longestWordWidth(schoolingLevel.getText(), BODY_FONT_FAMILY, LEVEL_FONT_SIZE) + LEVEL_GAP : 0;
         DoubleExpression room = columns.name().subtract(BADGE_WIDTH);
+        // 2px over the cell, as layout rounds the name and the level each up to a whole pixel (see the FXML).
+        nameFlow.prefWrapLengthProperty().bind(room.add(2));
+        BooleanExpression stacked = room.lessThan(nameWord + levelFloor).and(room.greaterThanOrEqualTo(nameWord));
         DoubleExpression nameLimit = Bindings.createDoubleBinding(() -> {
             double share = room.get() * NAME_SHARE;
             double wanted = Math.max(room.get() - levelWidth, Math.min(nameWidth, Math.max(share, nameWord)));
-            return Math.min(wanted, Math.max(room.get() - levelFloor, share));
+            return stacked.get() ? room.get() : Math.min(wanted, Math.max(room.get() - levelFloor, share));
         }, room);
         wrapWhenWider(name, nameLimit, nameWidth);
-        wrapWhenWider(schoolingLevel, room.subtract(LEVEL_GAP).subtract(Bindings.min(nameLimit, nameWidth)),
-                levelWidth - LEVEL_GAP);
+        wrapWhenWider(schoolingLevel, Bindings.createDoubleBinding(() -> stacked.get() ? room.get()
+                : room.get() - LEVEL_GAP - Math.min(nameLimit.get(), nameWidth), room), levelWidth - LEVEL_GAP);
         wrapWhenLonger(subjects, columns.subjects(), BODY_FONT_SIZE);
         wrapWhenLonger(guardianName, columns.guardian(), BODY_FONT_SIZE);
         detailsWidth = columns.details();
