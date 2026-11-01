@@ -1,6 +1,7 @@
 package seedu.address.logic;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -59,10 +60,12 @@ public class ContactLoggingTest {
 
     @Test
     public void saveFailure_logsOutcomeWithoutExceptionMessage() throws Exception {
-        JsonAddressBookStorage storage = new JsonAddressBookStorage(temporaryFolder.resolve("students.json")) {
+        Path dataFile = temporaryFolder.resolve("students.json");
+        IOException failure = new IOException("Could not save private@example.com");
+        JsonAddressBookStorage storage = new JsonAddressBookStorage(dataFile) {
             @Override
             public void saveAddressBook(ReadOnlyAddressBook addressBook) throws IOException {
-                throw new IOException("Could not save private@example.com");
+                throw failure;
             }
         };
         Logic logic = new LogicManager(new ModelManager(), new StorageManager(storage,
@@ -70,7 +73,9 @@ public class ContactLoggingTest {
         try (LogCapture logs = new LogCapture()) {
             CommandException error = assertThrows(CommandException.class, () -> logic.execute(ADD_COMMAND));
 
-            assertTrue(error.getMessage().contains("Could not save private@example.com"));
+            assertTrue(error.getMessage().contains(dataFile.toString()));
+            assertPrivateValuesAbsent(error.getMessage());
+            assertSame(failure, error.getCause());
             assertTrue(logs.text().contains("Command failed: AddCommand"));
             assertFalse(logs.text().contains("Command completed"));
             assertPrivateValuesAbsent(logs.text());
