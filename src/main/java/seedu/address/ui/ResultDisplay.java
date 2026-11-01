@@ -165,6 +165,11 @@ public class ResultDisplay extends UiPart<Region> {
             chip.setOnMouseClicked(event -> onRecentPicked.accept(command));
             row.getChildren().add(chip);
         }
+        // A narrow row cuts the older commands short first; "Recent" and the newest command stay readable.
+        caption.setMinWidth(Region.USE_PREF_SIZE);
+        Label newest = (Label) row.getChildren().get(row.getChildren().size() - 1);
+        newest.minWidthProperty().bind(Bindings.createDoubleBinding(() ->
+                Math.min(MAX_CHIP_WIDTH, newest.prefWidth(-1)), newest.fontProperty()));
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
         Text result = new Text(message);

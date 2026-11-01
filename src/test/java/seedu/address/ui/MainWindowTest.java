@@ -927,6 +927,33 @@ public class MainWindowTest {
         });
     }
 
+    // In a narrow window, long recent commands must give way so "Recent" and the newest command stay readable.
+    @Test
+    public void recentRow_narrowWindowLongCommands_keepsCaptionAndNewestCommand() throws Exception {
+        // The window opens at its minimum width, 760.
+        runOnFxThread(() -> {
+            submitCommand("edit 2 name/Muhammad Hafiz bin Rahman");
+            submitCommand("note-add 1 date/2026-10-15 text/Finished the fractions worksheet and began ratio");
+            submitCommand("followup-add 1 text/Send the term 4 progress report to the parents this week");
+            submitCommand("note-add 2 date/2026-10-16 text/Reviewed the algebra homework and set new practice");
+            submitCommand("view 2");
+        });
+        settle();
+        runOnFxThread(() -> {
+            List<Label> labels = stage.getScene().lookup("#resultDisplayPlaceholder").lookupAll(".label").stream()
+                    .filter(node -> node.getStyleClass().contains("result-caption")
+                            || node.getStyleClass().contains("recent-chip"))
+                    .map(Label.class::cast).toList();
+            Label caption = labels.get(0);
+            Label newest = labels.get(labels.size() - 1);
+            assertEquals(List.of("Recent", "view 2"), List.of(caption.getText(), newest.getText()));
+            for (Label label : List.of(caption, newest)) {
+                assertTrue(label.getWidth() >= label.prefWidth(-1) - 0.5,
+                        label.getText() + " is " + label.getWidth() + " of " + label.prefWidth(-1));
+            }
+        });
+    }
+
     // On Windows and Linux, releasing Alt focuses the menu bar; after Alt+Down the user is still typing.
     @Test
     public void altRelease_afterAltDown_isKeptFromWindow() throws Exception {
