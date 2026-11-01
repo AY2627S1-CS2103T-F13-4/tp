@@ -14,7 +14,7 @@ We are a team based in the [School of Computing, National University of Singapor
 [[github](https://github.com/minweed)]
 
 - Role: Developer
-- Responsibilities: UI mockup
+- Responsibilities: Lessons and schooling levels, sorting by level and rate, sample data
 
 ### Pranav Pappu
 
@@ -23,7 +23,7 @@ We are a team based in the [School of Computing, National University of Singapor
 [[github](https://github.com/pranavp311)]
 
 - Role: Developer
-- Responsibilities: README documentation
+- Responsibilities: Main window and calendar UI, student grouping, progress notes, data file backup
 
 ### Dylan Sim
 
@@ -32,7 +32,7 @@ We are a team based in the [School of Computing, National University of Singapor
 [[github](https://github.com/dygrik)]
 
 - Role: Developer
-- Responsibilities: Developer Guide
+- Responsibilities: Student search and filters, hourly rates, safe saving, name and log handling
 
 ### Lee Jian Yi
 
@@ -41,7 +41,7 @@ We are a team based in the [School of Computing, National University of Singapor
 [[github](https://github.com/savemywifi)]
 
 - Role: Developer
-- Responsibilities: Website navigation and settings
+- Responsibilities: Weekly lesson slots and schedule, archiving, school field, command structure
 
 ### Mervin Ang
 
@@ -50,4 +50,4 @@ We are a team based in the [School of Computing, National University of Singapor
 [[github](https://github.com/nivremi)]
 
 - Role: Developer
-- Responsibilities: Use cases, non-functional requirements and glossary
+- Responsibilities: Guardians and follow-ups, lesson clash warnings, input validation
