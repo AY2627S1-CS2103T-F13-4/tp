@@ -7,6 +7,7 @@ import static seedu.address.logic.parser.CliSyntax.PREFIX_NAME;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
 
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -66,7 +67,7 @@ public class MainWindow extends UiPart<Stage> {
     private static final Logger logger = LogsCenter.getLogger(MainWindow.class);
     /** Index of the first level filter; the divider before them is child 0 of their row. */
     private static final int LEVEL_NAV_FIRST_FILTER = 1;
-    /** Below this height the brand and the footer are hidden, leaving the screen room for a few rows. */
+    /** Below this height the brand, the footer and each screen's heading row are hidden, leaving room for rows. */
     private static final double SHORT_WINDOW_HEIGHT = 560;
     /** Below this width the level filters are hidden, leaving the tabs room. */
     private static final double LEVEL_NAV_MIN_WIDTH = 900;
@@ -282,7 +283,9 @@ public class MainWindow extends UiPart<Stage> {
         fillNavigation();
         Region content = (Region) brand.getParent();
         BooleanBinding tall = content.heightProperty().greaterThanOrEqualTo(SHORT_WINDOW_HEIGHT);
-        for (Node node : List.of(brand, statusbarPlaceholder)) {
+        List<Node> hiddenWhenShort = new ArrayList<>(personListPanelPlaceholder.lookupAll(".page-header"));
+        hiddenWhenShort.addAll(List.of(brand, statusbarPlaceholder));
+        for (Node node : hiddenWhenShort) {
             node.visibleProperty().bind(tall);
             node.managedProperty().bind(tall);
         }

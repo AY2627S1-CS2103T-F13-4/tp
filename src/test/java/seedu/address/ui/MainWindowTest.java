@@ -897,19 +897,26 @@ public class MainWindowTest {
         });
     }
 
-    // At the minimum window size a long message scrolls within its box, so the table below keeps most of the
-    // room it has under a one-line message instead of being pushed out of view.
+    // At the minimum window size a usage error must show whole, Format and Example included. The window makes room
+    // by dropping each screen's heading row, as it drops the brand and footer, never by cutting the message.
     @Test
-    public void longMessage_minimumWindow_keepsStudentRowsInView() throws Exception {
+    public void usageError_minimumWindow_showsWholeMessageAndDropsHeadings() throws Exception {
         resizeWindow(760, 400);
-        runOnFxThread(() -> submitCommand("list"));
+        runOnFxThread(() -> {
+            submitCommand("list");
+            submitFailedCommand("add name/x");
+        });
         settle();
-        double oneLineRoom = FxTestUtil.callOnFxThread(this::visibleTableHeight);
-        runOnFxThread(() -> submitFailedCommand("edit 1 email/notanemail"));
-        settle();
-        double longMessageRoom = FxTestUtil.callOnFxThread(this::visibleTableHeight);
-        assertTrue(longMessageRoom >= oneLineRoom / 2,
-                "table shows " + longMessageRoom + "px, " + oneLineRoom + "px under a one-line message");
+        runOnFxThread(() -> {
+            ScrollPane result = assertInstanceOf(ScrollPane.class, stage.getScene().lookup("#resultScroll"));
+            double message = result.getContent().getLayoutBounds().getHeight();
+            assertTrue(message <= result.getHeight() + 0.5, "message " + message + " in " + result.getHeight());
+            stage.getScene().getRoot().lookupAll(".page-header").forEach(heading -> assertFalse(heading.isVisible()));
+            assertTrue(visibleTableHeight() > 0, "The table's rows should start inside the window");
+        });
+        resizeWindow(1000, 800);
+        runOnFxThread(() -> stage.getScene().getRoot().lookupAll(".page-header")
+                .forEach(heading -> assertTrue(heading.isVisible())));
     }
 
     // Alt+Down opens another student's details without a command, so the result must name that student, not
