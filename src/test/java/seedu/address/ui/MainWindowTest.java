@@ -896,6 +896,21 @@ public class MainWindowTest {
         });
     }
 
+    // At the minimum window size a long message scrolls within its box, so the table below keeps most of the
+    // room it has under a one-line message instead of being pushed out of view.
+    @Test
+    public void longMessage_minimumWindow_keepsStudentRowsInView() throws Exception {
+        resizeWindow(760, 400);
+        runOnFxThread(() -> submitCommand("list"));
+        settle();
+        double oneLineRoom = FxTestUtil.callOnFxThread(this::visibleTableHeight);
+        runOnFxThread(() -> submitFailedCommand("edit 1 email/notanemail"));
+        settle();
+        double longMessageRoom = FxTestUtil.callOnFxThread(this::visibleTableHeight);
+        assertTrue(longMessageRoom >= oneLineRoom / 2,
+                "table shows " + longMessageRoom + "px, " + oneLineRoom + "px under a one-line message");
+    }
+
     // On Windows and Linux, releasing Alt focuses the menu bar; after Alt+Down the user is still typing.
     @Test
     public void altRelease_afterAltDown_isKeptFromWindow() throws Exception {
@@ -1380,6 +1395,13 @@ public class MainWindowTest {
 
     private GridPane scheduleGrid() {
         return assertInstanceOf(GridPane.class, schedulePlaceholder().getContent());
+    }
+
+    /** Returns how much of the student table's rows show within the window. */
+    private double visibleTableHeight() {
+        Node flow = studentTable().lookup(".virtual-flow");
+        Bounds bounds = flow.localToScene(flow.getLayoutBounds());
+        return Math.min(bounds.getMaxY(), stage.getScene().getHeight()) - bounds.getMinY();
     }
 
     private TextField commandField() {

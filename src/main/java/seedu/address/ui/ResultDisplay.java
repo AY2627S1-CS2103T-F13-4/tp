@@ -44,9 +44,9 @@ public class ResultDisplay extends UiPart<Region> {
     private static final double SCROLL_BAR_ALLOWANCE = 14;
     /** Width of the "Tab to use" hint after an example. */
     private static final double TAB_HINT_WIDTH = 84;
-    /** Smallest height the result may grow to before scrolling, and its share of the window above that. */
-    private static final double MIN_MAX_HEIGHT = 132;
+    /** Share of the window the result may grow to before scrolling, and the height it leaves for the rest. */
     private static final double WINDOW_SHARE = 0.4;
+    private static final double SCREEN_RESERVE = 320;
     /** Longest success message shown beside the recent commands; longer ones need the row's full width. */
     private static final int MAX_RECENT_ROW_MESSAGE = 60;
     /** Widest a recent-command chip gets before its text is cut short. */
@@ -73,11 +73,11 @@ public class ResultDisplay extends UiPart<Region> {
         resultIcon.setText("i");
         render(WELCOME_MESSAGE);
         // Long messages, such as a command's full usage, may take up to 40% of the window before they scroll,
-        // so they can be read without the mouse wheel.
+        // so they can be read without the mouse wheel. A short window keeps a few rows of the screen below.
         resultScroll.sceneProperty().addListener((unused, oldScene, scene) -> {
             if (scene != null) {
-                resultScroll.maxHeightProperty().bind(
-                        Bindings.max(MIN_MAX_HEIGHT, scene.heightProperty().multiply(WINDOW_SHARE)));
+                resultScroll.maxHeightProperty().bind(Bindings.min(scene.heightProperty().multiply(WINDOW_SHARE),
+                        scene.heightProperty().subtract(SCREEN_RESERVE)));
             }
         });
     }
