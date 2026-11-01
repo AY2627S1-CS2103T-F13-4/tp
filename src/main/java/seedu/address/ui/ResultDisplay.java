@@ -163,8 +163,17 @@ public class ResultDisplay extends UiPart<Region> {
             chip.setMaxWidth(MAX_CHIP_WIDTH);
             Tooltip.install(chip, new Tooltip(command));
             chip.setOnMouseClicked(event -> onRecentPicked.accept(command));
+            chip.visibleProperty().bind(chip.managedProperty());
             row.getChildren().add(chip);
         }
+        // A narrow row drops the oldest commands whole, so "Recent", the newest command and the result stay readable.
+        caption.setMinWidth(Region.USE_PREF_SIZE);
+        List<Node> older = List.copyOf(row.getChildren().subList(1, recent.size()));
+        row.setMinWidth(0);
+        row.widthProperty().addListener((unused, oldWidth, width) -> {
+            older.forEach(chip -> chip.setManaged(true));
+            older.forEach(chip -> chip.setManaged(row.prefWidth(-1) <= width.doubleValue()));
+        });
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
         Text result = new Text(message);

@@ -59,6 +59,7 @@ import seedu.address.logic.LogicManager;
 import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.ListArchiveCommand;
 import seedu.address.logic.commands.ListCommand;
+import seedu.address.logic.commands.ViewCommand;
 import seedu.address.logic.commands.WeekCommand;
 import seedu.address.model.ModelManager;
 import seedu.address.model.ReadOnlyAddressBook;
@@ -590,9 +591,14 @@ public class MainWindowTest {
     // width has: the table's columns follow its width, which must not hold the table at its old width.
     @Test
     public void studentTable_windowShrunk_fitsAndSwitchesLayoutLikeFreshWindow() throws Exception {
-        // The window opens at its minimum width, 760, so the table starts narrow.
-        runOnFxThread(() -> submitCommand("list"));
+        // Windows can initially show a stage narrower than its minimum. Establish the same width at both ends.
+        runOnFxThread(() -> {
+            stage.setWidth(stage.getMinWidth());
+            submitCommand("list");
+        });
         settle();
+        double freshStageWidth = FxTestUtil.callOnFxThread(stage::getWidth);
+        double freshSceneWidth = FxTestUtil.callOnFxThread(() -> stage.getScene().getWidth());
         double freshNarrowWidth = FxTestUtil.callOnFxThread(() -> studentTable().getWidth());
         resizeWindow(Math.min(1470, Screen.getPrimary().getVisualBounds().getWidth()));
         settle();
@@ -614,7 +620,11 @@ public class MainWindowTest {
                 }
             });
         }
-        runOnFxThread(() -> assertEquals(freshNarrowWidth, studentTable().getWidth(), 0.5));
+        runOnFxThread(() -> {
+            assertEquals(freshStageWidth, stage.getWidth(), 0.5, "Compare the same window width");
+            assertEquals(freshSceneWidth, stage.getScene().getWidth(), 0.5, "Compare the same content width");
+            assertEquals(freshNarrowWidth, studentTable().getWidth(), 0.5);
+        });
     }
 
     // Rows, open details and the scroll bar must stay inside the card's rounded corners at every size, so the
@@ -893,6 +903,100 @@ public class MainWindowTest {
             assertEquals("", commandField.getText());
             // The window's focus owner, not isFocused(), which also needs the OS to focus the test window.
             assertSame(commandField, stage.getScene().getFocusOwner());
+        });
+    }
+
+    // At the minimum window size a usage error must show whole, Format and Example included. The window makes room
+    // by dropping each screen's heading row, as it drops the brand and footer, never by cutting the message.
+    @Test
+    public void usageError_minimumWindow_showsWholeMessageAndDropsHeadings() throws Exception {
+        resizeWindow(760, 400);
+        runOnFxThread(() -> {
+            submitCommand("list");
+            submitFailedCommand("add name/x");
+        });
+        settle();
+        runOnFxThread(() -> {
+            ScrollPane result = assertInstanceOf(ScrollPane.class, stage.getScene().lookup("#resultScroll"));
+            double message = result.getContent().getLayoutBounds().getHeight();
+            assertTrue(message <= result.getHeight() + 0.5, "message " + message + " in " + result.getHeight());
+            stage.getScene().getRoot().lookupAll(".page-header").forEach(heading -> assertFalse(heading.isVisible()));
+            assertTrue(visibleTableHeight() > 0, "The table's rows should start inside the window");
+        });
+        resizeWindow(1000, 800);
+        runOnFxThread(() -> stage.getScene().getRoot().lookupAll(".page-header")
+                .forEach(heading -> assertTrue(heading.isVisible())));
+    }
+
+    // Alt+Down opens another student's details without a command, so the result must name that student, not
+    // the one view opened. A command that opens a student itself keeps its own message.
+    @Test
+    public void altDown_afterView_resultNamesNewlyOpenStudent() throws Exception {
+        runOnFxThread(() -> {
+            submitCommand("view 1");
+            pressKey(KeyCode.DOWN, true);
+            assertEquals(String.format(ViewCommand.MESSAGE_SUCCESS, "Bob"), resultMessage());
+            pressKey(KeyCode.UP, true);
+            assertEquals(String.format(ViewCommand.MESSAGE_SUCCESS, "Alice"), resultMessage());
+            submitCommand("note-add 2 date/2026-10-15 text/Fractions");
+            assertTrue(resultMessage().startsWith("Added note"), resultMessage());
+        });
+    }
+
+    // In a narrow window, long recent commands must give way so "Recent" and the newest command stay readable.
+    @Test
+    public void recentRow_narrowWindowLongCommands_keepsCaptionAndNewestCommand() throws Exception {
+        // The window opens at its minimum width, 760.
+        runOnFxThread(() -> {
+            submitCommand("edit 2 name/Muhammad Hafiz bin Rahman");
+            submitCommand("note-add 1 date/2026-10-15 text/Finished the fractions worksheet and began ratio");
+            submitCommand("followup-add 1 text/Send the term 4 progress report to the parents this week");
+            submitCommand("note-add 2 date/2026-10-16 text/Reviewed the algebra homework and set new practice");
+            submitCommand("view 2");
+        });
+        settle();
+        runOnFxThread(() -> {
+            List<Label> labels = stage.getScene().lookup("#resultDisplayPlaceholder").lookupAll(".label").stream()
+                    .filter(node -> node.getStyleClass().contains("result-caption")
+                            || node.getStyleClass().contains("recent-chip"))
+                    .map(Label.class::cast).toList();
+            Label caption = labels.get(0);
+            Label newest = labels.get(labels.size() - 1);
+            assertEquals(List.of("Recent", "view 2"), List.of(caption.getText(), newest.getText()));
+            for (Label label : List.of(caption, newest)) {
+                assertTrue(label.getWidth() >= label.prefWidth(-1) - 0.5,
+                        label.getText() + " is " + label.getWidth() + " of " + label.prefWidth(-1));
+            }
+        });
+    }
+
+    // The result must never be cut off. When a long newest command and a near-60-character result leave no room,
+    // the oldest commands drop out whole rather than every chip shrinking to "...".
+    @Test
+    public void recentRow_longNewestAndResult_dropsOldestAndShowsWholeResult() throws Exception {
+        // The window opens at its minimum width, 760.
+        runOnFxThread(() -> {
+            submitCommand("list");
+            submitCommand("view 2");
+            submitCommand("followup-add 2 text/Ask about the tuition fees, Mon.");
+        });
+        settle();
+        runOnFxThread(() -> {
+            Node results = stage.getScene().lookup("#resultDisplayPlaceholder");
+            Text result = results.lookupAll("Text").stream()
+                    .filter(node -> node.getStyleClass().contains("result-text"))
+                    .map(Text.class::cast).findFirst().orElseThrow();
+            assertEquals("Added follow-up for Bob: 1. Ask about the tuition fees, Mon.", result.getText());
+            // Text bounds can run a fraction of a pixel past their layout width.
+            assertTrue(sceneMaxX(result) <= sceneMaxX(stage.getScene().lookup("#resultScroll")) + 0.5,
+                    "The result should end inside its box");
+            List<Label> chips = results.lookupAll(".recent-chip").stream().map(Label.class::cast).toList();
+            assertTrue(isShown(chips.get(chips.size() - 1)), "The newest command should stay");
+            for (Label chip : chips.subList(0, chips.size() - 1)) {
+                assertTrue(!isShown(chip) || chip.getWidth() >= Math.min(chip.prefWidth(-1), 200) - 0.5,
+                        chip.getText() + " should be whole or hidden, not " + chip.getWidth() + " wide");
+            }
+            assertFalse(isShown(chips.get(0)), "The oldest command should make room first");
         });
     }
 
@@ -1380,6 +1484,21 @@ public class MainWindowTest {
 
     private GridPane scheduleGrid() {
         return assertInstanceOf(GridPane.class, schedulePlaceholder().getContent());
+    }
+
+    /** Returns how much of the student table's rows show within the window. */
+    private double visibleTableHeight() {
+        Node flow = studentTable().lookup(".virtual-flow");
+        Bounds bounds = flow.localToScene(flow.getLayoutBounds());
+        return Math.min(bounds.getMaxY(), stage.getScene().getHeight()) - bounds.getMinY();
+    }
+
+    /** Returns the message of the latest result, without any recent commands shown beside it. */
+    private String resultMessage() {
+        return stage.getScene().lookup("#resultDisplayPlaceholder").lookupAll("Text").stream()
+                .filter(node -> node.getStyleClass().contains("result-text")
+                        || node.getStyleClass().contains("result-title"))
+                .map(Text.class::cast).map(Text::getText).findFirst().orElseThrow();
     }
 
     private TextField commandField() {

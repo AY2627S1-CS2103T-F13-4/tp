@@ -210,12 +210,13 @@ Format: `find [name/TEXT] [guardian/TEXT] [sch/TEXT] [level/TEXT] [subject/TEXT]
 
 * Give at least one field. A student must match all of them.
 * Text matches any part of a word, ignoring capitals. `guardian/` matches the guardian's name or phone.
+* `level/` also matches a stage by its full or shortened name: `level/prim` and `level/Primary 5` find `P5`, and `level/Secondary` finds `Sec 3`.
 * `day/` takes a three-letter or full day name, e.g. `Mon` or `monday`.
 * With `subject/` and `day/` together, one lesson must match both. **This week** then shows only the matching lessons. Student details still show every lesson.
 * `find` searches the open list, **Students** or **Archives**. The search stays on as you make changes, so students can join or leave the results and numbers can change. Type `list` or `list-archive` to clear it.
 
 Examples:
-* `find level/jc`
+* `find level/prim` finds students in `P5` or `Primary 5`.
 * `find day/Mon`
 * `find guardian/9182` finds students whose guardian's phone contains `9182`.
 * `find level/Sec subject/math day/wednesday` finds `Sec` students with a Math lesson on Wednesday.

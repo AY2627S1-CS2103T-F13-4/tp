@@ -7,6 +7,7 @@ import static seedu.address.logic.parser.CliSyntax.PREFIX_NAME;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
 
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -48,6 +49,7 @@ import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.FindCommand;
 import seedu.address.logic.commands.ListArchiveCommand;
 import seedu.address.logic.commands.ListCommand;
+import seedu.address.logic.commands.ViewCommand;
 import seedu.address.logic.commands.WeekCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.exceptions.ParseException;
@@ -65,7 +67,7 @@ public class MainWindow extends UiPart<Stage> {
     private static final Logger logger = LogsCenter.getLogger(MainWindow.class);
     /** Index of the first level filter; the divider before them is child 0 of their row. */
     private static final int LEVEL_NAV_FIRST_FILTER = 1;
-    /** Below this height the brand and the footer are hidden, leaving the screen room for a few rows. */
+    /** Below this height the brand, the footer and each screen's heading row are hidden, leaving room for rows. */
     private static final double SHORT_WINDOW_HEIGHT = 560;
     /** Below this width the level filters are hidden, leaving the tabs room. */
     private static final double LEVEL_NAV_MIN_WIDTH = 900;
@@ -92,6 +94,7 @@ public class MainWindow extends UiPart<Stage> {
     private ResultDisplay resultDisplay;
     private CommandBox commandBox;
     private final Consumer<String> openDocument;
+    private boolean runningCommand;
 
     @FXML
     private StackPane commandBoxPlaceholder;
@@ -246,6 +249,14 @@ public class MainWindow extends UiPart<Stage> {
                 visiblePersonListPanel().closeDetails();
             }
         });
+        // Alt+Up/Down and clicks open details without a command, so the result names whose details are shown.
+        for (PersonListPanel panel : List.of(personListPanel, archivedPersonListPanel)) {
+            panel.openStudentProperty().addListener((unused, oldStudent, student) -> {
+                if (!runningCommand && student != null) {
+                    resultDisplay.setFeedbackToUser(String.format(ViewCommand.MESSAGE_SUCCESS, student.getName()));
+                }
+            });
+        }
         commandBox.setSideScroller(direction -> {
             if (weekPanel.getRoot().isVisible()) {
                 weekPanel.scrollSideways(direction);
@@ -272,7 +283,9 @@ public class MainWindow extends UiPart<Stage> {
         fillNavigation();
         Region content = (Region) brand.getParent();
         BooleanBinding tall = content.heightProperty().greaterThanOrEqualTo(SHORT_WINDOW_HEIGHT);
-        for (Node node : List.of(brand, statusbarPlaceholder)) {
+        List<Node> hiddenWhenShort = new ArrayList<>(personListPanelPlaceholder.lookupAll(".page-header"));
+        hiddenWhenShort.addAll(List.of(brand, statusbarPlaceholder));
+        for (Node node : hiddenWhenShort) {
             node.visibleProperty().bind(tall);
             node.managedProperty().bind(tall);
         }
@@ -477,6 +490,7 @@ public class MainWindow extends UiPart<Stage> {
     private CommandResult executeCommand(String commandText) throws CommandException, ParseException {
         Student activeDetails = personListPanel.getOpenStudent();
         Student archivedDetails = archivedPersonListPanel.getOpenStudent();
+        runningCommand = true;
         try {
             CommandResult commandResult = logic.execute(commandText);
             resultDisplay.setRecent(commandBox.recent(RECENT_COMMANDS));
@@ -504,6 +518,8 @@ public class MainWindow extends UiPart<Stage> {
             // Failed saves restore the model's list selection; keep the screen that was visible before the command.
             resultDisplay.setErrorToUser(e.getMessage());
             throw e;
+        } finally {
+            runningCommand = false;
         }
     }
 }

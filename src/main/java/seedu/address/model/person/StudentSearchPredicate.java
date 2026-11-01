@@ -35,13 +35,19 @@ public final class StudentSearchPredicate implements Predicate<Student> {
         return value.toLowerCase(Locale.ROOT).contains(text);
     }
 
+    /** Matches a phone substring using the same separator removal as stored phone numbers. */
+    private static boolean phoneContains(Phone phone, String text) {
+        String normalizedQuery = text.replaceAll("[ -]", "");
+        return !normalizedQuery.isEmpty() && phone.value.contains(normalizedQuery);
+    }
+
     @Override
     public boolean test(Student student) {
         requireNonNull(student);
         return name.map(text -> contains(student.getName().fullName, text)).orElse(true)
                 && guardian.map(text -> student.getGuardian()
                         .map(contact -> contains(contact.getName().fullName, text)
-                                || contains(contact.getPhone().value, text)).orElse(false)).orElse(true)
+                                || phoneContains(contact.getPhone(), text)).orElse(false)).orElse(true)
                 && school.map(text -> student.getSchool().map(value -> contains(value.value, text))
                         .orElse(false)).orElse(true)
                 && level.map(predicate -> predicate.test(student)).orElse(true)

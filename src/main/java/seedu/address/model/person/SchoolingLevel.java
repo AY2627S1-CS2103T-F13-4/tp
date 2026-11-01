@@ -3,6 +3,8 @@ package seedu.address.model.person;
 import static java.util.Objects.requireNonNull;
 import static seedu.address.commons.util.AppUtil.checkArgument;
 
+import java.util.Locale;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /** An immutable, normalized tuition label. */
@@ -21,6 +23,8 @@ public final class SchoolingLevel {
     private static final Pattern PRIMARY = Pattern.compile("(?i)(p|pri|primary)\\s*[1-6](\\s.*)?");
     private static final Pattern SECONDARY = Pattern.compile("(?i)(s|sec|secondary)\\s*[1-5](\\s.*)?");
     private static final Pattern JC = Pattern.compile("(?i)(j|jc|junior college)\\s*[1-3](\\s.*)?");
+    // Splits text such as "Sec 3 Express" or "prim" into its leading stage word and the rest.
+    private static final Pattern STAGE_WORD = Pattern.compile("(?i)(junior college|[a-z]+)\\s*(.*)");
 
     public final String value;
 
@@ -55,6 +59,36 @@ public final class SchoolingLevel {
             return Stage.SECONDARY;
         }
         if (JC.matcher(trimmed).matches()) {
+            return Stage.JC;
+        }
+        return Stage.OTHER;
+    }
+
+    /**
+     * Returns whether {@code text} names the stage of {@code level}, by any of its words or their starts, with
+     * the rest of {@code text} starting what follows the level's stage word. E.g. "prim" and "Secondary 3" name
+     * "P5" and "Sec 3 Express", but "Secondary 3" does not name "Sec 2 G3".
+     */
+    public static boolean isStageNamedBy(String level, String text) {
+        Stage stage = stageOf(level);
+        Matcher query = STAGE_WORD.matcher(text.strip());
+        if (stage == Stage.OTHER || !query.matches() || stageNamed(query.group(1)) != stage) {
+            return false;
+        }
+        Matcher rest = STAGE_WORD.matcher(level.strip());
+        return rest.matches() && rest.group(2).toLowerCase(Locale.ROOT)
+                .startsWith(query.group(2).toLowerCase(Locale.ROOT));
+    }
+
+    private static Stage stageNamed(String word) {
+        String lower = word.toLowerCase(Locale.ROOT);
+        if ("primary".startsWith(lower)) {
+            return Stage.PRIMARY;
+        }
+        if ("secondary".startsWith(lower)) {
+            return Stage.SECONDARY;
+        }
+        if (lower.equals("jc") || "junior college".startsWith(lower)) {
             return Stage.JC;
         }
         return Stage.OTHER;
