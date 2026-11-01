@@ -14,6 +14,7 @@ import static seedu.address.testutil.TypicalPersons.AMY;
 import java.io.IOException;
 import java.nio.file.AccessDeniedException;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -29,6 +30,7 @@ import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.ReadOnlyAddressBook;
 import seedu.address.model.UserPrefs;
+import seedu.address.model.person.Lesson;
 import seedu.address.storage.JsonAddressBookStorage;
 import seedu.address.storage.JsonUserPrefsStorage;
 import seedu.address.storage.StorageManager;
@@ -88,6 +90,88 @@ public class LogicManagerTest {
                 temporaryFolder.resolve(".studentbook-123.tmp").toString());
         assertCommandFailureForExceptionFromStorage(failure, String.format(
                 LogicManager.FILE_OPS_PERMISSION_ERROR_FORMAT, temporaryFolder.resolve("ExceptionAddressBook.json")));
+    }
+
+    @Test
+    public void execute_subjectCapitalizationEdit_isSaved() throws Exception {
+        assertCapitalizationEditSaved("lesson-edit 1 1 subject/Math", "Math", "home");
+    }
+
+    @Test
+    public void execute_locationCapitalizationEdit_isSaved() throws Exception {
+        assertCapitalizationEditSaved("lesson-edit 1 1 location/Home", "math", "Home");
+    }
+
+    @Test
+    public void execute_subjectAndLocationCapitalizationEdit_isSaved() throws Exception {
+        assertCapitalizationEditSaved("lesson-edit 1 1 subject/Math location/Home", "Math", "Home");
+    }
+
+    @Test
+    public void execute_archivedStudentCapitalizationEdit_isSaved() throws Exception {
+        model.addPerson(AMY);
+        logic.execute("lesson-add 1 subject/math slot/Mon 1.00pm 2.00pm rate/40 location/home");
+        logic.execute("archive 1");
+        logic.execute("list-archive");
+        logic.execute("lesson-edit 1 1 subject/Math location/Home");
+        logic.execute("exit");
+
+        JsonAddressBookStorage storage = new JsonAddressBookStorage(temporaryFolder.resolve("addressBook.json"));
+        Lesson lesson = storage.readAddressBook().orElseThrow().getArchivedPersonList().get(0).getLessons().get(0);
+        assertEquals("Math", lesson.getSubject().value);
+        assertEquals("Home", lesson.getLocation().orElseThrow().value);
+    }
+
+    @Test
+    public void execute_failedCapitalizationEdit_rollsBackAndCanBeRetried() throws Exception {
+        for (IOException failure : new IOException[] {DUMMY_IO_EXCEPTION, DUMMY_AD_EXCEPTION}) {
+            for (String edit : List.of("lesson-edit 1 1 subject/Math", "lesson-edit 1 1 location/Home")) {
+                AtomicBoolean failSaves = new AtomicBoolean(false);
+                Path dataFile = temporaryFolder.resolve("case-retry.json");
+                JsonAddressBookStorage storage = new JsonAddressBookStorage(dataFile) {
+                    @Override
+                    public void saveAddressBook(ReadOnlyAddressBook addressBook) throws IOException {
+                        if (failSaves.get()) {
+                            throw failure;
+                        }
+                        super.saveAddressBook(addressBook);
+                    }
+                };
+                Model testModel = new ModelManager();
+                testModel.addPerson(AMY);
+                Logic testLogic = new LogicManager(testModel, new StorageManager(storage,
+                        new JsonUserPrefsStorage(temporaryFolder.resolve("case-retry-prefs.json"))));
+                testLogic.execute("lesson-add 1 subject/math slot/Mon 1.00pm 2.00pm rate/40 location/home");
+                failSaves.set(true);
+
+                CommandException error = org.junit.jupiter.api.Assertions.assertThrows(
+                        CommandException.class, () -> testLogic.execute(edit));
+
+                assertTrue(error.getMessage().contains("records are unchanged"));
+                assertLessonText(testModel.getAddressBook(), "math", "home");
+                assertLessonText(storage.readAddressBook().orElseThrow(), "math", "home");
+                failSaves.set(false);
+                testLogic.execute(edit);
+                assertLessonText(storage.readAddressBook().orElseThrow(),
+                        edit.contains("subject/") ? "Math" : "math", edit.contains("location/") ? "Home" : "home");
+            }
+        }
+    }
+
+    private void assertCapitalizationEditSaved(String edit, String subject, String location) throws Exception {
+        model.addPerson(AMY);
+        logic.execute("lesson-add 1 subject/math slot/Mon 1.00pm 2.00pm rate/40 location/home");
+        logic.execute(edit);
+        logic.execute("exit");
+
+        JsonAddressBookStorage storage = new JsonAddressBookStorage(temporaryFolder.resolve("addressBook.json"));
+        assertLessonText(storage.readAddressBook().orElseThrow(), subject, location);
+    }
+
+    private static void assertLessonText(ReadOnlyAddressBook records, String subject, String location) {
+        Lesson lesson = records.getPersonList().get(0).getLessons().get(0);
+        assertEquals(subject, lesson.getSubject().value);
+        assertEquals(location, lesson.getLocation().orElseThrow().value);
     }
 
     @Test
