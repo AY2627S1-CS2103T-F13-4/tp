@@ -590,9 +590,14 @@ public class MainWindowTest {
     // width has: the table's columns follow its width, which must not hold the table at its old width.
     @Test
     public void studentTable_windowShrunk_fitsAndSwitchesLayoutLikeFreshWindow() throws Exception {
-        // The window opens at its minimum width, 760, so the table starts narrow.
-        runOnFxThread(() -> submitCommand("list"));
+        // Windows can initially show a stage narrower than its minimum. Establish the same width at both ends.
+        runOnFxThread(() -> {
+            stage.setWidth(stage.getMinWidth());
+            submitCommand("list");
+        });
         settle();
+        double freshStageWidth = FxTestUtil.callOnFxThread(stage::getWidth);
+        double freshSceneWidth = FxTestUtil.callOnFxThread(() -> stage.getScene().getWidth());
         double freshNarrowWidth = FxTestUtil.callOnFxThread(() -> studentTable().getWidth());
         resizeWindow(Math.min(1470, Screen.getPrimary().getVisualBounds().getWidth()));
         settle();
@@ -614,7 +619,11 @@ public class MainWindowTest {
                 }
             });
         }
-        runOnFxThread(() -> assertEquals(freshNarrowWidth, studentTable().getWidth(), 0.5));
+        runOnFxThread(() -> {
+            assertEquals(freshStageWidth, stage.getWidth(), 0.5, "Compare the same window width");
+            assertEquals(freshSceneWidth, stage.getScene().getWidth(), 0.5, "Compare the same content width");
+            assertEquals(freshNarrowWidth, studentTable().getWidth(), 0.5);
+        });
     }
 
     // Rows, open details and the scroll bar must stay inside the card's rounded corners at every size, so the
