@@ -934,6 +934,43 @@ public class MainWindowTest {
         });
     }
 
+    // Esc closes details without a command, so the result must stop saying whose details are shown.
+    @Test
+    public void escape_afterView_resultSaysDetailsClosed() throws Exception {
+        runOnFxThread(() -> {
+            submitCommand("view 1");
+            pressKey(KeyCode.ESCAPE, false);
+            assertEquals(null, studentTable().getSelectionModel().getSelectedItem());
+            assertEquals("Closed Alice's details", resultMessage());
+        });
+    }
+
+    // Enter on a box of only spaces is the same as on an empty box: nothing runs, so no error appears.
+    @Test
+    public void enter_onlySpaces_runsNothing() throws Exception {
+        runOnFxThread(() -> {
+            submitCommand("list");
+            String before = resultMessage();
+            TextField commandField = commandField();
+            commandField.setText("   ");
+            commandField.fireEvent(new ActionEvent());
+            assertEquals(before, resultMessage());
+            assertFalse(commandField.getStyleClass().contains(CommandBox.ERROR_STYLE_CLASS));
+        });
+    }
+
+    // Narrowing the window rewraps every row, which moved the open student's name out of view; it must stay shown.
+    @Test
+    public void resize_narrowAndShortWithTallDetailsOpen_keepsOpenRowTopInView() throws Exception {
+        addStudentsWithNotes();
+        resizeWindow(1024, 768);
+        runOnFxThread(() -> submitCommand("view 5"));
+        assertOpenRowFullyShownOrAtTop(4, "before resizing");
+        resizeWindow(760, 400);
+        settle();
+        assertOpenRowAtListTop(4, "after resizing");
+    }
+
     // In a narrow window, long recent commands must give way so "Recent" and the newest command stay readable.
     @Test
     public void recentRow_narrowWindowLongCommands_keepsCaptionAndNewestCommand() throws Exception {
@@ -1418,6 +1455,21 @@ public class MainWindowTest {
             assertTrue(rowBounds.getHeight() > flowBounds.getHeight(), message + ": the row should be taller");
             assertEquals(0, rowBounds.getMinY() - flowBounds.getMinY(), 1, message);
         });
+    }
+
+    /** Checks row {@code index} is open and shown whole, or, when taller than the list, from its top. */
+    private void assertOpenRowFullyShownOrAtTop(int index, String message) throws Exception {
+        awaitDetailsSettled();
+        boolean taller = FxTestUtil.callOnFxThread(() -> {
+            VirtualFlow<?> flow = assertInstanceOf(VirtualFlow.class, studentTable().lookup(".virtual-flow"));
+            IndexedCell<?> row = flow.getVisibleCell(index);
+            return row != null && row.getHeight() > flow.getHeight();
+        });
+        if (taller) {
+            assertOpenRowAtListTop(index, message);
+        } else {
+            assertOpenRowFullyShown(index, message);
+        }
     }
 
     /** Waits for the open animation to settle, then checks that row {@code index} is open and wholly in the list. */
