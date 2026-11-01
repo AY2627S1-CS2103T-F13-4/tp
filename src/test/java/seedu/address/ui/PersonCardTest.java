@@ -223,14 +223,22 @@ public class PersonCardTest {
         }
     }
 
-    // A typical name and level share one line, as in most rows of the table.
+    // A typical name and level share one line whenever the column fits both, even with only a pixel to spare.
     @Test
     public void bindColumns_typicalNameAndLevel_levelBesideName() throws Exception {
         FxTestUtil.runOnFxThread(() -> {
             Student student = new PersonBuilder().withName("Alice Tan")
                     .withSchoolingLevel(new SchoolingLevel("Secondary 3")).build();
-            PersonCard card = new PersonCard(student, 1);
-            Region root = prepareCard(card, new SimpleDoubleProperty(800), new SimpleDoubleProperty(230));
+            Region wide = prepareCard(new PersonCard(student, 1), new SimpleDoubleProperty(800),
+                    new SimpleDoubleProperty(800));
+            layOut(wide, 800);
+            double nameWidth = wide.lookup("#name").getLayoutBounds().getWidth();
+            double levelWidth = wide.lookup("#schoolingLevel").getLayoutBounds().getWidth();
+
+            // The badge takes 38px of the column and the level sits 10px after the name.
+            double justEnough = 38 + nameWidth + 10 + levelWidth + 1;
+            Region root = prepareCard(new PersonCard(student, 1), new SimpleDoubleProperty(800),
+                    new SimpleDoubleProperty(justEnough));
             layOut(root, 800);
 
             assertLevelBesideName(root);
