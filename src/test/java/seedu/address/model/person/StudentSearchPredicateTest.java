@@ -34,6 +34,37 @@ public class StudentSearchPredicateTest {
     }
 
     @Test
+    public void test_guardianPhoneIgnoresSpacesAndHyphens() {
+        Student student = new PersonBuilder(ALEX)
+                .withGuardian(new Guardian(new Name("Jane Doe"), new Phone("+65 9182 7364"))).build();
+        for (String query : List.of("9182 7364", "9182-7364", "91827364", "+65 9182 7364",
+                "+65-9182-7364", "182 73")) {
+            assertTrue(search(null, query, null, null, null).test(student), query);
+        }
+        assertFalse(search(null, "9182 7365", null, null, null).test(student));
+        assertFalse(search("bob", "9182 7364", null, null, null).test(student));
+        assertFalse(search(null, "9182 7364", null, null, null)
+                .test(new PersonBuilder(student).withGuardian(null).build()));
+    }
+
+    @Test
+    public void test_guardianNamePreservesSpacesAndHyphens() {
+        Student student = new PersonBuilder(ALEX)
+                .withGuardian(new Guardian(new Name("Mary-Jane Doe"), new Phone("91234567"))).build();
+        assertTrue(search(null, "MARY-JANE DOE", null, null, null).test(student));
+        assertTrue(search(null, "jane doe", null, null, null).test(student));
+        assertFalse(search(null, "maryjane", null, null, null).test(student));
+        assertFalse(search(null, "janedoe", null, null, null).test(student));
+    }
+
+    @Test
+    public void test_separatorOnlyGuardianQueryDoesNotMatchEveryPhone() {
+        for (String query : List.of("-", "--", " - - ")) {
+            assertFalse(search(null, query, null, null, null).test(ALEX), query);
+        }
+    }
+
+    @Test
     public void test_requiresEverySuppliedCriterion() {
         for (StudentSearchPredicate predicate : List.of(
                 search("bob", "janet", "raffles", "secondary", MATH),
