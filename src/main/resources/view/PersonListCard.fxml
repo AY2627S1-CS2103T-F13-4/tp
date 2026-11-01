@@ -24,8 +24,11 @@
           <Region fx:constant="USE_PREF_SIZE" />
         </minWidth>
       </Label>
-      <Text fx:id="name" text="\$first" styleClass="row-name" />
-      <Text fx:id="schoolingLevel" text="\$schoolingLevel" styleClass="row-level" />
+      <!-- The level follows the name, or goes under it when their longest words cannot sit side by side -->
+      <FlowPane fx:id="nameFlow" alignment="CENTER_LEFT" hgap="10">
+        <Text fx:id="name" text="\$first" styleClass="row-name" />
+        <Text fx:id="schoolingLevel" text="\$schoolingLevel" styleClass="row-level" />
+      </FlowPane>
     </HBox>
     <HBox fx:id="subjectsCell" alignment="CENTER_LEFT">
       <Text fx:id="subjects" styleClass="row-secondary" />

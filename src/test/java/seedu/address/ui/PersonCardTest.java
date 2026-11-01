@@ -16,6 +16,7 @@ import org.junit.jupiter.api.Test;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleDoubleProperty;
+import javafx.geometry.Bounds;
 import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.Parent;
@@ -169,6 +170,26 @@ public class PersonCardTest {
         });
     }
 
+    // The Name column at 1024px is too narrow for a long hyphenated word beside the level's longest word, yet
+    // neither may break inside a word. JavaFX does not break at hyphens, so the hyphenated word counts as one.
+    @Test
+    public void bindColumns_longestWordsCannotSitSideBySide_neitherBreaksInsideWord() throws Exception {
+        FxTestUtil.runOnFxThread(() -> {
+            String fullName = "Maximilian Alexander Bartholomew Montgomery-Fitzgerald Wellington Junior the Third";
+            Student student = new PersonBuilder().withName(fullName)
+                    .withSchoolingLevel(new SchoolingLevel("Secondary 4 Express IP")).build();
+            PersonCard card = new PersonCard(student, 1);
+            Region root = prepareCard(card, new SimpleDoubleProperty(800), new SimpleDoubleProperty(241.5));
+            layOut(root, 800);
+
+            Text name = assertInstanceOf(Text.class, root.lookup("#name"));
+            Text level = assertInstanceOf(Text.class, root.lookup("#schoolingLevel"));
+            assertTrue(name.getWrappingWidth() >= longestWord(fullName, name), "Each name word should fit a line");
+            assertLevelKeepsWholeWords(level);
+            assertNameAndLevelFit(root);
+        });
+    }
+
     // A long one-word name must not squeeze the level into letter fragments; the level keeps its longest word.
     @Test
     public void bindColumns_longOneWordName_levelKeepsWholeWords() throws Exception {
@@ -179,9 +200,7 @@ public class PersonCardTest {
             Region root = prepareCard(card, new SimpleDoubleProperty(800), new SimpleDoubleProperty(228));
             layOut(root, 800);
 
-            Text level = assertInstanceOf(Text.class, root.lookup("#schoolingLevel"));
-            assertTrue(level.getWrappingWidth() >= longestWord(level.getText(), level),
-                    "Each level word should fit a line");
+            assertLevelKeepsWholeWords(assertInstanceOf(Text.class, root.lookup("#schoolingLevel")));
             assertNameAndLevelFit(root);
         });
     }
@@ -301,16 +320,24 @@ public class PersonCardTest {
                 .map(Text::getText).toList();
     }
 
-    /** Checks that the level wraps, follows the name without overlapping it and ends inside the name cell. */
+    /** Checks that the level follows the name or sits under it, without overlapping it, inside the name cell. */
     private static void assertNameAndLevelFit(Region root) {
         Region nameCell = assertInstanceOf(Region.class, root.lookup("#nameCell"));
         Text name = assertInstanceOf(Text.class, root.lookup("#name"));
         Text level = assertInstanceOf(Text.class, root.lookup("#schoolingLevel"));
-        assertTrue(level.getWrappingWidth() > 0, "The level should wrap rather than run on");
-        assertTrue(name.getBoundsInParent().getMaxX() <= level.getBoundsInParent().getMinX());
+        Bounds nameBounds = name.localToScene(name.getLayoutBounds());
+        Bounds levelBounds = level.localToScene(level.getLayoutBounds());
+        assertTrue(levelBounds.getMinX() >= nameBounds.getMaxX() || levelBounds.getMinY() >= nameBounds.getMaxY(),
+                "The level should follow the name or sit under it");
         // Layout snaps the level to whole pixels.
-        assertTrue(level.getBoundsInParent().getMaxX() <= nameCell.getWidth() + 1,
+        assertTrue(levelBounds.getMaxX() <= nameCell.localToScene(nameCell.getLayoutBounds()).getMaxX() + 1,
                 "The level should end inside the name cell");
+    }
+
+    /** Checks that {@code level} is on one line or wraps no narrower than its longest word. */
+    private static void assertLevelKeepsWholeWords(Text level) {
+        assertTrue(level.getWrappingWidth() == 0 || level.getWrappingWidth() >= longestWord(level.getText(), level),
+                "Each level word should fit a line");
     }
 
     /** Returns the width of the widest word of {@code value} in the font of {@code shown}. */
