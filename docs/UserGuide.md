@@ -494,22 +494,82 @@ To move to another computer, close StudentBook, then copy the file into the new 
 
 ## Troubleshooting
 
-Bold text is the message StudentBook shows.
+Click a problem to see the fix. Bold text is the message StudentBook shows.
 
-| Problem | Fix |
-|---|---|
-| **The student index provided is invalid** (or lesson, note or follow-up index) | Use the number shown on screen; lesson, note and follow-up numbers are in the student's details. Numbers change after searches and sorts. |
-| A student is missing from **Students** | A search is on (`find`, `followups` or a level filter). Type `list`. Still missing? Type `list-archive`, since they may be archived. |
-| **An active student already has this name** | Type `list` to find them. If this is a different student, add something to the name, e.g. `Alex Tan Sec 2`. |
-| **An archived student already has this name** | Type `list-archive` and `unarchive` them, or add something to the new name. |
-| **This student already has a guardian** | Change the guardian with `guardian-edit`, or run `guardian-delete` and then `guardian-add`. |
-| **This student has no guardian** | Use `guardian-add` first. |
-| **Lesson saved - scheduling clash detected**, or a **Warning: Lesson ... overlaps** line after `unarchive` | The change is saved anyway. The warning lists the lessons it overlaps. Move one with `lesson-edit STUDENT_INDEX LESSON_INDEX slot/...` or remove it with `lesson-delete`. A lesson that starts when another ends does not clash. |
-| **Could not save data** | Nothing changed. Check that you can write to the `data` folder, then run the command again. |
-| **Could not read** the data file, and StudentBook started with no students | Close StudentBook before making any change, since the next change saves over `studentbook.json`. Your old records are in `studentbook-backup-<date>-<time>.json` beside it. Fix that file, rename it to `studentbook.json` and restart. If no backup could be made, StudentBook closes without touching the file. |
-| The Subjects or Guardian column, or some level filters, are missing | The window is too narrow to show them. Widen the window, or use `view STUDENT_INDEX` to see a student's full details. |
-| The window opens off-screen | Close StudentBook, delete `preferences.json` in the app folder and restart. This resets the window position. |
-| The user guide does not open | Check your default browser and internet connection, or open the [user guide](https://ay2627s1-cs2103t-f13-4.github.io/tp/UserGuide.html) yourself. |
+<script>window.addEventListener('beforeprint', () => document.querySelectorAll('details').forEach(d => { d.open = true; }));</script>
+
+<details class="trouble" markdown="1">
+<summary><strong>The student index provided is invalid</strong> (or lesson, note or follow-up index)</summary>
+
+Use the number shown on screen; lesson, note and follow-up numbers are in the student's details. Numbers change after searches and sorts.
+
+</details>
+<details class="trouble" markdown="1">
+<summary>A student is missing from <strong>Students</strong></summary>
+
+A search is on (`find`, `followups` or a level filter). Type `list`. Still missing? Type `list-archive`, since they may be archived.
+
+</details>
+<details class="trouble" markdown="1">
+<summary><strong>An active student already has this name</strong></summary>
+
+Type `list` to find them. If this is a different student, add something to the name, e.g. `Alex Tan Sec 2`.
+
+</details>
+<details class="trouble" markdown="1">
+<summary><strong>An archived student already has this name</strong></summary>
+
+Type `list-archive` and `unarchive` them, or add something to the new name.
+
+</details>
+<details class="trouble" markdown="1">
+<summary><strong>This student already has a guardian</strong></summary>
+
+Change the guardian with `guardian-edit`, or run `guardian-delete` and then `guardian-add`.
+
+</details>
+<details class="trouble" markdown="1">
+<summary><strong>This student has no guardian</strong></summary>
+
+Use `guardian-add` first.
+
+</details>
+<details class="trouble" markdown="1">
+<summary><strong>Lesson saved - scheduling clash detected</strong>, or a <strong>Warning: Lesson ... overlaps</strong> line after <code>unarchive</code></summary>
+
+The change is saved anyway. The warning lists the lessons it overlaps. Move one with `lesson-edit STUDENT_INDEX LESSON_INDEX slot/...` or remove it with `lesson-delete`. A lesson that starts when another ends does not clash.
+
+</details>
+<details class="trouble" markdown="1">
+<summary><strong>Could not save data</strong></summary>
+
+Nothing changed. Check that you can write to the `data` folder, then run the command again.
+
+</details>
+<details class="trouble" markdown="1">
+<summary><strong>Could not read</strong> the data file, and StudentBook started with no students</summary>
+
+Close StudentBook before making any change, since the next change saves over `studentbook.json`. Your old records are in `studentbook-backup-<date>-<time>.json` beside it. Fix that file, rename it to `studentbook.json` and restart. If no backup could be made, StudentBook closes without touching the file.
+
+</details>
+<details class="trouble" markdown="1">
+<summary>The Subjects or Guardian column, or some level filters, are missing</summary>
+
+The window is too narrow to show them. Widen the window, or use `view STUDENT_INDEX` to see a student's full details.
+
+</details>
+<details class="trouble" markdown="1">
+<summary>The window opens off-screen</summary>
+
+Close StudentBook, delete `preferences.json` in the app folder and restart. This resets the window position.
+
+</details>
+<details class="trouble" markdown="1">
+<summary>The user guide does not open</summary>
+
+Check your default browser and internet connection, or open the [user guide](https://ay2627s1-cs2103t-f13-4.github.io/tp/UserGuide.html) yourself.
+
+</details>
 
 ## Command summary
 
