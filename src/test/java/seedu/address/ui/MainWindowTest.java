@@ -961,6 +961,36 @@ public class MainWindowTest {
         });
     }
 
+    // The result must never be cut off. When a long newest command and a near-60-character result leave no room,
+    // the oldest commands drop out whole rather than every chip shrinking to "...".
+    @Test
+    public void recentRow_longNewestAndResult_dropsOldestAndShowsWholeResult() throws Exception {
+        // The window opens at its minimum width, 760.
+        runOnFxThread(() -> {
+            submitCommand("list");
+            submitCommand("view 2");
+            submitCommand("followup-add 2 text/Ask about the tuition fees, Mon.");
+        });
+        settle();
+        runOnFxThread(() -> {
+            Node results = stage.getScene().lookup("#resultDisplayPlaceholder");
+            Text result = results.lookupAll("Text").stream()
+                    .filter(node -> node.getStyleClass().contains("result-text"))
+                    .map(Text.class::cast).findFirst().orElseThrow();
+            assertEquals("Added follow-up for Bob: 1. Ask about the tuition fees, Mon.", result.getText());
+            // Text bounds can run a fraction of a pixel past their layout width.
+            assertTrue(sceneMaxX(result) <= sceneMaxX(stage.getScene().lookup("#resultScroll")) + 0.5,
+                    "The result should end inside its box");
+            List<Label> chips = results.lookupAll(".recent-chip").stream().map(Label.class::cast).toList();
+            assertTrue(isShown(chips.get(chips.size() - 1)), "The newest command should stay");
+            for (Label chip : chips.subList(0, chips.size() - 1)) {
+                assertTrue(!isShown(chip) || chip.getWidth() >= Math.min(chip.prefWidth(-1), 200) - 0.5,
+                        chip.getText() + " should be whole or hidden, not " + chip.getWidth() + " wide");
+            }
+            assertFalse(isShown(chips.get(0)), "The oldest command should make room first");
+        });
+    }
+
     // On Windows and Linux, releasing Alt focuses the menu bar; after Alt+Down the user is still typing.
     @Test
     public void altRelease_afterAltDown_isKeptFromWindow() throws Exception {
