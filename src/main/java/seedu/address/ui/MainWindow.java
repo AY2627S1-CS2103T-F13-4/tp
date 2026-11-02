@@ -7,6 +7,8 @@ import static seedu.address.logic.parser.CliSyntax.PREFIX_NAME;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
 
 import java.nio.file.Path;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -14,6 +16,9 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
 
+import javafx.animation.Animation;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
 import javafx.collections.ListChangeListener;
@@ -41,6 +46,7 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
+import javafx.util.Duration;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.commons.core.LogsCenter;
 import seedu.address.logic.Logic;
@@ -95,6 +101,15 @@ public class MainWindow extends UiPart<Stage> {
     private CommandBox commandBox;
     private final Consumer<String> openDocument;
     private boolean runningCommand;
+    private LocalDateTime summaryMinute;
+    private final Timeline summaryUpdater = new Timeline(new KeyFrame(Duration.seconds(1), event -> {
+        LocalDateTime now = LocalDateTime.now().truncatedTo(ChronoUnit.MINUTES);
+        if (!now.equals(summaryMinute)) {
+            personListPanel.refreshTime(now);
+            archivedPersonListPanel.refreshTime(now);
+            summaryMinute = now;
+        }
+    }));
 
     @FXML
     private StackPane commandBoxPlaceholder;
@@ -158,7 +173,7 @@ public class MainWindow extends UiPart<Stage> {
 
         setAccelerators();
 
-        primaryStage.addEventHandler(WindowEvent.WINDOW_HIDDEN, event -> disposeWeekPanel());
+        primaryStage.addEventHandler(WindowEvent.WINDOW_HIDDEN, event -> disposeTimeUpdates());
     }
 
     public Stage getPrimaryStage() {
@@ -216,7 +231,7 @@ public class MainWindow extends UiPart<Stage> {
         resultDisplay = new ResultDisplay();
         resultDisplayPlaceholder.getChildren().add(resultDisplay.getRoot());
 
-        disposeWeekPanel();
+        disposeTimeUpdates();
         weekPanel = new WeekPanel(logic.getFilteredActivePersonList(), logic.getAddressBook().getPersonList(),
                 logic.getLessonPredicate());
         personListPanelPlaceholder.getChildren().add(weekPanel.getRoot());
@@ -291,6 +306,9 @@ public class MainWindow extends UiPart<Stage> {
         }
         // The app opens on the week's lessons; list and find bring up the student table.
         showScreen(CommandResult.Screen.WEEK);
+        summaryMinute = null;
+        summaryUpdater.setCycleCount(Animation.INDEFINITE);
+        summaryUpdater.playFromStart();
         commandBoxPlaceholder.getChildren().add(commandBox.getRoot());
         // The list now comes before the command box, so focus the command box explicitly for typing.
         commandBox.focus();
@@ -414,7 +432,8 @@ public class MainWindow extends UiPart<Stage> {
         }
     }
 
-    private void disposeWeekPanel() {
+    private void disposeTimeUpdates() {
+        summaryUpdater.stop();
         if (weekPanel != null) {
             weekPanel.dispose();
         }
