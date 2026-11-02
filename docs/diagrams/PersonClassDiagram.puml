@@ -18,9 +18,10 @@ class Lesson
 class ProgressNote
 class FollowUp
 
-' Person sits at the head; its identity fields hang off to the sides.
-Person -left-> "1 name" Name
-Person -right-> "1 phone" Phone
+' Person sits at the head; its identity fields sit above it, clear of the role labels.
+Person -up-> "1 name" Name
+Person -up-> "1 phone" Phone
+Name -[hidden]right- Phone
 
 ' Both students and guardians inherit their identity fields from Person.
 Student -up-|> Person

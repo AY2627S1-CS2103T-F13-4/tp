@@ -72,10 +72,12 @@ public class ScheduleGrid extends UiPart<GridPane> {
     private static final LocalTime DAY_START = LocalTime.of(9, 0);
     private static final LocalTime DAY_END = LocalTime.of(20, 0);
     /**
-     * Narrowest a lesson column gets, so a block shows a time like "10.00am-11.00am" in full; a week that would
-     * need narrower columns scrolls sideways instead.
+     * Narrowest a lesson column gets, so a block shows its time in full; a week that would need narrower columns
+     * scrolls sideways instead. The widest time, "10.00pm-10.00pm", is about 94px at 11px Geist; this leaves
+     * 96px for it after the {@link #CARD_SIDE_GAP} on each side and the .lesson-card padding in LightTheme.css.
+     * Seven of these and the time column must still fit a 1000px window without scrolling.
      */
-    private static final double MIN_LESSON_COLUMN_WIDTH = 116;
+    private static final double MIN_LESSON_COLUMN_WIDTH = 120;
     /** Gap between a lesson block and the edges of its column. */
     private static final double CARD_SIDE_GAP = 4;
     private static final Duration NOW_LINE_REFRESH = Duration.minutes(1);
