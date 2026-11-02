@@ -40,6 +40,7 @@ public class NoteEditCommandParserTest {
         assertParseSuccess(parser, " 1 2 text/Finished fractions", edit(null, "Finished fractions"));
         assertParseSuccess(parser, " 1  2 date/ 2026-10-15  text/  Finished fractions  ",
                 edit(DATE, "Finished fractions"));
+        assertParseSuccess(parser, " 1 2 text/Finished   fractions", edit(null, "Finished fractions"));
     }
 
     @Test

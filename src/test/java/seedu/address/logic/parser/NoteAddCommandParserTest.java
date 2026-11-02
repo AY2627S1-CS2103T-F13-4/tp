@@ -34,6 +34,14 @@ public class NoteAddCommandParserTest {
     }
 
     @Test
+    public void parse_repeatedInnerSpaces_collapsed() {
+        assertParseSuccess(parser, " 1 date/2026-10-15 text/Finished  fractions",
+                addFirst(DATE, "Finished fractions"));
+        assertParseSuccess(parser, " 1 date/2026-10-15 text/Struggled   with    word problems",
+                addFirst(DATE, "Struggled with word problems"));
+    }
+
+    @Test
     public void parse_todayAllowed() {
         LocalDate today = LocalDate.now();
         assertParseSuccess(parser, " 1 date/" + ProgressNote.formatDate(today) + " text/Quiz",
