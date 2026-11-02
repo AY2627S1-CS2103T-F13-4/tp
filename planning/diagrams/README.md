@@ -58,7 +58,7 @@ House style, taken from `docs/diagrams/style.puml` and the existing diagrams:
 - Colour by component: `UI_COLOR` (green), `LOGIC_COLOR` (blue), `MODEL_COLOR` (red), `STORAGE_COLOR` (gold), each with lighter `_T1`/`_T2` and darker `_T3`/`_T4` shades. Class diagrams set `skinparam classBackgroundColor` and `arrowColor` to their component colour. Sequence diagrams group participants in `box Logic LOGIC_COLOR_T1 ... end box` and colour each participant with the darker shade.
 - `style.puml` sets `hide members`, `hide circle`, `hide footbox`, white class text and bold arrow labels. Sequence diagrams override with `skinparam ArrowFontStyle plain`.
 - Layout is steered with direction hints (`-up->`, `-right->`) and hidden links (`A -[hidden]right- B`). `ModelClassDiagram.puml` uses an invisible white class `I` as an anchor.
-- Sequence diagrams use a hidden arrow before `destroy` so the X lands below the last activation bar (see `DeleteSequenceDiagram.puml`).
+- When a sequence diagram shows deletion, put a hidden arrow before `destroy` so the X lands below the last activation bar.
 - `style.puml` defines `STORAGE_COLOR_T2` twice and has no `STORAGE_COLOR_T4`. That looks like a typo for `_T4`. Avoid relying on either until someone fixes it.
 
 ## Course idiosyncrasies checklist

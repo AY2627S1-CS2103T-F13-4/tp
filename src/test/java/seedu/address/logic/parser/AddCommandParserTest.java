@@ -257,6 +257,20 @@ public class AddCommandParserTest {
     }
 
     @Test
+    public void parse_mistypedStudentPrefix_failure() {
+        String validInput = NAME_DESC_BOB + PHONE_DESC_BOB + EMAIL_DESC_BOB + ADDRESS_DESC_BOB;
+
+        // AddressBook-Level3's t/ and a near miss of sch/ would otherwise be saved inside the address
+        assertParseFailure(parser, validInput + " t/friend school/Clementi Primary",
+                Messages.getErrorMessageForUnsupportedPrefixes(new Prefix("t/"), new Prefix("school/")));
+
+        for (String mistype : new String[] {"n/", "p/", "e/", "a/", "t/", "tags/", "school/", "lvl/"}) {
+            assertParseFailure(parser, validInput + " " + mistype + "x",
+                    Messages.getErrorMessageForUnsupportedPrefixes(new Prefix(mistype)));
+        }
+    }
+
+    @Test
     public void parse_invalidSchool_failure() {
         String base = NAME_DESC_BOB + PHONE_DESC_BOB + EMAIL_DESC_BOB + ADDRESS_DESC_BOB;
         assertParseFailure(parser, base + " sch/", School.MESSAGE_CONSTRAINTS);

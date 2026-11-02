@@ -1,5 +1,6 @@
 package seedu.address.ui;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -160,6 +161,13 @@ public class PersonListPanel extends UiPart<Region> {
         personList.addListener((ListChangeListener<Student>) change -> Motion.fadeIn(personListView, 0.4));
         updateStatus(personList.size(), allPersons.size());
         openOnlyRow();
+        // A new width rewraps the rows, which can push the open one out of view; bring it back once laid out.
+        personListView.widthProperty().addListener(unused -> {
+            int open = personListView.getSelectionModel().getSelectedIndex();
+            if (open >= 0) {
+                withFlow(flow -> afterNextLayout(() -> showOpenRow(flow, open)));
+            }
+        });
     }
 
     /**
@@ -173,6 +181,15 @@ public class PersonListPanel extends UiPart<Region> {
         }
         int current = personListView.getSelectionModel().getSelectedIndex();
         openStudent(current < 0 ? (direction > 0 ? 0 : size - 1) : Math.clamp(current + direction, 0, size - 1));
+    }
+
+    /** Refreshes existing rows; off-screen rows calculate their summary when created. */
+    void refreshTime(LocalDateTime now) {
+        personListView.lookupAll(".list-cell").forEach(node -> {
+            if (node instanceof PersonListViewCell cell && cell.card != null) {
+                cell.card.refreshTime(now);
+            }
+        });
     }
 
     /**

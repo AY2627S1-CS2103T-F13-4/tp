@@ -49,6 +49,15 @@ public class MessagesTest {
                 + "Tags: [student]; School: Clementi Primary School", Messages.format(person));
     }
 
+    // A student without tags has nothing to list, so the message must not end a field with an empty "Tags: ".
+    @Test
+    public void format_noTags_omitsTags() {
+        Student person = new PersonBuilder(PERSON).withTags().build();
+
+        assertEquals("Alice Tan; Phone: 91234567; Email: alice@example.com; Address: Clementi; Level: Primary 5",
+                Messages.format(person));
+    }
+
     @Test
     public void format_schoolCleared_omitsSchool() {
         Student person = new PersonBuilder(PERSON).withSchool(new School("Clementi Primary School")).build();

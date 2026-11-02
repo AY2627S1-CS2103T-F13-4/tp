@@ -6,7 +6,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.math.BigDecimal;
 import java.time.DayOfWeek;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -24,6 +26,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.Region;
+import javafx.scene.shape.MoveTo;
 import javafx.scene.text.Text;
 import seedu.address.model.person.HourlyRate;
 import seedu.address.model.person.Lesson;
@@ -144,9 +147,10 @@ public class PersonCardTest {
         });
     }
 
-    // In a narrow Name column, a long level must not squeeze a long name until it breaks inside words.
+    // In a narrow Name column, a long level beside a long name would squeeze both into many short lines, so it goes
+    // under the name on one line, and neither breaks inside a word.
     @Test
-    public void bindColumns_longNameAndLevel_nameWrapsBetweenWordsBesideLevel() throws Exception {
+    public void bindColumns_longNameAndLevel_levelGoesUnderNameWhole() throws Exception {
         FxTestUtil.runOnFxThread(() -> {
             String fullName = "Alexander Bartholomew Christopherson Davidovich Konstantinopoulos";
             Student student = new PersonBuilder().withName(fullName)
@@ -155,23 +159,20 @@ public class PersonCardTest {
             Region root = prepareCard(card, new SimpleDoubleProperty(800), new SimpleDoubleProperty(250));
             layOut(root, 800);
 
-            Region nameCell = assertInstanceOf(Region.class, root.lookup("#nameCell"));
             Text name = assertInstanceOf(Text.class, root.lookup("#name"));
             Text level = assertInstanceOf(Text.class, root.lookup("#schoolingLevel"));
 
-            assertTrue(name.getWrappingWidth() >= longestWord(fullName, name), "Each name word should fit a line");
-            assertTrue(level.getWrappingWidth() >= longestWord(level.getText(), level),
-                    "Each level word should fit a line");
-            assertTrue(name.getLayoutBounds().getWidth() > level.getLayoutBounds().getWidth(),
-                    "The name should keep the larger share of the cell");
-            assertTrue(name.getBoundsInParent().getMaxX() <= level.getBoundsInParent().getMinX());
-            // Layout snaps the level to whole pixels.
-            assertTrue(level.getBoundsInParent().getMaxX() <= nameCell.getWidth() + 1);
+            assertTrue(name.getWrappingWidth() >= longestWord(name.getText(), name),
+                    "Each name word should fit a line");
+            assertEquals(List.of(), lineStarts(level), "The level should stay on one line");
+            assertTrue(level.getBoundsInParent().getMinY() >= name.getBoundsInParent().getMaxY() - 1,
+                    "The level should sit under the name");
+            assertNameAndLevelFit(root);
         });
     }
 
     // The Name column at 1024px is too narrow for a long hyphenated word beside the level's longest word, yet
-    // neither may break inside a word. JavaFX does not break at hyphens, so the hyphenated word counts as one.
+    // neither may break inside a word. The name may break after its hyphen.
     @Test
     public void bindColumns_longestWordsCannotSitSideBySide_neitherBreaksInsideWord() throws Exception {
         FxTestUtil.runOnFxThread(() -> {
@@ -184,10 +185,34 @@ public class PersonCardTest {
 
             Text name = assertInstanceOf(Text.class, root.lookup("#name"));
             Text level = assertInstanceOf(Text.class, root.lookup("#schoolingLevel"));
-            assertTrue(name.getWrappingWidth() >= longestWord(fullName, name), "Each name word should fit a line");
+            assertTrue(name.getWrappingWidth() >= longestWord(name.getText(), name),
+                    "Each name word should fit a line");
             assertLevelKeepsWholeWords(level);
             assertNameAndLevelFit(root);
         });
+    }
+
+    // A double-barrelled name wider than the Name column must break after a hyphen or at a space, never inside a
+    // part, and a short level such as "Sec 3" must stay on one line rather than split into "Sec" and "3".
+    @Test
+    public void bindColumns_hyphenatedNameWiderThanColumn_breaksOnlyBetweenParts() throws Exception {
+        for (double nameColumn : new double[] {200, 260}) {
+            FxTestUtil.runOnFxThread(() -> {
+                Student student = new PersonBuilder().withName("Jean-Pierre-Christophe-Emmanuel-Dominique Dubois")
+                        .withSchoolingLevel(new SchoolingLevel("Sec 3")).build();
+                PersonCard card = new PersonCard(student, 1);
+                Region root = prepareCard(card, new SimpleDoubleProperty(800), new SimpleDoubleProperty(nameColumn));
+                layOut(root, 800);
+
+                Text name = assertInstanceOf(Text.class, root.lookup("#name"));
+                for (int lineStart : lineStarts(name)) {
+                    char before = name.getText().charAt(lineStart - 1);
+                    assertTrue(before == ' ' || before == '\u200A', "Name broke inside a part at " + lineStart);
+                }
+                assertEquals(List.of(), lineStarts(assertInstanceOf(Text.class, root.lookup("#schoolingLevel"))));
+                assertNameAndLevelFit(root);
+            });
+        }
     }
 
     // A long one-word name must not squeeze the level into letter fragments; the level keeps its longest word.
@@ -328,6 +353,66 @@ public class PersonCardTest {
         });
     }
 
+    @Test
+    public void refreshTime_lessonPasses_updatesNextLessonAndRateWithoutChangingDetails() throws Exception {
+        FxTestUtil.runOnFxThread(() -> {
+            PersonCard card = new PersonCard(studentWithMondayLessons(), 1);
+            Region root = prepareCard(card, new SimpleDoubleProperty(560));
+            card.setOpen(true);
+            Node details = root.lookup("#details");
+            Text next = (Text) root.lookup("#nextTime");
+            Text rate = (Text) root.lookup("#rate");
+
+            card.refreshTime(LocalDateTime.of(2026, 11, 2, 12, 59));
+            assertEquals("Mon 1.00pm", next.getText());
+            assertEquals("$40/h", rate.getText());
+            card.refreshTime(LocalDateTime.of(2026, 11, 2, 14, 30));
+            assertEquals("Mon 3.00pm", next.getText());
+            assertEquals("$80/h", rate.getText());
+            assertTrue(details.isVisible());
+            assertEquals(List.of("Mathematics", "English"), sectionTexts(root, "Lessons").stream()
+                    .filter(text -> text.equals("Mathematics") || text.equals("English")).toList());
+
+            card.refreshTime(LocalDateTime.of(2026, 11, 2, 17, 0));
+            assertEquals("Mon 1.00pm", next.getText());
+            assertEquals("$40/h", rate.getText());
+        });
+    }
+
+    @Test
+    public void refreshTime_rateSortActive_preservesMinimumAndMaximumRates() throws Exception {
+        FxTestUtil.runOnFxThread(() -> {
+            PersonCard card = new PersonCard(studentWithMondayLessons(), 1, RateSortOrder.ASCENDING);
+            Text rate = (Text) card.getRoot().lookup("#rate");
+            card.refreshTime(LocalDateTime.of(2026, 11, 2, 14, 30));
+            assertEquals("$40/h", rate.getText());
+            card.setSortOrder(RateSortOrder.DESCENDING);
+            card.refreshTime(LocalDateTime.of(2026, 11, 2, 17, 0));
+            assertEquals("$80/h", rate.getText());
+            card.setSortOrder(RateSortOrder.NONE);
+            card.refreshTime(LocalDateTime.of(2026, 11, 2, 14, 30));
+            assertEquals("$80/h", rate.getText());
+        });
+    }
+
+    @Test
+    public void refreshTime_noLessons_keepsEmptySummary() throws Exception {
+        FxTestUtil.runOnFxThread(() -> {
+            PersonCard card = new PersonCard(new PersonBuilder().build(), 1);
+            card.refreshTime(LocalDateTime.of(2026, 11, 3, 0, 0));
+            assertEquals(StudentCardText.NOT_SET, ((Text) card.getRoot().lookup("#nextTime")).getText());
+            assertEquals("\u2014", ((Text) card.getRoot().lookup("#rate")).getText());
+        });
+    }
+
+    private static Student studentWithMondayLessons() {
+        return new PersonBuilder().withLessons(
+                new Lesson(new Subject("Mathematics"), new WeeklyLessonSlot("Mon 1.00pm 2.00pm"),
+                        new HourlyRate(new BigDecimal("40"))),
+                new Lesson(new Subject("English"), new WeeklyLessonSlot("Mon 3.00pm 4.00pm"),
+                        new HourlyRate(new BigDecimal("80")))).build();
+    }
+
     /** Returns the content of the details section with the given caption: the content node and its children. */
     private static List<Node> sectionNodes(Region root, String caption) {
         FlowPane details = assertInstanceOf(FlowPane.class, root.lookup("#details"));
@@ -374,11 +459,29 @@ public class PersonCardTest {
                 "Each level word should fit a line");
     }
 
+    /** Returns where each line after the first starts in {@code text}, as JavaFX has wrapped it. */
+    private static List<Integer> lineStarts(Text text) {
+        List<Integer> starts = new ArrayList<>();
+        double lineTop = caretTop(text, 0);
+        for (int i = 1; i < text.getText().length(); i++) {
+            double top = caretTop(text, i);
+            if (top > lineTop + 1) {
+                starts.add(i);
+                lineTop = top;
+            }
+        }
+        return starts;
+    }
+
+    private static double caretTop(Text text, int index) {
+        return ((MoveTo) text.caretShape(index, true)[0]).getY();
+    }
+
     /** Returns the width of the widest word of {@code value} in the font of {@code shown}. */
     private static double longestWord(String value, Text shown) {
         Text word = new Text();
         word.setFont(shown.getFont());
-        return Arrays.stream(value.split(" ")).mapToDouble(part -> {
+        return Arrays.stream(value.split("[ \u200A]")).mapToDouble(part -> {
             word.setText(part);
             return word.getLayoutBounds().getWidth();
         }).max().orElseThrow();

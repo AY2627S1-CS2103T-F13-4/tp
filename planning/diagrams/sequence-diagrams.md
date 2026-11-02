@@ -57,7 +57,7 @@ Advanced ([W6.1c](https://nus-cs2103-ay2627-s1.github.io/website/book/modeling/m
 - `->` gives the filled head the course wants; `-->` gives the dashed return.
 - Activation bars are manual. Put `activate X` right after the call arrow and `deactivate X` right after the return arrow. A late `activate` makes the bar start after the call; a `deactivate` followed by more calls breaks the bar.
 - `create X` before the constructor arrow makes the arrow land on the box, matching the course.
-- `destroy X` draws the X. Our diagrams add `X -[hidden]-> Caller` first so the X sits below the last bar (see `DeleteSequenceDiagram.puml`).
+- `destroy X` draws the X. Add `X -[hidden]-> Caller` first so the X sits below the last bar.
 - PlantUML wraps frame guards in brackets itself. Write `alt index is valid`, `else else`, `loop each tag`. Writing `alt [index is valid]` gives double brackets.
 - `ref over A, B : name` draws the `ref` box. In the referenced diagram, `mainframe **sd** name` draws the `sd` frame.
 - `par` partitions are separated with `else`.
