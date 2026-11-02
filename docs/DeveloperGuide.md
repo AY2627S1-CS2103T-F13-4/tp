@@ -5,13 +5,57 @@ title: Developer Guide
 
 StudentBook builds on AddressBook Level 3 (AB3). The diagrams below describe its current architecture and tuition features.
 
-* Table of Contents
-{:toc}
+## Table of Contents
+
+* [Acknowledgements](#acknowledgements)
+* [Getting started](#getting-started)
+* [Design](#design)
+  * [Architecture](#architecture)
+    * [Overview](#overview)
+    * [Interactions](#interactions)
+  * [UI component](#ui-component)
+    * [Interactions](#interactions-1)
+  * [Logic component](#logic-component)
+    * [Command Execution](#command-execution)
+    * [Command Parsing](#command-parsing)
+  * [Model component](#model-component)
+  * [Storage component](#storage-component)
+  * [Common classes](#common-classes)
+* [Implementation](#implementation)
+  * [Lesson clash detection](#lesson-clash-detection)
+  * [Interval scheduling](#interval-scheduling)
+  * [Student search](#student-search)
+  * [Guardian follow-ups](#guardian-follow-ups)
+  * [Notes](#notes)
+* [Documentation, logging, testing, dev-ops](#documentation-logging-testing-dev-ops)
+* [Appendix: Requirements](#appendix-requirements)
+  * [Product scope](#product-scope)
+  * [Agreed field rules](#agreed-field-rules)
+  * [Decisions to confirm](#decisions-to-confirm)
+  * [User stories](#user-stories)
+  * [Use cases](#use-cases)
+    * [UC01: Register a student](#uc01-register-a-student)
+    * [UC02: Retrieve a guardian's contact details](#uc02-retrieve-a-guardians-contact-details)
+    * [UC03: Remove a student who has stopped attending lessons](#uc03-remove-a-student-who-has-stopped-attending-lessons)
+    * [UC04: Change a lesson's slot](#uc04-change-a-lessons-slot)
+    * [UC05: Complete a guardian follow-up](#uc05-complete-a-guardian-follow-up)
+    * [UC06: Attach a guardian contact](#uc06-attach-a-guardian-contact)
+  * [Non-functional requirements](#non-functional-requirements)
+  * [Glossary](#glossary)
+* [Appendix: Instructions for manual testing](#appendix-instructions-for-manual-testing)
+  * [Launch and shutdown](#launch-and-shutdown)
+  * [Main window](#main-window)
+  * [Student deletion](#student-deletion)
+  * [Lessons and saved data](#lessons-and-saved-data)
+  * [Name and guardian searches](#name-and-guardian-searches)
+  * [Guardian contacts](#guardian-contacts)
+  * [Guardian follow-ups](#guardian-follow-ups-1)
+  * [Notes](#notes-1)
+  * [Missing or invalid data files](#missing-or-invalid-data-files)
 
 ## Acknowledgements
 
 * Based on [AddressBook Level 3](https://github.com/se-edu/addressbook-level3) from the [SE-EDU initiative](https://se-education.org).
-* Pranav used Claude (Anthropic), through Claude Code, to draft the v1.3 UI restyle: the mock-ups, the FXML and CSS in `src/main/resources/view`, the UI classes in `seedu.address.ui`, and their tests. He reviewed, ran and tested the changes.
 * The UI uses the [Geist and Geist Mono fonts](https://github.com/vercel/geist-font) (v1.7.2) by The Geist Project Authors, under the SIL Open Font License 1.1. The font files and license are in `src/main/resources/fonts`.
 
 ## Getting started
@@ -37,9 +81,9 @@ StudentBook relies primarily on 4 components:
 | [**`Model`**](#model-component) | Hold app records and settings in memory |
 | [**`Storage`**](#storage-component) | Read and write JSON files |
 
-**`Main`** then manages these components as follows:
-* **App Launch**: Initialise components in correct sequence and connect them with one another
-* **Shut down**: Shut down components, invoke necessary cleanup methods
+`Main` launches **`MainApp`**, which manages these components as follows:
+* **App launch**: Initialise and connect the components, then start the UI
+* **Shutdown**: Save user preferences when the application stops
 
 **`Commons`** shares utilities across the above components.
 
@@ -66,15 +110,12 @@ Other components interact with a component through its interface (rather than it
 
 <img src="images/UiClassDiagram.png" width="800" alt="UI class diagram" />
 
-`MainWindow` contains separate active and archived student panels. Its `WeekPanel` uses `ScheduleGrid` to display
-`LessonCard`s, each backed by a `ScheduleEntry` linking a student to a lesson.
-
 **API Specification**: `Ui.java`
 **Interacts with**: `Model`, `Logic`
 **Depends on**: `Model`, `Logic`
 
 Abstract class `UiPart` captures common behaviour among classes representing visible GUI parts. Each part:
-* Inherit from `UiPart`
+* Inherits from `UiPart`
 * Use the JavaFX UI framework
 * Defines layout in a matching `.fxml` file in `src/main/resources/view`
 * Use `LightTheme.css` for style, with fonts loaded by `AppFonts` at startup
@@ -102,10 +143,13 @@ Abstract class `UiPart` captures common behaviour among classes representing vis
 User commands received by the UI component are sent to `Logic` for execution.
 
 Additionally, `Logic` supplies the following data:
-* The list of students to display, from `Logic#getFilteredPersonList()`. `ModelManager` sorts it by school stage (Primary, Secondary, JC, then others), then by level (`P1` before `P2`), then alphabetically by name, with stored order as the final tie-break. After `sort rate asc` or `sort rate desc`, `ModelManager#setRateSortOrder` orders students by rate within each stage instead, until `list` resets it. `PersonListPanel` shows it in this order, so the number on each card is the `INDEX` that commands use. Editing a student's name or level can therefore move it, changing its index.
-* The total number of students and lessons, from `Logic#getAddressBook()`
-* Empty-state message, also from `Logic#getAddressBook()`
-* Lesson filter, to determine total number of students and lessons, from `Logic#getLessonPredicate()`
+* Filtered and sorted active and archived student lists, from `Logic#getFilteredActivePersonList()` and `Logic#getFilteredArchivedPersonList()`
+* Complete student records, from `Logic#getAddressBook()`, which the UI uses to calculate student and lesson totals
+* The lesson filter, from `Logic#getLessonPredicate()`, which selects matching lessons for the weekly calendar
+* The rate sort order, from `Logic#getRateSortOrder()`, which controls the table's rate heading and displayed rates
+* The selected archive view, from `Logic#isArchiveView()`, which determines which student table is shown
+
+The UI constructs empty-state messages: `StudentListStatus` supplies the student-list text, and `WeekPanel` supplies the calendar text.
 
 **`Ui`** and **`Model`**
 * `Ui` listens for changes to `Model` data for updates
@@ -115,7 +159,7 @@ Additionally, `Logic` supplies the following data:
 
 **API Specification**: `Logic.java`
 **Interacts with**: `Ui`, `Model`, `Storage`
-**Depends on**: `Model`
+**Depends on**: `Model`, `Storage`
 
 <img src="images/LogicClassDiagram.png" width="550" />
 
@@ -161,16 +205,6 @@ The `Model` component stores:
 * the lesson filter, rate sort order and selected archive view
 * user preferences in `UserPrefs`
 
-<div markdown="span" class="alert alert-info">
-
-:information_source: An alternative design keeps a list of unique tags in `AddressBook`, then each `Student` references tags in that list, allowing `AddressBook` to maintain one `Tag` object per unique tag instead of each `Student` holding its own `Tag` object.
-
-<img src="images/BetterModelClassDiagram.png" width="400" />
-
-This alternative is not the current implementation.
-</div>
-<br>
-
 `Student` extends `Person` and references its contact details, guardian, lessons, progress notes and follow-ups.
 
 <img src="images/PersonClassDiagram.png" width="650" />
@@ -197,163 +231,87 @@ Classes used by multiple components are in the `seedu.address.commons package`.
 
 ## Implementation
 
-This section describes noteworthy details on how certain features are implemented.
+Student updates replace immutable `Student` objects. `LogicManager` saves only record changes; failed saves restore records, filters, sorting and the archive view, while the UI restores open details. `JsonAddressBookStorage` atomically replaces the original from a temporary file, preserving permissions. Failures retain the original and remove the temporary file; unsupported atomic replacement fails without a direct-overwrite fallback.
+
+Command parsing follows the [Logic component](#logic-component) workflow.
 
 ### Lesson clash detection
 
+After a valid lesson addition or edit, `LessonClashes.resultForLesson` checks the changed lesson against the owner's complete active or archived student list. Searches do not limit the check. Restoring a student uses `resultForStudent` to check every restored lesson against the active list.
 
+`LessonClashes.warning` excludes the changed lesson itself and delegates overlap checks through `Lesson` to `WeeklyLessonSlot`. Lessons clash on the same weekday when each starts before the other ends; touching endpoints are allowed. No clash state is stored, and deletion needs no check.
 
-After a valid lesson addition or edit, `LessonAddCommand` or `LessonEditCommand` calls `LessonClashes.warning` with the complete active or archived
-student list matching the edited student and the changed lesson's position. Search filters do not limit clash checks.
-The helper excludes that lesson itself and checks every other lesson in that list.
-Intervals clash when their weekdays match and each starts strictly before the other ends. Thus touching endpoints
-are allowed. The warning confirms the lesson was saved and lists the clashes; existing validation and persistence still apply.
-Deleting a lesson requires no clash warning. No clash state is stored, so each warning reflects current records.
-Clashing changes return `CommandResult.warning`. `MainWindow` routes these successful results to
-`ResultDisplay#setWarningToUser`, which applies an amber warning style and an exclamation icon.
-The next success, error or warning result replaces the previous feedback and clears its styling.
+A clash produces a successful `CommandResult.warning`, so the change is still saved. `MainWindow` displays it through `ResultDisplay#setWarningToUser`, using amber styling and an exclamation icon. The next result replaces that feedback.
+
+<img src="images/LessonClashDetectionSequenceDiagram.png" width="800" alt="Lesson clash detection sequence" />
+
+### Interval scheduling
+
+The calendar uses interval partitioning to display every matching lesson. `ScheduleGrid.refreshSchedule` groups entries by weekday; `assignColumnValues` sorts each day by start time, end time, student number and lesson number. Two priority queues track active entries by drawn end time and reusable columns by number. Before placing an entry, columns whose blocks have ended become reusable. The entry takes the smallest available column, or a new one when all are occupied. This minimises the columns needed; empty days retain one.
+
+Displayed blocks last at least 15 minutes and remain within their day. Saved times and clash checks use the actual intervals. The sequence shows one non-empty day; notes summarise local queue updates.
+
+<img src="images/IntervalSchedulingSequenceDiagram.png" width="636" alt="Calendar interval scheduling sequence" />
 
 ### Student search
 
-The following class diagram shows the search predicates used by `FindCommand`. Prefixed searches use
-`StudentSearchPredicate`; bare name keywords use `NameContainsKeywordsPredicate`. The command holds
-both a student predicate and a lesson predicate.
+`FindCommand` holds separate student and lesson predicates. Prefixed searches use `StudentSearchPredicate`; bare name keywords use `NameContainsKeywordsPredicate`.
 
 ![Student search predicate structure](images/StudentSearchClassDiagram.png)
 
-The following two sequences illustrate a successful `find sch/nanyang subject/math day/mon` search.
-Blue participants belong to Logic; red participants belong to Model. Each diagram focuses on one stage
-of the search, leaving the surrounding command-routing and persistence workflow to the
-[Logic component](#logic-component) description.
+`FindCommandParser` accepts `name/`, `guardian/`, `sch/`, `level/`, `subject/` and `day/`. It rejects empty values, repeated prefixes and bare keywords mixed with prefixes. Every supplied criterion must match. Contact, school and level searches use case-insensitive substrings; guardian phone queries also remove spaces and hyphens. `SchoolingLevel.isStageNamedBy` recognises stage names and prefixes, so `Primary 5` matches `P5`, but `Secondary 3` does not match `Sec 2 G3`. Missing optional fields fail only when searched for. Bare name keywords retain whole-word, case-insensitive OR matching.
 
-**Constructing the search command.** `AddressBookParser` creates a `FindCommandParser` and calls
-`parse(args)`. After validation, the parser creates the lesson predicate `l`, then the student predicate
-`s`, then the command `f`. Here, `subject` contains `math`, `day` contains `MONDAY`, and the omitted
-student criteria are empty except for school, which contains `nanyang`. The same `l` is supplied to
-both `s` and `f`. Prefix validation and the parser's own creation and lifetime are outside this diagram's scope.
+Subject and day must match the same lesson. The student needs at least one matching lesson. For active-list searches, the same `LessonMatchesPredicate` filters the weekly calendar; omitting lesson criteria resets that filter. Searches without lesson criteria include students without lessons.
+
+The following sequences show parsing and executing `find sch/nanyang subject/math day/mon`.
 
 ![Construction of a combined student search](images/FindParsingSequenceDiagram.png)
 
-**Executing the search command.** `LogicManager` calls `f.execute(m)`. The command passes `s` and `l`
-to the model, reads the matching students to form the result summary, and returns a `CommandResult`
-that selects the students screen. The model is shown through its interface; internal filtering, logging
-and UI observation are omitted. The repeated list lookup used by logging is also omitted.
-`LogicManager` saves only record changes and rolls back records, filters and sorting on failure; the UI restores open details.
-`JsonAddressBookStorage` atomically replaces the file from a temporary file, preserving permissions.
-Failures retain the original and remove the temporary file. Unsupported atomic replacement fails without a fallback.
-
 ![Execution of a combined student search](images/FindSequenceDiagram.png)
 
-`FindCommandParser` accepts `name/`, `guardian/`, `sch/`, `level/`, `subject/` and `day/`, rejecting empty
-values, duplicate prefixes and bare name keywords mixed with prefixes. It builds one `StudentSearchPredicate`
-for every prefixed search. The predicate requires every supplied criterion to match: student name, guardian
-name or phone, school and schooling level use case-insensitive substrings. A schooling level also matches when
-the text names its stage through `SchoolingLevel.isStageNamedBy`: the first word must be a stage name or its
-start (e.g. `prim`, `Secondary`), and any text after it must start the rest of the level, so `Primary 5`
-matches `P5` but `Secondary 3` does not match `Sec 2 G3`. Missing optional fields fail only
-when their criteria are supplied. Searches without lesson criteria do not require students to have lessons.
-Bare name keywords retain whole-word, case-insensitive OR matching through `NameContainsKeywordsPredicate`.
+Active and archived lists keep separate searches. `list` and `list-archive` reset their respective searches; mutations preserve both searches, the calendar lesson filter and the archive view. Updated records enter or leave results according to those predicates, and indices change accordingly. `add` clears the active search and lesson filter and leaves Archives to display the new student.
 
-`LessonMatchesPredicate` stays separate: subject and day must match the same lesson. The student predicate
-requires at least one such lesson, and `FindCommand` passes that same lesson filter to the model for `week`.
-A later search without lesson criteria resets the lesson filter; `list` clears the active search and
-`list-archive` clears the archived search. Data mutations, including editing, archiving and
-unarchiving students, preserve both student lists' filters, the active calendar lesson filter and the
-selected archive view. The observable lists automatically apply their existing predicates to changed data.
-An edited student who no longer matches disappears from the results; a transferred student appears only if
-they match the destination list's filter. Remaining students are renumbered. `add` is the exception: it
-clears the active search and lesson filter and leaves Archives so that `AddCommand` can select the new student.
+Search diagnostics omit input values. `FindCommandParser` logs prefix names and rejection reasons at `FINE`; `FindCommand` logs result counts at `INFO`. `LogicManager` logs command types and outcomes without input or result text. `LogsCenter` writes to the console and rotating `studentbook.log.*` files; set its `LOG_LEVEL` to `Level.FINE` for parser diagnostics.
 
-Search logging uses the existing `LogsCenter` framework. The parser logs selected prefix names and rejection
-reasons at `FINE`; the command logs the result count at `INFO`. These search-specific diagnostics omit search
-values. Command-level logging in `LogicManager` records parsed command types and outcomes without input values
-or result messages. Logs go to the console and rotating `studentbook.log.*` files; set `LOG_LEVEL` in
-`LogsCenter` to `Level.FINE` for parser diagnostics.
-
-Tests: `StudentSearchPredicateTest`, `LessonFilterPredicateTest`, `FindCommandParserTest`
-and `FindLoggingTest`
-cover contact and school substrings, absent fields, searches without lessons, all criteria combined, same-lesson
-and calendar filtering, bare-name compatibility, explicit filter resets, filter preservation during mutations,
-school edits through `EditCommand`, invalid
-input, prefix ordering, equality, defensive checks and logging.
+Tests: `StudentSearchPredicateTest`, `LessonFilterPredicateTest`, `FindCommandParserTest` and `FindLoggingTest`.
 
 ### Guardian follow-ups
 
-A `FollowUp` holds 1–200 characters of single-line text, trimmed, and counted in code points like note text. `Student`
-keeps its outstanding follow-ups in an unmodifiable list in the order they were added; a follow-up's position in that
-list is the `FOLLOW_UP_INDEX` shown in the details. Completing an item removes it, so the model has no "done" state:
-every stored item is outstanding. Follow-ups belong to the student rather than the `Guardian`, so they survive
-`guardian-delete` and can be recorded for a student with no guardian (for example, while waiting for contact details).
+A `FollowUp` contains 1–200 trimmed, single-line Unicode code points. `Student` stores outstanding items in an unmodifiable list in insertion order; their positions are the displayed `FOLLOW_UP_INDEX` values. Completion removes an item rather than storing a done state. Follow-ups belong to students, so they work without a guardian and survive `guardian-delete`.
 
 <img src="images/FollowUpClassDiagram.png" width="760" />
 
-`followup-add`, `followup-edit` and `followup-done` are routed by `AddressBookParser` to `FollowUpAddCommandParser`,
-`FollowUpEditCommandParser` and `FollowUpDoneCommandParser`, respectively. The add and edit parsers read only
-`text/`, so a word such as `and/or` stays in the text. Adding requires exactly one index; editing and completing
-require two. `ParserUtil#parseFollowUp` checks the text.
+The add and edit parsers treat everything after the first `text/` as literal text, including `and/or` and further `text/` strings. Add requires one student index; edit and done require student and item indices. `ParserUtil#parseFollowUp` validates the text and collapses repeated spaces.
 
-The follow-up commands resolve the student from the current filtered list, reject a follow-up index past the end, and
-reject text that matches another of the student's items ignoring case (an item may be edited to change only its
-case). They call `Student#withFollowUps` to replace the student with a copy whose follow-ups have changed.
-The success message includes the item's text, so a wrong index on `followup-done` is visible straight away.
+Commands resolve students from the current filtered list, reject out-of-range item indices and reject text matching another item ignoring case. Case-only edits to the same item remain valid. Updates use `Student#withFollowUps`, and success feedback includes the affected text.
 
-`followups` (`FollowUpListCommand`) sets the student filter to active (not archived) students with at least one
-item, matching `list`, which hides archived students. It also resets the lesson filter.
-Because the filtered list re-applies its predicate after `Model#setPerson`, completing a student's last item while
-this filter is active removes the student from the list and renumbers the students after them. Each follow-up command
-returns a `CommandResult` selecting the student's new position, or no student if they are no longer shown.
-`MainWindow` applies that selection after execution.
+`followups` selects active students with outstanding items and resets the lesson filter. Completing a student's last item removes them from those results and renumbers subsequent students. Commands select the updated student's current position, or leave details closed if that student is no longer displayed.
 
-The sequence diagram below focuses on executing `followup-done 1 2`. Parsing follows the
-[Logic component](#logic-component) workflow; `LogicManager` saves the updated address book before returning the result.
+The sequence shows `followup-done 1 2`.
 
 <img src="images/FollowUpDoneSequenceDiagram.png" width="680" alt="Follow-up completion sequence" />
 
-Every command that rebuilds a `Student` (`edit`, the guardian, lesson and note commands, and `Student#withArchived`
-for `archive` and `unarchive`) passes the existing follow-ups on. `FollowUpWorkflowTest` checks each of them, so a later
-field change cannot silently drop follow-ups. `PersonCard` shows the items in a **Follow-ups** section under the guardian.
+Other student updates preserve follow-ups. `PersonCard` displays them in its **Follow-ups** section. `JsonAdaptedFollowUp` stores each item as `{"text": "..."}` in `followUps`; missing or null arrays load as empty, while null items, non-string text and invalid text reject the file.
 
-`JsonAdaptedFollowUp` stores each item as `{"text": "..."}` in the person's `followUps` array. A missing or `null`
-`followUps` key loads as no follow-ups, so older data files still load; a `null` item, a non-string `text` or text
-that fails validation makes the file invalid.
+Tests include `FollowUpTest`, `FollowUpWorkflowTest`, `FollowUpStorageTest`, the follow-up command and parser tests, and routing tests in `AddressBookParserTest`.
 
-Tests: `FollowUpTest`, `FollowUpAddCommandTest`, `FollowUpEditCommandTest`, `FollowUpDoneCommandTest`,
-`FollowUpListCommandTest`, `FollowUpAddCommandParserTest`, `FollowUpEditCommandParserTest`,
-`FollowUpDoneCommandParserTest`, `FollowUpWorkflowTest`,
-`FollowUpStorageTest` and the routing cases in `AddressBookParserTest`.
+### Notes
 
-### Progress notes
-
-A `ProgressNote` holds a `LocalDate` and 1–500 characters of single-line text. `Student` keeps its notes in an
-unmodifiable list sorted oldest first; the sort is stable, so notes on the same date keep the order they were added.
-A note's position in that list is the `NOTE_INDEX` shown in the details. New students start with no notes.
+A `ProgressNote` contains a `LocalDate` and 1–500 trimmed, single-line Unicode code points. `Student` stores notes in an unmodifiable list sorted oldest first, preserving the relative order of equal-date notes. Their positions are the displayed `NOTE_INDEX` values; adding, deleting or changing dates can renumber them. New students start with no notes.
 
 <img src="images/ProgressNoteClassDiagram.png" width="450" />
 
-`note-add`, `note-edit` and `note-delete` are routed by `AddressBookParser` to their corresponding command parsers.
-Editing takes the student index, the note's number and an optional date and/or text; at least one field is required.
-Deleting takes only the student index and the note's number. Add and edit treat everything after the first `text/`
-as note text, including words resembling prefixes, so `date/` must precede `text/` when both are supplied.
-`ParserUtil#parseProgressNote` uses the shared `parseProgressNoteDate` and `parseProgressNoteText` validators.
-The edit parser uses these validators for each supplied field. Dates must be real `YYYY-MM-DD` dates between
-`2000-01-01` and today, and text must be 1–500 characters on one line. The
-future-date check is in the parser rather than the model, so a saved file still loads if the computer's clock is
-wrong.
+The add and edit parsers treat everything after the first `text/` as literal text, so `date/` must precede it when both are supplied. Editing requires at least one date or text field. Shared `ParserUtil` validators require real `YYYY-MM-DD` dates between `2000-01-01` and today. The date range is checked during command parsing, rather than storage loading, so a changed computer clock does not prevent saved notes from loading.
 
-`NoteAddCommand` and `NoteDeleteCommand` resolve the student from the current filtered list. Adding rejects an identical note on the same
-date; deleting rejects a note number past the end. Either command calls `Student#withNotes` to replace the student
-with a copy whose notes have changed, then returns a `CommandResult` that opens that student's
-details, where `PersonCard` lists the notes. Every command that rebuilds a `Student` (`edit`, archiving, and the
-guardian, lesson and follow-up commands) passes the existing notes on. `NoteWorkflowTest` checks `edit` and the guardian
-and lesson commands, so a later field change cannot silently drop notes there.
+Commands resolve the student from the current filtered list, reject invalid note indices and reject duplicate date-and-text pairs. Updates use `Student#withNotes` and open the student's details; other student updates preserve existing notes.
 
-The sequence diagram below focuses on executing `note-add 1 date/2026-10-15 text/Fractions`. Parsing follows the
-[Logic component](#logic-component) workflow; `LogicManager` saves the updated address book before returning the result.
+The sequence shows `note-add 1 date/2026-10-15 text/Fractions`.
 
 <img src="images/NoteAddSequenceDiagram.png" width="660" alt="Note addition sequence" />
 
-`JsonAdaptedProgressNote` stores each note as `{"date": "YYYY-MM-DD", "text": "..."}` in the person's `notes`
-array. A missing or `null` `notes` key loads as no notes, so older data files still load.
+`JsonAdaptedProgressNote` stores each note as `{"date": "YYYY-MM-DD", "text": "..."}` in `notes`. Missing or null arrays load as empty; adapters validate stored dates and text. `PersonCard` displays notes in its **Notes** section.
+
+Tests include `ProgressNoteTest`, `NoteWorkflowTest`, `ProgressNoteStorageTest`, and the note command and parser tests.
 
 ## Documentation, logging, testing, dev-ops
 
@@ -386,11 +344,11 @@ The planned MVP includes student records and all five tuition features below. Ke
 | Dylan | Hourly rate | 53, 54 |
 | Mervin | Guardian contact | 7, 8, 22, 23 |
 
-The shared types and storage are implemented. The app supports add, display, edit and clear for schools and schooling levels, finding students by level, guardian add, edit and delete, and lesson add, edit and delete. Week 8 needs a small working increment per person; the full MVP is the v1.3 target.
+The shared types and storage are implemented. The app supports add, display, edit and clear for schools and schooling levels, finding students by school or level, guardian add, edit and delete, and lesson add, edit and delete. Week 8 needs a small working increment per person; the full MVP is the v1.3 target.
 
 ### Agreed field rules
 
-A student has any number of lessons. Each lesson groups a required subject, weekly slot and hourly rate with an optional location and mode. School and schooling level are optional; students can be added without either, and `edit INDEX sch/` or `edit INDEX level/` can clear the corresponding field. Each student has at most one school, with 1 to 60 characters after trimming leading and trailing whitespace.
+A student has any number of lessons. Each lesson groups a required subject, weekly slot and hourly rate with an optional location and mode. School and schooling level are optional; students can be added without either, and `edit STUDENT_INDEX sch/` or `edit STUDENT_INDEX level/` can clear the corresponding field. Each student has at most one school, with 1 to 60 characters after trimming leading and trailing whitespace.
 
 ### Decisions to confirm
 
@@ -400,7 +358,7 @@ The earlier Google specification and the current code differ on the rules below.
 |---|---|---|
 | Contact fields | Name required on creation | Name, phone, email and address required; confirm whether all four contact fields are needed |
 | Duplicate names | Normalized, case-insensitive comparison | Exact, case-sensitive name comparison |
-| Names and phones | Punctuation in names; optional `+` and 7–15 digits in phones | AB3 alphanumeric names; optional `+` and 7–15 digits in phones, with single spaces or hyphens allowed between digits |
+| Names and phones | Punctuation in names; optional `+` and 7–15 digits in phones | Names start with a letter/number and allow Unicode letters, accents, numbers, spaces, apostrophes, hyphens, periods and `s/o`/`d/o`; phones allow an optional leading `+` and 7–15 digits, with single spaces or hyphens between digit groups |
 | Save/load failures | Roll back failed saves; block commands after a failed load | Failed saves roll back; failed loads use backup recovery |
 
 The pre-chat Git and Google documents also differed on registration and guardian attachment. The current plan adds the guardian separately. Confirm the remaining rules with the team before treating the earlier draft as superseded.
@@ -410,9 +368,9 @@ The pre-chat Git and Google documents also differed on registration and guardian
 
 Priorities from the planning Sheet are retained: `***` = high, `**` = medium, `*` = low. Priority does not determine whether a story is in the MVP or already implemented.
 
-The planned MVP covers stories 1–9, subject/level updates in 12, guardian name/phone updates in 22 and removal in 23, slots in 25/28/29/48, and rates in 53/54. School recording in story 11 and school updates in story 12 are also implemented, in addition to the five tuition features in the MVP ownership table.
+The planned MVP covers stories 1–9, subject/level updates in 12, guardian name/phone updates in 22 and removal in 23, slots in 25/28/29/48, and rates in 53/54. School recording in story 11, school updates in story 12 and school filtering in story 15 are also implemented, in addition to the five tuition features in the MVP ownership table.
 
-The table also preserves existing AB3 capabilities and other ideas for future reference. Unselected ideas are backlog candidates, not commitments, including school filtering in story 15 and guardian email in story 22.
+The table also preserves existing AB3 capabilities and other ideas for future reference. Unselected ideas are backlog candidates, not commitments, including guardian email in story 22.
 
 | ID | Priority | As a... | I want to... | So that I can... |
 |---|---|---|---|---|
@@ -510,8 +468,10 @@ Use case ends.
 **MSS**
 
 1. Tutor requests to list students.
-2. StudentBook displays student records with their linked guardian names and contact details.
-3. Tutor reads the intended student's guardian contact details.
+2. StudentBook displays the student list with an index for each record.
+3. Tutor opens the intended student's details by selecting their row or using `view STUDENT_INDEX`.
+4. StudentBook displays the guardian's name and phone number in the expanded details.
+5. Tutor reads the guardian's contact details.
 
 Use case ends. Contacting the guardian takes place outside StudentBook.
 
@@ -521,8 +481,8 @@ Use case ends. Contacting the guardian takes place outside StudentBook.
   * 2a1. StudentBook displays an empty list.
   * Use case ends.
 
-* 2b. The intended student has no guardian contact.
-  * 2b1. StudentBook indicates that no guardian is recorded.
+* 4a. The intended student has no guardian contact.
+  * 4a1. StudentBook indicates that no guardian is recorded.
   * Use case ends.
 
 #### UC03: Remove a student who has stopped attending lessons
@@ -555,9 +515,11 @@ Use case ends.
 **MSS**
 
 1. Tutor requests to list students.
-2. StudentBook displays students and their lessons.
-3. Tutor requests to edit a lesson, supplying the student's displayed index, the lesson's number on the card and the new slot.
-4. StudentBook displays the updated lesson.
+2. StudentBook displays the student list with an index for each record.
+3. Tutor opens the intended student's details by selecting their row or using `view STUDENT_INDEX`.
+4. StudentBook displays the student's numbered lessons in the expanded details.
+5. Tutor requests to edit a lesson, supplying the student's displayed index, the lesson's number and the new slot.
+6. StudentBook displays the updated lesson.
 
 Use case ends.
 
@@ -565,10 +527,10 @@ Use case ends.
 
 * 2a. The student list is empty.
   * Use case ends.
-* 3a. The student index or lesson number is invalid, the new slot is invalid, or the change would duplicate another lesson of that student.
-  * 3a1. StudentBook explains the error without changing any lesson.
-  * 3a2. Tutor corrects and resubmits the request.
-  * Use case resumes at step 3.
+* 5a. The student index or lesson number is invalid, the new slot is invalid, or the change would duplicate another lesson of that student.
+  * 5a1. StudentBook explains the error without changing any lesson.
+  * 5a2. Tutor corrects and resubmits the request.
+  * Use case resumes at step 5.
 
 #### UC05: Complete a guardian follow-up
 
@@ -661,8 +623,8 @@ For larger or boundary-value data sets, generate a data file with `./gradlew see
 
 ### Launch and shutdown
 
-1. Build the JAR using the [Quick start](UserGuide.md#quick-start), copy it into the test folder and run `java -jar studentbook.jar` there.
-2. Check that the window opens with eight sample students, starting with Chloe Lim and Ethan Lim, who share a guardian. Run `week`; no lessons should overlap. Run `list-archive`; it should show one past student, Tan Wei Jie.
+1. Build the JAR using [Build automation](DevOps.md#build-automation), copy it into the test folder and run `java -jar studentbook.jar` there.
+2. Check that the window opens with sample data. Run `list`; it should show eight active students, starting with Chloe Lim, Isaac Ng and Ethan Lim. Open Chloe's and Ethan's details to check that they share the guardian Lim Mei Ling. Run `week`; no lessons should overlap. Run `list-archive`; it should show one past student, Tan Wei Jie.
 3. Resize and move the window, then close and reopen the app. Check that it keeps the new size and position.
 
 ### Main window
@@ -673,10 +635,10 @@ For larger or boundary-value data sets, generate a data file with `./gradlew see
 4. Run `delete 0`. The result row should turn pink with a red `!`, and `delete 0` should stay in the box in red. Fix it to a valid index and press Enter; the box should clear.
 5. Run `add name/Ryan`. The result row should show the description, a **Format** line and an **Example** line in a monospace font.
 6. Run two commands, then press Up twice and Down twice. The box should show the earlier commands, then what you had typed. Press Esc; the box should clear.
-7. With more students than fit, press Esc in the empty command box to clear the selected student, then press Page Down and Page Up. The list should scroll, and typing should still go into the box. Run `view INDEX` for a student with long details, then press Page Down and Page Up again; the sidebar should scroll while the list and selection stay in place.
+7. Run `list` with more students than fit in the window. Press Esc in the empty command box to close any open details, then press Page Down and Page Up. The student list should scroll, and typing should still go into the command box. Run `view STUDENT_INDEX` for a student with long details, then press Page Down and Page Up again; the list, including the expanded details, should scroll without changing the selected student.
 8. Press F1 with the window focused. The user guide should open in the default browser. Check that clicking **All commands**, choosing **Help → Help**, and running `help` open the same guide without an extra app window.
-9. Run `list`, then `view 1` and `view 2`. The sidebar should switch to the indicated student while the list cards stay compact. With the command box empty, press Esc to clear the selection and show the sidebar's prompt. Press Alt+Down twice; the second student's details should appear in the sidebar, with focus still in the command box. Run `find` with one student's name; the sidebar should show their details.
-10. Add a student with a long name, several lessons and a long address, then run `view INDEX` for that student. Shrink the window to its minimum size. The list and sidebar should remain side by side, and the text should wrap. Use Page Down or scroll within the sidebar to reach all the student's information without scrolling the list; long command results should also remain scrollable.
+9. Run `list`, then `view 1` and `view 2`. The indicated student's details should expand below their row, and the previously open row should collapse. With the command box empty, press Esc to close the details. Press Alt+Down twice; the second student's details should expand, with focus still in the command box. Run `find` with a name that matches only one student; that student's details should open automatically.
+10. Add a student with a long name, several lessons and a long address, then run `view STUDENT_INDEX` for that student. Shrink the window to its minimum size. The details should remain below the student's row, with long text wrapping and the detail sections reflowing to fit. The Subjects and Guardian columns should disappear from the compact rows, while their information remains available in the expanded details. Use Page Down or scroll the student list to reach all of the student's information; long command results should also remain scrollable.
 
 ### Student deletion
 
@@ -686,12 +648,12 @@ For larger or boundary-value data sets, generate a data file with `./gradlew see
 
 ### Lessons and saved data
 
-1. Add a unique test student, then run `lesson-add INDEX subject/Combined   Science slot/Wed 1.00pm 5.00pm rate/45.5`, using three spaces between the words. Run `view INDEX`; the sidebar should show lesson `1.` with subject `Combined Science`, `Wed 1.00pm-5.00pm` and `SGD 45.50/h`.
-2. Run `lesson-add INDEX subject/English slot/mon 4.00pm 5.00pm rate/40 mode/virtual location/https://zoom.us/j/123`. The student's details should list both lessons in order, the second with `Virtual` and its location.
-3. Run `lesson-edit INDEX 2 rate/50`, then edit the student's phone with `edit`. Both lessons should stay, and only the rate should change.
+1. Add a unique test student, then run `lesson-add STUDENT_INDEX subject/Combined   Science slot/Wed 1.00pm 5.00pm rate/45.5`, using three spaces between the words. Run `view STUDENT_INDEX`; the expanded details below the student's row should show lesson `1.` with subject `Combined Science`, `Wed 1.00pm-5.00pm` and `SGD 45.50/h`.
+2. Run `lesson-add STUDENT_INDEX subject/English slot/mon 4.00pm 5.00pm rate/40 mode/virtual location/https://zoom.us/j/123`. The student's details should list both lessons in order, the second with `Virtual` and its location.
+3. Run `lesson-edit STUDENT_INDEX 2 rate/50`, then edit the student's phone with `edit`. Both lessons should stay, and only the rate should change.
 4. Restart the app. Everything above should remain.
-5. Run `lesson-edit INDEX 2 mode/ location/`. The student's details should show the English lesson without mode or location, including after restart.
-6. Run `lesson-delete INDEX 1`. English becomes lesson 1. Delete it too and the sidebar's Lessons section should show `No lessons yet`.
+5. Run `lesson-edit STUDENT_INDEX 2 mode/ location/`. The student's details should show the English lesson without mode or location, including after restart.
+6. Run `lesson-delete STUDENT_INDEX 1`. English becomes lesson 1. Delete it too and the Lessons section in the student's expanded details should show `No lessons yet`.
 7. Try a duplicate `lesson-add`, a lesson index larger than the list, a missing required field, `mode/hybrid`, a repeated prefix, an unknown prefix such as `x/`, and an empty `mode/` on `lesson-add`. Each should report an error and leave every record unchanged.
 
 ### Name and guardian searches
@@ -709,11 +671,11 @@ For larger or boundary-value data sets, generate a data file with `./gradlew see
 
 ### Guardian contacts
 
-1. List students and choose an index without a guardian. Run `guardian-add INDEX name/Janet Tan phone/91234567`.
+1. List students and choose an index without a guardian. Run `guardian-add STUDENT_INDEX name/Janet Tan phone/91234567`.
    Check that the guardian appears on that student's card and other fields stay unchanged. Restart and check again.
-2. Run `guardian-edit INDEX phone/87654321`. The guardian's name should remain unchanged. Restart and verify persistence.
-3. Run `guardian-edit INDEX name/John Tan`. The phone should remain unchanged.
-4. Run `guardian-delete INDEX`. The guardian should disappear while the student and all other fields remain.
+2. Run `guardian-edit STUDENT_INDEX phone/87654321`. The guardian's name should remain unchanged. Restart and verify persistence.
+3. Run `guardian-edit STUDENT_INDEX name/John Tan`. The phone should remain unchanged.
+4. Run `guardian-delete STUDENT_INDEX`. The guardian should disappear while the student and all other fields remain.
    Restart and verify that no guardian is recorded.
 5. Try adding a second guardian, editing/deleting an absent guardian, an out-of-range index, empty fields,
    an invalid phone and repeated prefixes. Expect an error with existing records unchanged.
@@ -722,9 +684,9 @@ For larger or boundary-value data sets, generate a data file with `./gradlew see
 
 ### Guardian follow-ups
 
-1. List students and choose an index. Run `followup-add INDEX text/Send the term 4 report and/or worksheet`.
+1. List students and choose an index. Run `followup-add STUDENT_INDEX text/Send the term 4 report and/or worksheet`.
    The student's details should open with follow-up `1.` under the guardian, with the text unchanged.
-2. Run `followup-add INDEX text/Confirm the make-up lesson`, then `followup-edit INDEX 2 text/Confirm Saturday`.
+2. Run `followup-add STUDENT_INDEX text/Confirm the make-up lesson`, then `followup-edit STUDENT_INDEX 2 text/Confirm Saturday`.
    Item 2 should change and item 1 should not.
 3. Edit the student's phone, delete or add a guardian, add a lesson and add a note. Both items should remain.
    Restart and check again.
@@ -734,14 +696,14 @@ For larger or boundary-value data sets, generate a data file with `./gradlew see
 5. Try a duplicate item in different letter case, empty text, 201 characters of text, a repeated `text/`, a missing
    index and an out-of-range index. Each should report an error and leave every record unchanged.
 
-### Progress notes
+### Notes
 
-1. List students and choose an index. Run `note-add INDEX date/2026-10-15 text/Fractions, and/or decimals next`.
+1. List students and choose an index. Run `note-add STUDENT_INDEX date/2026-10-15 text/Fractions, and/or decimals next`.
    The student's details should open with note `1.`, dated `15 Oct 2026`, with the text unchanged.
-2. Run `note-add INDEX date/2026-10-08 text/Placement test`. It should become note 1, and the earlier note 2.
+2. Run `note-add STUDENT_INDEX date/2026-10-08 text/Placement test`. It should become note 1, and the earlier note 2.
 3. Edit the student's phone, add a guardian and add a lesson. Both notes should remain. Restart and check again.
-4. Run `note-delete INDEX 1`. Only the `Placement test` note should go, and the other note becomes note 1.
-   Restart and check again. `note-delete INDEX 2` should then report an invalid note index.
+4. Run `note-delete STUDENT_INDEX 1`. Only the `Placement test` note should go, and the other note becomes note 1.
+   Restart and check again. `note-delete STUDENT_INDEX 2` should then report an invalid note index.
 5. Try a duplicate note, tomorrow's date, `date/2026-02-30`, `date/15-10-2026`, empty text, 501 characters of text,
    a repeated prefix and an out-of-range index. Each should report an error and leave every record unchanged.
 
@@ -751,5 +713,5 @@ Close the app and back up the test data before each case.
 
 * **Missing file:** Move `data/studentbook.json` out of the test folder, then restart. Sample records should appear.
 * **Invalid file:** Restart with invalid JSON. Expect an empty list, a recovery warning and a backup. Only record changes overwrite the original file.
-* **Old valid file:** Load AB3 data without tuition properties. Run `view INDEX`; the contact details should remain and the sidebar's Lessons section should show `No lessons yet`.
+* **Old valid file:** Load AB3 data without tuition properties. Run `view STUDENT_INDEX`; the contact details should remain and the Lessons section in the student's expanded details should show `No lessons yet`.
 * **Pre-lesson file:** Load a file whose students have `subjects`, `weeklyLessonSlot` and `hourlyRate`. The contact details load, but those properties are ignored and removed on the next save.

@@ -1,0 +1,62 @@
+@startuml
+!include style.puml
+skinparam ArrowFontStyle plain
+skinparam sequenceMessageAlign left
+skinparam ParticipantPadding 12
+
+participant ":ScheduleGrid" as Grid UI_COLOR
+participant "dayEntries:ObservableList" as Entries UI_COLOR
+participant "entry:ScheduleEntry" as Entry UI_COLOR
+
+' Focus on one non-empty day inside refreshSchedule().
+' Heap operations are local bookkeeping, shown as notes rather than invented methods.
+' Routine iteration, getters, comparator callbacks and static block-bound helpers are omitted.
+[-> Grid : assignColumnValues(...)
+activate Grid
+
+Grid -> Entries : sort(null)
+activate Entries
+note right of Entries
+  Natural order: start, end,
+  student number, lesson number
+end note
+Entries --> Grid
+deactivate Entries
+
+note over Grid, Entry
+  currColumn = startColumn
+  activeEntries: earliest drawn end first
+  availableColumns: smallest column first
+end note
+
+loop each entry in sorted dayEntries
+  loop earliest active block ends <= current block starts
+    note over Grid, Entry
+      Remove the earliest entry from activeEntries;
+      add its display column to availableColumns
+    end note
+  end
+
+  alt availableColumns is empty
+    Grid -> Grid : addColumn()
+    activate Grid
+    Grid --> Grid
+    deactivate Grid
+    note right of Grid : column = currColumn++
+  else a column is available
+    note over Grid, Entry
+      column = remove smallest available column
+    end note
+  end
+
+  Grid -> Entry : setDisplayColumn(column)
+  activate Entry
+  Entry --> Grid
+  deactivate Entry
+
+  note over Grid, Entry : Add entry to activeEntries
+end
+
+[<-- Grid : currColumn - startColumn
+deactivate Grid
+@enduml

@@ -7,7 +7,6 @@ skinparam classAttributeIconSize 0
 skinparam classAttributeFontColor #FFFFFF
 skinparam genericDisplay old
 
-class Student
 class Lesson
 class Subject
 class WeeklyLessonSlot
