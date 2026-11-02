@@ -128,6 +128,7 @@ Format: `add name/NAME phone/PHONE email/EMAIL address/ADDRESS [tag/TAG]... [sch
 * Each name must be unique across active and archived students. Capitals count, so `Alex Tan` and `alex tan` are different names.
 * Phone numbers have 7 to 15 digits and an optional `+` country code. Spaces and hyphens are removed, so `+65 9123 4567` is saved as `+6591234567`.
 * Emails look like `name@example.com`. Tags use only letters and numbers, with no spaces.
+* Addresses can contain almost any text. Another command's prefix, such as `subject/`, or a common mistype (`n/`, `p/`, `e/`, `a/`, `t/`, `tags/`, `school/` or `lvl/`) after a space gives an error instead of being saved in the address. Other text with a slash, such as `c/o John`, stays in the address.
 * Schools have up to 60 characters. Levels have up to 30 characters, contain a letter, and use only letters, numbers, spaces, apostrophes, hyphens, periods or parentheses.
 * Levels such as `P5`, `Primary 5`, `Sec 3` or `JC1` place the student in the Primary, Secondary or JC group. Any other level, or no level, places them in Other.
 * StudentBook clears any search and opens the new student's details. Add lessons with [`lesson-add`](#add-a-lesson-lesson-add) and a guardian with [`guardian-add`](#add-a-guardian-guardian-add).
