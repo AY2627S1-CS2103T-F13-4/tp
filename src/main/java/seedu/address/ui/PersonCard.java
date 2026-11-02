@@ -130,7 +130,8 @@ public class PersonCard extends UiPart<Region> {
     private final List<Text> noteTexts = new ArrayList<>();
     private final List<Text> followUpTexts = new ArrayList<>();
     private final List<StudentCardText.LessonLine> lines;
-    private final Optional<StudentCardText.LessonLine> nextLesson;
+    private Optional<StudentCardText.LessonLine> nextLesson;
+    private RateSortOrder sortOrder;
     private boolean detailsBuilt;
     private boolean open;
     private DoubleExpression detailsWidth;
@@ -150,6 +151,7 @@ public class PersonCard extends UiPart<Region> {
     public PersonCard(Student person, int displayedIndex, RateSortOrder sortOrder) {
         super(FXML);
         this.person = person;
+        this.sortOrder = sortOrder;
         id.setText(String.valueOf(displayedIndex));
         name.setText(person.getName().fullName);
         initials.setText(StudentCardText.initials(person.getName().fullName));
@@ -166,14 +168,9 @@ public class PersonCard extends UiPart<Region> {
 
         lines = StudentCardText.lessons(person);
         subjects.setText(StudentCardText.subjects(person).orElse("None yet"));
-        nextLesson = StudentCardText.nextLesson(lines, StudentCardText.slots(person), LocalDateTime.now());
-        if (nextLesson.isPresent()) {
-            nextTime.setText(StudentCardText.dayAndStart(nextLesson.get()));
-            moreLessons.setText(lines.size() > 1 ? "+" + (lines.size() - 1) + " more" : "");
-            setSortOrder(sortOrder);
-        } else {
-            nextTime.setText(StudentCardText.NOT_SET);
-            rate.setText("\u2014");
+        moreLessons.setText(lines.size() > 1 ? "+" + (lines.size() - 1) + " more" : "");
+        refreshTime(LocalDateTime.now());
+        if (nextLesson.isEmpty()) {
             subjects.getStyleClass().add(EMPTY_VALUE_STYLE_CLASS);
             nextTime.getStyleClass().add(EMPTY_VALUE_STYLE_CLASS);
             rate.getStyleClass().add(EMPTY_VALUE_STYLE_CLASS);
@@ -190,10 +187,19 @@ public class PersonCard extends UiPart<Region> {
      * {@code NONE}. Rows call this when the order changes, so the column never lags behind the sort.
      */
     public void setSortOrder(RateSortOrder sortOrder) {
+        this.sortOrder = sortOrder;
         if (nextLesson.isPresent()) {
             rate.setText(sortOrder.rateOf(person).map(StudentCardText::tableRate)
                     .orElseGet(() -> StudentCardText.tableRate(nextLesson.get())));
         }
+    }
+
+    /** Updates the time-dependent summary without rebuilding the row or its open details. */
+    void refreshTime(LocalDateTime now) {
+        nextLesson = StudentCardText.nextLesson(lines, StudentCardText.slots(person), now);
+        nextTime.setText(nextLesson.map(StudentCardText::dayAndStart).orElse(StudentCardText.NOT_SET));
+        rate.setText("\u2014");
+        setSortOrder(sortOrder);
     }
 
     /**

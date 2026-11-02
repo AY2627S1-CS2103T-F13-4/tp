@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.math.BigDecimal;
 import java.time.DayOfWeek;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.Arrays;
 import java.util.List;
@@ -326,6 +327,66 @@ public class PersonCardTest {
             card.setSortOrder(RateSortOrder.NONE);
             assertEquals("$60/h", rate.getText());
         });
+    }
+
+    @Test
+    public void refreshTime_lessonPasses_updatesNextLessonAndRateWithoutChangingDetails() throws Exception {
+        FxTestUtil.runOnFxThread(() -> {
+            PersonCard card = new PersonCard(studentWithMondayLessons(), 1);
+            Region root = prepareCard(card, new SimpleDoubleProperty(560));
+            card.setOpen(true);
+            Node details = root.lookup("#details");
+            Text next = (Text) root.lookup("#nextTime");
+            Text rate = (Text) root.lookup("#rate");
+
+            card.refreshTime(LocalDateTime.of(2026, 11, 2, 12, 59));
+            assertEquals("Mon 1.00pm", next.getText());
+            assertEquals("$40/h", rate.getText());
+            card.refreshTime(LocalDateTime.of(2026, 11, 2, 14, 30));
+            assertEquals("Mon 3.00pm", next.getText());
+            assertEquals("$80/h", rate.getText());
+            assertTrue(details.isVisible());
+            assertEquals(List.of("Mathematics", "English"), sectionTexts(root, "Lessons").stream()
+                    .filter(text -> text.equals("Mathematics") || text.equals("English")).toList());
+
+            card.refreshTime(LocalDateTime.of(2026, 11, 2, 17, 0));
+            assertEquals("Mon 1.00pm", next.getText());
+            assertEquals("$40/h", rate.getText());
+        });
+    }
+
+    @Test
+    public void refreshTime_rateSortActive_preservesMinimumAndMaximumRates() throws Exception {
+        FxTestUtil.runOnFxThread(() -> {
+            PersonCard card = new PersonCard(studentWithMondayLessons(), 1, RateSortOrder.ASCENDING);
+            Text rate = (Text) card.getRoot().lookup("#rate");
+            card.refreshTime(LocalDateTime.of(2026, 11, 2, 14, 30));
+            assertEquals("$40/h", rate.getText());
+            card.setSortOrder(RateSortOrder.DESCENDING);
+            card.refreshTime(LocalDateTime.of(2026, 11, 2, 17, 0));
+            assertEquals("$80/h", rate.getText());
+            card.setSortOrder(RateSortOrder.NONE);
+            card.refreshTime(LocalDateTime.of(2026, 11, 2, 14, 30));
+            assertEquals("$80/h", rate.getText());
+        });
+    }
+
+    @Test
+    public void refreshTime_noLessons_keepsEmptySummary() throws Exception {
+        FxTestUtil.runOnFxThread(() -> {
+            PersonCard card = new PersonCard(new PersonBuilder().build(), 1);
+            card.refreshTime(LocalDateTime.of(2026, 11, 3, 0, 0));
+            assertEquals(StudentCardText.NOT_SET, ((Text) card.getRoot().lookup("#nextTime")).getText());
+            assertEquals("\u2014", ((Text) card.getRoot().lookup("#rate")).getText());
+        });
+    }
+
+    private static Student studentWithMondayLessons() {
+        return new PersonBuilder().withLessons(
+                new Lesson(new Subject("Mathematics"), new WeeklyLessonSlot("Mon 1.00pm 2.00pm"),
+                        new HourlyRate(new BigDecimal("40"))),
+                new Lesson(new Subject("English"), new WeeklyLessonSlot("Mon 3.00pm 4.00pm"),
+                        new HourlyRate(new BigDecimal("80")))).build();
     }
 
     /** Returns the content of the details section with the given caption: the content node and its children. */
