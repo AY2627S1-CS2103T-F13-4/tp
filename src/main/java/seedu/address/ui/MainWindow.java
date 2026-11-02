@@ -253,9 +253,12 @@ public class MainWindow extends UiPart<Stage> {
         // Alt+Up/Down, Esc and clicks open and close details without a command, so the result says what changed.
         for (PersonListPanel panel : List.of(personListPanel, archivedPersonListPanel)) {
             panel.openStudentProperty().addListener((unused, oldStudent, student) -> {
-                if (!runningCommand && student != null) {
+                if (runningCommand) {
+                    return;
+                }
+                if (student != null) {
                     resultDisplay.setFeedbackToUser(String.format(ViewCommand.MESSAGE_SUCCESS, student.getName()));
-                } else if (!runningCommand && oldStudent != null) {
+                } else {
                     resultDisplay.setFeedbackToUser(String.format(MESSAGE_DETAILS_CLOSED, oldStudent.getName()));
                 }
             });

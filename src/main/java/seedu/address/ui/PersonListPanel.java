@@ -163,7 +163,7 @@ public class PersonListPanel extends UiPart<Region> {
         // A new width rewraps the rows, which can push the open one out of view; bring it back once laid out.
         personListView.widthProperty().addListener(unused -> {
             int open = personListView.getSelectionModel().getSelectedIndex();
-            if (open >= 0 && personListView.getScene() != null) {
+            if (open >= 0) {
                 withFlow(flow -> afterNextLayout(() -> showOpenRow(flow, open)));
             }
         });
