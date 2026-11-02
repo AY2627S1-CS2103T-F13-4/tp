@@ -161,6 +161,13 @@ public class PersonListPanel extends UiPart<Region> {
         personList.addListener((ListChangeListener<Student>) change -> Motion.fadeIn(personListView, 0.4));
         updateStatus(personList.size(), allPersons.size());
         openOnlyRow();
+        // A new width rewraps the rows, which can push the open one out of view; bring it back once laid out.
+        personListView.widthProperty().addListener(unused -> {
+            int open = personListView.getSelectionModel().getSelectedIndex();
+            if (open >= 0) {
+                withFlow(flow -> afterNextLayout(() -> showOpenRow(flow, open)));
+            }
+        });
     }
 
     /**

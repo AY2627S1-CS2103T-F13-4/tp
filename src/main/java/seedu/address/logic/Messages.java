@@ -70,9 +70,11 @@ public class Messages {
                 .append("; Email: ")
                 .append(person.getEmail())
                 .append("; Address: ")
-                .append(person.getAddress())
-                .append("; Tags: ");
-        person.getTags().forEach(builder::append);
+                .append(person.getAddress());
+        if (!person.getTags().isEmpty()) {
+            builder.append("; Tags: ");
+            person.getTags().forEach(builder::append);
+        }
         person.getSchool().ifPresent(school -> builder.append("; School: ").append(school));
         person.getSchoolingLevel().ifPresent(level -> builder.append("; Level: ").append(level));
         if (!person.getLessons().isEmpty()) {

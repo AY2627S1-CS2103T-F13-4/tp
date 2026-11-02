@@ -73,8 +73,9 @@ public class MainWindow extends UiPart<Stage> {
     private static final Logger logger = LogsCenter.getLogger(MainWindow.class);
     /** Index of the first level filter; the divider before them is child 0 of their row. */
     private static final int LEVEL_NAV_FIRST_FILTER = 1;
-    /** Below this height the brand, the footer and each screen's heading row are hidden, leaving room for rows. */
+    /** Below this height the brand, the footer and each screen's heading rows are hidden, leaving room for rows. */
     private static final double SHORT_WINDOW_HEIGHT = 560;
+    private static final String MESSAGE_DETAILS_CLOSED = "Closed %1$s's details";
     /** Below this width the level filters are hidden, leaving the tabs room. */
     private static final double LEVEL_NAV_MIN_WIDTH = 900;
     /** Number of recent commands shown as chips beside a successful result. */
@@ -264,11 +265,16 @@ public class MainWindow extends UiPart<Stage> {
                 visiblePersonListPanel().closeDetails();
             }
         });
-        // Alt+Up/Down and clicks open details without a command, so the result names whose details are shown.
+        // Alt+Up/Down, Esc and clicks open and close details without a command, so the result says what changed.
         for (PersonListPanel panel : List.of(personListPanel, archivedPersonListPanel)) {
             panel.openStudentProperty().addListener((unused, oldStudent, student) -> {
-                if (!runningCommand && student != null) {
+                if (runningCommand) {
+                    return;
+                }
+                if (student != null) {
                     resultDisplay.setFeedbackToUser(String.format(ViewCommand.MESSAGE_SUCCESS, student.getName()));
+                } else {
+                    resultDisplay.setFeedbackToUser(String.format(MESSAGE_DETAILS_CLOSED, oldStudent.getName()));
                 }
             });
         }
@@ -299,6 +305,7 @@ public class MainWindow extends UiPart<Stage> {
         Region content = (Region) brand.getParent();
         BooleanBinding tall = content.heightProperty().greaterThanOrEqualTo(SHORT_WINDOW_HEIGHT);
         List<Node> hiddenWhenShort = new ArrayList<>(personListPanelPlaceholder.lookupAll(".page-header"));
+        hiddenWhenShort.addAll(personListPanelPlaceholder.lookupAll(".table-header"));
         hiddenWhenShort.addAll(List.of(brand, statusbarPlaceholder));
         for (Node node : hiddenWhenShort) {
             node.visibleProperty().bind(tall);

@@ -37,7 +37,7 @@
         <Label text="#" styleClass="table-heading, heading-index" />
         <Label fx:id="nameHeading" text="Name" styleClass="table-heading" />
         <Label fx:id="subjectsHeading" text="Subjects" styleClass="table-heading" />
-        <Label fx:id="lessonHeading" text="Next lesson" styleClass="table-heading" />
+        <Label fx:id="lessonHeading" text="Next  lesson" styleClass="table-heading" />
         <Label fx:id="rateHeading" text="Rate" styleClass="table-heading, heading-right" />
         <Label fx:id="guardianHeading" text="Guardian" styleClass="table-heading" />
       </HBox>

@@ -51,6 +51,8 @@ public class PersonCard extends UiPart<Region> {
     private static final double LEVEL_FONT_SIZE = 12.5;
     /** The gap before the level, which follows the name. */
     private static final double LEVEL_GAP = 10;
+    /** A space too thin to see, which JavaFX can still break a line at. */
+    private static final String HAIR_SPACE = "\u200A";
     /** Width of the initials badge and the gap after it, beside the name. */
     private static final double BADGE_WIDTH = 38;
     /** Share of the name column, after the badge, the name keeps before a long level wraps beside it. */
@@ -153,7 +155,9 @@ public class PersonCard extends UiPart<Region> {
         this.person = person;
         this.sortOrder = sortOrder;
         id.setText(String.valueOf(displayedIndex));
-        name.setText(person.getName().fullName);
+        // JavaFX breaks lines only at spaces, so a hair space after each hyphen lets a long double-barrelled name
+        // break there instead of inside a word.
+        name.setText(person.getName().fullName.replace("-", "-" + HAIR_SPACE));
         initials.setText(StudentCardText.initials(person.getName().fullName));
 
         String stageClass = person.getSchoolingLevel()
@@ -403,8 +407,8 @@ public class PersonCard extends UiPart<Region> {
             optional.managedProperty().bind(columns.wide());
         }
         // The name keeps most of the cell and its longest word, and the level keeps its longest word beside it.
-        // When both cannot fit, the level goes under the name if the name's longest word then fits a line; if even
-        // that cannot fit, the name keeps its share and the level the rest. Neither leaves the cell.
+        // When the level would have to wrap there, it goes under the name if the name's longest word then fits a
+        // line; if even that cannot fit, the name keeps its share and the level the rest. Neither leaves the cell.
         String nameText = name.getText();
         double nameWidth = textWidth(nameText, NAME_FONT_FAMILY, NAME_FONT_SIZE);
         double nameWord = longestWordWidth(nameText, NAME_FONT_FAMILY, NAME_FONT_SIZE);
@@ -416,12 +420,15 @@ public class PersonCard extends UiPart<Region> {
         DoubleExpression room = columns.name().subtract(BADGE_WIDTH);
         // 2px over the cell, as layout rounds the name and the level each up to a whole pixel (see the FXML).
         nameFlow.prefWrapLengthProperty().bind(room.add(2));
-        BooleanExpression stacked = room.lessThan(nameWord + levelFloor).and(room.greaterThanOrEqualTo(nameWord));
-        DoubleExpression nameLimit = Bindings.createDoubleBinding(() -> {
+        DoubleExpression besideLimit = Bindings.createDoubleBinding(() -> {
             double share = room.get() * NAME_SHARE;
             double wanted = Math.max(room.get() - levelWidth, Math.min(nameWidth, Math.max(share, nameWord)));
-            return stacked.get() ? room.get() : Math.min(wanted, Math.max(room.get() - levelFloor, share));
+            return Math.min(wanted, Math.max(room.get() - levelFloor, share));
         }, room);
+        BooleanExpression stacked = Bindings.createBooleanBinding(() -> room.get() >= nameWord
+                && room.get() - Math.min(besideLimit.get(), nameWidth) < levelWidth, room, besideLimit);
+        DoubleExpression nameLimit = Bindings.createDoubleBinding(() ->
+                stacked.get() ? room.get() : besideLimit.get(), room, stacked);
         wrapWhenWider(name, nameLimit, nameWidth);
         wrapWhenWider(schoolingLevel, Bindings.createDoubleBinding(() -> stacked.get() ? room.get()
                 : room.get() - LEVEL_GAP - Math.min(nameLimit.get(), nameWidth), room), levelWidth - LEVEL_GAP);
@@ -484,7 +491,8 @@ public class PersonCard extends UiPart<Region> {
 
     /** Returns the width of the widest word of {@code value}, measured as {@link #textWidth} does. */
     private static double longestWordWidth(String value, String family, double size) {
-        return Arrays.stream(value.split(" ")).mapToDouble(word -> textWidth(word, family, size)).max().orElse(0);
+        return Arrays.stream(value.split("[ " + HAIR_SPACE + "]"))
+                .mapToDouble(word -> textWidth(word, family, size)).max().orElse(0);
     }
 
     /** Returns the width of {@code value} in a bundled font at {@code size}, as styled in LightTheme.css. */
