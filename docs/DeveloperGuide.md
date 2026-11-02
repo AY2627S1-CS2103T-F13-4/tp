@@ -38,7 +38,7 @@ StudentBook builds on AddressBook Level 3 (AB3). The diagrams below describe its
     * [UC02: Retrieve a guardian's contact details](#uc02-retrieve-a-guardians-contact-details)
     * [UC03: Remove a student who has stopped attending lessons](#uc03-remove-a-student-who-has-stopped-attending-lessons)
     * [UC04: Change a lesson's slot](#uc04-change-a-lessons-slot)
-    * [UC05: Complete a guardian follow-up](#uc05-complete-a-guardian-follow-up)
+    * [UC05: Mark a guardian follow-up as complete](#uc05-mark-a-guardian-follow-up-as-complete)
     * [UC06: Attach a guardian contact](#uc06-attach-a-guardian-contact)
   * [Non-functional requirements](#non-functional-requirements)
   * [Glossary](#glossary)
@@ -334,7 +334,7 @@ Independent private tutors who:
 
 **Value proposition**: StudentBook keeps student contacts, tuition details, weekly lesson slots and hourly rates in one place, so private tutors can find and update them quickly.
 
-The planned MVP includes student records and all five tuition features below. Keep the existing AB3 contact fields and commands. Payment processing and sending messages are out of scope. Group classes and other brainstormed ideas remain backlog candidates, not delivery commitments.
+The original MVP covered student records and the five tuition features below. Payment processing and sending messages are out of scope.
 
 | Owner | MVP feature | Story IDs |
 |---|---|---|
@@ -344,7 +344,7 @@ The planned MVP includes student records and all five tuition features below. Ke
 | Dylan | Hourly rate | 53, 54 |
 | Mervin | Guardian contact | 7, 8, 22, 23 |
 
-The shared types and storage are implemented. The app supports add, display, edit and clear for schools and schooling levels, finding students by school or level, guardian add, edit and delete, and lesson add, edit and delete. Week 8 needs a small working increment per person; the full MVP is the v1.3 target.
+Current delivery status is listed under [User stories](#user-stories).
 
 ### Agreed field rules
 
@@ -366,84 +366,100 @@ The pre-chat Git and Google documents also differed on registration and guardian
 
 ### User stories
 
-Priorities from the planning Sheet are retained: `***` = high, `**` = medium, `*` = low. Priority does not determine whether a story is in the MVP or already implemented.
+Priority: `***` high, `**` medium, `*` low. Status records current support independently of priority; future stories are not delivery commitments.
 
-The planned MVP covers stories 1–9, subject/level updates in 12, guardian name/phone updates in 22 and removal in 23, slots in 25/28/29/48, and rates in 53/54. School recording in story 11, school updates in story 12 and school filtering in story 15 are also implemented, in addition to the five tuition features in the MVP ownership table.
+| ID | Priority | Status | As a... | I want to... | So that I can... |
+|---|---|---|---|---|---|
+| 1 | `***` | Implemented | private tutor | add a student record with a name | begin tracking each student |
+| 2 | `***` | Implemented | private tutor | view the list of current students | see who I currently teach |
+| 3 | `***` | Implemented | private tutor | view a student's subjects and schooling level | prepare for the right subject and level |
+| 4 | `***` | Implemented | private tutor | delete a student record | keep my records free of obsolete or incorrect entries |
+| 5 | `***` | Implemented | private tutor | record a student's schooling level | choose material at the right level |
+| 6 | `***` | Implemented | private tutor | record the subjects I teach a student | remember what I teach each student |
+| 7 | `***` | Implemented | private tutor | record one guardian's name and contact details for a student | reach the right adult about lessons |
+| 8 | `***` | Implemented | private tutor | view the guardian name and contact details linked to a student | contact a guardian without searching elsewhere |
+| 9 | `***` | Implemented | private tutor | keep my student details and guardian contacts when I close and reopen the app | continue my work without re-entering information |
+| 10 | `**` | Implemented | private tutor | edit a student's name | correct typos without recreating the record |
+| 11 | `**` | Implemented | private tutor | record a student's school | remember which school the student attends |
+| 12 | `**` | Implemented | private tutor | update a student's school, schooling level or lesson subjects | keep records current as circumstances change |
+| 13 | `**` | Implemented | private tutor | search for a student by a partial name | retrieve a record quickly |
+| 14 | `**` | Implemented | private tutor | view students ordered by school stage, level and name | scan a long student list faster |
+| 15 | `**` | Implemented | private tutor | filter students by school | find students from the same school |
+| 16 | `**` | Implemented | private tutor | filter students by schooling level | prepare level-appropriate materials |
+| 17 | `**` | Implemented | private tutor | filter students by subject | prepare for a subject-specific class |
+| 18 | `**` | Implemented | private tutor | mark a student as inactive | keep former students without cluttering the current list |
+| 19 | `**` | Implemented | private tutor | view inactive students separately | refer to past records when needed |
+| 20 | `**` | Future | private tutor | add another guardian to a student | keep alternative contacts for the same student |
+| 21 | `**` | Future | private tutor | record each guardian's relationship to the student | know who I am contacting |
+| 22 | `**` | Partial | private tutor | edit a guardian's contact details | keep guardian contact information current |
+| 23 | `**` | Implemented | private tutor | remove a guardian from a student | discard contacts that are no longer relevant |
+| 24 | `**` | Implemented | private tutor | search by guardian name or contact | find the right student when a guardian contacts me |
+| 25 | `**` | Implemented | private tutor | add a recurring weekly lesson slot to a student | remember when the student is taught |
+| 26 | `**` | Implemented | private tutor | add more than one weekly lesson slot to a student | track students with several lessons each week |
+| 27 | `**` | Implemented | private tutor | view lessons scheduled on a chosen day | prepare for that day's students |
+| 28 | `**` | Implemented | private tutor | edit a lesson slot | keep the agreed schedule current |
+| 29 | `**` | Implemented | private tutor | remove a lesson slot | clear a cancelled arrangement |
+| 30 | `**` | Implemented | private tutor | record a lesson's location or delivery mode | know where and how the lesson will happen |
+| 31 | `**` | Future | private tutor | assign students to a shared group class | manage one lesson arrangement for its attendees |
+| 32 | `**` | Future | private tutor | view every student in a group class | prepare the correct class list |
+| 33 | `**` | Implemented | private tutor | add a dated progress note to a student | remember what happened in recent lessons |
+| 34 | `**` | Implemented | private tutor | view a student's dated progress notes in chronological order | recall learning needs before the next lesson |
+| 35 | `**` | Implemented | private tutor | record a follow-up item for a guardian | remember what I need to communicate |
+| 36 | `**` | Implemented | private tutor | find active students with outstanding guardian follow-ups | avoid missing promised updates |
+| 37 | `**` | Future | private tutor | record whether a student's payment for a billing period is outstanding | identify payments that need follow-up |
+| 38 | `**` | Future | private tutor | record a guardian's preferred contact method | contact each guardian appropriately |
+| 39 | `**` | Implemented | private tutor exploring the app | find out which student-management tasks the app supports | decide whether it suits my work |
+| 40 | `**` | Implemented | private tutor learning the app | look up command usage and examples | complete a task when I do not remember what to type |
+| 41 | `**` | Implemented | private tutor | combine subject, schooling-level and lesson-day filters | find students matching the criteria for my preparation |
+| 42 | `**` | Implemented | private tutor | see each student's next weekly lesson | know which lesson to prepare for next |
+| 43 | `**` | Implemented | private tutor | edit a guardian follow-up item | keep the recorded request accurate when arrangements change |
+| 44 | `**` | Implemented | private tutor | mark a guardian follow-up item as complete | remove finished work from my outstanding follow-ups |
+| 45 | `**` | Implemented | private tutor learning the app | see what needs correcting when an entry is rejected | fix the entry without guessing why it failed |
+| 46 | `**` | Implemented | tutor who communicates directly with a student | record the student's own phone number or email address | keep their contact details with their record |
+| 47 | `**` | Implemented | tutor who needs to contact a student directly | view the student's contact details | reach them without searching elsewhere |
+| 48 | `**` | Implemented | tutor checking a student’s lesson arrangements | view that student's weekly lesson times | confirm when I teach them |
+| 49 | `**` | Implemented | tutor planning my week | view all my lessons arranged by day and time | see which students I will teach each day |
+| 50 | `*` | Implemented | private tutor | find students by a guardian's phone and compare their guardian details | avoid contacting the same guardian repeatedly |
+| 51 | `*` | Implemented | private tutor | receive a warning when separate lesson arrangements overlap | avoid accepting conflicting arrangements |
+| 52 | `*` | Implemented | private tutor | inspect and back up all saved records | protect my data and transfer it between computers |
+| 53 | `**` | Implemented | private tutor | record and view each lesson's hourly rate | check the agreed rate before discussing fees |
+| 54 | `**` | Implemented | private tutor | change a lesson's hourly rate | keep the agreed rate current |
+| 55 | `**` | Future | private tutor | remove a lesson's rate without deleting the lesson | retain arrangements when a rate is no longer agreed |
+| 56 | `**` | Implemented | private tutor | restore an archived student | resume teaching without re-entering their details |
+| 57 | `**` | Implemented | private tutor | edit a progress note | correct mistakes in my learning observations |
+| 58 | `**` | Implemented | private tutor | delete a progress note | remove obsolete or incorrect observations |
+| 59 | `**` | Implemented | private tutor | sort students by lesson rate within each school stage | compare agreed rates across students |
+| 60 | `**` | Implemented | private tutor starting real use | delete all records before entering my own students | start without sample or trial data |
 
-The table also preserves existing AB3 capabilities and other ideas for future reference. Unselected ideas are backlog candidates, not commitments, including guardian email in story 22.
+**Selected acceptance criteria**
 
-| ID | Priority | As a... | I want to... | So that I can... |
-|---|---|---|---|---|
-| 1 | `***` | private tutor | add a student record with a name | begin tracking each student |
-| 2 | `***` | private tutor | view the list of current students | see who I currently teach |
-| 3 | `***` | private tutor | view a student's subjects and schooling level | prepare for the right subject and level |
-| 4 | `***` | private tutor | delete a student record | remove students who leave or recreate incorrect records |
-| 5 | `***` | private tutor | record a student's schooling level | choose material at the right level |
-| 6 | `***` | private tutor | record the subjects I teach a student | remember what I teach each student |
-| 7 | `***` | private tutor | record one guardian's name and contact details for a student | reach the right adult about lessons |
-| 8 | `***` | private tutor | view the guardian name and contact details linked to a student | contact a guardian without searching elsewhere |
-| 9 | `***` | private tutor | keep my student details and guardian contacts when I close and reopen the app | continue my work without re-entering information |
-| 10 | `**` | private tutor | edit a student's name | correct typos without recreating the record |
-| 11 | `**` | private tutor | record a student's school | remember which school the student attends |
-| 12 | `**` | private tutor | update a student's school, schooling level or subjects | keep records current as circumstances change |
-| 13 | `**` | private tutor | search for a student by a partial name | retrieve a record quickly |
-| 14 | `**` | private tutor | sort students alphabetically | scan a long student list faster |
-| 15 | `**` | private tutor | filter students by school | find students from the same school |
-| 16 | `**` | private tutor | filter students by schooling level | prepare level-appropriate materials |
-| 17 | `**` | private tutor | filter students by subject | prepare for a subject-specific class |
-| 18 | `**` | private tutor | mark a student as inactive | keep former students without cluttering the current list |
-| 19 | `**` | private tutor | view inactive students separately | refer to past records when needed |
-| 20 | `**` | private tutor | add another guardian to a student | keep alternative contacts for the same student |
-| 21 | `**` | private tutor | record each guardian's relationship to the student | know who I am contacting |
-| 22 | `**` | private tutor | edit a guardian's contact details | keep changed phone numbers and emails current |
-| 23 | `**` | private tutor | remove a guardian from a student | discard contacts that are no longer relevant |
-| 24 | `**` | private tutor | search by guardian name or contact | find the right student when a guardian contacts me |
-| 25 | `**` | private tutor | add a recurring weekly lesson slot to a student | remember when the student is taught |
-| 26 | `**` | private tutor | add more than one weekly lesson slot to a student | track students with several lessons each week |
-| 27 | `**` | private tutor | view lessons scheduled on a chosen day | prepare for that day's students |
-| 28 | `**` | private tutor | edit a lesson slot | keep the agreed schedule current |
-| 29 | `**` | private tutor | remove a lesson slot | clear a cancelled arrangement |
-| 30 | `**` | private tutor | record a lesson's location or delivery mode | know where and how the lesson will happen |
-| 31 | `**` | private tutor | assign students to a shared group class | manage one lesson arrangement for its attendees |
-| 32 | `**` | private tutor | view every student in a group class | prepare the correct class list |
-| 33 | `**` | private tutor | add a dated progress note to a student | remember what happened in recent lessons |
-| 34 | `**` | private tutor | view a student's dated progress notes in chronological order | recall learning needs before the next lesson |
-| 35 | `**` | private tutor | record a follow-up item for a guardian | remember what I need to communicate |
-| 36 | `**` | private tutor | list outstanding guardian follow-up items | avoid missing promised updates |
-| 37 | `**` | private tutor | record a student's payment status | know which payments need follow-up without processing them |
-| 38 | `**` | private tutor | record a guardian's preferred contact method | contact each guardian appropriately |
-| 39 | `**` | private tutor exploring the app | find out which student-management tasks the app supports | decide whether it suits my work |
-| 40 | `**` | private tutor learning the app | look up command usage and examples | complete a task when I do not remember what to type |
-| 41 | `**` | private tutor | combine subject, schooling-level and lesson-day filters | find students matching the criteria for my preparation |
-| 42 | `**` | private tutor | see the next scheduled lesson and its attending students | know which lesson to prepare for next |
-| 43 | `**` | private tutor | edit a guardian follow-up item | keep the recorded request accurate when arrangements change |
-| 44 | `**` | private tutor | mark a guardian follow-up item as complete | remove finished work from my outstanding follow-ups |
-| 45 | `**` | private tutor learning the app | see what needs correcting when an entry is rejected | fix the entry without guessing why it failed |
-| 46 | `**` | tutor who communicates directly with a student | record the student's own phone number or email address | keep their contact details with their record |
-| 47 | `**` | tutor who needs to contact a student directly | view the student's contact details | reach them without searching elsewhere |
-| 48 | `**` | tutor checking a student’s lesson arrangements | view that student's weekly lesson times | confirm when I teach them |
-| 49 | `**` | tutor planning my week | view all my lessons arranged by day and time | see which students I will teach each day |
-| 50 | `*` | private tutor | identify students who share a guardian contact | coordinate communication without contacting the same guardian separately for each student |
-| 51 | `*` | private tutor | receive a warning when separate lesson arrangements overlap | avoid accepting conflicting arrangements |
-| 52 | `*` | private tutor | export all records to a human-readable file | inspect and back up my data outside the app |
-| 53 | `**` | private tutor | record and view the hourly rate agreed for a student | check the agreed rate before discussing fees |
-| 54 | `**` | private tutor | change or remove a student's recorded hourly rate | keep the agreed rate current |
+* **12:** School, level and individual lesson subjects can change independently without altering unrelated details.
+* **22:** Guardian name and phone can change independently; email remains future scope.
+* **42:** Compare start minutes in the weekly cycle, including the current minute. Earlier starts roll to next week; ties use stored lesson order.
+* **50:** Phone searches match substrings and ignore spaces/hyphens; compare full guardian names and phones to confirm shared contacts.
+* **52:** Human-readable JSON and manual file copying satisfy this story.
+* **59:** Ascending uses each student's minimum lesson rate; descending uses their maximum. Students without lessons come last.
+* **60:** Clearing from the active list removes both active and archived records.
 
 ### Use cases
 
-These use cases describe the intended behavior. The [User Guide](UserGuide.md) lists the commands available now.
+These use cases describe implemented behavior. The [User Guide](UserGuide.md) documents command syntax.
 
-The actor is a private tutor and the system is StudentBook. The app is already open unless stated otherwise. The registration and failure paths below follow the current implementation; [decisions to confirm](#decisions-to-confirm) lists differences from the earlier draft.
+The actor is a private tutor and the system is StudentBook. The app is open. Listing students or outstanding follow-ups includes active students only.
 
-**MSS** means main success scenario. UC01, UC02, UC03, UC04 and UC06 cover MVP goals. UC05 is a backlog candidate.
+**MSS** means main success scenario.
+
+**Shared save-failure extension (UC01, UC03–UC06)**
+
+If a requested change cannot be saved, StudentBook reports the failure before confirming success and leaves records unchanged. Use case ends.
 
 #### UC01: Register a student
 
-**Related user stories:** 1, 5, 6, 9.
+**Related user stories:** 1, 5, 9, 11.
 
 **MSS**
 
-1. Tutor requests to add a student, supplying name, phone, email and address, with optional tags and supported tuition details.
+1. Tutor requests to add a student, supplying name, phone, email and address, with optional tags, school and schooling level.
 2. StudentBook confirms the addition and displays the new student.
 
 Use case ends.
@@ -452,13 +468,9 @@ Use case ends.
 
 * 1a. A required detail is missing or a supplied value is invalid.
   * 1a1. StudentBook reports the error without adding a record.
-  * 1a2. Tutor corrects and resubmits the request.
   * Use case resumes at step 1.
 * 1b. A student with the exact same name already exists.
   * 1b1. StudentBook reports the duplicate without adding a record.
-  * Use case ends.
-* 2a. StudentBook cannot save the change.
-  * 2a1. StudentBook reports the save failure without adding the student.
   * Use case ends.
 
 #### UC02: Retrieve a guardian's contact details
@@ -468,21 +480,22 @@ Use case ends.
 **MSS**
 
 1. Tutor requests to list students.
-2. StudentBook displays the student list with an index for each record.
-3. Tutor opens the intended student's details by selecting their row or using `view STUDENT_INDEX`.
-4. StudentBook displays the guardian's name and phone number in the expanded details.
-5. Tutor reads the guardian's contact details.
+2. StudentBook displays the student list.
+3. Tutor requests the intended student's guardian contact details.
+4. StudentBook displays the guardian's name and phone number.
 
-Use case ends. Contacting the guardian takes place outside StudentBook.
+Use case ends.
 
 **Extensions**
 
-* 2a. No student records exist.
+* 2a. No active students exist.
   * 2a1. StudentBook displays an empty list.
   * Use case ends.
-
-* 4a. The intended student has no guardian contact.
-  * 4a1. StudentBook indicates that no guardian is recorded.
+* 3a. The student selection is invalid.
+  * 3a1. StudentBook reports the error.
+  * Use case resumes at step 3.
+* 3b. The intended student has no guardian contact.
+  * 3b1. StudentBook indicates that no guardian is recorded.
   * Use case ends.
 
 #### UC03: Remove a student who has stopped attending lessons
@@ -492,9 +505,9 @@ Use case ends. Contacting the guardian takes place outside StudentBook.
 **MSS**
 
 1. Tutor requests to list students.
-2. StudentBook displays the student list with an index for each record.
-3. Tutor requests to delete the intended student using the displayed index.
-4. StudentBook removes that student's record and linked guardian contact, and displays a success message and the updated list.
+2. StudentBook displays the student list.
+3. Tutor identifies the student to delete and requests deletion.
+4. StudentBook removes the student's record and confirms deletion with the updated list.
 
 Use case ends.
 
@@ -502,59 +515,65 @@ Use case ends.
 
 * 2a. The student list is empty.
   * Use case ends.
-* 3a. The supplied index is invalid for the displayed list.
+* 3a. The student selection is invalid.
   * 3a1. StudentBook displays an error without deleting any record.
-  * Use case resumes at step 2.
+  * Use case resumes at step 3.
 
 #### UC04: Change a lesson's slot
 
 **Related user stories:** 2, 28, 48.
 
-**Preconditions:** The student has an existing lesson.
+**Preconditions:** The intended student is active and has an existing lesson.
 
 **MSS**
 
 1. Tutor requests to list students.
-2. StudentBook displays the student list with an index for each record.
-3. Tutor opens the intended student's details by selecting their row or using `view STUDENT_INDEX`.
-4. StudentBook displays the student's numbered lessons in the expanded details.
-5. Tutor requests to edit a lesson, supplying the student's displayed index, the lesson's number and the new slot.
-6. StudentBook displays the updated lesson.
+2. StudentBook displays the student list.
+3. Tutor requests the intended student's lesson details.
+4. StudentBook displays the student's lessons.
+5. Tutor identifies the lesson to edit and requests a new slot.
+6. StudentBook confirms the change and displays the updated lesson.
 
 Use case ends.
 
 **Extensions**
 
-* 2a. The student list is empty.
-  * Use case ends.
-* 5a. The student index or lesson number is invalid, the new slot is invalid, or the change would duplicate another lesson of that student.
+* 3a. The student selection is invalid.
+  * 3a1. StudentBook reports the error.
+  * Use case resumes at step 3.
+* 5a. The student or lesson selection is invalid, the new slot is invalid, or the change would duplicate another lesson of that student.
   * 5a1. StudentBook explains the error without changing any lesson.
-  * 5a2. Tutor corrects and resubmits the request.
   * Use case resumes at step 5.
+* 5b. The new slot overlaps another lesson.
+  * 5b1. StudentBook applies the change and displays the updated lesson with a clash warning.
+  * Use case ends.
 
-#### UC05: Complete a guardian follow-up
+#### UC05: Mark a guardian follow-up as complete
 
 **Related user stories:** 36, 44.
 
-**Preconditions:** At least one outstanding guardian follow-up item exists.
+**Preconditions:** Tutor has carried out the follow-up outside StudentBook.
 
 **MSS**
 
-1. Tutor requests to list outstanding guardian follow-up items.
+1. Tutor requests students with outstanding guardian follow-ups.
 2. StudentBook displays the students with outstanding items.
-3. Tutor opens a student's details to see the student's numbered items and guardian.
-4. Tutor carries out the selected follow-up outside StudentBook.
-5. Tutor requests to mark the selected item as complete.
-6. StudentBook removes the item from the student's outstanding items and shows its text.
+3. Tutor requests a student's follow-up details.
+4. StudentBook displays the student's outstanding items.
+5. Tutor identifies the completed item and requests to mark it as complete.
+6. StudentBook removes the item from the outstanding items and confirms completion with its text.
 
 Use case ends.
 
 **Extensions**
 
-* 2a. No student has an outstanding item.
-  * 2a1. StudentBook shows an empty list and suggests `list`.
+* 2a. No active student has an outstanding item.
+  * 2a1. StudentBook displays an empty list.
   * Use case ends.
-* 5a. The supplied student or item number is invalid, for example because the item is already complete.
+* 3a. The student selection is invalid.
+  * 3a1. StudentBook reports the error.
+  * Use case resumes at step 3.
+* 5a. The student or follow-up selection is invalid.
   * 5a1. StudentBook explains the error without changing any item.
   * Use case resumes at step 1.
 * 6a. The completed item was the student's last one.
@@ -565,23 +584,22 @@ Use case ends.
 
 **Related user stories:** 7, 9.
 
-**Preconditions:** The student exists and is visible in the displayed list.
+**Preconditions:** The intended student is in the displayed list.
 
 **MSS**
 
-1. Tutor requests to attach a guardian, supplying the student's displayed index and the guardian's name and phone.
+1. Tutor identifies the student and requests to attach a guardian, supplying the guardian's name and phone number.
 2. StudentBook displays the linked guardian and confirms the addition.
 
 Use case ends.
 
 **Extensions**
 
-* 1a. The index or guardian details are invalid, or a guardian is already attached.
+* 1a. The student selection or guardian details are invalid.
   * 1a1. StudentBook reports the error without changing the record.
-  * 1a2. Tutor corrects and resubmits the request.
   * Use case resumes at step 1.
-* 2a. StudentBook cannot save the change.
-  * 2a1. StudentBook reports the save failure without adding the guardian.
+* 1b. A guardian is already attached.
+  * 1b1. StudentBook reports that a guardian is already attached and suggests editing the contact.
   * Use case ends.
 
 ### Non-functional requirements
