@@ -23,7 +23,12 @@ public class CliSyntax {
     public static final Prefix PREFIX_DATE = new Prefix("date/");
     public static final Prefix PREFIX_TEXT = new Prefix("text/");
 
-    /* Prefixes of other commands, which add and edit reject instead of reading them into a student field */
+    /*
+     * Prefixes of other commands, and likely mistypes of student prefixes (AddressBook-Level3's short ones and
+     * near misses), which add and edit reject instead of reading them into a student field
+     */
     public static final Prefix[] OTHER_COMMAND_PREFIXES = {PREFIX_GUARDIAN, PREFIX_SUBJECT, PREFIX_DAY,
-        PREFIX_LESSON_SLOT, PREFIX_RATE, PREFIX_MODE, PREFIX_LOCATION, PREFIX_DATE, PREFIX_TEXT};
+        PREFIX_LESSON_SLOT, PREFIX_RATE, PREFIX_MODE, PREFIX_LOCATION, PREFIX_DATE, PREFIX_TEXT,
+        new Prefix("n/"), new Prefix("p/"), new Prefix("e/"), new Prefix("a/"), new Prefix("t/"),
+        new Prefix("tags/"), new Prefix("school/"), new Prefix("lvl/")};
 }
