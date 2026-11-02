@@ -497,6 +497,8 @@ Viewing and searching do not save.
 
 To move to another computer, close StudentBook, then copy that file into the new app folder as `data/studentbook.json` before launching there. Back up any existing destination file first.
 
+When it loads a hand-edited file, StudentBook checks that each value has a valid format, but not the extra rules that commands follow. So a note dated in the future or before 2000, two copies of the same note or follow-up, or two students whose names differ only in spacing still load. To avoid this, add and change records with commands rather than in the file.
+
 <div markdown="block" class="alert alert-warning">
 
 :warning: Back up the file before editing it by hand. If StudentBook cannot load it, it makes a backup beside it and starts empty. The next record change replaces the original. To recover, close the app, fix the backup and restore it as `data/studentbook.json`. If a backup cannot be made, the app closes without changing your records.
