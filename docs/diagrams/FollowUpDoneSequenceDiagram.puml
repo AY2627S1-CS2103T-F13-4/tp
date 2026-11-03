@@ -1,4 +1,5 @@
 @startuml
+' Render with render_sequence_diagrams.py to align constructor heads and activations.
 !include style.puml
 skinparam ArrowFontStyle plain
 
@@ -44,12 +45,14 @@ alt updated is still in students
     create Result
     Command -> Result : CommandResult(feedback,\nupdatedIndex)
     activate Result
+    ||12||
     Result --> Command : r
     deactivate Result
 else updated left the filtered students
     create Result
     Command -> Result : CommandResult(feedback,\nScreen.STUDENTS)
     activate Result
+    ||12||
     Result --> Command : r
     deactivate Result
 end

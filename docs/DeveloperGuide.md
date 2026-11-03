@@ -274,9 +274,9 @@ Subject and day must match the same lesson. The student needs at least one match
 
 The following sequences show parsing and executing `find sch/nanyang subject/math day/mon`.
 
-![Construction of a combined student search](images/FindParsingSequenceDiagram.png)
+<img src="images/FindParsingSequenceDiagram.png" width="900" alt="Construction of a combined student search" />
 
-![Execution of a combined student search](images/FindSequenceDiagram.png)
+<img src="images/FindSequenceDiagram.png" width="490" alt="Execution of a combined student search" />
 
 Active and archived lists keep separate searches. `list` and `list-archive` reset their respective searches; mutations preserve both searches, the calendar lesson filter and the archive view. Updated records enter or leave results according to those predicates, and indices change accordingly. `add` clears the active search and lesson filter and leaves Archives to display the new student.
 
@@ -302,7 +302,6 @@ Commands resolve students from the current filtered list, reject out-of-range it
 
 `followups` selects active students with outstanding items and resets the lesson filter. Completing a student's last item removes them from those results and renumbers subsequent students. Commands select the updated student's current position, or leave details closed if that student is no longer displayed.
 
-The sequence shows `followup-done 1 2`.
 The sequence diagram below focuses on executing `followup-done 1 2`. Parsing follows the
 [Logic component](#logic-component) workflow; `LogicManager` saves the updated student data before returning the result.
 
@@ -327,7 +326,6 @@ The add and edit parsers treat everything after the first `text/` as literal tex
 
 Commands resolve the student from the current filtered list, reject invalid note indices and reject duplicate date-and-text pairs. Updates use `Student#withNotes` and open the student's details; other student updates preserve existing notes.
 
-The sequence shows `note-add 1 date/2026-10-15 text/Fractions`.
 The sequence diagram below focuses on executing `note-add 1 date/2026-10-15 text/Fractions`. Parsing follows the
 [Logic component](#logic-component) workflow; `LogicManager` saves the updated student data before returning the result.
 

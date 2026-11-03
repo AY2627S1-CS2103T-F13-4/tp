@@ -23,6 +23,7 @@ title: Documentation guide
 **Diagrams:**
 
 * See the [_[se-edu/guides] **Using PlantUML**_](https://se-education.org/guides/tutorials/plantUml.html)
+* For sequence diagrams with constructors, use `python docs/diagrams/render_sequence_diagrams.py --plantuml-jar <path-to-plantuml-1.2025.10.jar>` from the repository root. The helper corrects constructor arrow alignment and activation gaps. It requires Java, Python 3, Node.js and `sharp` (`npm install --prefix _temp/uml-render sharp`).
 
 **Converting a document to the PDF format:**
 

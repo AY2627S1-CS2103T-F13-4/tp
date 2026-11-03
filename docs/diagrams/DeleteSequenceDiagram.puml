@@ -1,4 +1,5 @@
 @startuml
+' Render with render_sequence_diagrams.py to align constructor heads and activations.
 !include style.puml
 skinparam ArrowFontStyle plain
 skinparam ParticipantPadding 0
@@ -25,6 +26,7 @@ activate AddressBookParser
 create DeleteCommandParser
 AddressBookParser -> DeleteCommandParser : <<create>>
 activate DeleteCommandParser
+||12||
 
 DeleteCommandParser --> AddressBookParser
 deactivate DeleteCommandParser
@@ -35,6 +37,7 @@ activate DeleteCommandParser
 create DeleteCommand
 DeleteCommandParser -> DeleteCommand : DeleteCommand(\nindex)
 activate DeleteCommand
+||12||
 
 DeleteCommand --> DeleteCommandParser :
 deactivate DeleteCommand
@@ -67,6 +70,7 @@ deactivate Model
 create CommandResult
 DeleteCommand -> CommandResult : CommandResult(\nfeedback)
 activate CommandResult
+||12||
 
 CommandResult --> DeleteCommand
 deactivate CommandResult
