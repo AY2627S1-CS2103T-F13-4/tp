@@ -2,6 +2,7 @@ package seedu.address.ui.schedule;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.testutil.Assert.assertThrows;
@@ -21,6 +22,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.layout.Region;
 import javafx.scene.shape.Rectangle;
+import javafx.scene.text.Font;
 import seedu.address.model.person.HourlyRate;
 import seedu.address.model.person.Lesson;
 import seedu.address.model.person.LessonLocation;
@@ -40,6 +42,12 @@ public class LessonCardTest {
     @BeforeAll
     public static void initializeJavaFx() throws Exception {
         FxTestUtil.initialize();
+        // Use the app's fonts even when this class runs before the tests that load AppFonts.
+        FxTestUtil.runOnFxThread(() -> {
+            for (String font : List.of("Geist-Regular.ttf", "Geist-SemiBold.ttf")) {
+                assertNotNull(Font.loadFont(LessonCardTest.class.getResource("/fonts/" + font).toExternalForm(), 11));
+            }
+        });
     }
 
     @Test
