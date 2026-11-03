@@ -1,14 +1,16 @@
 @startuml
+' Illustrative AB3 extension only. StudentBook does not implement RemarkCommandParser or RemarkCommand.
 hide circle
 skinparam classAttributeIconSize 0
+title Illustrative extension: remark parser (unimplemented)
 
 Class "<<interface>>\nParser" as Parser
 Class RemarkCommandParser {
-  +parse(): RemarkCommand
+  +parse(userInput: String): RemarkCommand
 }
-Class ParserException
+Class ParseException
 
 RemarkCommandParser .up.|> Parser
-Parser .right.> ParserException: throws >
-RemarkCommandParser .right.> ParserException: throws >
+Parser .right.> ParseException: throws >
+RemarkCommandParser .right.> ParseException: throws >
 @enduml

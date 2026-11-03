@@ -1,6 +1,8 @@
 @startuml
+' Illustrative AB3 extension only. StudentBook does not implement RemarkCommand.
 hide circle
 skinparam classAttributeIconSize 0
+title Illustrative extension: remark command (unimplemented)
 
 Class "{abstract}\nCommand" as Command {
   +execute(Model): CommandResult

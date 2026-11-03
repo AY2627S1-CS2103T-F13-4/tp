@@ -1,0 +1,60 @@
+@startuml
+!include style.puml
+skinparam ArrowFontStyle plain
+skinparam sequenceMessageAlign left
+skinparam ParticipantPadding 12
+
+box Logic LOGIC_COLOR_T1
+participant "<<class>>\nLessonClashes" as Clashes LOGIC_COLOR
+end box
+
+box Model MODEL_COLOR_T1
+participant "changed:Lesson" as Changed MODEL_COLOR
+participant "slot:WeeklyLessonSlot" as Slot MODEL_COLOR
+end box
+
+[-> Clashes : warning(students, owner, lessonPosition)
+activate Clashes
+
+note over Clashes
+  Resolve changed from owner's lessons;
+  start an empty conflicts list
+end note
+
+loop each student in the complete active or archived list
+    loop each lesson other at position i
+        opt other is not the changed lesson itself
+            Clashes -> Changed : overlapsWith(other)
+            activate Changed
+
+            Changed -> Slot : overlapsWith(other.weeklyLessonSlot)
+            activate Slot
+            note over Slot
+              Same day, start < other.end,
+              and other.start < end.
+              Touching endpoints do not clash.
+            end note
+            Slot --> Changed : overlaps
+            deactivate Slot
+
+            Changed --> Clashes : overlaps
+            deactivate Changed
+
+            opt overlaps
+                note over Clashes
+                  Append the student's name,
+                  lesson number, subject and slot
+                end note
+            end
+        end
+    end
+end
+
+note over Clashes
+  Empty string if no conflicts;
+  otherwise format the conflict warning
+end note
+
+[<-- Clashes : warnings
+deactivate Clashes
+@enduml

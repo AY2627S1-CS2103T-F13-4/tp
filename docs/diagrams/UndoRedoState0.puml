@@ -1,10 +1,11 @@
 @startuml
+' Legacy AB3 history example. StudentBook does not implement undo or versioned history.
 !include style.puml
 skinparam ClassFontColor #000000
 skinparam ClassBorderColor #000000
 skinparam ClassBackgroundColor #FFFFAA
 
-title Initial state
+title Legacy AB3 example: initial history (unsupported)
 
 package States {
     class State1 as "<u>ab0:AddressBook</u>"
@@ -13,8 +14,8 @@ package States {
 }
 State1 -[hidden]right-> State2
 State2 -[hidden]right-> State3
-hide State2
-hide State3
+hide States.State2
+hide States.State3
 
 class Pointer as "Current State" #FFFFFF
 Pointer -up-> State1

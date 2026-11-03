@@ -1,7 +1,9 @@
 @startuml
+' Legacy AB3 history example. StudentBook does not implement undo or versioned history.
 skin rose
 skinparam ActivityFontSize 15
 skinparam ArrowFontSize 12
+title Legacy AB3 example: commit history (unsupported)
 start
 :User executes command;
 

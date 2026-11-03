@@ -1,6 +1,8 @@
 @startuml
+' Legacy AB3 undo example. StudentBook does not implement undo or versioned history.
 !include style.puml
 skinparam ArrowFontStyle plain
+title Legacy AB3 example: undo logic (unsupported)
 
 box Logic LOGIC_COLOR_T1
 participant ":LogicManager" as LogicManager LOGIC_COLOR

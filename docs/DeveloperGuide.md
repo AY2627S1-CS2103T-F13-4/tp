@@ -5,8 +5,53 @@ title: Developer Guide
 
 StudentBook builds on AddressBook Level 3 (AB3). The diagrams below describe its current architecture and tuition features.
 
-* Table of Contents
-{:toc}
+## Table of Contents
+
+* [Acknowledgements](#acknowledgements)
+* [Getting started](#getting-started)
+* [Design](#design)
+  * [Architecture](#architecture)
+    * [Overview](#overview)
+    * [Interactions](#interactions)
+  * [UI component](#ui-component)
+    * [Interactions](#interactions-1)
+  * [Logic component](#logic-component)
+    * [Command Execution](#command-execution)
+    * [Command Parsing](#command-parsing)
+  * [Model component](#model-component)
+  * [Storage component](#storage-component)
+  * [Common classes](#common-classes)
+* [Implementation](#implementation)
+  * [Lesson clash detection](#lesson-clash-detection)
+  * [Interval scheduling](#interval-scheduling)
+  * [Student search](#student-search)
+  * [Guardian follow-ups](#guardian-follow-ups)
+  * [Notes](#notes)
+* [Documentation, logging, testing, dev-ops](#documentation-logging-testing-dev-ops)
+* [Appendix: Requirements](#appendix-requirements)
+  * [Product scope](#product-scope)
+  * [Agreed field rules](#agreed-field-rules)
+  * [Decisions to confirm](#decisions-to-confirm)
+  * [User stories](#user-stories)
+  * [Use cases](#use-cases)
+    * [UC01: Register a student](#uc01-register-a-student)
+    * [UC02: Retrieve a guardian's contact details](#uc02-retrieve-a-guardians-contact-details)
+    * [UC03: Remove a student who has stopped attending lessons](#uc03-remove-a-student-who-has-stopped-attending-lessons)
+    * [UC04: Change a lesson's slot](#uc04-change-a-lessons-slot)
+    * [UC05: Mark a guardian follow-up as complete](#uc05-mark-a-guardian-follow-up-as-complete)
+    * [UC06: Attach a guardian contact](#uc06-attach-a-guardian-contact)
+  * [Non-functional requirements](#non-functional-requirements)
+  * [Glossary](#glossary)
+* [Appendix: Instructions for manual testing](#appendix-instructions-for-manual-testing)
+  * [Launch and shutdown](#launch-and-shutdown)
+  * [Main window](#main-window)
+  * [Student deletion](#student-deletion)
+  * [Lessons and saved data](#lessons-and-saved-data)
+  * [Name and guardian searches](#name-and-guardian-searches)
+  * [Guardian contacts](#guardian-contacts)
+  * [Guardian follow-ups](#guardian-follow-ups-1)
+  * [Notes](#notes-1)
+  * [Missing or invalid data files](#missing-or-invalid-data-files)
 
 ## Acknowledgements
 
@@ -67,15 +112,12 @@ Other components interact with a component through its interface (rather than it
 
 <img src="images/UiClassDiagram.png" width="800" alt="UI class diagram" />
 
-`MainWindow` contains separate active and archived student panels. Its `WeekPanel` uses `ScheduleGrid` to display
-`LessonCard`s, each backed by a `ScheduleEntry` linking a student to a lesson.
-
 **API Specification**: `Ui.java`
 **Interacts with**: `Model`, `Logic`
 **Depends on**: `Model`, `Logic`
 
 Abstract class `UiPart` captures common behaviour among classes representing visible GUI parts. Each part:
-* Inherit from `UiPart`
+* Inherits from `UiPart`
 * Use the JavaFX UI framework
 * Defines layout in a matching `.fxml` file in `src/main/resources/view`
 * Use `LightTheme.css` for style, with fonts loaded by `AppFonts` at startup
@@ -103,10 +145,13 @@ Abstract class `UiPart` captures common behaviour among classes representing vis
 User commands received by the UI component are sent to `Logic` for execution.
 
 Additionally, `Logic` supplies the following data:
-* The list of students to display, from `Logic#getFilteredPersonList()`. `ModelManager` sorts it by school stage (Primary, Secondary, JC, then others), then by level (`P1` before `P2`), then alphabetically by name, with stored order as the final tie-break. After `sort rate asc` or `sort rate desc`, `ModelManager#setRateSortOrder` orders students by rate within each stage instead, until `list` resets it. `PersonListPanel` shows it in this order, so the number on each card is the `STUDENT_INDEX` that commands use. Editing a student's name or level can therefore move it, changing its index.
-* The total number of students and lessons, from `Logic#getAddressBook()`
-* Empty-state message, also from `Logic#getAddressBook()`
-* Lesson filter, to determine total number of students and lessons, from `Logic#getLessonPredicate()`
+* Filtered and sorted active and archived student lists, from `Logic#getFilteredActivePersonList()` and `Logic#getFilteredArchivedPersonList()`
+* Complete student records, from `Logic#getAddressBook()`, which the UI uses to calculate student and lesson totals
+* The lesson filter, from `Logic#getLessonPredicate()`, which selects matching lessons for the weekly calendar
+* The rate sort order, from `Logic#getRateSortOrder()`, which controls the table's rate heading and displayed rates
+* The selected archive view, from `Logic#isArchiveView()`, which determines which student table is shown
+
+The UI constructs empty-state messages: `StudentListStatus` supplies the student-list text, and `WeekPanel` supplies the calendar text.
 
 **`Ui`** and **`Model`**
 * `Ui` listens for changes to `Model` data for updates
@@ -202,74 +247,42 @@ This section describes noteworthy details on how certain features are implemente
 
 ### Lesson clash detection
 
-After a valid lesson addition or edit, `LessonAddCommand` or `LessonEditCommand` calls `LessonClashes.resultForLesson` with the complete active or archived
-student list matching the edited student and the changed lesson's position. Search filters do not limit clash checks.
-The helper excludes that lesson itself and checks every other lesson in that list.
-Intervals clash when their weekdays match and each starts strictly before the other ends. Thus touching endpoints
-are allowed. The warning confirms the lesson was saved and lists the clashes; existing validation and persistence still apply.
-Deleting a lesson requires no clash warning. No clash state is stored, so each warning reflects current records.
-Clashing changes return `CommandResult.warning`. `MainWindow` routes these successful results to
-`ResultDisplay#setWarningToUser`, which applies an amber warning style and an exclamation icon.
-The next success, error or warning result replaces the previous feedback and clears its styling.
+After a valid lesson addition/edit operation, or unarchive operation, lessons are checked for clashes. If clashes exist, the user will be informed of them through a warning (note that the operation will still succeed).
+This is done by `LessonClashes.resultForLesson` for adding/editing lessons, and `LessonClashes.resultForStudent` for unarchived students.
 
-`unarchive` uses `LessonClashes.resultForStudent`, which checks each of the restored student's lessons against the
-active list. Archived lessons are never compared with active ones, so a restored student can clash with lessons added
-while they were archived.
+A clash produces a successful `CommandResult.warning`, so the change is still saved. `MainWindow` displays it through `ResultDisplay#setWarningToUser`, using amber styling and an exclamation icon. The next result replaces that feedback.
 
-The activity diagram below shows the checks for `lesson-add`. `lesson-edit` takes the same path for the edited lesson.
+<img src="images/LessonClashDetectionSequenceDiagram.png" width="800" alt="Lesson clash detection sequence" />
 
-<img src="images/LessonClashActivityDiagram.png" width="676" alt="Lesson clash check activity diagram" />
+### Interval scheduling
+
+The calendar uses interval partitioning to display every matching lesson. `ScheduleGrid.refreshSchedule` groups entries by weekday; `assignColumnValues` sorts each day by start time, end time, student number and lesson number. Two priority queues track active entries by drawn end time and reusable columns by number. Before placing an entry, columns whose blocks have ended become reusable. The entry takes the smallest available column, or a new one when all are occupied. This minimises the columns needed; empty days retain one.
+
+Displayed blocks last at least 15 minutes and remain within their day. Saved times and clash checks use the actual intervals. The sequence shows one non-empty day; notes summarise local queue updates.
+
+<img src="images/IntervalSchedulingSequenceDiagram.png" width="636" alt="Calendar interval scheduling sequence" />
 
 ### Student search
 
-The following class diagram shows the search predicates used by `FindCommand`. Prefixed searches use
-`StudentSearchPredicate`; bare name keywords use `NameContainsKeywordsPredicate`. The command holds
-both a student predicate and a lesson predicate.
+`FindCommand` holds separate student and lesson predicates. Prefixed searches use `StudentSearchPredicate`; bare name keywords use `NameContainsKeywordsPredicate`.
 
 <img src="images/StudentSearchClassDiagram.png" width="689" alt="Student search predicate structure" />
 
-The following two sequences illustrate a successful `find sch/nanyang subject/math day/mon` search.
-Blue participants belong to Logic; red participants belong to Model. Each diagram focuses on one stage
-of the search, leaving the surrounding command-routing and persistence workflow to the
-[Logic component](#logic-component) description.
+`FindCommandParser` accepts `name/`, `guardian/`, `sch/`, `level/`, `subject/` and `day/`. It rejects empty values, repeated prefixes and bare keywords mixed with prefixes. Every supplied criterion must match. Contact, school and level searches use case-insensitive substrings; guardian phone queries also remove spaces and hyphens. `SchoolingLevel.isStageNamedBy` recognises stage names and prefixes, so `Primary 5` matches `P5`, but `Secondary 3` does not match `Sec 2 G3`. Missing optional fields fail only when searched for. Bare name keywords retain whole-word, case-insensitive OR matching.
 
-**Constructing the search command.** `AddressBookParser` creates a `FindCommandParser` and calls
-`parse(args)`. After validation, the parser creates the lesson predicate `l`, then the student predicate
-`s`, then the command `f`. Here, `subject` contains `math`, `day` contains `MONDAY`, and the omitted
-student criteria are empty except for school, which contains `nanyang`. The same `l` is supplied to
-both `s` and `f`. Prefix validation and the parser's own creation and lifetime are outside this diagram's scope.
+Subject and day must match the same lesson. The student needs at least one matching lesson. For active-list searches, the same `LessonMatchesPredicate` filters the weekly calendar; omitting lesson criteria resets that filter. Searches without lesson criteria include students without lessons.
+
+The following sequences show parsing and executing `find sch/nanyang subject/math day/mon`.
 
 ![Construction of a combined student search](images/FindParsingSequenceDiagram.png)
 
-**Executing the search command.** `LogicManager` calls `f.execute(m)`. The command passes `s` and `l`
-to the model, reads the matching students to form the result summary, and returns a `CommandResult`
-that selects the students screen. The model is shown through its interface; internal filtering, logging
-and UI observation are omitted. The repeated list lookup used by logging is also omitted.
-`LogicManager` saves only record changes and rolls back records, filters and sorting on failure; the UI restores open details.
-`JsonAddressBookStorage` atomically replaces the file from a temporary file, preserving permissions.
-Failures retain the original and remove the temporary file. Unsupported atomic replacement fails without a fallback.
-
 ![Execution of a combined student search](images/FindSequenceDiagram.png)
 
-`FindCommandParser` accepts `name/`, `guardian/`, `sch/`, `level/`, `subject/` and `day/`, rejecting empty
-values, duplicate prefixes and bare name keywords mixed with prefixes. It builds one `StudentSearchPredicate`
-for every prefixed search. The predicate requires every supplied criterion to match: student name, guardian
-name or phone, school and schooling level use case-insensitive substrings. A schooling level also matches when
-the text names its stage through `SchoolingLevel.isStageNamedBy`: the first word must be a stage name or its
-start (e.g. `prim`, `Secondary`), and any text after it must start the rest of the level, so `Primary 5`
-matches `P5` but `Secondary 3` does not match `Sec 2 G3`. Missing optional fields fail only
-when their criteria are supplied. Searches without lesson criteria do not require students to have lessons.
-Bare name keywords retain whole-word, case-insensitive OR matching through `NameContainsKeywordsPredicate`.
+Active and archived lists keep separate searches. `list` and `list-archive` reset their respective searches; mutations preserve both searches, the calendar lesson filter and the archive view. Updated records enter or leave results according to those predicates, and indices change accordingly. `add` clears the active search and lesson filter and leaves Archives to display the new student.
 
-`LessonMatchesPredicate` stays separate: subject and day must match the same lesson. The student predicate
-requires at least one such lesson, and `FindCommand` passes that same lesson filter to the model for `week`.
-A later search without lesson criteria resets the lesson filter; `list` clears the active search and
-`list-archive` clears the archived search. Data mutations, including editing, archiving and
-unarchiving students, preserve both student lists' filters, the active calendar lesson filter and the
-selected archive view. The observable lists automatically apply their existing predicates to changed data.
-An edited student who no longer matches disappears from the results; a transferred student appears only if
-they match the destination list's filter. Remaining students are renumbered. `add` is the exception: it
-clears the active search and lesson filter and leaves Archives so that `AddCommand` can select the new student.
+Search diagnostics omit input values. `FindCommandParser` logs prefix names and rejection reasons at `FINE`; `FindCommand` logs result counts at `INFO`. `LogicManager` logs command types and outcomes without input or result text. `LogsCenter` writes to the console and rotating `studentbook.log.*` files; set its `LOG_LEVEL` to `Level.FINE` for parser diagnostics.
+
+Tests: `StudentSearchPredicateTest`, `LessonFilterPredicateTest`, `FindCommandParserTest` and `FindLoggingTest`.
 
 Search logging uses the existing `LogsCenter` framework. The parser logs selected prefix names and rejection
 reasons at `FINE`; the command logs the result count at `INFO`. These search-specific diagnostics omit search
@@ -279,44 +292,29 @@ or result messages. Logs go to the console and rotating `studentbook.log.*` file
 
 ### Guardian follow-ups
 
-A `FollowUp` holds 1–200 characters of single-line text, trimmed, and counted in code points like note text. `Student`
-keeps its outstanding follow-ups in an unmodifiable list in the order they were added; a follow-up's position in that
-list is the `FOLLOW_UP_INDEX` shown in the details. Completing an item removes it, so the model has no "done" state:
-every stored item is outstanding. Follow-ups belong to the student rather than the `Guardian`, so they survive
-`guardian-delete` and can be recorded for a student with no guardian (for example, while waiting for contact details).
+A `FollowUp` contains 1–200 trimmed, single-line Unicode code points. `Student` stores outstanding items in an unmodifiable list in insertion order; their positions are the displayed `FOLLOW_UP_INDEX` values. Completion removes an item rather than storing a done state. Follow-ups belong to students, so they work without a guardian and survive `guardian-delete`.
 
 <img src="images/FollowUpClassDiagram.png" width="760" />
 
-`followup-add`, `followup-edit` and `followup-done` are routed by `AddressBookParser` to `FollowUpAddCommandParser`,
-`FollowUpEditCommandParser` and `FollowUpDoneCommandParser`, respectively. The add and edit parsers read only
-`text/`, so a word such as `and/or` stays in the text. Adding requires exactly one index; editing and completing
-require two. `ParserUtil#parseFollowUp` checks the text.
+The add and edit parsers treat everything after the first `text/` as literal text, including `and/or` and further `text/` strings. Add requires one student index; edit and done require student and item indices. `ParserUtil#parseFollowUp` validates the text and collapses repeated spaces.
 
-The follow-up commands resolve the student from the current filtered list, reject a follow-up index past the end, and
-reject text that matches another of the student's items ignoring case (an item may be edited to change only its
-case). They call `Student#withFollowUps` to replace the student with a copy whose follow-ups have changed.
-The success message includes the item's text, so a wrong index on `followup-done` is visible straight away.
+Commands resolve students from the current filtered list, reject out-of-range item indices and reject text matching another item ignoring case. Case-only edits to the same item remain valid. Updates use `Student#withFollowUps`, and success feedback includes the affected text.
 
-`followups` (`FollowUpListCommand`) sets the student filter to active (not archived) students with at least one
-item, matching `list`, which hides archived students. It also resets the lesson filter.
-Because the filtered list re-applies its predicate after `Model#setPerson`, completing a student's last item while
-this filter is active removes the student from the list and renumbers the students after them. Each follow-up command
-returns a `CommandResult` selecting the student's new position, or no student if they are no longer shown.
-`MainWindow` applies that selection after execution.
+`followups` selects active students with outstanding items and resets the lesson filter. Completing a student's last item removes them from those results and renumbers subsequent students. Commands select the updated student's current position, or leave details closed if that student is no longer displayed.
 
+The sequence shows `followup-done 1 2`.
 The sequence diagram below focuses on executing `followup-done 1 2`. Parsing follows the
 [Logic component](#logic-component) workflow; `LogicManager` saves the updated student data before returning the result.
 
 <img src="images/FollowUpDoneSequenceDiagram.png" width="680" alt="Follow-up completion sequence" />
 
-Every command that rebuilds a `Student` (`edit`, the guardian, lesson and note commands, and `Student#withArchived`
-for `archive` and `unarchive`) passes the existing follow-ups on. `FollowUpWorkflowTest` checks each of them, so a later
-field change cannot silently drop follow-ups. `PersonCard` shows the items in a **Follow-ups** section under the guardian.
+Other student updates preserve follow-ups. `PersonCard` displays them in its **Follow-ups** section. `JsonAdaptedFollowUp` stores each item as `{"text": "..."}` in `followUps`; missing or null arrays load as empty, while null items, non-string text and invalid text reject the file.
 
-`JsonAdaptedFollowUp` stores each item as `{"text": "..."}` in the person's `followUps` array. A missing or `null`
-`followUps` key loads as no follow-ups, so older data files still load; a `null` item, a non-string `text` or text
-that fails validation makes the file invalid.
+Tests include `FollowUpTest`, `FollowUpWorkflowTest`, `FollowUpStorageTest`, the follow-up command and parser tests, and routing tests in `AddressBookParserTest`.
 
+### Notes
+
+A `ProgressNote` contains a `LocalDate` and 1–500 trimmed, single-line Unicode code points. `Student` stores notes in an unmodifiable list sorted oldest first, preserving the relative order of equal-date notes. Their positions are the displayed `NOTE_INDEX` values; adding, deleting or changing dates can renumber them. New students start with no notes.
 ### Progress notes
 
 A `ProgressNote` holds a `LocalDate` and 1–500 characters of single-line text. `Student` keeps its notes in an
@@ -325,30 +323,19 @@ A note's position in that list is the `NOTE_INDEX` shown in the details. New stu
 
 <img src="images/ProgressNoteClassDiagram.png" width="450" />
 
-`note-add`, `note-edit` and `note-delete` are routed by `AddressBookParser` to their corresponding command parsers.
-Editing takes the student index, the note's number and an optional date and/or text; at least one field is required.
-Deleting takes only the student index and the note's number. Add and edit treat everything after the first `text/`
-as note text, including words resembling prefixes, so `date/` must precede `text/` when both are supplied.
-`ParserUtil#parseProgressNote` uses the shared `parseProgressNoteDate` and `parseProgressNoteText` validators.
-The edit parser uses these validators for each supplied field. Dates must be real `YYYY-MM-DD` dates between
-`2000-01-01` and today, and text must be 1–500 characters on one line. The
-future-date check is in the parser rather than the model, so a saved file still loads if the computer's clock is
-wrong.
+The add and edit parsers treat everything after the first `text/` as literal text, so `date/` must precede it when both are supplied. Editing requires at least one date or text field. Shared `ParserUtil` validators require real `YYYY-MM-DD` dates between `2000-01-01` and today. The date range is checked during command parsing, rather than storage loading, so a changed computer clock does not prevent saved notes from loading.
 
-`NoteAddCommand` and `NoteDeleteCommand` resolve the student from the current filtered list. Adding rejects an identical note on the same
-date; deleting rejects a note number past the end. Either command calls `Student#withNotes` to replace the student
-with a copy whose notes have changed, then returns a `CommandResult` that opens that student's
-details, where `PersonCard` lists the notes. Every command that rebuilds a `Student` (`edit`, archiving, and the
-guardian, lesson and follow-up commands) passes the existing notes on. `NoteWorkflowTest` checks `edit` and the guardian
-and lesson commands, so a later field change cannot silently drop notes there.
+Commands resolve the student from the current filtered list, reject invalid note indices and reject duplicate date-and-text pairs. Updates use `Student#withNotes` and open the student's details; other student updates preserve existing notes.
 
+The sequence shows `note-add 1 date/2026-10-15 text/Fractions`.
 The sequence diagram below focuses on executing `note-add 1 date/2026-10-15 text/Fractions`. Parsing follows the
 [Logic component](#logic-component) workflow; `LogicManager` saves the updated student data before returning the result.
 
 <img src="images/NoteAddSequenceDiagram.png" width="660" alt="Note addition sequence" />
 
-`JsonAdaptedProgressNote` stores each note as `{"date": "YYYY-MM-DD", "text": "..."}` in the person's `notes`
-array. A missing or `null` `notes` key loads as no notes, so older data files still load.
+`JsonAdaptedProgressNote` stores each note as `{"date": "YYYY-MM-DD", "text": "..."}` in `notes`. Missing or null arrays load as empty; adapters validate stored dates and text. `PersonCard` displays notes in its **Notes** section.
+
+Tests include `ProgressNoteTest`, `NoteWorkflowTest`, `ProgressNoteStorageTest`, and the note command and parser tests.
 
 ## Documentation, logging, testing, dev-ops
 
@@ -370,75 +357,114 @@ Independent private tutors who:
 * can type quickly and prefer typing over mouse-driven input
 
 **Value proposition**: StudentBook keeps each student's contact details, school and level, guardian contact, weekly lessons with hourly rates, progress notes and guardian follow-ups in one place. Tutors find and update them by typing commands, see their week on a calendar, and are warned when lessons clash.
+**Value proposition**: StudentBook keeps student contacts, tuition details, weekly lesson slots and hourly rates in one place, so private tutors can find and update them quickly.
+
+The original MVP covered student records and the five tuition features below. Payment processing and sending messages are out of scope.
+
+| Owner | MVP feature | Story IDs |
+|---|---|---|
+| Min Wenn | Schooling level | 5; level updates in 12 |
+| Pranav | Subject | 6; subject updates in 12 |
+| Jian Yi | Weekly lesson slot | 25, 28, 29, 48 |
+| Dylan | Hourly rate | 53, 54 |
+| Mervin | Guardian contact | 7, 8, 22, 23 |
+
+Current delivery status is listed under [User stories](#user-stories).
 
 StudentBook does not process payments, send messages or manage group classes. Each lesson belongs to one student.
 
-### Student and lesson fields
-
 A student has any number of lessons. Each lesson groups a required subject, weekly slot and hourly rate with an optional location and mode. School and schooling level are optional; students can be added without either, and `edit STUDENT_INDEX sch/` or `edit STUDENT_INDEX level/` can clear the corresponding field. Each student has at most one school, with 1 to 60 characters after trimming leading and trailing whitespace.
+
+### Decisions to confirm
+
+The earlier Google specification and the current code differ on the rules below. Keeping AB3 fields was agreed, but it did not settle every validation or failure rule. These are open product decisions, not changes to implement automatically.
+
+| Decision | Earlier specification | Current implementation |
+|---|---|---|
+| Contact fields | Name required on creation | Name, phone, email and address required; confirm whether all four contact fields are needed |
+| Duplicate names | Normalized, case-insensitive comparison | Exact, case-sensitive name comparison |
+| Names and phones | Punctuation in names; optional `+` and 7–15 digits in phones | Names start with a letter/number and allow Unicode letters, accents, numbers, spaces, apostrophes, hyphens, periods and `s/o`/`d/o`; phones allow an optional leading `+` and 7–15 digits, with single spaces or hyphens between digit groups |
+| Save/load failures | Roll back failed saves; block commands after a failed load | Failed saves roll back; failed loads use backup recovery |
+
+The pre-chat Git and Google documents also differed on registration and guardian attachment. The current plan adds the guardian separately. Confirm the remaining rules with the team before treating the earlier draft as superseded.
+
 
 ### User stories
 
-Priorities: `***` = high, `**` = medium, `*` = low.
+Priority: `***` high, `**` medium, `*` low. Status records current support independently of priority; future stories are not delivery commitments.
 
-Stories marked *(not supported)* are ideas that the current version does not support. They are kept for reference only and are not commitments.
+| ID | Priority | Status | As a... | I want to... | So that I can... |
+|---|---|---|---|---|---|
+| 1 | `***` | Implemented | private tutor | add a student record with a name | begin tracking each student |
+| 2 | `***` | Implemented | private tutor | view the list of current students | see who I currently teach |
+| 3 | `***` | Implemented | private tutor | view a student's subjects and schooling level | prepare for the right subject and level |
+| 4 | `***` | Implemented | private tutor | delete a student record | keep my records free of obsolete or incorrect entries |
+| 5 | `***` | Implemented | private tutor | record a student's schooling level | choose material at the right level |
+| 6 | `***` | Implemented | private tutor | record the subjects I teach a student | remember what I teach each student |
+| 7 | `***` | Implemented | private tutor | record one guardian's name and contact details for a student | reach the right adult about lessons |
+| 8 | `***` | Implemented | private tutor | view the guardian name and contact details linked to a student | contact a guardian without searching elsewhere |
+| 9 | `***` | Implemented | private tutor | keep my student details and guardian contacts when I close and reopen the app | continue my work without re-entering information |
+| 10 | `**` | Implemented | private tutor | edit a student's name | correct typos without recreating the record |
+| 11 | `**` | Implemented | private tutor | record a student's school | remember which school the student attends |
+| 12 | `**` | Implemented | private tutor | update a student's school, schooling level or lesson subjects | keep records current as circumstances change |
+| 13 | `**` | Implemented | private tutor | search for a student by a partial name | retrieve a record quickly |
+| 14 | `**` | Implemented | private tutor | view students ordered by school stage, level and name | scan a long student list faster |
+| 15 | `**` | Implemented | private tutor | filter students by school | find students from the same school |
+| 16 | `**` | Implemented | private tutor | filter students by schooling level | prepare level-appropriate materials |
+| 17 | `**` | Implemented | private tutor | filter students by subject | prepare for a subject-specific class |
+| 18 | `**` | Implemented | private tutor | mark a student as inactive | keep former students without cluttering the current list |
+| 19 | `**` | Implemented | private tutor | view inactive students separately | refer to past records when needed |
+| 20 | `**` | Future | private tutor | add another guardian to a student | keep alternative contacts for the same student |
+| 21 | `**` | Future | private tutor | record each guardian's relationship to the student | know who I am contacting |
+| 22 | `**` | Partial | private tutor | edit a guardian's contact details | keep guardian contact information current |
+| 23 | `**` | Implemented | private tutor | remove a guardian from a student | discard contacts that are no longer relevant |
+| 24 | `**` | Implemented | private tutor | search by guardian name or contact | find the right student when a guardian contacts me |
+| 25 | `**` | Implemented | private tutor | add a recurring weekly lesson slot to a student | remember when the student is taught |
+| 26 | `**` | Implemented | private tutor | add more than one weekly lesson slot to a student | track students with several lessons each week |
+| 27 | `**` | Implemented | private tutor | view lessons scheduled on a chosen day | prepare for that day's students |
+| 28 | `**` | Implemented | private tutor | edit a lesson slot | keep the agreed schedule current |
+| 29 | `**` | Implemented | private tutor | remove a lesson slot | clear a cancelled arrangement |
+| 30 | `**` | Implemented | private tutor | record a lesson's location or delivery mode | know where and how the lesson will happen |
+| 31 | `**` | Future | private tutor | assign students to a shared group class | manage one lesson arrangement for its attendees |
+| 32 | `**` | Future | private tutor | view every student in a group class | prepare the correct class list |
+| 33 | `**` | Implemented | private tutor | add a dated progress note to a student | remember what happened in recent lessons |
+| 34 | `**` | Implemented | private tutor | view a student's dated progress notes in chronological order | recall learning needs before the next lesson |
+| 35 | `**` | Implemented | private tutor | record a follow-up item for a guardian | remember what I need to communicate |
+| 36 | `**` | Implemented | private tutor | find active students with outstanding guardian follow-ups | avoid missing promised updates |
+| 37 | `**` | Future | private tutor | record whether a student's payment for a billing period is outstanding | identify payments that need follow-up |
+| 38 | `**` | Future | private tutor | record a guardian's preferred contact method | contact each guardian appropriately |
+| 39 | `**` | Implemented | private tutor exploring the app | find out which student-management tasks the app supports | decide whether it suits my work |
+| 40 | `**` | Implemented | private tutor learning the app | look up command usage and examples | complete a task when I do not remember what to type |
+| 41 | `**` | Implemented | private tutor | combine subject, schooling-level and lesson-day filters | find students matching the criteria for my preparation |
+| 42 | `**` | Implemented | private tutor | see each student's next weekly lesson | know which lesson to prepare for next |
+| 43 | `**` | Implemented | private tutor | edit a guardian follow-up item | keep the recorded request accurate when arrangements change |
+| 44 | `**` | Implemented | private tutor | mark a guardian follow-up item as complete | remove finished work from my outstanding follow-ups |
+| 45 | `**` | Implemented | private tutor learning the app | see what needs correcting when an entry is rejected | fix the entry without guessing why it failed |
+| 46 | `**` | Implemented | tutor who communicates directly with a student | record the student's own phone number or email address | keep their contact details with their record |
+| 47 | `**` | Implemented | tutor who needs to contact a student directly | view the student's contact details | reach them without searching elsewhere |
+| 48 | `**` | Implemented | tutor checking a student’s lesson arrangements | view that student's weekly lesson times | confirm when I teach them |
+| 49 | `**` | Implemented | tutor planning my week | view all my lessons arranged by day and time | see which students I will teach each day |
+| 50 | `*` | Implemented | private tutor | find students by a guardian's phone and compare their guardian details | avoid contacting the same guardian repeatedly |
+| 51 | `*` | Implemented | private tutor | receive a warning when separate lesson arrangements overlap | avoid accepting conflicting arrangements |
+| 52 | `*` | Implemented | private tutor | inspect and back up all saved records | protect my data and transfer it between computers |
+| 53 | `**` | Implemented | private tutor | record and view each lesson's hourly rate | check the agreed rate before discussing fees |
+| 54 | `**` | Implemented | private tutor | change a lesson's hourly rate | keep the agreed rate current |
+| 55 | `**` | Future | private tutor | remove a lesson's rate without deleting the lesson | retain arrangements when a rate is no longer agreed |
+| 56 | `**` | Implemented | private tutor | restore an archived student | resume teaching without re-entering their details |
+| 57 | `**` | Implemented | private tutor | edit a progress note | correct mistakes in my learning observations |
+| 58 | `**` | Implemented | private tutor | delete a progress note | remove obsolete or incorrect observations |
+| 59 | `**` | Implemented | private tutor | sort students by lesson rate within each school stage | compare agreed rates across students |
+| 60 | `**` | Implemented | private tutor starting real use | delete all records before entering my own students | start without sample or trial data |
 
-| ID | Priority | As a... | I want to... | So that I can... |
-|---|---|---|---|---|
-| 1 | `***` | private tutor | add a student record with a name | begin tracking each student |
-| 2 | `***` | private tutor | view the list of current students | see who I currently teach |
-| 3 | `***` | private tutor | view a student's subjects and schooling level | prepare for the right subject and level |
-| 4 | `***` | private tutor | delete a student record | remove students who leave or recreate incorrect records |
-| 5 | `***` | private tutor | record a student's schooling level | choose material at the right level |
-| 6 | `***` | private tutor | record the subjects I teach a student | remember what I teach each student |
-| 7 | `***` | private tutor | record one guardian's name and phone number for a student | reach the right adult about lessons |
-| 8 | `***` | private tutor | view the guardian name and phone number linked to a student | contact a guardian without searching elsewhere |
-| 9 | `***` | private tutor | keep my student details and guardian contacts when I close and reopen the app | continue my work without re-entering information |
-| 10 | `**` | private tutor | edit a student's name | correct typos without recreating the record |
-| 11 | `**` | private tutor | record a student's school | remember which school the student attends |
-| 12 | `**` | private tutor | update a student's school, schooling level or subjects | keep records current as circumstances change |
-| 13 | `**` | private tutor | search for a student by a partial name | retrieve a record quickly |
-| 14 | `**` | private tutor | see students ordered by level, then alphabetically by name | scan a long student list faster |
-| 15 | `**` | private tutor | filter students by school | find students from the same school |
-| 16 | `**` | private tutor | filter students by schooling level | prepare level-appropriate materials |
-| 17 | `**` | private tutor | filter students by subject | prepare for a subject-specific class |
-| 18 | `**` | private tutor | mark a student as inactive | keep former students without cluttering the current list |
-| 19 | `**` | private tutor | view inactive students separately | refer to past records when needed |
-| 20 | `**` | private tutor | add another guardian to a student *(not supported)* | keep alternative contacts for the same student |
-| 21 | `**` | private tutor | record each guardian's relationship to the student *(not supported)* | know who I am contacting |
-| 22 | `**` | private tutor | edit a guardian's name or phone number | keep a changed phone number current |
-| 23 | `**` | private tutor | remove a guardian from a student | discard contacts that are no longer relevant |
-| 24 | `**` | private tutor | search by guardian name or contact | find the right student when a guardian contacts me |
-| 25 | `**` | private tutor | add a recurring weekly lesson slot to a student | remember when the student is taught |
-| 26 | `**` | private tutor | add more than one weekly lesson slot to a student | track students with several lessons each week |
-| 27 | `**` | private tutor | view lessons scheduled on a chosen day | prepare for that day's students |
-| 28 | `**` | private tutor | edit a lesson slot | keep the agreed schedule current |
-| 29 | `**` | private tutor | remove a lesson slot | clear a cancelled arrangement |
-| 30 | `**` | private tutor | record a lesson's location or delivery mode | know where and how the lesson will happen |
-| 31 | `**` | private tutor | assign students to a shared group class *(not supported)* | manage one lesson arrangement for its attendees |
-| 32 | `**` | private tutor | view every student in a group class *(not supported)* | prepare the correct class list |
-| 33 | `**` | private tutor | add a dated progress note to a student | remember what happened in recent lessons |
-| 34 | `**` | private tutor | view a student's dated progress notes in chronological order | recall learning needs before the next lesson |
-| 35 | `**` | private tutor | record a follow-up item for a guardian | remember what I need to communicate |
-| 36 | `**` | private tutor | list outstanding guardian follow-up items | avoid missing promised updates |
-| 37 | `**` | private tutor | record a student's payment status *(not supported)* | know which payments need follow-up without processing them |
-| 38 | `**` | private tutor | record a guardian's preferred contact method *(not supported)* | contact each guardian appropriately |
-| 39 | `**` | private tutor exploring the app | find out which student-management tasks the app supports | decide whether it suits my work |
-| 40 | `**` | private tutor learning the app | look up command usage and examples | complete a task when I do not remember what to type |
-| 41 | `**` | private tutor | combine subject, schooling-level and lesson-day filters | find students matching the criteria for my preparation |
-| 42 | `**` | private tutor | see the next scheduled lesson and its attending students | know which lesson to prepare for next |
-| 43 | `**` | private tutor | edit a guardian follow-up item | keep the recorded request accurate when arrangements change |
-| 44 | `**` | private tutor | mark a guardian follow-up item as complete | remove finished work from my outstanding follow-ups |
-| 45 | `**` | private tutor learning the app | see what needs correcting when an entry is rejected | fix the entry without guessing why it failed |
-| 46 | `**` | tutor who communicates directly with a student | record the student's own phone number or email address | keep their contact details with their record |
-| 47 | `**` | tutor who needs to contact a student directly | view the student's contact details | reach them without searching elsewhere |
-| 48 | `**` | tutor checking a student’s lesson arrangements | view that student's weekly lesson times | confirm when I teach them |
-| 49 | `**` | tutor planning my week | view all my lessons arranged by day and time | see which students I will teach each day |
-| 50 | `*` | private tutor | identify students who share a guardian contact | coordinate communication without contacting the same guardian separately for each student |
-| 51 | `*` | private tutor | receive a warning when separate lesson arrangements overlap | avoid accepting conflicting arrangements |
-| 52 | `*` | private tutor | export all records to a human-readable file *(not supported)* | inspect and back up my data outside the app |
-| 53 | `**` | private tutor | record and view the hourly rate agreed for each lesson | check the agreed rate before discussing fees |
-| 54 | `**` | private tutor | change a lesson's recorded hourly rate | keep the agreed rate current |
+**Selected acceptance criteria**
+
+* **12:** School, level and individual lesson subjects can change independently without altering unrelated details.
+* **22:** Guardian name and phone can change independently; email remains future scope.
+* **42:** Compare start minutes in the weekly cycle, including the current minute. Earlier starts roll to next week; ties use stored lesson order.
+* **50:** Phone searches match substrings and ignore spaces/hyphens; compare full guardian names and phones to confirm shared contacts.
+* **52:** Human-readable JSON and manual file copying satisfy this story.
+* **59:** Ascending uses each student's minimum lesson rate; descending uses their maximum. Students without lessons come last.
+* **60:** Clearing from the active list removes both active and archived records.
 
 ### Use cases
 
@@ -448,7 +474,7 @@ The actor is a private tutor and the system is StudentBook. The app is already o
 
 #### UC01: Register a student
 
-**Related user stories:** 1, 5, 6, 9.
+**Related user stories:** 1, 5, 9, 11.
 
 **MSS**
 
@@ -461,13 +487,9 @@ Use case ends.
 
 * 1a. A required detail is missing or a supplied value is invalid.
   * 1a1. StudentBook reports the error without adding a record.
-  * 1a2. Tutor corrects and resubmits the request.
   * Use case resumes at step 1.
 * 1b. An active or archived student with the exact same name already exists.
   * 1b1. StudentBook reports the duplicate without adding a record.
-  * Use case ends.
-* 2a. StudentBook cannot save the change.
-  * 2a1. StudentBook reports the save failure without adding the student.
   * Use case ends.
 
 #### UC02: Retrieve a guardian's contact details
@@ -477,19 +499,22 @@ Use case ends.
 **MSS**
 
 1. Tutor requests to list students.
-2. StudentBook displays student records with their linked guardian names and contact details.
-3. Tutor reads the intended student's guardian contact details.
+2. StudentBook displays the student list.
+3. Tutor requests the intended student's guardian contact details.
+4. StudentBook displays the guardian's name and phone number.
 
-Use case ends. Contacting the guardian takes place outside StudentBook.
+Use case ends.
 
 **Extensions**
 
-* 2a. No student records exist.
+* 2a. No active students exist.
   * 2a1. StudentBook displays an empty list.
   * Use case ends.
-
-* 2b. The intended student has no guardian contact.
-  * 2b1. StudentBook indicates that no guardian is recorded.
+* 3a. The student selection is invalid.
+  * 3a1. StudentBook reports the error.
+  * Use case resumes at step 3.
+* 3b. The intended student has no guardian contact.
+  * 3b1. StudentBook indicates that no guardian is recorded.
   * Use case ends.
 
 #### UC03: Remove a student who has stopped attending lessons
@@ -499,9 +524,9 @@ Use case ends. Contacting the guardian takes place outside StudentBook.
 **MSS**
 
 1. Tutor requests to list students.
-2. StudentBook displays the student list with an index for each record.
-3. Tutor requests to delete the intended student using the displayed index.
-4. StudentBook removes that student's record and linked guardian contact, and displays a success message and the updated list.
+2. StudentBook displays the student list.
+3. Tutor identifies the student to delete and requests deletion.
+4. StudentBook removes the student's record and confirms deletion with the updated list.
 
 Use case ends.
 
@@ -509,60 +534,65 @@ Use case ends.
 
 * 2a. The student list is empty.
   * Use case ends.
-* 3a. The supplied index is invalid for the displayed list.
+* 3a. The student selection is invalid.
   * 3a1. StudentBook displays an error without deleting any record.
-  * Use case resumes at step 2.
+  * Use case resumes at step 3.
 
 #### UC04: Change a lesson's slot
 
 **Related user stories:** 2, 28, 48.
 
-**Preconditions:** The student has an existing lesson.
+**Preconditions:** The intended student is active and has an existing lesson.
 
 **MSS**
 
 1. Tutor requests to list students.
-2. StudentBook displays students and their lessons.
-3. Tutor requests to edit a lesson, supplying the student's displayed index, the lesson's number in the student's details and the new slot.
-4. StudentBook displays the updated lesson.
+2. StudentBook displays the student list.
+3. Tutor requests the intended student's lesson details.
+4. StudentBook displays the student's lessons.
+5. Tutor identifies the lesson to edit and requests a new slot.
+6. StudentBook confirms the change and displays the updated lesson.
 
 Use case ends.
 
 **Extensions**
 
-* 2a. The student list is empty.
-  * Use case ends.
-* 3a. The student index or lesson number is invalid, the new slot is invalid, or the change would duplicate another lesson of that student.
-  * 3a1. StudentBook explains the error without changing any lesson.
-  * 3a2. Tutor corrects and resubmits the request.
+* 3a. The student selection is invalid.
+  * 3a1. StudentBook reports the error.
   * Use case resumes at step 3.
-* 4a. The new slot overlaps another lesson in the same student list.
-  * 4a1. StudentBook saves the change and shows a warning that lists the clashing lessons.
+* 5a. The student or lesson selection is invalid, the new slot is invalid, or the change would duplicate another lesson of that student.
+  * 5a1. StudentBook explains the error without changing any lesson.
+  * Use case resumes at step 5.
+* 5b. The new slot overlaps another lesson.
+  * 5b1. StudentBook applies the change and displays the updated lesson with a clash warning.
   * Use case ends.
 
-#### UC05: Complete a guardian follow-up
+#### UC05: Mark a guardian follow-up as complete
 
 **Related user stories:** 36, 44.
 
-**Preconditions:** At least one outstanding guardian follow-up item exists.
+**Preconditions:** Tutor has carried out the follow-up outside StudentBook.
 
 **MSS**
 
-1. Tutor requests to list outstanding guardian follow-up items.
+1. Tutor requests students with outstanding guardian follow-ups.
 2. StudentBook displays the students with outstanding items.
-3. Tutor opens a student's details to see the student's numbered items and guardian.
-4. Tutor carries out the selected follow-up outside StudentBook.
-5. Tutor requests to mark the selected item as complete.
-6. StudentBook removes the item from the student's outstanding items and shows its text.
+3. Tutor requests a student's follow-up details.
+4. StudentBook displays the student's outstanding items.
+5. Tutor identifies the completed item and requests to mark it as complete.
+6. StudentBook removes the item from the outstanding items and confirms completion with its text.
 
 Use case ends.
 
 **Extensions**
 
-* 2a. No student has an outstanding item.
-  * 2a1. StudentBook shows an empty list and suggests `list`.
+* 2a. No active student has an outstanding item.
+  * 2a1. StudentBook displays an empty list.
   * Use case ends.
-* 5a. The supplied student or item number is invalid, for example because the item is already complete.
+* 3a. The student selection is invalid.
+  * 3a1. StudentBook reports the error.
+  * Use case resumes at step 3.
+* 5a. The student or follow-up selection is invalid.
   * 5a1. StudentBook explains the error without changing any item.
   * Use case resumes at step 1.
 * 6a. The completed item was the student's last one.
@@ -573,23 +603,22 @@ Use case ends.
 
 **Related user stories:** 7, 9.
 
-**Preconditions:** The student exists and is visible in the displayed list.
+**Preconditions:** The intended student is in the displayed list.
 
 **MSS**
 
-1. Tutor requests to attach a guardian, supplying the student's displayed index and the guardian's name and phone.
+1. Tutor identifies the student and requests to attach a guardian, supplying the guardian's name and phone number.
 2. StudentBook displays the linked guardian and confirms the addition.
 
 Use case ends.
 
 **Extensions**
 
-* 1a. The index or guardian details are invalid, or a guardian is already attached.
+* 1a. The student selection or guardian details are invalid.
   * 1a1. StudentBook reports the error without changing the record.
-  * 1a2. Tutor corrects and resubmits the request.
   * Use case resumes at step 1.
-* 2a. StudentBook cannot save the change.
-  * 2a1. StudentBook reports the save failure without adding the guardian.
+* 1b. A guardian is already attached.
+  * 1b1. StudentBook reports that a guardian is already attached and suggests editing the contact.
   * Use case ends.
 
 #### UC07: Archive a past student and restore them later
@@ -721,23 +750,22 @@ For larger or boundary-value data sets, generate a data file with `./gradlew see
 
 ### Launch and shutdown
 
-1. Download the latest `studentbook.jar` from the [releases page](https://github.com/AY2627S1-CS2103T-F13-4/tp/releases) into an empty test folder, open a terminal there and run `java -jar studentbook.jar`.
-   The window opens on **This week**, which shows `13 lessons`, none of them overlapping.
-2. Run `list`. **Students** shows `8 students` in four groups: Chloe Lim and Isaac Ng (Primary); Ethan Lim, Muhammad Hafiz bin Rahman and Priya Ramasamy (Secondary); Nur Aisyah binte Ismail and Ryan Goh Jun Jie (JC); Sarah Wong (Other). Chloe and Ethan share the guardian Lim Mei Ling.
-3. Run `list-archive`. **Archives** shows one past student, Tan Wei Jie.
-4. Resize and move the window, run `exit`, then launch again. The window keeps its new size and position.
+1. Build the JAR using [Build automation](DevOps.md#build-automation), copy it into the test folder and run `java -jar studentbook.jar` there.
+2. Check that the window opens with sample data. Run `list`; it should show eight active students, starting with Chloe Lim, Isaac Ng and Ethan Lim. Open Chloe's and Ethan's details to check that they share the guardian Lim Mei Ling. Run `week`; no lessons should overlap. Run `list-archive`; it should show one past student, Tan Wei Jie.
+3. Resize and move the window, then close and reopen the app. Check that it keeps the new size and position.
 
 ### Main window
 
-1. After launch, type `list` and press Enter without clicking anything. The command box has keyboard focus, so the list appears.
-2. Run `find Chloe`. The header reads `Showing 1 of 8`. Run `find name/zzz`. The list says `No students match` and suggests `list`.
-3. Run `list`, then `delete 0`. The result area turns pink with a red `!`, shows the format and an example, and `delete 0` stays in the box in red. Change it to `delete 1` and press Enter; Chloe Lim is deleted and the box clears.
-4. Run `add name/Ryan`. The result area shows a **Format** line and an **Example** line. Press Tab; the example replaces `add name/Ryan` in the command box.
-5. Press Esc to clear the box. Run `list` and `week`, then press Up twice and Down twice. The box shows `week`, then `list`, then `week`, then becomes empty again.
-6. Run `list`, then `view 1`. Isaac Ng's details (school, contact, guardian, follow-ups, lessons, tags and notes) open below his row, and the rest of the list moves down. Run `view 2`; Isaac's details close and Ethan Lim's open.
-7. With the command box empty, press Esc. The details close. Press Alt+Down twice; the first and then the second student's details open, and typing still goes into the command box. Press Page Down and Page Up to scroll the list.
-8. Press F1. The user guide opens in the default browser. Clicking **All commands** and running `help` open the same guide.
-9. Shrink the window to its minimum width, then run `view 1`. The Subjects and Guardian columns are hidden, and the open details still show the guardian and every lesson.
+1. Launch with sample data. The command box should have keyboard focus, so you can type `list` straight away.
+2. Run `find` with a name that matches one student. The header should read `Showing 1 of N`. Run `find zzz`; the list should say `No students match` and suggest `list`.
+3. Run `clear` in a test folder. The list should say `No students yet` and show an example `add` command; running it as shown should add a student.
+4. Run `delete 0`. The result row should turn pink with a red `!`, and `delete 0` should stay in the box in red. Fix it to a valid index and press Enter; the box should clear.
+5. Run `add name/Ryan`. The result row should show the description, a **Format** line and an **Example** line in a monospace font.
+6. Run two commands, then press Up twice and Down twice. The box should show the earlier commands, then what you had typed. Press Esc; the box should clear.
+7. Run `list` with more students than fit in the window. Press Esc in the empty command box to close any open details, then press Page Down and Page Up. The student list should scroll, and typing should still go into the command box. Run `view STUDENT_INDEX` for a student with long details, then press Page Down and Page Up again; the list, including the expanded details, should scroll without changing the selected student.
+8. Press F1 with the window focused. The user guide should open in the default browser. Check that clicking **All commands**, choosing **Help → Help**, and running `help` open the same guide without an extra app window.
+9. Run `list`, then `view 1` and `view 2`. The indicated student's details should expand below their row, and the previously open row should collapse. With the command box empty, press Esc to close the details. Press Alt+Down twice; the second student's details should expand, with focus still in the command box. Run `find` with a name that matches only one student; that student's details should open automatically.
+10. Add a student with a long name, several lessons and a long address, then run `view STUDENT_INDEX` for that student. Shrink the window to its minimum size. The details should remain below the student's row, with long text wrapping and the detail sections reflowing to fit. The Subjects and Guardian columns should disappear from the compact rows, while their information remains available in the expanded details. Use Page Down or scroll the student list to reach all of the student's information; long command results should also remain scrollable.
 
 ### Student deletion
 
@@ -785,12 +813,13 @@ For larger or boundary-value data sets, generate a data file with `./gradlew see
     * `lesson-add 9 subject/Math slot/Fri 1.00pm 2.00pm rate/40 mode/`
     * `lesson-edit 9 5 rate/40`
 
-### Combined searches and the weekly calendar
-
-1. Run `find subject/math`. Five students are shown. Run `week`; the summary reads `Showing 5 of 13 lessons`, and only their maths lessons appear.
-2. Run `find level/sec subject/math`. Only Muhammad Hafiz bin Rahman and Priya Ramasamy match.
-3. Run `find guardian/9182`. Chloe Lim and Ethan Lim, who share a guardian phone number, match.
-4. Run `list`, then `week`. All `13 lessons` are back.
+1. Add a unique test student, then run `lesson-add STUDENT_INDEX subject/Combined   Science slot/Wed 1.00pm 5.00pm rate/45.5`, using three spaces between the words. Run `view STUDENT_INDEX`; the expanded details below the student's row should show lesson `1.` with subject `Combined Science`, `Wed 1.00pm-5.00pm` and `SGD 45.50/h`.
+2. Run `lesson-add STUDENT_INDEX subject/English slot/mon 4.00pm 5.00pm rate/40 mode/virtual location/https://zoom.us/j/123`. The student's details should list both lessons in order, the second with `Virtual` and its location.
+3. Run `lesson-edit STUDENT_INDEX 2 rate/50`, then edit the student's phone with `edit`. Both lessons should stay, and only the rate should change.
+4. Restart the app. Everything above should remain.
+5. Run `lesson-edit STUDENT_INDEX 2 mode/ location/`. The student's details should show the English lesson without mode or location, including after restart.
+6. Run `lesson-delete STUDENT_INDEX 1`. English becomes lesson 1. Delete it too and the Lessons section in the student's expanded details should show `No lessons yet`.
+7. Try a duplicate `lesson-add`, a lesson index larger than the list, a missing required field, `mode/hybrid`, a repeated prefix, an unknown prefix such as `x/`, and an empty `mode/` on `lesson-add`. Each should report an error and leave every record unchanged.
 
 ### Name and guardian searches
 
@@ -829,7 +858,7 @@ For larger or boundary-value data sets, generate a data file with `./gradlew see
     * `followup-done 2 5`
     * `followup-add 2 text/` followed by 201 characters
 
-### Progress notes
+### Notes
 
 1. Run `list`, then `note-add 1 date/2026-10-15 text/Fractions, and/or decimals next`. Chloe Lim's details open with note `1.`, dated `15 Oct 2026`, with the text unchanged.
 2. Run `note-add 1 date/2026-10-08 text/Placement test`. It becomes note 1, and the earlier note becomes note 2.

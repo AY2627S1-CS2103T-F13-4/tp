@@ -1,10 +1,11 @@
 @startuml
+' Legacy AB3 history example. StudentBook does not implement undo or versioned history.
 !include style.puml
 skinparam ClassFontColor #000000
 skinparam ClassBorderColor #000000
 skinparam ClassBackgroundColor #FFFFAA
 
-title After command "add name/David"
+title Legacy AB3 example: after adding David (unsupported)
 
 package States <<rectangle>> {
     class State1 as "<u>ab0:AddressBook</u>"

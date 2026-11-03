@@ -1,6 +1,8 @@
 @startuml
+' Legacy AB3 undo example. StudentBook does not implement undo or versioned history.
 !include style.puml
 skinparam ArrowFontStyle plain
+title Legacy AB3 example: undo model (unsupported)
 
 box Model MODEL_COLOR_T1
 participant ":Model" as Model MODEL_COLOR
@@ -14,6 +16,9 @@ Model -> VersionedAddressBook : undo()
 activate VersionedAddressBook
 
 VersionedAddressBook -> VersionedAddressBook :resetData(ReadOnlyAddressBook)
+activate VersionedAddressBook
+VersionedAddressBook --> VersionedAddressBook
+deactivate VersionedAddressBook
 VersionedAddressBook --> Model :
 deactivate VersionedAddressBook
 
