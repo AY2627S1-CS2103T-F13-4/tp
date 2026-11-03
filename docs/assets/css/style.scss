@@ -10,3 +10,20 @@
     height: 21px;
     width: 21px
 }
+
+details.trouble {
+    border: 1px solid #e1e4e8;
+    border-radius: 6px;
+    margin: 0 0 8px;
+    padding: 0 14px;
+}
+
+details.trouble summary {
+    cursor: pointer;
+    padding: 10px 0;
+}
+
+details.trouble[open] summary {
+    border-bottom: 1px solid #e1e4e8;
+    margin-bottom: 10px;
+}

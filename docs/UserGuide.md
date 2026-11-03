@@ -2,15 +2,14 @@
 layout: page
 title: User Guide
 ---
-# StudentBook
 StudentBook helps private tutors manage student and guardian contacts, recurring lessons, progress notes and follow-ups using typed commands. Records stay on your computer and changes are saved automatically.
 
-## Table of Contents
+## Table of contents
 
-* [Quick Start](#quick-start)
-* [Main Window](#main-window)
+* [Quick start](#quick-start)
+* [Main window](#main-window)
 * [Features](#features)
-  * [Student Tracking](#student-tracking)
+  * [Student tracking](#student-tracking)
     * [Add a student: `add`](#add-a-student-add)
     * [Edit a student: `edit`](#edit-a-student-edit)
     * [List all active students: `list`](#list-all-active-students-list)
@@ -20,15 +19,15 @@ StudentBook helps private tutors manage student and guardian contacts, recurring
     * [Find students by filter criteria: `find`](#find-students-by-filter-criteria-find)
     * [Delete a student: `delete`](#delete-a-student-delete)
     * [Delete all students: `clear`](#delete-all-students-clear)
-  * [Archiving Students](#archiving-students)
+  * [Archiving students](#archiving-students)
     * [Archive or restore a student: `archive`, `unarchive`](#archive-or-restore-a-student-archive-unarchive)
     * [List archived students: `list-archive`](#list-archived-students-list-archive)
-  * [Lesson Tracking](#lesson-tracking)
+  * [Lesson tracking](#lesson-tracking)
     * [Add a lesson: `lesson-add`](#add-a-lesson-lesson-add)
     * [Edit a lesson: `lesson-edit`](#edit-a-lesson-lesson-edit)
     * [Delete a lesson: `lesson-delete`](#delete-a-lesson-lesson-delete)
     * [Show weekly lessons: `week`](#show-weekly-lessons-week)
-  * [Guardian Tracking](#guardian-tracking)
+  * [Guardian tracking](#guardian-tracking)
     * [Add a guardian: `guardian-add`](#add-a-guardian-guardian-add)
     * [Edit a guardian: `guardian-edit`](#edit-a-guardian-guardian-edit)
     * [Delete a guardian: `guardian-delete`](#delete-a-guardian-guardian-delete)
@@ -51,7 +50,7 @@ StudentBook helps private tutors manage student and guardian contacts, recurring
   * [Field Specifications](#field-specifications)
   * [Command Syntax](#command-syntax)
 
-## Quick Start
+## Quick start
 
 1. Install Java **25**. Mac users can follow the [Java installation guide](https://se-education.org/guides/tutorials/javaInstallationMac.html). Check your version in a terminal:
    ```shell
@@ -63,7 +62,7 @@ StudentBook helps private tutors manage student and guardian contacts, recurring
    ```shell
    java -jar "studentbook.jar"
    ```
-   Use the actual filename if it differs. Launch from the terminal so you can check errors if double-clicking does not work.
+   Use the actual filename if it differs. If double-clicking the JAR does nothing, start it this way to see the error.
 
 1. The first launch opens with sample data. Type `list` and press Enter.
 1. Add a student:
@@ -80,7 +79,7 @@ StudentBook helps private tutors manage student and guardian contacts, recurring
 
    Type `exit` to close the app.
 
-## Main Window
+## Main window
 
 [![StudentBook main window](images/Ui.png)](images/Ui.png)
 
@@ -103,13 +102,11 @@ StudentBook helps private tutors manage student and guardian contacts, recurring
 
 See [Command Input Formats](#command-input-formats) for command syntax and field rules.
 
-### Student Tracking
+### Student tracking
 
 #### Add a student: `add`
 
-Adds a student to StudentBook
-
-After adding, StudentBook switches to **Students**, clears the active search and opens the new student's details.
+Adds a student.
 
 Format: `add name/NAME phone/PHONE email/EMAIL address/ADDRESS [tag/TAG]... [sch/SCHOOL] [level/SCHOOLING_LEVEL]`
 
@@ -127,7 +124,7 @@ Examples:
 
 #### Edit a student: `edit`
 
-Edits an existing student in StudentBook
+Changes a student's details.
 
 Format: `edit STUDENT_INDEX [name/NAME] [phone/PHONE] [email/EMAIL] [address/ADDRESS] [tag/TAG]... [sch/SCHOOL] [level/SCHOOLING_LEVEL]`
 
@@ -185,7 +182,7 @@ Format: `view STUDENT_INDEX`
 
 #### Find students by name: `find`
 
-Find students whose names contain any of the given keywords
+Finds students whose names contain any of the given words.
 
 Format: `find KEYWORD [MORE_KEYWORDS]`
 
@@ -193,12 +190,12 @@ Format: `find KEYWORD [MORE_KEYWORDS]`
 * Only full words match.
 
 Examples:
-* `find John` matches `John Doe`, but not `Johnny`.
-* `find alex david` matches names containing `Alex` or `David`.
+* `find lim` finds `Chloe Lim` and `Ethan Lim`.
+* `find isaac ryan` finds `Isaac Ng` and `Ryan Goh Jun Jie`.
 
 #### Find students by filter criteria: `find`
 
-Find students by name, guardian, school, level, lesson subject and/or lesson day.
+Finds students by name, guardian, school, level, lesson subject or lesson day.
 
 Format: `find [name/TEXT] [guardian/TEXT] [sch/TEXT] [level/TEXT] [subject/TEXT] [day/DAY]`
 
@@ -232,7 +229,13 @@ Format: `delete STUDENT_INDEX`
 * In **Students** or **This Week** tabs, `clear` deletes **all active and archived students**.
 * In **Archives** (after `list-archive`), it deletes **only archived students**, keeping active students.
 
-### Archiving Students
+<div markdown="span" class="alert alert-warning">
+
+:warning: `clear` cannot be undone. Copy `data/studentbook.json` first if you might want the records back.
+
+</div>
+
+### Archiving students
 
 #### Archive or restore a student: `archive`, `unarchive`
 
@@ -257,10 +260,13 @@ Add a lesson for a given student.
 
 Format: `lesson-add STUDENT_INDEX subject/SUBJECT slot/LESSON_SLOT rate/HOURLY_RATE [mode/MODE] [location/LOCATION]`
 
+* A student cannot have two identical lessons.
+* A lesson that overlaps another lesson is still saved, with a [clash warning](#troubleshooting). Lessons are checked against all your active students, including any hidden by a search; an archived student's lessons are checked against other archived students.
+
 Examples:
 * `lesson-add 3 subject/English slot/Mon 10.00am 12.00pm rate/40`
-* `lesson-add 1 subject/Math slot/Fri 4.00pm 6.00pm rate/40 mode/physical location/Home`
-* `lesson-add 1 subject/Math slot/Fri 4.00pm 6.00pm rate/40 mode/virtual location/Zoom`
+* `lesson-add 1 subject/Math slot/Fri 2.00pm 4.00pm rate/40 mode/physical location/Home`
+* `lesson-add 1 subject/Math slot/Sun 2.00pm 4.00pm rate/40 mode/virtual location/Zoom`
 
 <div markdown="span" class="alert alert-warning">
 
@@ -281,7 +287,7 @@ Format: `lesson-edit STUDENT_INDEX LESSON_INDEX [subject/SUBJECT] [slot/LESSON_S
 * Empty parameters for optional fields (e.g. `mode/`, refer to [adding lessons](#add-a-lesson-lesson-add)) will clear the field
 
 Examples:
-* `lesson-edit 1 3 subject/Mathematics`
+* `lesson-edit 1 2 subject/Mathematics`
 * `lesson-edit 2 1 mode/physical location/Home`
 * `lesson-edit 3 1 mode/ location/`
 
@@ -309,8 +315,11 @@ Add a guardian for a given student.
 
 Format: `guardian-add STUDENT_INDEX name/NAME phone/PHONE`
 
+* Each student has at most one guardian. To change one, use [`guardian-edit`](#edit-a-guardian-guardian-edit).
+* Names and phones follow the same rules as in [`add`](#add-a-student-add).
+
 Examples:
-* `guardian-add 1 name/Jane Doe phone/81234567`
+* `guardian-add 8 name/Jane Doe phone/81234567` adds a guardian to `Sarah Wong`, the only sample student without one.
 
 #### Edit a guardian: `guardian-edit`
 
@@ -323,12 +332,14 @@ Format: `guardian-edit STUDENT_INDEX [name/NAME] [phone/PHONE]`
 * Existing values will be updated to the input values.
 
 Examples:
-* `guardian-edit 1 name/Jane Doe` changes the first displayed student's guardian name.
-* `guardian-edit 1 phone/81234567` changes the first displayed student's guardian phone.
+* `guardian-edit 1 name/Jane Doe`
+* `guardian-edit 1 phone/81234567`
 
 #### Delete a guardian: `guardian-delete`
 
-Delete a guardian for a given student.
+Removes a student's guardian.
+
+Format: `guardian-delete STUDENT_INDEX`
 
 Format: `guardian-delete STUDENT_INDEX`
 
@@ -346,11 +357,11 @@ Format: `note-add STUDENT_INDEX date/YYYY-MM-DD text/TEXT`
 
 Examples:
 * `note-add 1 date/2026-10-15 text/Finished the fractions worksheet; revise decimals next`
-* `note-add 1 date/2026-10-08 text/Struggled with word problems` is placed before the first note and becomes note 1.
+* `note-add 1 date/2026-10-08 text/Struggled with word problems` then goes before the first note and becomes note 1.
 
 #### Edit a progress note: `note-edit`
 
-Changes the date, text or both for an existing progress note.
+Changes a note's date, text or both.
 
 Format: `note-edit STUDENT_INDEX NOTE_INDEX [date/YYYY-MM-DD] [text/TEXT]`
 
@@ -360,29 +371,33 @@ Format: `note-edit STUDENT_INDEX NOTE_INDEX [date/YYYY-MM-DD] [text/TEXT]`
 
 
 Examples:
-* `note-edit 1 2 text/Finished fractions; revise decimals next` changes only the text.
-* `note-edit 1 2 date/2026-10-08` corrects only the date.
+* `note-edit 4 2 text/Chain rule much better; start kinematics next`
+* `note-edit 4 2 date/2026-10-15`
 
 #### Delete a progress note: `note-delete`
 
-Deletes one progress note from a student.
+Deletes one of a student's notes.
 
 Format: `note-delete STUDENT_INDEX NOTE_INDEX`
 
-Example: `note-delete 1 1`
+* The result shows the deleted note's text. Later notes move up by one.
+
+Examples:
+* `note-delete 4 1`
 
 ### Follow-ups
 
 #### Add a guardian follow-up: `followup-add`
 
-Adds something you still need to do for a student's guardian, such as sending a progress report or confirming a make-up lesson.
+Adds something you still need to do for a student's guardian, such as sending a progress report.
 
 Format: `followup-add STUDENT_INDEX text/TEXT`
 
 * Duplicate follow-ups (case-insensitive) are not allowed.
 * A student does not need a guardian to have follow-ups, and `guardian-delete` keeps them.
 
-Example: `followup-add 1 text/Send the term 4 progress report`
+Examples:
+* `followup-add 1 text/Send the term 4 progress report`
 
 #### Edit a guardian follow-up: `followup-edit`
 
@@ -390,19 +405,26 @@ Replaces the text of a follow-up.
 
 Format: `followup-edit STUDENT_INDEX FOLLOW_UP_INDEX text/TEXT`
 
-Example: `followup-edit 1 2 text/Confirm the make-up lesson on Saturday`
+* `FOLLOW_UP_INDEX` is the follow-up's number in the student's details.
+* `TEXT` follows the same rules as in [`followup-add`](#add-a-guardian-follow-up-followup-add).
+
+Examples:
+* `followup-edit 2 1 text/Confirm the make-up lesson on Saturday`
 
 #### Complete a guardian follow-up: `followup-done`
 
-Marks a follow-up as done by removing it from the student's list.
+Marks a follow-up as done, which removes it.
 
 Format: `followup-done STUDENT_INDEX FOLLOW_UP_INDEX`
 
-* The message shows the removed follow-up's text. Later follow-ups move up by one.
+* The result shows the removed follow-up's text. Later follow-ups move up by one.
 
-Example: `followup-done 1 1`
+Examples:
+* `followup-done 2 1`
 
 #### List students with outstanding follow-ups: `followups`
+
+Shows only active students with at least one follow-up.
 
 Format: `followups`
 
@@ -419,7 +441,7 @@ Shows only active students who have at least one outstanding follow-up. Archived
 
 #### View help: `help`
 
-Opens this user guide in your default web browser. An internet connection is required to load the guide.
+Opens this guide in your web browser.
 
 * Alternate hotkey: **F1**
 * You can also click **All commands** or choose **Help → Help** from the menu.
@@ -431,23 +453,94 @@ Closes the app.
 
 ## Saving and transferring records
 
-StudentBook saves record changes automatically to `data/studentbook.json`, in the folder you start it from.
+StudentBook saves every change to `data/studentbook.json` in the folder you start it from. The app's footer shows where the file is.
 
-If saving fails, your records stay unchanged. Fix the reported problem and retry the command.
-Viewing and searching do not save.
+To move to another computer, close StudentBook, then copy the file into the new app folder as `data/studentbook.json`. Back up any file already there first.
 
-To move to another computer, close StudentBook, then copy that file into the new app folder as `data/studentbook.json` before launching there. Back up any existing destination file first.
+<div markdown="span" class="alert alert-warning">
 
-<div markdown="block" class="alert alert-warning">
-
-:warning: Back up the file before editing it by hand. If StudentBook cannot load it, it makes a backup beside it and starts empty. The next record change replaces the original. To recover, close the app, fix the backup and restore it as `data/studentbook.json`. If a backup cannot be made, the app closes without changing your records.
+:warning: Back up `data/studentbook.json` before editing it by hand. If StudentBook cannot read it, it starts with no students. See [Troubleshooting](#troubleshooting) to get your records back.
 
 </div>
 
-## Known issues
+## Troubleshooting
 
-* **Window opens off-screen:** Close the app and delete `preferences.json`, then restart it. This resets the saved window position.
-* **User guide does not open:** Check your default browser and internet connection. You can open the [user guide](https://ay2627s1-cs2103t-f13-4.github.io/tp/UserGuide.html) manually.
+Click a problem to see the fix. Bold text is the message StudentBook shows.
+
+<script>window.addEventListener('beforeprint', () => document.querySelectorAll('details').forEach(d => { d.open = true; }));</script>
+
+<details class="trouble" markdown="1">
+<summary><strong>The student index provided is invalid</strong> (or lesson, note or follow-up index)</summary>
+
+Use the number shown on screen; lesson, note and follow-up numbers are in the student's details. Numbers change after searches and sorts.
+
+</details>
+<details class="trouble" markdown="1">
+<summary>A student is missing from <strong>Students</strong></summary>
+
+A search is on (`find`, `followups` or a level filter). Type `list`. Still missing? Type `list-archive`, since they may be archived.
+
+</details>
+<details class="trouble" markdown="1">
+<summary><strong>An active student already has this name</strong></summary>
+
+Type `list` to find them. If this is a different student, add something to the name, e.g. `Alex Tan Sec 2`.
+
+</details>
+<details class="trouble" markdown="1">
+<summary><strong>An archived student already has this name</strong></summary>
+
+Type `list-archive` and `unarchive` them, or add something to the new name.
+
+</details>
+<details class="trouble" markdown="1">
+<summary><strong>This student already has a guardian</strong></summary>
+
+Change the guardian with `guardian-edit`, or run `guardian-delete` and then `guardian-add`.
+
+</details>
+<details class="trouble" markdown="1">
+<summary><strong>This student has no guardian</strong></summary>
+
+Use `guardian-add` first.
+
+</details>
+<details class="trouble" markdown="1">
+<summary><strong>Lesson saved - scheduling clash detected</strong>, or a <strong>Warning: Lesson ... overlaps</strong> line after <code>unarchive</code></summary>
+
+The change is saved anyway. The warning lists the lessons it overlaps. Move one with `lesson-edit STUDENT_INDEX LESSON_INDEX slot/...` or remove it with `lesson-delete`. A lesson that starts when another ends does not clash.
+
+</details>
+<details class="trouble" markdown="1">
+<summary><strong>Could not save data</strong></summary>
+
+Nothing changed. Check that you can write to the `data` folder, then run the command again.
+
+</details>
+<details class="trouble" markdown="1">
+<summary><strong>Could not read</strong> the data file, and StudentBook started with no students</summary>
+
+Close StudentBook before making any change, since the next change saves over `studentbook.json`. Your old records are in `studentbook-backup-<date>-<time>.json` beside it. Fix that file, rename it to `studentbook.json` and restart. If no backup could be made, StudentBook closes without touching the file.
+
+</details>
+<details class="trouble" markdown="1">
+<summary>The Subjects or Guardian column, or some level filters, are missing</summary>
+
+The window is too narrow to show them. Widen the window, or use `view STUDENT_INDEX` to see a student's full details.
+
+</details>
+<details class="trouble" markdown="1">
+<summary>The window opens off-screen</summary>
+
+Close StudentBook, delete `preferences.json` in the app folder and restart. This resets the window position.
+
+</details>
+<details class="trouble" markdown="1">
+<summary>The user guide does not open</summary>
+
+Check your default browser and internet connection, or open the [user guide](https://ay2627s1-cs2103t-f13-4.github.io/tp/UserGuide.html) yourself.
+
+</details>
 
 ## Command Input Formats
 

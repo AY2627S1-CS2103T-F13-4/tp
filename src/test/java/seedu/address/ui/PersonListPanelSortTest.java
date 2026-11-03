@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 
 import java.math.BigDecimal;
 import java.time.DayOfWeek;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.Comparator;
 import java.util.List;
@@ -46,8 +47,12 @@ public class PersonListPanelSortTest {
     }
 
     private static Lesson lesson(String rate) {
+        return lesson(rate, 10);
+    }
+
+    private static Lesson lesson(String rate, int hour) {
         return new Lesson(new Subject("Math"),
-                new WeeklyLessonSlot(DayOfWeek.MONDAY, LocalTime.of(10, 0), LocalTime.of(11, 0)),
+                new WeeklyLessonSlot(DayOfWeek.MONDAY, LocalTime.of(hour, 0), LocalTime.of(hour + 1, 0)),
                 new HourlyRate(new BigDecimal(rate)));
     }
 
@@ -84,6 +89,39 @@ public class PersonListPanelSortTest {
             new SortCommand(RateSortOrder.DESCENDING).execute(model);
             assertEquals(List.of("$60/h", "$53/h", "$44/h"), shownRates(panel));
             stage.hide();
+        });
+    }
+
+    @Test
+    public void refreshTime_activeAndArchivedRows_updatesSummaryAndKeepsOpenStudent() throws Exception {
+        FxTestUtil.runOnFxThread(() -> {
+            for (boolean archived : List.of(false, true)) {
+                AddressBook book = new AddressBook();
+                book.addPerson(new PersonBuilder().withLessons(lesson("40", 10), lesson("80", 12))
+                        .build().withArchived(archived));
+                Model model = new ModelManager(book, new UserPrefs());
+                PersonListPanel panel = new PersonListPanel(archived ? model.getFilteredArchivedPersonList()
+                        : model.getFilteredActivePersonList(), archived ? book.getArchivedPersonList()
+                        : book.getPersonList(), archived, model.getRateSortOrder());
+                Stage stage = new Stage();
+                stage.setOpacity(0);
+                stage.setScene(new Scene(panel.getRoot(), 1000, 600));
+                try {
+                    stage.show();
+                    assertEquals(1, shownRates(panel).size());
+                    Student open = panel.getOpenStudent();
+                    Node details = panel.getRoot().lookup("#details");
+                    panel.refreshTime(LocalDateTime.of(2026, 11, 2, 9, 0));
+                    assertEquals(List.of("$40/h"), shownRates(panel));
+                    panel.refreshTime(LocalDateTime.of(2026, 11, 2, 11, 30));
+                    assertEquals("Mon 12.00pm", ((Text) panel.getRoot().lookup("#nextTime")).getText());
+                    assertEquals(List.of("$80/h"), shownRates(panel));
+                    assertSame(open, panel.getOpenStudent());
+                    assertSame(details, panel.getRoot().lookup("#details"));
+                } finally {
+                    stage.close();
+                }
+            }
         });
     }
 

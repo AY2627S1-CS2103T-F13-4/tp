@@ -16,6 +16,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -55,6 +56,7 @@ import javafx.stage.Stage;
 import javafx.stage.Window;
 import javafx.stage.WindowEvent;
 import javafx.util.Duration;
+import seedu.address.commons.core.GuiSettings;
 import seedu.address.logic.LogicManager;
 import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.ListArchiveCommand;
@@ -920,12 +922,11 @@ public class MainWindowTest {
             ScrollPane result = assertInstanceOf(ScrollPane.class, stage.getScene().lookup("#resultScroll"));
             double message = result.getContent().getLayoutBounds().getHeight();
             assertTrue(message <= result.getHeight() + 0.5, "message " + message + " in " + result.getHeight());
-            stage.getScene().getRoot().lookupAll(".page-header").forEach(heading -> assertFalse(heading.isVisible()));
+            headingRows().forEach(heading -> assertFalse(heading.isVisible() || heading.isManaged()));
             assertTrue(visibleTableHeight() > 0, "The table's rows should start inside the window");
         });
         resizeWindow(1000, 800);
-        runOnFxThread(() -> stage.getScene().getRoot().lookupAll(".page-header")
-                .forEach(heading -> assertTrue(heading.isVisible())));
+        runOnFxThread(() -> headingRows().forEach(heading -> assertTrue(heading.isVisible() && heading.isManaged())));
     }
 
     // Alt+Down opens another student's details without a command, so the result must name that student, not
@@ -940,6 +941,55 @@ public class MainWindowTest {
             assertEquals(String.format(ViewCommand.MESSAGE_SUCCESS, "Alice"), resultMessage());
             submitCommand("note-add 2 date/2026-10-15 text/Fractions");
             assertTrue(resultMessage().startsWith("Added note"), resultMessage());
+        });
+    }
+
+    // Esc closes details without a command, so the result must stop saying whose details are shown.
+    @Test
+    public void escape_afterView_resultSaysDetailsClosed() throws Exception {
+        runOnFxThread(() -> {
+            submitCommand("view 1");
+            pressKey(KeyCode.ESCAPE, false);
+            assertEquals(null, studentTable().getSelectionModel().getSelectedItem());
+            assertEquals("Closed Alice's details", resultMessage());
+        });
+    }
+
+    // Enter on a box of only spaces is the same as on an empty box: nothing runs, so no error appears.
+    @Test
+    public void enter_onlySpaces_runsNothing() throws Exception {
+        runOnFxThread(() -> {
+            submitCommand("list");
+            String before = resultMessage();
+            TextField commandField = commandField();
+            commandField.setText("   ");
+            commandField.fireEvent(new ActionEvent());
+            assertEquals(before, resultMessage());
+            assertFalse(commandField.getStyleClass().contains(CommandBox.ERROR_STYLE_CLASS));
+        });
+    }
+
+    // Narrowing the window rewraps every row, which moved the open student's name out of view; it must stay shown.
+    @Test
+    public void resize_narrowAndShortWithTallDetailsOpen_keepsOpenRowTopInView() throws Exception {
+        addStudentsWithNotes();
+        resizeWindow(1024, 768);
+        runOnFxThread(() -> submitCommand("view 5"));
+        assertOpenRowFullyShownOrAtTop(4, "before resizing");
+        resizeWindow(760, 400);
+        settle();
+        assertOpenRowAtListTop(4, "after resizing");
+    }
+
+    // Windows does not enforce a stage's minimum size when it opens, so a first launch uses the default size as
+    // given; it must be no smaller than the window's minimum or the window opens narrower than the layout allows.
+    @Test
+    public void defaultWindowSize_atLeastWindowMinimum() throws Exception {
+        GuiSettings defaults = new GuiSettings();
+        runOnFxThread(() -> {
+            assertTrue(defaults.getWindowWidth() >= stage.getMinWidth(), "default width " + defaults.getWindowWidth());
+            assertTrue(defaults.getWindowHeight() >= stage.getMinHeight(),
+                    "default height " + defaults.getWindowHeight());
         });
     }
 
@@ -1429,6 +1479,21 @@ public class MainWindowTest {
         });
     }
 
+    /** Checks row {@code index} is open and shown whole, or, when taller than the list, from its top. */
+    private void assertOpenRowFullyShownOrAtTop(int index, String message) throws Exception {
+        awaitDetailsSettled();
+        boolean taller = FxTestUtil.callOnFxThread(() -> {
+            VirtualFlow<?> flow = assertInstanceOf(VirtualFlow.class, studentTable().lookup(".virtual-flow"));
+            IndexedCell<?> row = flow.getVisibleCell(index);
+            return row != null && row.getHeight() > flow.getHeight();
+        });
+        if (taller) {
+            assertOpenRowAtListTop(index, message);
+        } else {
+            assertOpenRowFullyShown(index, message);
+        }
+    }
+
     /** Waits for the open animation to settle, then checks that row {@code index} is open and wholly in the list. */
     private void assertOpenRowFullyShown(int index, String message) throws Exception {
         awaitDetailsSettled();
@@ -1484,6 +1549,17 @@ public class MainWindowTest {
 
     private GridPane scheduleGrid() {
         return assertInstanceOf(GridPane.class, schedulePlaceholder().getContent());
+    }
+
+    /** Returns each screen's title row and both tables' column headings, failing if any is missing. */
+    private List<Node> headingRows() {
+        List<Node> rows = new ArrayList<>();
+        for (String selector : List.of(".page-header", ".table-header")) {
+            Set<Node> found = stage.getScene().getRoot().lookupAll(selector);
+            assertTrue(found.size() >= 2, selector);
+            rows.addAll(found);
+        }
+        return rows;
     }
 
     /** Returns how much of the student table's rows show within the window. */

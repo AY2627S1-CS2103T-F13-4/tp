@@ -267,6 +267,13 @@ public class EditCommandParserTest {
     }
 
     @Test
+    public void parse_mistypedStudentPrefix_failure() {
+        // AddressBook-Level3's p/ would otherwise be saved inside the address, leaving the phone unchanged
+        assertParseFailure(parser, "1 address/New Road p/91234567",
+                Messages.getErrorMessageForUnsupportedPrefixes(new Prefix("p/")));
+    }
+
+    @Test
     public void parse_emptySchool_clearsSchool() {
         EditPersonDescriptor clear = new EditPersonDescriptorBuilder().withSchool(null).build();
         assertParseSuccess(parser, "1 sch/", new EditCommand(INDEX_FIRST_PERSON, clear));

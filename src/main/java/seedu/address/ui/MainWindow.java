@@ -7,6 +7,8 @@ import static seedu.address.logic.parser.CliSyntax.PREFIX_NAME;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
 
 import java.nio.file.Path;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -14,6 +16,9 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
 
+import javafx.animation.Animation;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
 import javafx.collections.ListChangeListener;
@@ -41,6 +46,7 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
+import javafx.util.Duration;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.commons.core.LogsCenter;
 import seedu.address.logic.Logic;
@@ -67,8 +73,9 @@ public class MainWindow extends UiPart<Stage> {
     private static final Logger logger = LogsCenter.getLogger(MainWindow.class);
     /** Index of the first level filter; the divider before them is child 0 of their row. */
     private static final int LEVEL_NAV_FIRST_FILTER = 1;
-    /** Below this height the brand, the footer and each screen's heading row are hidden, leaving room for rows. */
+    /** Below this height the brand, the footer and each screen's heading rows are hidden, leaving room for rows. */
     private static final double SHORT_WINDOW_HEIGHT = 560;
+    private static final String MESSAGE_DETAILS_CLOSED = "Closed %1$s's details";
     /** Below this width the level filters are hidden, leaving the tabs room. */
     private static final double LEVEL_NAV_MIN_WIDTH = 900;
     /** Number of recent commands shown as chips beside a successful result. */
@@ -95,6 +102,15 @@ public class MainWindow extends UiPart<Stage> {
     private CommandBox commandBox;
     private final Consumer<String> openDocument;
     private boolean runningCommand;
+    private LocalDateTime summaryMinute;
+    private final Timeline summaryUpdater = new Timeline(new KeyFrame(Duration.seconds(1), event -> {
+        LocalDateTime now = LocalDateTime.now().truncatedTo(ChronoUnit.MINUTES);
+        if (!now.equals(summaryMinute)) {
+            personListPanel.refreshTime(now);
+            archivedPersonListPanel.refreshTime(now);
+            summaryMinute = now;
+        }
+    }));
 
     @FXML
     private StackPane commandBoxPlaceholder;
@@ -158,7 +174,7 @@ public class MainWindow extends UiPart<Stage> {
 
         setAccelerators();
 
-        primaryStage.addEventHandler(WindowEvent.WINDOW_HIDDEN, event -> disposeWeekPanel());
+        primaryStage.addEventHandler(WindowEvent.WINDOW_HIDDEN, event -> disposeTimeUpdates());
     }
 
     public Stage getPrimaryStage() {
@@ -216,7 +232,7 @@ public class MainWindow extends UiPart<Stage> {
         resultDisplay = new ResultDisplay();
         resultDisplayPlaceholder.getChildren().add(resultDisplay.getRoot());
 
-        disposeWeekPanel();
+        disposeTimeUpdates();
         weekPanel = new WeekPanel(logic.getFilteredActivePersonList(), logic.getAddressBook().getPersonList(),
                 logic.getLessonPredicate());
         personListPanelPlaceholder.getChildren().add(weekPanel.getRoot());
@@ -249,11 +265,16 @@ public class MainWindow extends UiPart<Stage> {
                 visiblePersonListPanel().closeDetails();
             }
         });
-        // Alt+Up/Down and clicks open details without a command, so the result names whose details are shown.
+        // Alt+Up/Down, Esc and clicks open and close details without a command, so the result says what changed.
         for (PersonListPanel panel : List.of(personListPanel, archivedPersonListPanel)) {
             panel.openStudentProperty().addListener((unused, oldStudent, student) -> {
-                if (!runningCommand && student != null) {
+                if (runningCommand) {
+                    return;
+                }
+                if (student != null) {
                     resultDisplay.setFeedbackToUser(String.format(ViewCommand.MESSAGE_SUCCESS, student.getName()));
+                } else {
+                    resultDisplay.setFeedbackToUser(String.format(MESSAGE_DETAILS_CLOSED, oldStudent.getName()));
                 }
             });
         }
@@ -284,6 +305,7 @@ public class MainWindow extends UiPart<Stage> {
         Region content = (Region) brand.getParent();
         BooleanBinding tall = content.heightProperty().greaterThanOrEqualTo(SHORT_WINDOW_HEIGHT);
         List<Node> hiddenWhenShort = new ArrayList<>(personListPanelPlaceholder.lookupAll(".page-header"));
+        hiddenWhenShort.addAll(personListPanelPlaceholder.lookupAll(".table-header"));
         hiddenWhenShort.addAll(List.of(brand, statusbarPlaceholder));
         for (Node node : hiddenWhenShort) {
             node.visibleProperty().bind(tall);
@@ -291,6 +313,9 @@ public class MainWindow extends UiPart<Stage> {
         }
         // The app opens on the week's lessons; list and find bring up the student table.
         showScreen(CommandResult.Screen.WEEK);
+        summaryMinute = null;
+        summaryUpdater.setCycleCount(Animation.INDEFINITE);
+        summaryUpdater.playFromStart();
         commandBoxPlaceholder.getChildren().add(commandBox.getRoot());
         // The list now comes before the command box, so focus the command box explicitly for typing.
         commandBox.focus();
@@ -414,7 +439,8 @@ public class MainWindow extends UiPart<Stage> {
         }
     }
 
-    private void disposeWeekPanel() {
+    private void disposeTimeUpdates() {
+        summaryUpdater.stop();
         if (weekPanel != null) {
             weekPanel.dispose();
         }
