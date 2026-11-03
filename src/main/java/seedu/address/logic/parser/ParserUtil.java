@@ -294,13 +294,15 @@ public class ParserUtil {
         return noteDate;
     }
 
-    /** Parses single-line note text, trimming surrounding whitespace. */
+    /** Parses single-line note text, trimming surrounding whitespace and collapsing repeated spaces inside it. */
     public static String parseProgressNoteText(String text) throws ParseException {
         requireNonNull(text);
-        if (!ProgressNote.isValidText(text)) {
+        // Collapse inner spaces so a note cannot be added twice by typing an extra space
+        String collapsedText = text.replaceAll(" {2,}", " ");
+        if (!ProgressNote.isValidText(collapsedText)) {
             throw new ParseException(ProgressNote.MESSAGE_TEXT_CONSTRAINTS);
         }
-        return text.strip();
+        return collapsedText.strip();
     }
 
     /**
