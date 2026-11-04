@@ -25,6 +25,7 @@ import seedu.address.model.person.WeeklyLessonSlot;
  * Parses input arguments and creates a new LessonAddCommand object
  */
 public class LessonAddCommandParser implements Parser<LessonAddCommand> {
+    //@@author minweed
     /**
      * Parses the given {@code String} of arguments in the context of the LessonAddCommand
      * and returns a LessonAddCommand object for execution.

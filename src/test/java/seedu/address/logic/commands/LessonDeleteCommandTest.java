@@ -1,3 +1,4 @@
+//@@author minweed
 package seedu.address.logic.commands;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -56,12 +57,14 @@ public class LessonDeleteCommandTest {
         return model.getFilteredPersonList().get(0);
     }
 
+    //@@author savemywifi
     @Test
     public void constructor_nullArguments_throwsNullPointerException() {
         assertThrows(NullPointerException.class, () -> new LessonDeleteCommand(null, INDEX_FIRST_LESSON));
         assertThrows(NullPointerException.class, () -> new LessonDeleteCommand(INDEX_FIRST_PERSON, null));
     }
 
+    //@@author minweed
     @Test
     public void execute_deleteLesson_success() {
         Student student = withLessons(firstStudent(), FULL_LESSON);
@@ -74,6 +77,7 @@ public class LessonDeleteCommandTest {
         assertCommandSuccess(command, model, "Lesson deleted for " + student.getName(), expectedModel);
     }
 
+    //@@author savemywifi
     @Test
     public void execute_preservesSchool() {
         Student student = new PersonBuilder(firstStudent()).withSchool(new School("Nanyang Primary School"))
@@ -93,6 +97,7 @@ public class LessonDeleteCommandTest {
                 Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
     }
 
+    //@@author minweed
     @Test
     public void execute_invalidLessonIndex_throwsCommandException() {
         Student student = withLessons(firstStudent(), FULL_LESSON);
@@ -101,6 +106,7 @@ public class LessonDeleteCommandTest {
         assertCommandFailure(command, model, Messages.MESSAGE_INVALID_LESSON_DISPLAYED_INDEX);
     }
 
+    //@@author savemywifi
     @Test
     public void execute_filteredStudentList_usesDisplayedIndex() throws CommandException {
         Student hidden = firstStudent();
@@ -125,4 +131,5 @@ public class LessonDeleteCommandTest {
         assertNotEquals(delete, new ClearCommand());
         assertNotEquals(delete, null);
     }
+    //@@author minweed
 }

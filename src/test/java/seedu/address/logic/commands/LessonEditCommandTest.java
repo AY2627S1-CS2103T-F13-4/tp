@@ -1,3 +1,4 @@
+//@@author minweed
 package seedu.address.logic.commands;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -61,6 +62,7 @@ public class LessonEditCommandTest {
         return model.getFilteredPersonList().get(0);
     }
 
+    //@@author savemywifi
     @Test
     public void constructor_nullArguments_throwsNullPointerException() {
         assertThrows(NullPointerException.class, () -> new LessonEditCommand(null, INDEX_FIRST_LESSON,
@@ -71,6 +73,7 @@ public class LessonEditCommandTest {
                 INDEX_FIRST_LESSON, null));
     }
 
+    //@@author minweed
     @Test
     public void constructor_emptyEdit_throwsIllegalArgumentException() {
         assertThrows(IllegalArgumentException.class, () -> new LessonEditCommand(INDEX_FIRST_PERSON,
@@ -92,6 +95,7 @@ public class LessonEditCommandTest {
         assertCommandSuccess(command, model, "Lesson edited for " + student.getName(), expectedModel);
     }
 
+    //@@author savemywifi
     @Test
     public void execute_editArchivedStudentLesson_preservesArchiveStatus() throws CommandException {
         Student archived = withLessons(firstStudent(), FULL_LESSON).withArchived(true);
@@ -128,6 +132,7 @@ public class LessonEditCommandTest {
         assertEquals(withLessons(archived, FULL_LESSON, new Lesson(ENGLISH, MONDAY, RATE)), firstStudent());
     }
 
+    //@@author minweed
     @Test
     public void execute_editLessonAllFields_success() {
         Student student = withLessons(firstStudent(), FULL_LESSON);
@@ -164,6 +169,7 @@ public class LessonEditCommandTest {
         assertCommandSuccess(command, model, "Lesson edited for " + student.getName(), expectedModel);
     }
 
+    //@@author savemywifi
     @Test
     public void execute_editNonLastLesson_warnsForChangedLesson() throws CommandException {
         Student student = withLessons(firstStudent(), FULL_LESSON, new Lesson(ENGLISH, TUESDAY, RATE));
@@ -235,6 +241,7 @@ public class LessonEditCommandTest {
                 Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
     }
 
+    //@@author minweed
     @Test
     public void execute_invalidLessonIndex_throwsCommandException() {
         Student student = withLessons(firstStudent(), FULL_LESSON);
@@ -256,6 +263,7 @@ public class LessonEditCommandTest {
         assertCommandFailure(edit, model, LessonAddCommand.MESSAGE_DUPLICATE_LESSON);
     }
 
+    //@@author savemywifi
     @Test
     public void execute_filteredStudentList_usesDisplayedIndex() throws CommandException {
         Student hidden = firstStudent();
@@ -292,6 +300,7 @@ public class LessonEditCommandTest {
         assertNotEquals(descriptor, clearMode);
     }
 
+    //@@author minweed
     @Test
     public void equals_differentClearFields_returnsFalse() {
         LessonEditCommand editCommand = new LessonEditCommand(INDEX_FIRST_PERSON, INDEX_FIRST_LESSON,

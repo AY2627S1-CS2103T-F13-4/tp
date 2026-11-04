@@ -27,6 +27,7 @@ public class GuardianDeleteCommand extends Command {
 
     private final Index studentIndex;
 
+    //@@author nivremi
     /**
      * Creates a command with the specified student index and details.
      */
@@ -35,6 +36,7 @@ public class GuardianDeleteCommand extends Command {
         this.studentIndex = studentIndex;
     }
 
+    //@@author nivremi
     @Override
     public CommandResult execute(Model model) throws CommandException {
         requireNonNull(model);
@@ -50,17 +52,20 @@ public class GuardianDeleteCommand extends Command {
         return new CommandResult(String.format(MESSAGE_DELETE_GUARDIAN_SUCCESS, student.getName()));
     }
 
+    //@@author nivremi
     @Override
     public boolean equals(Object other) {
         return other == this || other instanceof GuardianDeleteCommand command
                 && studentIndex.equals(command.studentIndex);
     }
 
+    //@@author nivremi
     @Override
     public int hashCode() {
         return Objects.hash(studentIndex);
     }
 
+    //@@author nivremi
     @Override
     public String toString() {
         return new ToStringBuilder(this)

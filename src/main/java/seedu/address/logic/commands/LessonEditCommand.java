@@ -53,6 +53,7 @@ public class LessonEditCommand extends Command {
     private final Index lessonIndex;
     private final EditLessonDescriptor editLessonDescriptor;
 
+    //@@author minweed
     /**
      * @param studentIndex of the person in the filtered person list to edit
      * @param lessonIndex of the lesson in the person's list of lessons
@@ -67,6 +68,7 @@ public class LessonEditCommand extends Command {
         this.editLessonDescriptor = new EditLessonDescriptor(editLessonDescriptor);
     }
 
+    //@@author minweed
     @Override
     public CommandResult execute(Model model) throws CommandException {
         requireNonNull(model);
@@ -100,6 +102,7 @@ public class LessonEditCommand extends Command {
                 lessonIndex.getZeroBased(), successMessage);
     }
 
+    //@@author minweed
     /**
      * Creates and returns a {@code Lesson} with the details of {@code lessonToEdit}
      * edited with {@code editLessonDescriptor}.
@@ -118,6 +121,7 @@ public class LessonEditCommand extends Command {
                 updatedLessonMode);
     }
 
+    //@@author minweed
     @Override
     public boolean equals(Object other) {
         return other == this || other instanceof LessonEditCommand command
@@ -125,11 +129,13 @@ public class LessonEditCommand extends Command {
                 && editLessonDescriptor.equals(command.editLessonDescriptor);
     }
 
+    //@@author minweed
     @Override
     public int hashCode() {
         return Objects.hash(studentIndex, lessonIndex, editLessonDescriptor);
     }
 
+    //@@author minweed
     @Override
     public String toString() {
         return new ToStringBuilder(this).add("studentIndex", studentIndex).add("lessonIndex", lessonIndex)

@@ -1,3 +1,4 @@
+//@@author nivremi
 package seedu.address.logic.parser;
 
 import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
@@ -26,6 +27,7 @@ public class FollowUpEditCommandParserTest {
         assertParseSuccess(parser, " 1 2 text/Call  on   Saturday", expected);
     }
 
+    //@@author pranavp311
     @Test
     public void parseEdit_prefixWordsInText_keptAsText() {
         FollowUpEditCommand expected = new FollowUpEditCommand(INDEX_FIRST_PERSON, INDEX_SECOND_PERSON,
@@ -33,6 +35,7 @@ public class FollowUpEditCommandParserTest {
         assertParseSuccess(parser, " 1 2 text/Buy the text/workbook; date/time TBC", expected);
     }
 
+    //@@author nivremi
     @Test
     public void parseEdit_invalidArgs_failure() {
         for (String args : new String[] {"", " 1 text/Call", " 1 2", " 1 0 text/Call", " 1 2 3 text/Call",

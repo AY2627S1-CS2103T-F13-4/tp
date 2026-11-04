@@ -17,6 +17,7 @@ import seedu.address.model.person.FollowUp;
  */
 public class FollowUpAddCommandParser implements Parser<FollowUpAddCommand> {
 
+    //@@author nivremi
     @Override
     public FollowUpAddCommand parse(String args) throws ParseException {
         requireNonNull(args);

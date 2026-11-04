@@ -1,3 +1,4 @@
+//@@author savemywifi
 package seedu.address.logic.parser;
 
 import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
@@ -29,18 +30,22 @@ public class GuardianEditCommandParserTest {
                         .withPhone(new Phone("98765432")).build()));
     }
 
+    //@@author minweed
     @Test
     public void parse_nameWithExtraInnerSpaces_collapsesSpaces() {
         assertParseSuccess(parser, "1 name/John   Tan", new GuardianEditCommand(INDEX_FIRST_PERSON,
                 new EditGuardianDescriptorBuilder().withName(new Name("John Tan")).build()));
     }
 
+    //@@author savemywifi
     @Test
     public void parse_invalidOrRepeatedFields_failure() {
         assertParseFailure(parser, "1", GuardianEditCommand.MESSAGE_NOT_EDITED);
         assertParseFailure(parser, "1 rate/50", INVALID_FORMAT);
+        //@@author dygrik
         assertParseFailure(parser, "1 name/John rate/50", Name.MESSAGE_CONSTRAINTS);
         assertParseFailure(parser, "1 phone/91234567 rate/50", Phone.MESSAGE_CONSTRAINTS);
+        //@@author savemywifi
         assertParseFailure(parser, "1 name/", Name.MESSAGE_CONSTRAINTS);
         assertParseFailure(parser, "1 phone/", Phone.MESSAGE_CONSTRAINTS);
         assertParseFailure(parser, "1 name/Janet name/John",

@@ -1,3 +1,4 @@
+//@@author savemywifi
 package seedu.address.logic.parser;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -40,7 +41,9 @@ public class NoteEditCommandParserTest {
         assertParseSuccess(parser, " 1 2 text/Finished fractions", edit(null, "Finished fractions"));
         assertParseSuccess(parser, " 1  2 date/ 2026-10-15  text/  Finished fractions  ",
                 edit(DATE, "Finished fractions"));
+        //@@author nivremi
         assertParseSuccess(parser, " 1 2 text/Finished   fractions", edit(null, "Finished fractions"));
+        //@@author savemywifi
     }
 
     @Test

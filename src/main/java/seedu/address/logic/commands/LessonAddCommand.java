@@ -43,6 +43,7 @@ public class LessonAddCommand extends Command {
     private final Index index;
     private final Lesson toAdd;
 
+    //@@author minweed
     /**
      * Creates a LessonAddCommand to add the specified {@code Lesson} to the student at a given index.
      */
@@ -52,6 +53,7 @@ public class LessonAddCommand extends Command {
         toAdd = lesson;
     }
 
+    //@@author minweed
     @Override
     public CommandResult execute(Model model) throws CommandException {
         requireNonNull(model);
@@ -79,17 +81,20 @@ public class LessonAddCommand extends Command {
                 addedLessonPosition, successMessage);
     }
 
+    //@@author minweed
     @Override
     public boolean equals(Object other) {
         return other == this || other instanceof LessonAddCommand command
                 && index.equals(command.index) && toAdd.equals(command.toAdd);
     }
 
+    //@@author minweed
     @Override
     public int hashCode() {
         return Objects.hash(index, toAdd);
     }
 
+    //@@author minweed
     @Override
     public String toString() {
         return new ToStringBuilder(this).add("index", index).add("toAdd", toAdd).toString();

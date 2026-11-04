@@ -29,6 +29,7 @@ public class NoteDeleteCommand extends Command {
     private final Index studentIndex;
     private final Index noteIndex;
 
+    //@@author pranavp311
     /**
      * Creates a command with the specified student index and details.
      */
@@ -38,6 +39,7 @@ public class NoteDeleteCommand extends Command {
         this.noteIndex = noteIndex;
     }
 
+    //@@author pranavp311
     @Override
     public CommandResult execute(Model model) throws CommandException {
         requireNonNull(model);
@@ -57,17 +59,20 @@ public class NoteDeleteCommand extends Command {
                 student.getName(), removed), studentIndex);
     }
 
+    //@@author pranavp311
     @Override
     public boolean equals(Object other) {
         return other == this || other instanceof NoteDeleteCommand command
                 && studentIndex.equals(command.studentIndex) && noteIndex.equals(command.noteIndex);
     }
 
+    //@@author pranavp311
     @Override
     public int hashCode() {
         return Objects.hash(studentIndex, noteIndex);
     }
 
+    //@@author pranavp311
     @Override
     public String toString() {
         return new ToStringBuilder(this)

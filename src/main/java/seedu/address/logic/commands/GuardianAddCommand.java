@@ -34,6 +34,7 @@ public class GuardianAddCommand extends Command {
     private final Index studentIndex;
     private final Guardian toAdd;
 
+    //@@author nivremi
     /**
      * Creates a command with the specified student index and details.
      */
@@ -43,6 +44,7 @@ public class GuardianAddCommand extends Command {
         this.toAdd = toAdd;
     }
 
+    //@@author nivremi
     @Override
     public CommandResult execute(Model model) throws CommandException {
         requireNonNull(model);
@@ -58,17 +60,20 @@ public class GuardianAddCommand extends Command {
         return new CommandResult(String.format(MESSAGE_SUCCESS, student.getName(), toAdd));
     }
 
+    //@@author nivremi
     @Override
     public boolean equals(Object other) {
         return other == this || other instanceof GuardianAddCommand command
                 && studentIndex.equals(command.studentIndex) && toAdd.equals(command.toAdd);
     }
 
+    //@@author nivremi
     @Override
     public int hashCode() {
         return Objects.hash(studentIndex, toAdd);
     }
 
+    //@@author nivremi
     @Override
     public String toString() {
         return new ToStringBuilder(this)

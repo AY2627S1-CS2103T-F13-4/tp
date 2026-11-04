@@ -1,3 +1,4 @@
+//@@author nivremi
 package seedu.address.logic.commands;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -45,12 +46,14 @@ public class FollowUpAddCommandTest {
         return expected;
     }
 
+    //@@author savemywifi
     @Test
     public void constructor_nullArguments_throwsNullPointerException() {
         assertThrows(NullPointerException.class, () -> new FollowUpAddCommand(null, REPORT));
         assertThrows(NullPointerException.class, () -> new FollowUpAddCommand(INDEX_FIRST_PERSON, null));
     }
 
+    //@@author nivremi
     @Test
     public void execute_add_appendsItemAndOpensStudent() {
         Student first = model.getFilteredPersonList().get(0);

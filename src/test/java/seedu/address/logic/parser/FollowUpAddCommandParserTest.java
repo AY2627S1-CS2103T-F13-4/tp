@@ -1,3 +1,4 @@
+//@@author nivremi
 package seedu.address.logic.parser;
 
 import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
@@ -34,6 +35,7 @@ public class FollowUpAddCommandParserTest {
         assertParseSuccess(parser, " 1 text/Send   the    report", addFirst("Send the report"));
     }
 
+    //@@author pranavp311
     @Test
     public void parseAdd_prefixWordsInText_keptAsText() {
         assertParseSuccess(parser, " 1 text/Ask mum to buy the text/workbook bundle",
@@ -42,6 +44,7 @@ public class FollowUpAddCommandParserTest {
                 addFirst("Confirm date/time of mock exam"));
     }
 
+    //@@author nivremi
     @Test
     public void parseAdd_invalidArgs_failure() {
         for (String args : new String[] {"", " 1", " text/Send report", " 0 text/Send report",

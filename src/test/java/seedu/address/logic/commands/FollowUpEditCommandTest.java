@@ -1,3 +1,4 @@
+//@@author nivremi
 package seedu.address.logic.commands;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -52,6 +53,7 @@ public class FollowUpEditCommandTest {
         return withItems;
     }
 
+    //@@author savemywifi
     @Test
     public void constructor_nullArguments_throwsNullPointerException() {
         assertThrows(NullPointerException.class, () -> new FollowUpEditCommand(null, FIRST_ITEM, REPORT));
@@ -59,6 +61,7 @@ public class FollowUpEditCommandTest {
         assertThrows(NullPointerException.class, () -> new FollowUpEditCommand(INDEX_FIRST_PERSON, FIRST_ITEM, null));
     }
 
+    //@@author nivremi
     @Test
     public void execute_edit_replacesOnlyThatItem() {
         Student original = giveFirstStudentTwoItems();
@@ -89,6 +92,7 @@ public class FollowUpEditCommandTest {
                 FollowUpAddCommand.MESSAGE_DUPLICATE_FOLLOW_UP);
     }
 
+    //@@author savemywifi
     @Test
     public void execute_invalidStudentIndex_failure() {
         showPersonAtIndex(model, INDEX_FIRST_PERSON);
@@ -96,6 +100,7 @@ public class FollowUpEditCommandTest {
                 Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
     }
 
+    //@@author nivremi
     @Test
     public void execute_invalidItemIndex_failure() {
         giveFirstStudentTwoItems();
@@ -103,6 +108,7 @@ public class FollowUpEditCommandTest {
                 Messages.MESSAGE_INVALID_FOLLOW_UP_DISPLAYED_INDEX);
     }
 
+    //@@author savemywifi
     @Test
     public void equals() {
         FollowUpEditCommand command = edit(INDEX_FIRST_PERSON, FIRST_ITEM, REPORT);
@@ -114,4 +120,5 @@ public class FollowUpEditCommandTest {
         assertNotEquals(command, null);
         assertNotEquals(command, new ClearCommand());
     }
+    //@@author nivremi
 }
