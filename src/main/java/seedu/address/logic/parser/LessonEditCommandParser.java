@@ -22,6 +22,7 @@ import seedu.address.logic.parser.exceptions.ParseException;
 public class LessonEditCommandParser implements Parser<LessonEditCommand> {
     private static final int REQUIRED_INDEX_COUNT = 2;
 
+    //@@author minweed
     /**
      * Parses the given {@code String} of arguments in the context of the LessonEditCommand
      * and returns a LessonEditCommand object for execution.

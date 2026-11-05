@@ -1,3 +1,4 @@
+//@@author minweed
 package seedu.address.logic.parser;
 
 import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
@@ -38,9 +39,11 @@ public class LessonDeleteCommandParserTest {
         assertParseFailure(parser, "1 2 mode/virtual", invalidFormat(USAGE));
     }
 
+    //@@author savemywifi
     @Test
     public void parse_whitespaceBetweenIndexes_success() {
         assertParseSuccess(parser, " \t1\t 2\t ",
                 new LessonDeleteCommand(INDEX_FIRST_PERSON, INDEX_SECOND_PERSON));
     }
+    //@@author minweed
 }

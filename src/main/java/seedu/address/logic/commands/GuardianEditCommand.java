@@ -40,6 +40,7 @@ public class GuardianEditCommand extends Command {
     private final Index studentIndex;
     private final EditGuardianDescriptor editGuardianDescriptor;
 
+    //@@author nivremi
     /**
      * Creates a command with a defensive copy of the guardian edits.
      */
@@ -50,6 +51,7 @@ public class GuardianEditCommand extends Command {
         this.editGuardianDescriptor = new EditGuardianDescriptor(editGuardianDescriptor);
     }
 
+    //@@author nivremi
     @Override
     public CommandResult execute(Model model) throws CommandException {
         requireNonNull(model);
@@ -66,6 +68,7 @@ public class GuardianEditCommand extends Command {
         return new CommandResult(String.format(MESSAGE_EDIT_GUARDIAN_SUCCESS, student.getName()));
     }
 
+    //@@author nivremi
     @Override
     public boolean equals(Object other) {
         return other == this || other instanceof GuardianEditCommand command
@@ -73,11 +76,13 @@ public class GuardianEditCommand extends Command {
                 && editGuardianDescriptor.equals(command.editGuardianDescriptor);
     }
 
+    //@@author nivremi
     @Override
     public int hashCode() {
         return Objects.hash(studentIndex, editGuardianDescriptor);
     }
 
+    //@@author nivremi
     @Override
     public String toString() {
         return new ToStringBuilder(this)

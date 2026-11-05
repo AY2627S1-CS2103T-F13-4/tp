@@ -42,12 +42,14 @@ public class NoteDeleteCommandTest {
         return expected;
     }
 
+    //@@author savemywifi
     @Test
     public void constructor_nullArguments_throwsNullPointerException() {
         assertThrows(NullPointerException.class, () -> new NoteDeleteCommand(null, FIRST_NOTE));
         assertThrows(NullPointerException.class, () -> new NoteDeleteCommand(INDEX_FIRST_PERSON, null));
     }
 
+    //@@author pranavp311
     @Test
     public void execute_delete_removesOnlyThatNoteAndOpensStudent() throws Exception {
         Student original = model.getFilteredPersonList().get(0);
@@ -74,7 +76,6 @@ public class NoteDeleteCommandTest {
         assertCommandFailure(delete(outOfBounds, FIRST_NOTE), model, Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
     }
 
-    //@@author
     @Test
     public void equals() {
         Command deleteFirst = delete(INDEX_FIRST_PERSON, FIRST_NOTE);

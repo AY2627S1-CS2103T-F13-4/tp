@@ -44,12 +44,14 @@ public class NoteAddCommandTest {
         return expected;
     }
 
+    //@@author savemywifi
     @Test
     public void constructor_nullArguments_throwsNullPointerException() {
         assertThrows(NullPointerException.class, () -> new NoteAddCommand(null, OCTOBER));
         assertThrows(NullPointerException.class, () -> new NoteAddCommand(INDEX_FIRST_PERSON, null));
     }
 
+    //@@author pranavp311
     @Test
     public void execute_add_savesNoteAndOpensStudent() {
         Student first = model.getFilteredPersonList().get(0);

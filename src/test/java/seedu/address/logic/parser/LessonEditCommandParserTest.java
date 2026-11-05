@@ -1,3 +1,4 @@
+//@@author minweed
 package seedu.address.logic.parser;
 
 import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
@@ -21,7 +22,9 @@ import seedu.address.model.person.HourlyRate;
 import seedu.address.model.person.LessonLocation;
 import seedu.address.model.person.LessonMode;
 import seedu.address.model.person.Subject;
+//@@author pranavp311
 import seedu.address.model.person.WeeklyLessonSlot;
+//@@author minweed
 import seedu.address.testutil.EditLessonDescriptorBuilder;
 
 public class LessonEditCommandParserTest {
@@ -77,13 +80,17 @@ public class LessonEditCommandParserTest {
         assertParseFailure(parser, "1 a rate/50", invalidFormat(USAGE));
         assertParseFailure(parser, "1 0 rate/50", invalidFormat(USAGE));
         assertParseFailure(parser, "1 2 subject/", Subject.MESSAGE_CONSTRAINTS);
+        //@@author pranavp311
         assertParseFailure(parser, "1 2 slot/Wednesday 1.00pm 5.00pm", WeeklyLessonSlot.MESSAGE_INVALID_FORMAT);
         assertParseFailure(parser, "1 2 slot/Wed 1.00pm 1.00pm", WeeklyLessonSlot.MESSAGE_END_NOT_AFTER_START);
+        //@@author minweed
         assertParseFailure(parser, "1 2 rate/1e2", HourlyRate.MESSAGE_CONSTRAINTS);
+        //@@author savemywifi
         assertParseFailure(parser, "1 2 subject/Math x/y", invalidFormat(USAGE));
         assertParseFailure(parser, "1 2 location/Library x/y", invalidFormat(USAGE));
         assertParseFailure(parser, "1 2 subject/Math subject/Science",
                 Messages.getErrorMessageForDuplicatePrefixes(PREFIX_SUBJECT));
+        //@@author minweed
     }
 
     @Test
@@ -93,10 +100,12 @@ public class LessonEditCommandParserTest {
                 Messages.getErrorMessageForDuplicatePrefixes(PREFIX_LOCATION));
     }
 
+    //@@author savemywifi
     @Test
     public void parse_whitespaceBetweenIndexes_success() {
         assertParseSuccess(parser, " \t1\t 2\t rate/50", new LessonEditCommand(
                 INDEX_FIRST_PERSON, INDEX_SECOND_PERSON, new EditLessonDescriptorBuilder()
                         .withHourlyRate(new HourlyRate(new BigDecimal("50"))).build()));
     }
+    //@@author minweed
 }

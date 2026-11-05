@@ -19,6 +19,7 @@ import seedu.address.model.person.FollowUp;
 public class FollowUpEditCommandParser implements Parser<FollowUpEditCommand> {
     private static final int REQUIRED_INDEX_COUNT = 2;
 
+    //@@author nivremi
     @Override
     public FollowUpEditCommand parse(String args) throws ParseException {
         requireNonNull(args);

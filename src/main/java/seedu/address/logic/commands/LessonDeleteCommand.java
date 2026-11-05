@@ -31,6 +31,7 @@ public class LessonDeleteCommand extends Command {
     private final Index studentIndex;
     private final Index lessonIndex;
 
+    //@@author minweed
     /**
      * Creates a command to delete the lesson at the given displayed student and lesson indexes.
      */
@@ -40,6 +41,7 @@ public class LessonDeleteCommand extends Command {
         this.lessonIndex = lessonIndex;
     }
 
+    //@@author minweed
     @Override
     public CommandResult execute(Model model) throws CommandException {
         requireNonNull(model);
@@ -64,17 +66,20 @@ public class LessonDeleteCommand extends Command {
         return new CommandResult(String.format(MESSAGE_DELETE_LESSON_SUCCESS, student.getName()));
     }
 
+    //@@author minweed
     @Override
     public boolean equals(Object other) {
         return other == this || other instanceof LessonDeleteCommand command
                 && studentIndex.equals(command.studentIndex) && lessonIndex.equals(command.lessonIndex);
     }
 
+    //@@author minweed
     @Override
     public int hashCode() {
         return Objects.hash(studentIndex, lessonIndex);
     }
 
+    //@@author minweed
     @Override
     public String toString() {
         return new ToStringBuilder(this).add("studentIndex", studentIndex).add("lessonIndex", lessonIndex).toString();

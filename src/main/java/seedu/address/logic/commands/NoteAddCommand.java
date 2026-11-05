@@ -30,6 +30,7 @@ public class NoteAddCommand extends Command {
     private final Index studentIndex;
     private final ProgressNote toAdd;
 
+    //@@author pranavp311
     /**
      * Creates a command with the specified student index and details.
      */
@@ -39,6 +40,7 @@ public class NoteAddCommand extends Command {
         this.toAdd = toAdd;
     }
 
+    //@@author pranavp311
     @Override
     public CommandResult execute(Model model) throws CommandException {
         requireNonNull(model);
@@ -61,17 +63,20 @@ public class NoteAddCommand extends Command {
         return new CommandResult(String.format(MESSAGE_SUCCESS, noteNumber, student.getName()), studentIndex);
     }
 
+    //@@author pranavp311
     @Override
     public boolean equals(Object other) {
         return other == this || other instanceof NoteAddCommand command
                 && studentIndex.equals(command.studentIndex) && toAdd.equals(command.toAdd);
     }
 
+    //@@author pranavp311
     @Override
     public int hashCode() {
         return Objects.hash(studentIndex, toAdd);
     }
 
+    //@@author pranavp311
     @Override
     public String toString() {
         return new ToStringBuilder(this)

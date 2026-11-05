@@ -15,6 +15,7 @@ import seedu.address.logic.parser.exceptions.ParseException;
 public class LessonDeleteCommandParser implements Parser<LessonDeleteCommand> {
     private static final int REQUIRED_INDEX_COUNT = 2;
 
+    //@@author minweed
     /**
      * Parses the given {@code String} of arguments in the context of the LessonDeleteCommand
      * and returns a LessonDeleteCommand object for execution.

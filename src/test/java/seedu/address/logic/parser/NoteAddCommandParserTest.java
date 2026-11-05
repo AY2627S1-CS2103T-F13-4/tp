@@ -33,6 +33,7 @@ public class NoteAddCommandParserTest {
         assertParseSuccess(parser, " 1  date/ 2026-10-15  text/  Finished fractions  ", expected);
     }
 
+    //@@author nivremi
     @Test
     public void parse_repeatedInnerSpaces_collapsed() {
         assertParseSuccess(parser, " 1 date/2026-10-15 text/Finished  fractions",
@@ -41,6 +42,7 @@ public class NoteAddCommandParserTest {
                 addFirst(DATE, "Struggled with word problems"));
     }
 
+    //@@author pranavp311
     @Test
     public void parse_todayAllowed() {
         LocalDate today = LocalDate.now();
@@ -99,6 +101,7 @@ public class NoteAddCommandParserTest {
         assertParseFailure(parser, " 1 date/" + tomorrow + " text/Quiz", ParserUtil.MESSAGE_FUTURE_NOTE_DATE);
     }
 
+    //@@author nivremi
     @Test
     public void parse_dateBefore2000_failure() {
         assertParseFailure(parser, " 1 date/0026-10-15 text/Quiz", ParserUtil.MESSAGE_EARLY_NOTE_DATE);
@@ -110,6 +113,7 @@ public class NoteAddCommandParserTest {
         assertParseSuccess(parser, " 1 date/2000-01-01 text/Quiz", addFirst(LocalDate.of(2000, 1, 1), "Quiz"));
     }
 
+    //@@author pranavp311
     @Test
     public void parse_repeatedPrefix_failure() {
         assertParseFailure(parser, " 1 date/2026-10-15 date/2026-10-16 text/Fractions",

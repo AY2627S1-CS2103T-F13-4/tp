@@ -1,3 +1,4 @@
+//@@author savemywifi
 package seedu.address.logic.parser;
 
 import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
@@ -26,6 +27,7 @@ public class GuardianAddCommandParserTest {
         assertParseSuccess(parser, " 1 phone/91234567 name/ Janet Tan ", expected);
     }
 
+    //@@author minweed
     @Test
     public void parse_nameWithExtraInnerSpaces_collapsesSpaces() {
         Guardian contact = new Guardian(new Name("Janet Tan"), new Phone("91234567"));
@@ -33,13 +35,17 @@ public class GuardianAddCommandParserTest {
                 new GuardianAddCommand(INDEX_FIRST_PERSON, contact));
     }
 
+    //@@author savemywifi
     @Test
+    //@@author dygrik
     public void parse_missingFieldsOrInvalidIndex_failure() {
         for (String args : new String[] {"", "0 name/Janet phone/91234567", "1 name/Janet", "1 phone/91234567"}) {
+            //@@author savemywifi
             assertParseFailure(parser, args, INVALID_FORMAT);
         }
     }
 
+    //@@author dygrik
     @Test
     public void parse_unknownFields_rejectedByFieldValidation() {
         assertParseFailure(parser, "1 name/Janet phone/91234567 rate/50", Phone.MESSAGE_CONSTRAINTS);
@@ -48,6 +54,7 @@ public class GuardianAddCommandParserTest {
         assertParseFailure(parser, "1 rate/50 name/Janet phone/91234567", INVALID_FORMAT);
     }
 
+    //@@author savemywifi
     @Test
     public void parse_invalidOrRepeatedFields_failure() {
         assertParseFailure(parser, "1 name/ phone/91234567", Name.MESSAGE_CONSTRAINTS);

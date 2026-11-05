@@ -1,3 +1,4 @@
+//@@author minweed
 package seedu.address.logic.commands;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -68,7 +69,9 @@ public class LessonAddCommandTest {
     @Test
     public void constructor_nullArguments_throwsNullPointerException() {
         assertThrows(NullPointerException.class, () -> new LessonAddCommand(null, FULL_LESSON));
+        //@@author savemywifi
         assertThrows(NullPointerException.class, () -> new LessonAddCommand(INDEX_FIRST_PERSON, null));
+        //@@author minweed
         assertThrows(NullPointerException.class, () -> add(INDEX_FIRST_PERSON, MATH, MONDAY).execute(null));
     }
 
@@ -86,6 +89,7 @@ public class LessonAddCommandTest {
                 "Added lesson for " + student.getName() + ": " + FULL_LESSON, expectedModel);
     }
 
+    //@@author savemywifi
     @Test
     public void execute_addArchivedLessonOverlappingOwnLesson_warns() throws CommandException {
         Student archived = withLessons(firstStudent(), FULL_LESSON).withArchived(true);
@@ -149,6 +153,7 @@ public class LessonAddCommandTest {
                 "Added lesson for " + student.getName() + ": " + new Lesson(MATH, MONDAY, RATE), expectedModel);
     }
 
+    //@@author minweed
     @Test
     public void execute_invalidStudentIndex_throwsCommandException() {
         Index outOfBounds = Index.fromOneBased(model.getFilteredPersonList().size() + 1);
@@ -164,6 +169,7 @@ public class LessonAddCommandTest {
         assertCommandFailure(add(INDEX_FIRST_PERSON, MATH, MONDAY), model, LessonAddCommand.MESSAGE_DUPLICATE_LESSON);
     }
 
+    //@@author savemywifi
     @Test
     public void execute_filteredStudentList_usesDisplayedIndex() throws CommandException {
         Student hidden = firstStudent();
@@ -175,6 +181,7 @@ public class LessonAddCommandTest {
         assertEquals(hidden, model.getAddressBook().getPersonList().getFirst());
     }
 
+    //@@author minweed
     @Test
     public void equals() {
         Command command = add(INDEX_FIRST_PERSON, MATH, MONDAY);

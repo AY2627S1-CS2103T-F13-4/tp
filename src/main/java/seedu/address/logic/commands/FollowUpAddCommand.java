@@ -30,6 +30,7 @@ public class FollowUpAddCommand extends Command {
     private final Index studentIndex;
     private final FollowUp toAdd;
 
+    //@@author nivremi
     /**
      * Creates a command with the specified student index and details.
      */
@@ -39,6 +40,7 @@ public class FollowUpAddCommand extends Command {
         this.toAdd = toAdd;
     }
 
+    //@@author nivremi
     @Override
     public CommandResult execute(Model model) throws CommandException {
         requireNonNull(model);
@@ -64,17 +66,20 @@ public class FollowUpAddCommand extends Command {
                 : new CommandResult(feedback, Index.fromZeroBased(shownAt));
     }
 
+    //@@author nivremi
     @Override
     public boolean equals(Object other) {
         return other == this || other instanceof FollowUpAddCommand command
                 && studentIndex.equals(command.studentIndex) && toAdd.equals(command.toAdd);
     }
 
+    //@@author nivremi
     @Override
     public int hashCode() {
         return Objects.hash(studentIndex, toAdd);
     }
 
+    //@@author nivremi
     @Override
     public String toString() {
         return new ToStringBuilder(this)

@@ -1,3 +1,4 @@
+//@@author nivremi
 package seedu.address.logic.commands;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -50,12 +51,14 @@ public class FollowUpDoneCommandTest {
         return withItems;
     }
 
+    //@@author savemywifi
     @Test
     public void constructor_nullArguments_throwsNullPointerException() {
         assertThrows(NullPointerException.class, () -> new FollowUpDoneCommand(null, FIRST_ITEM));
         assertThrows(NullPointerException.class, () -> new FollowUpDoneCommand(INDEX_FIRST_PERSON, null));
     }
 
+    //@@author nivremi
     @Test
     public void execute_done_removesOnlyThatItemAndShowsIt() {
         Student original = giveFirstStudentTwoItems();
@@ -103,14 +106,18 @@ public class FollowUpDoneCommandTest {
                 Messages.MESSAGE_INVALID_FOLLOW_UP_DISPLAYED_INDEX);
     }
 
+    //@@author savemywifi
     @Test
     public void equals() {
         FollowUpDoneCommand command = done(INDEX_FIRST_PERSON, FIRST_ITEM);
         assertEquals(command, done(INDEX_FIRST_PERSON, FIRST_ITEM));
         assertEquals(command.hashCode(), done(INDEX_FIRST_PERSON, FIRST_ITEM).hashCode());
+        //@@author nivremi
         assertNotEquals(command, done(INDEX_FIRST_PERSON, SECOND_ITEM));
+        //@@author savemywifi
         assertNotEquals(command, done(INDEX_SECOND_PERSON, FIRST_ITEM));
         assertNotEquals(command, null);
         assertNotEquals(command, new FollowUpListCommand());
     }
+    //@@author nivremi
 }
